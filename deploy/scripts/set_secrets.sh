@@ -356,22 +356,10 @@ else
 	fi
 fi
 
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                              Setting the secrets                                      #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Set secrets" "Setting secrets for environment ${environment} in keyvault ${keyvault}" "info"
 
 echo "Key vault:                           ${keyvault}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
-
-save_config_vars "${environment_config_information}" \
-	keyvault \
-	environment \
-	subscription \
-	tenant_id \
-	STATE_SUBSCRIPTION
 
 secret_name="${environment}"-subscription-id
 

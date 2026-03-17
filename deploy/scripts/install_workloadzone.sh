@@ -21,15 +21,6 @@ script_directory="$(dirname "${full_script_path}")"
 parent_caller="${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}"
 parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 
-# Check if parent caller is from v1 directory
-if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
-	echo "DEBUG: Detected v1 caller"
-	isCallerV1=0
-else
-	echo "DEBUG: Detected v2 caller"
-	isCallerV1=1
-fi
-
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${script_directory}/deploy_utils.sh"
@@ -38,7 +29,7 @@ source "${script_directory}/deploy_utils.sh"
 # shellcheck disable=SC1091
 source "${script_directory}/helpers/script_helpers.sh"
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = "true" ]; then
 	set -x
 	set -o errexit
 fi
@@ -47,7 +38,7 @@ force=0
 called_from_ado=0
 deploy_using_msi_only=0
 
-INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,ado,auto-approve,force,help,msi -- "$@")
+INPUT_ARGUMENTS=$(getopt -n install_workloadzone -o p:d:e:k:o:s:c:n:t:v:aifhm --longoptions parameterfile:,deployer_tfstate_key:,deployer_environment:,subscription:,spn_id:,spn_secret:,tenant_id:,state_subscription:,keyvault:,storageaccountname:,control_plane_name:,ado,auto-approve,force,help,msi -- "$@")
 VALID_ARGUMENTS=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
 	showhelp
@@ -70,6 +61,10 @@ while :; do
 		;;
 	-e | --deployer_environment)
 		deployer_environment="$2"
+		shift 2
+		;;
+	--control_plane_name)
+		CONTROL_PLANE_NAME="$2"
 		shift 2
 		;;
 	-f | --force)
@@ -132,38 +127,30 @@ deployment_system="sap_landscape"
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 
 deployer_environment=$(echo "${deployer_environment}" | tr "[:lower:]" "[:upper:]")
+CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
 
 echo "Deployer environment:                $deployer_environment"
+echo "Control plane name:                  $CONTROL_PLANE_NAME"
 
-if [ 1 == $called_from_ado ]; then
-	this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-	export TF_VAR_Agent_IP=$this_ip
-	echo "Agent IP:                            $this_ip"
+this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+export TF_VAR_Agent_IP=$this_ip
+echo "Agent IP:                            $this_ip"
 
-fi
+subscription=$(echo "${subscription:-$ARM_SUBSCRIPTION_ID}" | tr "[:upper:]" "[:lower:]")
 
 workload_file_parametername=$(basename "${parameterfile}")
 
 param_dirname=$(dirname "${parameterfile}")
 
 if [ "$param_dirname" != '.' ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#  $bold_red Please run this command from the folder containing the parameter file$reset_formatting               #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Installer" "Please run the installer from the folder containing the parameter file" "error"
 	exit 3
 fi
 
 if [ ! -f "${workload_file_parametername}" ]; then
 	printf -v val %-40.40s "$workload_file_parametername"
 	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                 $bold_red_underscore Parameter file does not exist: ${val}$reset_formatting #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Installer" "Parameter file does not exist: ${val}" "error"
 	exit 3
 fi
 
@@ -202,14 +189,7 @@ load_config_vars "$workload_file_parametername" "network_logical_name"
 network_logical_name=$(echo "$workload_file_parametername" | awk -F'-' '{print $3}')
 
 if [ -z "${network_logical_name}" ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                         $bold_red  Incorrect parameter file. $reset_formatting                                  #"
-	echo "#                                                                                       #"
-	echo "#             The file must contain the network_logical_name attribute!!                #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Install Workload zone" "Could not extract network logical name from parameter file name" "error"
 	return 64 #script usage wrong
 fi
 
@@ -227,9 +207,13 @@ fi
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
 
-ENVIRONMENT=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-LOCATION_CODE=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+if [ "${ARM_USE_MSI:-false}" = "true" ]; then
+	deploy_using_msi_only=1
+fi
+
+ENVIRONMENT=$(basename "$workload_file_parametername" | awk -F'-' '{print $1}' | xargs)
+LOCATION_CODE=$(basename "$workload_file_parametername" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(basename "$workload_file_parametername" | awk -F'-' '{print $3}' | xargs)
 if [ -z "$ENVIRONMENT" ] || [ -z "$LOCATION_CODE" ] || [ -z "$NETWORK" ]; then
 	echo "Could not extract environment, location or network from parameter file name"
 	echo "Expected format <environment>-<location>-<network>-INFRASTRUCTURE.tfvars"
@@ -239,19 +223,38 @@ fi
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION_CODE}" "${NETWORK}")
 
 touch "${workload_environment_file_name}"
-DEPLOYER_ENVIRONMENT=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $1}' | xargs)
-DEPLOYER_LOCATION=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $2}' | xargs)
-DEPLOYER_NETWORK=$(echo "$deployerTerraformStatefileName" | awk -F'-' '{print $3}' | xargs)
-
+if [ -n "$CONTROL_PLANE_NAME" ]; then
+	DEPLOYER_ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
+	DEPLOYER_LOCATION=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
+	DEPLOYER_NETWORK=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f3)
+else
+	DEPLOYER_ENVIRONMENT=$(echo "${deployerTerraformStatefileName}" | awk -F'-' '{print $1}' | xargs)
+	DEPLOYER_LOCATION=$(basename "${deployerTerraformStatefileName}" | awk -F'-' '{print $2}' | xargs)
+	DEPLOYER_NETWORK=$(basename "${deployerTerraformStatefileName}" | awk -F'-' '{print $3}' | xargs)
+fi
 if [ -z "$DEPLOYER_ENVIRONMENT" ] || [ -z "$DEPLOYER_LOCATION" ] || [ -z "$DEPLOYER_NETWORK" ]; then
-	echo "Could not extract environment, location or network from parameter file name"
+	echo "Could not extract control plane environment, location or network from parameter file name"
 	echo "Expected format <environment>-<location>-<network>-INFRASTRUCTURE.tfvars"
 	exit 2
 fi
+
 deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${DEPLOYER_ENVIRONMENT}" "${DEPLOYER_LOCATION}" "${DEPLOYER_NETWORK}")
 
-save_config_vars "${workload_environment_file_name}" \
-	STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
+if [ ! -f "${deployer_environment_file_name}" ]; then
+	print_banner "Install workload zone" "Deployer environment file not found: ${deployer_environment_file_name}" "error"
+	exit 2
+fi
+
+load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id" "keyvault" "deployer_tfstate_key"
+if [ -n "$deployerTerraformStatefileName" ]; then
+	deployer_tfstate_key="${deployerTerraformStatefileName}"
+fi
+TF_VAR_deployer_tfstate_key=$deployer_tfstate_key
+export TF_VAR_deployer_tfstate_key
+
+STATE_SUBSCRIPTION=$(echo "${tfstate_resource_id}" | cut -d / -f3)
+REMOTE_STATE_SA=$(echo "${tfstate_resource_id}" | cut -d / -f9)
+REMOTE_STATE_RG=$(echo "${tfstate_resource_id}" | cut -d / -f5)
 
 if [ "${force}" == 1 ]; then
 	if [ -f "${workload_environment_file_name}" ]; then
@@ -260,50 +263,21 @@ if [ "${force}" == 1 ]; then
 	rm -Rf .terraform terraform.tfstate*
 fi
 
-if [[ -n $STATE_SUBSCRIPTION ]]; then
-	if is_valid_guid "$STATE_SUBSCRIPTION"; then
 
-		save_config_vars "${workload_environment_file_name}" \
-			STATE_SUBSCRIPTION
-
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#       $cyan Changing the subscription to: $STATE_SUBSCRIPTION $reset_formatting            #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-		az account set --sub "${STATE_SUBSCRIPTION}"
-
-	else
-		printf -v val %-40.40s "$STATE_SUBSCRIPTION"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#The provided state_subscription is not valid:$bold_red ${val} $reset_formatting#"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo "The provided subscription for the terraform storage is not valid: ${val}" >"${workload_environment_file_name}".err
-		exit 65
-	fi
-
-fi
-if [ -z "${keyvault}" ]; then
-	load_config_vars "${deployer_environment_file_name}" "keyvault"
-fi
-
-load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
-if [ -z "${REMOTE_STATE_SA}" ]; then
-	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
-fi
-load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-
-deployer_tfstate_key="${deployerTerraformStatefileName}"
-save_config_var "deployer_tfstate_key" "${workload_environment_file_name}"
-
+save_config_vars "${workload_environment_file_name}" \
+	STATE_SUBSCRIPTION REMOTE_STATE_SA REMOTE_STATE_RG deployer_tfstate_key
 
 if [[ -n $deployer_tfstate_key ]]; then
+	
+	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+	if [ "$useSAS" = "true" ]; then
+		export ARM_USE_AZUREAD=false
+	else
+		export ARM_USE_AZUREAD=true
+	fi
 
-  deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+
+  	deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 	deployer_Statefile_Size=$(expr "$deployer_Statefile_Size_String")
 
@@ -337,13 +311,7 @@ if [ -n "$keyvault" ]; then
 		save_config_var "keyvault" "${workload_environment_file_name}"
 	else
 		printf -v val %-40.40s "$keyvault"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
-		echo "The provided keyvault is not valid: ${val}" >"${workload_environment_file_name}".err
+		print_banner "Install workload zone " "The provided keyvault is not valid: ${val}" "error"
 		exit 65
 	fi
 
@@ -370,9 +338,7 @@ if [ -z "$tfstate_resource_id" ]; then
 		load_config_vars "${deployer_environment_file_name}" "keyvault" "REMOTE_STATE_RG" "REMOTE_STATE_SA" "tfstate_resource_id" "deployer_tf_state"
 
 		save_config_vars "${workload_environment_file_name}" \
-			tfstate_resource_id
-
-		save_config_vars "${workload_environment_file_name}" \
+			tfstate_resource_id \
 			keyvault \
 			subscription \
 			deployer_tf_state \
@@ -434,66 +400,66 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 	fi
 fi
 
-#setting the user environment variables
-# if [ -n "${spn_secret}" ]; then
-# 	set_executing_user_environment_variables "${spn_secret}"
-# else
-# 	set_executing_user_environment_variables "none"
+# #setting the user environment variables
+# # if [ -n "${spn_secret}" ]; then
+# # 	set_executing_user_environment_variables "${spn_secret}"
+# # else
+# # 	set_executing_user_environment_variables "none"
+# # fi
+
+# if [[ -z ${REMOTE_STATE_SA} ]]; then
+# 	load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_SA"
 # fi
 
-if [[ -z ${REMOTE_STATE_SA} ]]; then
-	load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_SA"
-fi
+# load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG" "tfstate_resource_id"
 
-load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG" "tfstate_resource_id"
+# if [[ -z ${STATE_SUBSCRIPTION} ]]; then
+# 	load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
+# fi
 
-if [[ -z ${STATE_SUBSCRIPTION} ]]; then
-	load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
-fi
+# if [[ -z ${subscription} ]]; then
+# 	load_config_vars "${workload_environment_file_name}" "subscription"
+# fi
 
-if [[ -z ${subscription} ]]; then
-	load_config_vars "${workload_environment_file_name}" "subscription"
-fi
+# if [[ -z ${deployerTerraformStatefileName} ]]; then
+# 	load_config_vars "${workload_environment_file_name}" "deployerTerraformStatefileName"
+# fi
 
-if [[ -z ${deployerTerraformStatefileName} ]]; then
-	load_config_vars "${workload_environment_file_name}" "deployerTerraformStatefileName"
-fi
+# if [ -n "$tfstate_resource_id" ]; then
+# 	REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
+# 	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
+# 	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
 
-if [ -n "$tfstate_resource_id" ]; then
-	REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
-	REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
-	STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
+# 	save_config_vars "${workload_environment_file_name}" \
+# 		REMOTE_STATE_SA \
+# 		REMOTE_STATE_RG \
+# 		STATE_SUBSCRIPTION
+# else
+# 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
+# fi
 
-	save_config_vars "${workload_environment_file_name}" \
-		REMOTE_STATE_SA \
-		REMOTE_STATE_RG \
-		STATE_SUBSCRIPTION
-else
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
-fi
+# if [ -z "$subscription" ]; then
+# 	subscription="${STATE_SUBSCRIPTION}"
+# fi
 
-if [ -z "$subscription" ]; then
-	subscription="${STATE_SUBSCRIPTION}"
-fi
+# if [ -z "$REMOTE_STATE_SA" ]; then
+# 	if [ -z "$REMOTE_STATE_RG" ]; then
+# 		load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+# 		if [ -n "${tfstate_resource_id}" ]; then
+# 			REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
+# 			REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
+# 			STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
+# 		fi
+# 	fi
 
-if [ -z "$REMOTE_STATE_SA" ]; then
-	if [ -z "$REMOTE_STATE_RG" ]; then
-		load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
-		if [ -n "${tfstate_resource_id}" ]; then
-			REMOTE_STATE_RG=$(echo "$tfstate_resource_id" | cut -d / -f5)
-			REMOTE_STATE_SA=$(echo "$tfstate_resource_id" | cut -d / -f9)
-			STATE_SUBSCRIPTION=$(echo "$tfstate_resource_id" | cut -d / -f3)
-		fi
-	fi
-
-	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
-	export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
-else
-	if [ -z "$REMOTE_STATE_RG" ]; then
-		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
-		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
-	fi
-fi
+# 	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
+# 	export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
+# else
+# 	if [ -z "$REMOTE_STATE_RG" ]; then
+# 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
+# 		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
+# 	fi
+# fi
 
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
@@ -507,12 +473,13 @@ fi
 
 if [ 1 = "${deploy_using_msi_only:-}" ]; then
 	if [ -n "${keyvault}" ]; then
-		echo "Setting the secrets"
+		print_banner "Install workload zone" "Setting secrets in keyvault: ${keyvault}" "info"
 
 		echo "Calling set_secrets with:             --workload --environment ${environment} --region ${region_code} --vault ${keyvault} \
-    --keyvault_subscription ${STATE_SUBSCRIPTION} --subscription ${ARM_SUBSCRIPTION_ID} --msi"
+    		--keyvault_subscription ${STATE_SUBSCRIPTION} --subscription ${ARM_SUBSCRIPTION_ID} --msi"
 
 		"${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh --workload --environment "${environment}" --region "${region_code}" \
+			--network_code "${NETWORK}" \
 			--vault "${keyvault}" --keyvault_subscription "${STATE_SUBSCRIPTION}" --subscription "${ARM_SUBSCRIPTION_ID}" --msi
 
 		if [ -f secret.err ]; then
@@ -525,8 +492,7 @@ if [ 1 = "${deploy_using_msi_only:-}" ]; then
 
 else
 	if [ -n "${keyvault}" ]; then
-		echo "Setting the secrets"
-
+		print_banner "Install workload zone" "Setting secrets in keyvault: ${keyvault}" "info"
 		save_config_var "client_id" "${workload_environment_file_name}"
 		save_config_var "tenant_id" "${workload_environment_file_name}"
 
@@ -535,7 +501,7 @@ else
 
 			echo "Calling set_secrets with:             ${fixed_allParameters}"
 
-			"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" --workload --environment "${environment}" --region "${region_code}" --vault "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --keyvault_subscription "${STATE_SUBSCRIPTION}" --spn_id "${client_id}" --tenant_id "${tenant_id}" --spn_secret "${spn_secret}"
+			"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" --workload --environment "${environment}" --region "${region_code}" --network_code "${NETWORK}" --vault "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --keyvault_subscription "${STATE_SUBSCRIPTION}" --spn_id "${client_id}" --tenant_id "${tenant_id}" --spn_secret "${spn_secret}"
 
 			if [ -f secret.err ]; then
 				error_message=$(cat secret.err)
@@ -561,8 +527,6 @@ else
 		fi
 	fi
 fi
-
-export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
 	read -r -p "Terraform state storage account name: " REMOTE_STATE_SA
@@ -645,80 +609,40 @@ echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
-if [ ! -d .terraform/ ]; then
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+if [ ! -f .terraform/terraform.tfstate ]; then
+	if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
-		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-		echo ""
-	else
-		return_value=0
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
-	fi
+			return_value=$?
+			print_banner "Install workload zone" "Successfully initialized Terraform with the provided backend configuration." "info"
+		else
+			return_value=0
+			print_banner "Install workload zone" "Failed to initialize Terraform with the provided backend configuration." "error" "Please check the details and your permissions to access the storage account."
+		fi
 else
-	check_output=1
-	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
-	if [ -n "${local_backend}" ]; then
-
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
-			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-			--backend-config "container_name=tfstate" \
-			--backend-config "key=${key}.terraform.tfstate"; then
+	if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			print_banner "Install workload zone" "Successfully initialized Terraform with the provided backend configuration." "info"
 		else
 			return_value=0
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
-		fi
-	else
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-			return_value=$?
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-		else
-			return_value=0
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
-		fi
-
+			print_banner "Install workload zone" "Failed to initialize Terraform with the provided backend configuration." "error" "Please check the details and your permissions to access the storage account."
 	fi
+
 fi
 
 if [ 0 != $return_value ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                            $bold_red_underscore!!! Error when Initializing !!!$reset_formatting                            #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-	echo "Terraform initialization failed"
 	exit $return_value
 fi
-if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
-	check_output=1
-else
+if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	check_output=0
+else
+	check_output=1
 fi
 
-save_config_var "REMOTE_STATE_SA" "${workload_environment_file_name}"
-save_config_var "subscription" "${workload_environment_file_name}"
-save_config_var "STATE_SUBSCRIPTION" "${workload_environment_file_name}"
-save_config_var "tfstate_resource_id" "${workload_environment_file_name}"
+save_config_vars "${workload_environment_file_name}" "REMOTE_STATE_SA" "tfstate_resource_id" "subscription" "STATE_SUBSCRIPTION"
 
 allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" )
 
@@ -727,19 +651,9 @@ if [ 1 == $check_output ]; then
 
 		check_output=0
 		apply_needed=1
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                                  $cyan New deployment $reset_formatting                                     #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
+		print_banner "Install workload zone" "No existing deployment was detected, a new deployment will be performed" "info"
 	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                          $cyan Existing deployment was detected $reset_formatting                           #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Install workload zone" "Existing deployment detected" "warning"
 
 		workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 		if valid_kv_name "$workloadkeyvault"; then
@@ -775,13 +689,7 @@ if [ 1 == $check_output ]; then
 			fi
 		else
 			printf -v val %-.20s "$deployed_using_version"
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#             $cyan Deployed using the Terraform templates version: $val $reset_formatting               #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Install workload zone" "Deployed using Terraform templates version: ${val}" "info"
 			#Add version logic here
 		fi
 	fi
@@ -794,14 +702,7 @@ export TF_VAR_management_subscription="${STATE_SUBSCRIPTION}"
 if [ 1 == $check_output ]; then
 	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
 	if [ -n "${deployed_using_version}" ]; then
-		printf -v val %-.20s "$deployed_using_version"
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#             $cyan Deployed using the Terraform templates version: $val $reset_formatting               #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		printf -v val %-.20s "$deployed_using_version"print_banner "Install workload zone" "Deployed using Terraform templates version: ${val}" "info"
 
 		version_compare "${deployed_using_version}" "3.13.2.0"
 		older_version=$?
@@ -817,14 +718,7 @@ if [ 1 == $check_output ]; then
 			if terraform -chdir="${terraform_module_directory}" state rm module.sap_landscape.azurerm_private_dns_a_record.keyvault[0]; then
 				echo "Removed the transport private DNS record"
 			fi
-
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#           $bold_red  Deployed using an older version $reset_formatting                                          #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Install workload zone" "Deployed using an older version" "warning"
 
 			# Remediating the Storage Accounts and File Shares
 
@@ -873,13 +767,7 @@ if [ 1 == $check_output ]; then
 	fi
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#                           $cyan  Running Terraform plan $reset_formatting                                   #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Install workload zone" "Running Terraform plan to detect changes to be applied" "info"
 
 allParameters=$(printf " -var-file=%s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" )
 
@@ -890,24 +778,14 @@ else
 	return_value=${PIPESTATUS[0]}
 fi
 if [ $return_value -eq 1 ]; then
-	echo ""
-	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Install workload zone" "Error when running Terraform plan" "error"
 	if [ -f plan_output.log ]; then
 		rm plan_output.log
 	fi
 	exit $return_value
 else
 	return_value=$?
-	echo ""
-	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
-	echo ""
+	print_banner "Install workload zone" "Terraform plan succeeded" "success"
 fi
 
 if [ $check_output == 0 ]; then
@@ -921,15 +799,7 @@ echo "Terraform Plan return code:          $return_value"
 apply_needed=1
 
 if [ "${TEST_ONLY}" == "True" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                                 $cyan Running plan only. $reset_formatting                                  #"
-	echo "#                                                                                       #"
-	echo "#                                  No deployment performed.                             #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Install workload zone" "Running in test mode, no changes will be applied" "warning"
 	if [ -f plan_output.log ]; then
 		rm plan_output.log
 	fi
@@ -950,15 +820,7 @@ if [ -f plan_output.log ]; then
 	if [ 1 != $return_value ]; then
 		test=$(grep -m1 "replaced" plan_output.log | grep kv_user || true)
 		if [ -n "${test}" ]; then
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                              $bold_red !!! Risk for Data loss !!! $reset_formatting                             #"
-			echo "#                                                                                       #"
-			echo "#        Please inspect the output of Terraform plan carefully before proceeding        #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Install workload zone" "Terraform plan detected changes, which will cause resources to be replaced" "error" "Please inspect the output of Terraform plan carefully before proceeding."
 			if [ 1 == $called_from_ado ]; then
 				unset TF_DATA_DIR
 				exit 11
@@ -993,13 +855,7 @@ if [ 0 == $return_value ]; then
 fi
 
 if [ 1 == $apply_needed ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                            $cyan Running Terraform apply $reset_formatting                                  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Install workload zone" "Applying Terraform changes" "info"
 
 	parallelism=10
 
@@ -1021,17 +877,11 @@ if [ 1 == $apply_needed ]; then
 			return_value=${PIPESTATUS[0]}
 		fi
 		echo "Return value:                        $return_value"
-		if [ $return_value -eq 1 ]; then
-			echo ""
-			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-			echo ""
-			exit $return_value
+		if [ $return_value -ne 1 ]; then
+			print_banner "Install workload zone" "Terraform apply succeeded" "success"
 		else
-			# return code 2 is ok
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
-			return_value=0
+			print_banner "Install workload zone" "Terraform apply failed" "error"
+			exit $return_value
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
@@ -1040,13 +890,9 @@ if [ 1 == $apply_needed ]; then
 
 		echo "Return value:                        $return_value"
 		if [ $return_value -ne 1 ]; then
-			echo ""
-			echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-			echo ""
+			print_banner "Install workload zone" "Terraform apply succeeded" "success"
 		else
-			echo ""
-			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-			echo ""
+			print_banner "Install workload zone" "Terraform apply failed" "error"
 			exit $return_value
 		fi
 
@@ -1149,14 +995,8 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 		if [ -z "${temp}" ]; then
 
 			printf -v val %-.20s "$workload_keyvault"
+			print_banner "Install workload zone" "Keyvault to use for System credentials: $val" "info"
 
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                Keyvault to use for System details:$cyan $val $reset_formatting               #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
 			workloadkeyvault="$workload_keyvault"
 			save_config_var "workloadkeyvault" "${workload_environment_file_name}"
 		fi
@@ -1169,11 +1009,7 @@ if [ 0 != $return_value ]; then
 fi
 
 echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#                            $cyan Creating deployment     $reset_formatting                                  #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
+print_banner "Install workload zone" "Creating deployment" "info"
 echo ""
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
