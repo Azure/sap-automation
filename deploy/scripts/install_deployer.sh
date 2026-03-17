@@ -135,7 +135,7 @@ get_region_code "$region"
 key=$(echo "${parameterfile}" | cut -d. -f1)
 
 #Persisting the parameters across executions
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}config"
 
 

@@ -101,6 +101,7 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
 		shift 2
 		;;
 	-l | --landscape_tfstate_key)
@@ -153,23 +154,13 @@ else
 fi
 
 if [ "${parameterfile_dirname}" != "${working_directory}" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#  $bold_red Please run this command from the folder containing the parameter file $reset_formatting              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+    print_banner "Remover" "Please run the remover script from the folder containing the parameter file" "error"
 	exit 3
 fi
 
 if [ ! -f "${parameterfile}" ]; then
 	printf -v val %-35.35s "$parameterfile"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                 $bold_red  Parameter file does not exist: ${val} $reset_formatting #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Remover" "Parameter file does not exist: ${val}" "error"
 	exit 2 #No such file or directory
 fi
 
@@ -220,12 +211,10 @@ else
 fi
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-
-this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
 echo "Agent IP:                            $this_ip"
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
 
 if [ "${deployment_system}" == "sap_system" ] || [ "${deployment_system}" == "sap_landscape" ]; then
@@ -242,6 +231,10 @@ elif [ "${deployment_system}" == "sap_deployer" ]; then
 	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
 	network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+elif [ "${deployment_system}" == "sap_library" ]; then
+	environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)
 fi
 
 if [ -v SYSTEM_CONFIGURATION_FILE ]; then
@@ -475,13 +468,9 @@ if [ "$resource_group_exist" ]; then
 
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
 		if [ ! -d "${terraform_bootstrap_directory}" ]; then
+		   
 			printf -v val %-40.40s "$terraform_bootstrap_directory"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#  $bold_red Unable to find bootstrap directory: ${val}$reset_formatting#"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Remover" "Unable to find bootstrap directory: ${val}" "error"
 			exit 66 #cannot open input file/folder
 		fi
 		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
@@ -561,7 +550,7 @@ if [ "$resource_group_exist" ]; then
 		# fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
 				return_value=$?
 			else
 				return_value=${PIPESTATUS[0]}
@@ -582,13 +571,9 @@ if [ "$resource_group_exist" ]; then
 			fi
 		fi
 		if [ 0 -eq $return_value ]; then
-			echo ""
-			echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-			echo ""
+				print_banner "Remover" "Terraform destroy succeeded" "success"
 		else
-			echo ""
-			echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-			echo ""
+				print_banner "Remover" "Terraform destroy failed" "error"
 			exit 1
 		fi
 
@@ -603,28 +588,20 @@ if [ "$resource_group_exist" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-				echo ""
+				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
 				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-				echo ""
+				print_banner "Remover" "Terraform destroy failed" "error"
 				exit 1
 			fi
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
 				return_value=$?
-				echo ""
-				echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-				echo ""
+				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
 				return_value=$?
-				echo ""
-				echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-				echo ""
+				print_banner "Remover" "Terraform destroy failed" "error"
 				exit 1
 			fi
 		fi
@@ -633,13 +610,7 @@ if [ "$resource_group_exist" ]; then
 			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
 
 			if [[ -n $errors_occurred ]]; then
-				echo ""
-				echo "#########################################################################################"
-				echo "#                                                                                       #"
-				echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
-				echo "#                                                                                       #"
-				echo "#########################################################################################"
-				echo ""
+				print_banner "Remover" "Errors during the destroy phase" "error"
 
 				return_value=2
 				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
@@ -653,10 +624,10 @@ if [ "$resource_group_exist" ]; then
 
 						report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
 						if [[ -n ${report} ]]; then
-							echo -e "#                          $bold_red_underscore  $report $reset_formatting"
+							print_banner "Remover" "$report" "error"
 							echo "##vso[task.logissue type=error]${report}"
 						else
-							echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+							print_banner "Remover" "$string_to_report" "error"
 							echo "##vso[task.logissue type=error]${string_to_report}"
 						fi
 

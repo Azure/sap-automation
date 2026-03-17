@@ -337,7 +337,7 @@ function remove_control_plane() {
 	fi
 
 	if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+		if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 			APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 			export APPLICATION_CONFIGURATION_ID
 		fi
@@ -553,24 +553,39 @@ function remove_control_plane() {
 	if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var use_deployer=false -refresh=false -var "use_spn=$use_spn" "${approve_parameter}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
+		if [ -f "${param_dirname}/terraform.tfstate" ]; then
+			rm "${param_dirname}/terraform.tfstate"
+		fi
+		if [ -f "${param_dirname}/terraform.tfstate.backup" ]; then
+			rm "${param_dirname}/terraform.tfstate.backup"
+		fi
+		if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+			rm "${param_dirname}/.terraform/terraform.tfstate"
+		fi
+		if [ -d "${param_dirname}/.terraform" ]; then
+			rm -rf "${param_dirname}/.terraform"
+		fi
+
+		# shellcheck disable=SC2034
+		REMOTE_STATE_RG=''
+		REMOTE_STATE_SA=''
+		STATE_SUBSCRIPTION=''
+		# shellcheck disable=SC2034
+		tfstate_resource_id=''
+		# shellcheck disable=SC2034
+		library_random_id=''
+
+		save_config_vars "${deployer_environment_file_name}" \
+			library_random_id \
+			REMOTE_STATE_RG \
+			REMOTE_STATE_SA \
+			STATE_SUBSCRIPTION \
+			tfstate_resource_id
+
 	else
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
 		return 20
-	fi
-
-	if [ -f "${param_dirname}/terraform.tfstate" ]; then
-		rm "${param_dirname}/terraform.tfstate"
-	fi
-	if [ -f "${param_dirname}/terraform.tfstate.backup" ]; then
-		rm "${param_dirname}/terraform.tfstate.backup"
-	fi
-	if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
-		rm "${param_dirname}/.terraform/terraform.tfstate"
-	fi
-
-	if [ 0 != $return_value ]; then
-		return $return_value
 	fi
 
 	cd "${current_directory}" || exit
@@ -625,6 +640,7 @@ function remove_control_plane() {
 		if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${var_file}" -refresh=false -var "use_spn=$use_spn" "${approve_parameter}"; then
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform destroy (deployer) succeeded" "success"
+
 			if [ -f "${param_dirname}/terraform.tfstate" ]; then
 				rm "${param_dirname}/terraform.tfstate"
 			fi
@@ -634,6 +650,44 @@ function remove_control_plane() {
 			if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
 				rm "${param_dirname}/.terraform/terraform.tfstate"
 			fi
+			if [ -d "${param_dirname}/.terraform" ]; then
+				rm -rf "${param_dirname}/.terraform"
+			fi
+
+			# shellcheck disable=SC2034
+			APPLICATION_CONFIGURATION_DEPLOYMENT=''
+			# shellcheck disable=SC2034
+			APPLICATION_CONFIGURATION_NAME=''
+			# shellcheck disable=SC2034
+			APP_CONFIG_DEPLOYMENT=''
+			# shellcheck disable=SC2034
+			APP_SERVICE_DEPLOYMENT=''
+			# shellcheck disable=SC2034
+			APP_SERVICE_NAME=''
+			# shellcheck disable=SC2034
+			DEPLOYER_KEYVAULT=''
+			# shellcheck disable=SC2034
+			deployer_random_id=''
+			# shellcheck disable=SC2034
+			deployer_tfstate_key=''
+			# shellcheck disable=SC2034
+			deployer_public_ip_address=''
+			# shellcheck disable=SC2034
+			keyvault=''
+
+			save_config_vars "${deployer_environment_file_name}" \
+				APPLICATION_CONFIGURATION_DEPLOYMENT \
+				APPLICATION_CONFIGURATION_NAME \
+				APP_CONFIG_DEPLOYMENT \
+				APP_SERVICE_DEPLOYMENT \
+				APP_SERVICE_NAME \
+				DEPLOYER_KEYVAULT \
+				deployer_public_ip_address \
+				deployer_random_id \
+				deployer_tfstate_key \
+				keyvault
+
+
 		else
 			return_value=$?
 			print_banner "Remove Control Plane " "Terraform destroy (deployer) failed" "error"
@@ -641,26 +695,6 @@ function remove_control_plane() {
 		fi
 		step=0
 		save_config_var "step" "${deployer_environment_file_name}"
-		if [ 0 != $return_value ]; then
-			keyvault=''
-			deployer_tfstate_key=''
-			DEPLOYER_KEYVAULT=''
-			APPLICATION_CONFIGURATION_NAME=''
-			APPLICATION_CONFIGURATION_DEPLOYMENT=''
-			APP_SERVICE_DEPLOYMENT=''
-			APP_SERVICE_NAME=''
-
-			save_config_var "$keyvault" "${deployer_environment_file_name}"
-			save_config_var "$deployer_tfstate_key" "${deployer_environment_file_name}"
-			save_config_var "$DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
-			save_config_var "$APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
-			save_config_var "$APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}"
-			save_config_var "$APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
-			save_config_var "$APP_SERVICE_NAME" "${deployer_environment_file_name}"
-			if [ -f "${deployer_environment_file_name}" ]; then
-				rm "${deployer_environment_file_name}"
-			fi
-		fi
 	fi
 
 	cd "${current_directory}" || exit

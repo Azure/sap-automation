@@ -70,6 +70,7 @@ function showhelp {
 	echo "#   Usage: set_secret.sh                                                                #"
 	echo "#      -e or --environment                   environment name                           #"
 	echo "#      -r or --region                        region name                                #"
+	echo "#      -n or --network_code                  network code                                #"
 	echo "#      -v or --vault                         Azure keyvault name                        #"
 	echo "#      -s or --subscription                  subscription                               #"
 	echo "#      -c or --spn_id                        SPN application id                         #"
@@ -82,18 +83,29 @@ function showhelp {
 	echo "#   [REPO-ROOT]deploy/scripts/set_secret.sh \                                           #"
 	echo "#      --environment PROD  \                                                            #"
 	echo "#      --region weeu  \                                                                 #"
+	echo "#      --network_code SAP01  \                                                          #"
+	echo "#      --vault prodweeuusrabc  \                                                        #"
+	echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                            #"
+	echo "#      --msi                                                                            #"
+	echo "#                                                                                       #"
+	echo "#                                                                                       #"
+	echo "#   [REPO-ROOT]deploy/scripts/set_secret.sh \                                           #"
+	echo "#      --environment PROD  \                                                            #"
+	echo "#      --region weeu  \                                                                 #"
+	echo "#      --network_code SAP01  \                                                          #"
 	echo "#      --vault prodweeuusrabc  \                                                        #"
 	echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                            #"
 	echo "#      --spn_id yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                  #"
 	echo "#      --spn_secret ************************ \                                          #"
-	echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz \                               #"
+	echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz                                 #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 }
 
 deploy_using_msi_only=0
+network_code=""
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hwma --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:n:hwma --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,network_code:,workload,help,msi,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -109,6 +121,10 @@ while :; do
 		;;
 	-r | --region)
 		region_code="$2"
+		shift 2
+		;;
+	-n | --network_code)
+		network_code="$2"
 		shift 2
 		;;
 	-v | --vault)
@@ -193,8 +209,8 @@ fi
 #    exit 65	#/* data format error */
 # fi
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-environment_config_information="${automation_config_directory}/${environment}${region_code}"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
+environment_config_information="${automation_config_directory}/${environment}${region_code}${network_code}"
 return_code=0
 
 if [ -f secret.err ]; then

@@ -61,6 +61,11 @@ if [ -v ARM_SUBSCRIPTION_ID ]; then
 	subscription="$ARM_SUBSCRIPTION_ID"
 fi
 
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
+
 INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -201,7 +206,7 @@ get_region_code "$region"
 
 echo "Region code:                         ${region_code}"
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
 
 ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
@@ -260,21 +265,12 @@ relative_path="${deployer_dirname}"
 TF_DATA_DIR="${relative_path}"/.terraform
 export TF_DATA_DIR
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#                   $cyan Starting the control plane deployment $reset_formatting                             #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Control Plane deployment" "Starting the control plane deployment" "info"
+
 noAccess=$(az account show --query name | grep "N/A(tenant level account)" || true)
 
 if [ -n "$noAccess" ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#        $bold_red The provided credentials do not have access to the subscription!!! $reset_formatting           #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Control Plane deployment" "The provided credentials do not have access to the subscription" "error"
 
 	az account show --output table
 
@@ -286,24 +282,11 @@ if [ -n "${subscription}" ]; then
 	if is_valid_guid "$subscription"; then
 		echo ""
 	else
-		printf -v val %-40.40s "$subscription"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#   The provided subscription is not valid:$bold_red ${val} $reset_formatting#   "
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
-		echo "The provided subscription is not valid: ${subscription}" >"${deployer_environment_file_name}".err
-
+		print_banner "Control Plane deployment" "The provided subscription is not valid: $subscription" "error"
 		exit 65
 	fi
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#       $cyan Changing the subscription to: $subscription $reset_formatting            #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+
+	print_banner "Control Plane deployment" "Using subscription: $subscription" "info"
 
 	if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		echo "Identity to use:                     Service Principal"
@@ -348,13 +331,7 @@ fi
 
 current_directory=$(pwd)
 
-##########################################################################################
-#                                                                                        #
-#                                      STEP 0                                            #
-#                           Bootstrapping the deployer                                   #
-#                                                                                        #
-#                                                                                        #
-##########################################################################################
+print_banner "Control Plane deployment" "Bootstrapping the deployer" "info"
 
 load_config_vars "${deployer_environment_file_name}" "step"
 if [ -z "${step}" ]; then
@@ -362,14 +339,15 @@ if [ -z "${step}" ]; then
 fi
 echo "Step:                                $step"
 
+##########################################################################################
+#                                                                                        #
+#                                     Step 0                                             #
+#                           Bootstrapping the deployer                                 #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
+
 if [ 0 == "$step" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $cyan Bootstrapping the deployer $reset_formatting                                 #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
 
 	allParameters=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
 
@@ -394,7 +372,7 @@ if [ 0 == "$step" ]; then
 			return_code=$?
 		else
 			return_code=$?
-			echo "Bootstrapping of the deployer failed ($return_code)"
+			print_banner "Control Plane deployment" "Bootstrapping of the deployer failed with return code ${return_code}" "error"
 			step=0
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 10
@@ -405,7 +383,7 @@ if [ 0 == "$step" ]; then
 			return_code=$?
 		else
 			return_code=$?
-			echo "Bootstrapping of the deployer failed ($return_code)"
+			print_banner "Control Plane deployment" "Bootstrapping of the deployer failed with return code ${return_code}" "error"
 			step=0
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 10
@@ -415,11 +393,12 @@ if [ 0 == "$step" ]; then
 
 	echo "Return code from install_deployer:   ${return_code}"
 	if [ 0 != $return_code ]; then
-		echo "Bootstrapping of the deployer failed" >"${deployer_environment_file_name}".err
+		print_banner "Control Plane deployment" "Bootstrapping of the deployer failed with return code ${return_code}" "error"
 		step=0
 		save_config_var "step" "${deployer_environment_file_name}"
 		exit 10
 	else
+		print_banner "Control Plane deployment" "Bootstrapping of the deployer succeeded" "success"
 		step=1
 		save_config_var "step" "${deployer_environment_file_name}"
 
@@ -436,12 +415,7 @@ if [ 0 == "$step" ]; then
 	keyvault="${DEPLOYER_KEYVAULT}"
 
 	if [ -z "$DEPLOYER_KEYVAULT" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                       $bold_red  Bootstrapping of the deployer failed $reset_formatting                         #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo "Bootstrapping of the deployer failed" >"${deployer_environment_file_name}".err
+		print_banner "Control Plane deployment" "Bootstrapping of the deployer failed with return code ${return_code}" "error"
 		exit 10
 	fi
 	if [ "$FORCE_RESET" = True ]; then
@@ -455,23 +429,16 @@ if [ 0 == "$step" ]; then
 
 	cd "$root_dirname" || exit
 
-	load_config_vars "${deployer_environment_file_name}" "sshsecret"
-	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
-	load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address"
+	load_config_vars "${deployer_environment_file_name}" "sshsecret" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
 
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
 else
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $cyan Deployer is bootstrapped $reset_formatting                                   #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Control Plane deployment" "Deployer is already bootstrapped, skipping to the next step" "info"
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
 fi
 
 cd "$root_dirname" || exit
+
 
 ##########################################################################################
 #                                                                                        #
@@ -480,7 +447,8 @@ cd "$root_dirname" || exit
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
-echo "Validating Key Vault Access"
+
+print_banner "Control Plane deployment" "Validating Key Vault Access" "info"
 echo "Step:                                $step"
 
 TF_DATA_DIR="${deployer_dirname}"/.terraform
@@ -527,31 +495,29 @@ if [ 0 != "$step" ]; then
 				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
 					--environment "${environment}" \
 					--region "${region_code}" \
+					--network_code "${NETWORK}" \
 					--vault "${keyvault}" \
 					--spn_id "${client_id:-$ARM_CLIENT_ID}" \
 					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
 					--spn_secret "${client_secret:-$ARM_CLIENT_SECRET}" \
 					--tenant_id "${tenant_id:-$ARM_TENANT_ID}"; then
-					echo ""
-					echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
-					echo ""
+					print_banner "Control Plane deployment" "Secrets have been set successfully" "success"
 				else
-					echo -e "${bold_red}Set secrets:                           succeeded$reset_formatting"
+					print_banner "Control Plane deployment" "Failed to set secrets" "error"
 					exit 10
 				fi
 			else
 				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
 					--environment "${environment}" \
-					--msi \
+					--network_code "${NETWORK}" \
 					--region "${region_code}" \
 					--vault "${keyvault}" \
 					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
+					--msi \
 					--tenant_id "${tenant_id:-$ARM_TENANT_ID}"; then
-					echo ""
-					echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
-					echo ""
+					print_banner "Control Plane deployment" "Secrets have been set successfully" "success"
 				else
-					echo -e "${bold_red}Set secrets:                           succeeded$reset_formatting"
+					print_banner "Control Plane deployment" "Failed to set secrets" "error"
 					exit 10
 				fi
 			fi
@@ -569,12 +535,7 @@ if [ -n "${keyvault}" ] && [ 0 != "$step" ]; then
 
 	kv_found=$(az keyvault show --name="$keyvault" --subscription "${subscription}" --query name)
 	if [ -z "${kv_found}" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                            $bold_red  Detected a failed deployment $reset_formatting                            #"
-		echo "#                                                                                       #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
+	    print_banner "Control Plane deployment" "Detected a failed deployment" "error"
 		exit 10
 	else
 		TF_VAR_deployer_kv_user_arm_id=$(az keyvault show --name="$keyvault" --subscription "${subscription}" --query id)
@@ -608,11 +569,8 @@ if validate_key_vault "$keyvault" "$ARM_SUBSCRIPTION_ID"; then
 
 else
 	return_code=$?
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                       $bold_red  Key vault not found $reset_formatting                                      #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "Control Plane deployment" "Failed to access the key vault ${keyvault}" "error"
+
 fi
 
 ##########################################################################################
@@ -624,13 +582,7 @@ fi
 ##########################################################################################
 
 if [ 2 -eq $step ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $cyan Bootstrapping the library $reset_formatting                                  #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Control Plane deployment" "Bootstrapping the library" "info"
 
 	relative_path="${library_dirname}"
 	export TF_DATA_DIR="${relative_path}/.terraform"
@@ -647,34 +599,36 @@ if [ 2 -eq $step ]; then
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
 
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
 			--deployer_statefile_foldername "${deployer_dirname}" \
 			--keyvault "${keyvault}" --auto-approve; then
-			echo "Bootstrapping of the SAP Library failed"
+			step=3
+			save_config_var "step" "${deployer_environment_file_name}"
+			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library succeeded" "success"
+		else
+			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library failed" "error"
 			step=2
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 20
-		else
-			step=3
-			save_config_var "step" "${deployer_environment_file_name}"
 
 		fi
 	else
-		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
 			--parameterfile "${library_file_parametername}" \
 			--deployer_statefile_foldername "${relative_path}" \
 			--keyvault "${keyvault}"; then
 			return_code=$?
-			echo "Bootstrapping of the SAP Library failed"
+			step=3
+			save_config_var "step" "${deployer_environment_file_name}"
+			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library succeeded" "success"
+		else
+			return_code=$?
+			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library failed" "error"
 
 			step=2
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 20
-		else
-			return_code=$?
-			step=3
-			save_config_var "step" "${deployer_environment_file_name}"
 		fi
 	fi
 
@@ -704,13 +658,7 @@ if [ 2 -eq $step ]; then
 	echo "##vso[task.setprogress value=60;]Progress Indicator"
 
 else
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                           $cyan Library is bootstrapped $reset_formatting                                   #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Control Plane deployment" "SAP Library is already bootstrapped, skipping to the next step" "info"
 	echo "##vso[task.setprogress value=60;]Progress Indicator"
 
 fi
@@ -727,13 +675,7 @@ echo "##vso[task.setprogress value=80;]Progress Indicator"
 #                                                                                        #
 ##########################################################################################
 if [ 3 -eq "$step" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $cyan Migrating the deployer state $reset_formatting                               #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Control Plane deployment" "Migrating the deployer state" "info"
 
 	cd "${deployer_dirname}" || exit
 
@@ -760,12 +702,7 @@ if [ 3 -eq "$step" ]; then
 		save_config_var "step" "${deployer_environment_file_name}"
 		echo "##vso[task.setprogress value=40;]Progress Indicator"
 		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                   $bold_red Could not find the SAP Library, please re-run! $reset_formatting                    #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Control Plane deployment" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
 
 	fi
@@ -786,8 +723,7 @@ if [ 3 -eq "$step" ]; then
 			--auto-approve; then
 			return_code=0
 		else
-			echo ""
-			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
+			print_banner "Control Plane deployment" "Migrating the Deployer state failed" "error"
 			step=3
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 30
@@ -801,7 +737,7 @@ if [ 3 -eq "$step" ]; then
 			save_config_var "step" "${deployer_environment_file_name}"
 			return_code=0
 		else
-			echo -e "${bold_red}Migrating the Deployer state failed${reset_formatting}"
+			print_banner "Control Plane deployment" "Migrating the Deployer state failed" "error"
 			step=3
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 30
@@ -830,18 +766,9 @@ load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
 ##########################################################################################
 
 if [ 4 -eq $step ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $cyan Migrating the library state $reset_formatting                                #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Control Plane deployment" "Migrating the library state" "info"
 
 	terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_library/
-
-	echo "DEBUG: terraform_module_directory: ${terraform_module_directory}"
-	echo "DEBUG: library_dirname: ${library_dirname}"
 
 	cd "${library_dirname}" || exit
 	if [ -f .terraform/terraform.tfstate ]; then
@@ -888,7 +815,8 @@ if [ 4 -eq $step ]; then
 			--auto-approve; then
 			return_code=$?
 		else
-			echo "Migrating the SAP Library state failed"
+			print_banner "Control Plane deployment" "Migrating the SAP Library state failed" "error"
+			
 			step=4
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 40
@@ -901,7 +829,7 @@ if [ 4 -eq $step ]; then
 			--deployer_tfstate_key "${deployer_tf_state}"; then
 			return_code=$?
 		else
-			echo "Migrating the SAP Library state failed"
+			print_banner "Control Plane deployment" "Migrating the SAP Library state failed" "error"
 			step=4
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 40
@@ -962,17 +890,10 @@ if [ 5 -eq $step ]; then
 	if [ "${ado_flag}" != "--ado" ]; then
 		cd "${current_directory}" || exit
 
-		load_config_vars "${deployer_environment_file_name}" "sshsecret"
-		load_config_vars "${deployer_environment_file_name}" "keyvault"
-		load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address"
+		load_config_vars "${deployer_environment_file_name}" "sshsecret" "keyvault" "deployer_public_ip_address"
 		if [ ! -f /etc/profile.d/deploy_server.sh ]; then
 			# Only run this when not on deployer
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                         $cyan  Copying the parameterfiles $reset_formatting                                 #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+			print_banner "Control Plane deployment" "Copying the parameterfiles" "info"
 
 			if [ -n "${sshsecret}" ]; then
 				step=3

@@ -422,6 +422,10 @@ function retrieve_parameters() {
 
 	fi
 
+	this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+	export TF_VAR_Agent_IP=$this_ip
+	echo "Agent IP:                            $this_ip"
+
 }
 
 ############################################################################################
@@ -683,7 +687,8 @@ function sdaf_installer() {
 	echo "Parallelism count:                   $parallelism"
 	echo ""
 
-	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_storage_account_subscription_id}" --query allowSharedKeyAccess --out tsv)
+	echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
+	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_storage_account_subscription_id:-$ARM_SUBSCRIPTION_ID}" --query allowSharedKeyAccess --out tsv)
 
 	if [ "$useSAS" = "true" ]; then
 		echo "Storage Account Authentication:      Key"
@@ -1173,10 +1178,9 @@ function sdaf_installer() {
 		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 		if valid_kv_name "$keyvault"; then
 			save_config_var "keyvault" "${system_environment_file_name}"
-			print_banner "Installer" "The Control plane keyvault: ${val}" "info"
+			print_banner "Installer" "The Control plane keyvault: ${keyvault}" "info"
 		else
-			printf -v val %-40.40s "$keyvault"
-			print_banner "Installer" "The provided keyvault is not valid: ${val}" "error"
+			print_banner "Installer" "The provided keyvault is not valid: ${keyvault}" "error"
 		fi
 	fi
 

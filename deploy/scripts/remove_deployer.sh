@@ -130,7 +130,7 @@ get_region_code $region
 
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
-generic_environment_file_name="${automation_config_directory}"config
+generic_environment_file_name="${automation_config_directory}"/config
 deployer_environment_file_name="${automation_config_directory}""${environment}""${region_code}"
 
 load_config_vars "${deployer_environment_file_name}" "step"

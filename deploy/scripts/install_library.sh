@@ -173,12 +173,12 @@ if [ true == "$use_deployer" ]; then
 fi
 
 #Persisting the parameters across executions
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-generic_environment_file_name="${automation_config_directory}"config
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
+generic_environment_file_name="${automation_config_directory}"/config
 
-ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+ENVIRONMENT=$(basename "${deployer_statefile_foldername}" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(basename "${deployer_statefile_foldername}" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(basename "${deployer_statefile_foldername}" | awk -F'-' '{print $3}' | xargs)
 
 library_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 

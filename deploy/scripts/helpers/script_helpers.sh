@@ -863,7 +863,7 @@ function validate_dependencies {
 
 	echo "Checking Terraform:                  $tfPath"
 
-	if [ "$PLATFORM" == "devops" ]; then
+	if [ "${PLATFORM:-undefined}" == "devops" ]; then
 
 		# if /opt/terraform exists, assign permissions to the user
 		if [ -d /opt/terraform ]; then

@@ -241,7 +241,7 @@ else
 	exit 2
 fi
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 if [ -z "$workload_zone_name" ]; then
 	workload_zone_name=$(echo "${parameter_file_name}" | cut -d'-' -f1-3)
 fi

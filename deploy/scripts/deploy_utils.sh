@@ -18,11 +18,15 @@ fi
 
 function save_config_var() {
 	local var_name=$1 var_file=$2
+	
 	if [ -f "${var_file}" ]; then
 		sed -i -e "" -e /$var_name/d "${var_file}"
+	else
+		echo "File ${var_file} does not exist."
 	fi
-
 	echo "${var_name}=${!var_name}" >>"${var_file}"
+
+	
 }
 
 function save_config_vars() {

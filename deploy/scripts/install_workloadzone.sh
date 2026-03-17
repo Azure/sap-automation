@@ -224,7 +224,7 @@ fi
 
 #Persisting the parameters across executions
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
 
 ENVIRONMENT=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
@@ -296,7 +296,7 @@ if [ -z "${REMOTE_STATE_SA}" ]; then
 	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
 fi
 load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-load_config_vars "${deployer_environment_file_name}" ""
+
 deployer_tfstate_key="${deployerTerraformStatefileName}"
 save_config_var "deployer_tfstate_key" "${workload_environment_file_name}"
 
@@ -367,11 +367,7 @@ fi
 if [ -z "$tfstate_resource_id" ]; then
 	echo "No tfstate_resource_id"
 	if [ -f "$deployer_environment_file_name" ]; then
-		load_config_vars "${deployer_environment_file_name}" "keyvault"
-		load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
-		load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
-		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
-		load_config_vars "${deployer_environment_file_name}" "deployer_tf_state"
+		load_config_vars "${deployer_environment_file_name}" "keyvault" "REMOTE_STATE_RG" "REMOTE_STATE_SA" "tfstate_resource_id" "deployer_tf_state"
 
 		save_config_vars "${workload_environment_file_name}" \
 			tfstate_resource_id
@@ -410,14 +406,8 @@ if [ -n "$subscription" ]; then
 		export ARM_SUBSCRIPTION_ID="${subscription}"
 	else
 		printf -v val %-40.40s "$subscription"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#   The provided subscription is not valid:$bold_red ${val} $reset_formatting#   "
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
-		echo "The provided subscription is not valid: ${val}" >"${workload_environment_file_name}".err
-
+		print_banner "Install workload zone " "The provided subscription is not valid: ${val}" "error"
+		
 		exit 65
 	fi
 fi
@@ -427,11 +417,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 			echo ""
 		else
 			printf -v val %-40.40s "$client_id"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#         The provided spn_id is not valid:$bold_red ${val} $reset_formatting   #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "Install workload zone " "The provided spn_id is not valid: ${val}" "error"
 			exit 65
 		fi
 	fi
@@ -441,11 +427,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 			echo ""
 		else
 			printf -v val %-40.40s "$tenant_id"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#       The provided tenant_id is not valid:$bold_red ${val} $reset_formatting  #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "Install workload zone " "The provided tenant_id is not valid: ${val}" "error"
 			exit 65
 		fi
 
@@ -463,8 +445,7 @@ if [[ -z ${REMOTE_STATE_SA} ]]; then
 	load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_SA"
 fi
 
-load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
-load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 if [[ -z ${STATE_SUBSCRIPTION} ]]; then
 	load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
@@ -510,9 +491,7 @@ if [ -z "$REMOTE_STATE_SA" ]; then
 else
 	if [ -z "$REMOTE_STATE_RG" ]; then
 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
-		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
-		load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
-		load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
 	fi
 fi
 
@@ -588,9 +567,7 @@ export TF_VAR_deployer_tfstate_key=${deployerTerraformStatefileName}
 if [ -z "${REMOTE_STATE_SA}" ]; then
 	read -r -p "Terraform state storage account name: " REMOTE_STATE_SA
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
-	load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
-	load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
-	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG"	"tfstate_resource_id"
 
 	tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 	export TF_VAR_tfstate_resource_id=${tfstate_resource_id}
@@ -606,9 +583,7 @@ fi
 if [ -z "${REMOTE_STATE_RG}" ]; then
 	if [ -n "${REMOTE_STATE_SA}" ]; then
 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_environment_file_name}"
-		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION"
-		load_config_vars "${workload_environment_file_name}" "REMOTE_STATE_RG"
-		load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+		load_config_vars "${workload_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 		tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
 	else
