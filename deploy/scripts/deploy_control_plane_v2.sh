@@ -1046,6 +1046,8 @@ function deploy_control_plane() {
 
 	if [ -v USE_MSI ]; then
 		USE_MSI=true
+	else
+		USE_MSI=false
 	fi
 
 	if [ "$USE_MSI" != "true" ]; then

@@ -203,6 +203,8 @@ function parse_arguments() {
 	if [ 0 != $return_code ]; then
 		exit $return_code
 	fi
+	TF_VAR_subscription_id="${terraform_storage_account_subscription_id:-$ARM_SUBSCRIPTION_ID}"
+	export TF_VAR_subscription_id
 
 	# Convert the region to the correct code
 	get_region_code "$region"

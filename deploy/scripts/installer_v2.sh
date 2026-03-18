@@ -191,7 +191,6 @@ function parse_arguments() {
 
 	automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
-
 	# Validate required parameters
 
 	parameterfile_name=$(basename "${parameterFilename}")
@@ -231,7 +230,7 @@ function parse_arguments() {
 		deployer_configuration_file=$(get_configuration_file "$automation_config_directory" "$DEPLOYER_ENVIRONMENT" "$DEPLOYER_LOCATION" "$DEPLOYER_NETWORK")
 		echo "Loading deployer configuration from ${deployer_configuration_file}"
 		load_config_vars "${deployer_configuration_file}" \
-				tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault
+				tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault APP_CONFIG_DEPLOYMENT APPLICATION_CONFIGURATION_NAME APPLICATION_CONFIGURATION_ID
 
 		TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 		export TF_VAR_spn_keyvault_id
