@@ -28,55 +28,13 @@ if [ "$DEBUG" = True ]; then
 fi
 
 #Internal helper functions
-function showhelp {
-
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                 $bold_red_underscore !Warning!: This script will remove deployed systems $reset_formatting                 #"
-	echo "#                                                                                       #"
-	echo "#   This file contains the logic to remove the different systems                        #"
-	echo "#   The script expects the following exports:                                           #"
-	echo "#                                                                                       #"
-	echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
-	echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
-	echo "#      REMOTE_STATE_RG (resource group name for storage account containing state files) #"
-	echo "#      REMOTE_STATE_SA (storage account for state file)                                 #"
-	echo "#                                                                                       #"
-	echo "#   The script will persist the parameters needed between the executions in the         #"
-	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                               #"
-	echo "#                                                                                       #"
-	echo "#                                                                                       #"
-	echo "#   Usage: remover.sh                                                                   #"
-	echo "#    -p or --parameterfile           parameter file                                     #"
-	echo "#    -t or --type                    type of system to remove                           #"
-	echo "#                                         valid options:                                #"
-	echo "#                                           sap_deployer                                #"
-	echo "#                                           sap_library                                 #"
-	echo "#                                           sap_landscape                               #"
-	echo "#                                           sap_system                                  #"
-	echo "#    -h or --help                    Show help                                          #"
-	echo "#                                                                                       #"
-	echo "#   Optional parameters                                                                 #"
-	echo "#                                                                                       #"
-	echo "#    -o or --storageaccountname      Storage account name for state file                #"
-	echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
-	echo "#                                                                                       #"
-	echo "#   Example:                                                                            #"
-	echo "#                                                                                       #"
-	echo "#   [REPO-ROOT]deploy/scripts/remover.sh \                                              #"
-	echo "#      --parameterfile DEV-WEEU-SAP01-X00.tfvars \                                      #"
-	echo "#      --type sap_system                                                                #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-}
 
 #process inputs - may need to check the option i for auto approve as it is not used
 INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:d:l:ahi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,deployer_tfstate_key:,landscape_tfstate_key:,ado,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
-	showhelp
+	showhelp_remover
 fi
 
 called_from_ado=0
@@ -85,6 +43,10 @@ while :; do
 	case "$1" in
 	-p | --parameterfile)
 		parameterfile="$2"
+		shift 2
+		;;
+	--control_plane_name)
+		CONTROL_PLANE_NAME="$2"
 		shift 2
 		;;
 	-o | --storageaccountname)
@@ -117,7 +79,7 @@ while :; do
 		shift
 		;;
 	-h | --help)
-		showhelp
+		showhelp_remover
 		exit 3
 		;;
 	--)
@@ -221,16 +183,16 @@ if [ "${deployment_system}" == "sap_system" ] || [ "${deployment_system}" == "sa
 	WORKLOAD_ZONE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
 	landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	export landscape_tfstate_key
-	environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-	region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-	network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+	environment=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $3}' | xargs)
 elif [ "${deployment_system}" == "sap_deployer" ]; then
 	CONTROL_PLANE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
 	deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 	export deployer_tfstate_key
-	environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-	region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-	network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+	environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
+	region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
+	network_logical_name=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)
 elif [ "${deployment_system}" == "sap_library" ]; then
 	environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
@@ -243,10 +205,7 @@ else
 	system_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
 fi
 
-load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
-load_config_vars "${system_environment_file_name}" "deployer_tfstate_key"
-
-load_config_vars "${system_environment_file_name}" "keyvault"
+load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION" "deployer_tfstate_key" "keyvault" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 TF_VAR_deployer_kv_user_arm_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
 export TF_VAR_deployer_kv_user_arm_id
 

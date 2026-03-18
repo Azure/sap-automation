@@ -347,7 +347,7 @@ if [ 1 = $added ]; then
 		commit_message="Added updates from Workload Zone Deployment for $WORKLOAD_ZONE_NAME [skip ci]"
 	fi
 
-	if [ "${DEBUG:-False}" = "True" ]; then
+	if [ "${DEBUG:-false}" = "true" ]; then
 		git status --verbose
 		if git commit -m "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then

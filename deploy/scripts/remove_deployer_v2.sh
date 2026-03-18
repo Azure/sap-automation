@@ -348,6 +348,7 @@ function sdaf_remove_deployer() {
 		print_banner "Remove deployer" "Deployer removed successfully" "success"
 		step=0
 		save_config_var "step" "${deployer_environment_file_name}"
+		rm "${deployer_environment_file_name}"
 	fi
 
 	unset TF_DATA_DIR

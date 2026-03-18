@@ -31,7 +31,7 @@ script_directory="$(dirname "${full_script_path}")"
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${DEBUG:-False}" == 'True' ]]; then
+if [[ "${DEBUG:-false}" == 'true' ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error

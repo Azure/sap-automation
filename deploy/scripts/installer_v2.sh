@@ -134,11 +134,6 @@ function parse_arguments() {
 			;;
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
-			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
-			export TF_VAR_control_plane_name
-			deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-			TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
-			export TF_VAR_deployer_tfstate_key
 
 			shift 2
 			;;
@@ -183,7 +178,9 @@ function parse_arguments() {
 			;;
 		-h | --help)
 			show_help_installer_v2
-			return 3
+			shift
+			stop_execution=1
+			return 100
 			;;
 		--)
 			shift
@@ -191,6 +188,9 @@ function parse_arguments() {
 			;;
 		esac
 	done
+
+	automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
+
 
 	# Validate required parameters
 
@@ -205,10 +205,45 @@ function parse_arguments() {
 		print_banner "Installer" "Parameter file does not exist: ${parameterFilename}" "error"
 	fi
 
+	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
+		WORKLOAD_ZONE_NAME=$(echo $parameterfile_name | cut -d'-' -f1-3)
+		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
+			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+			export TF_VAR_landscape_tfstate_key
+		fi
+	fi
+
 	[[ -z "$CONTROL_PLANE_NAME" ]] && {
 		print_banner "Installer" "control_plane_name is required" "error"
 		return 1
 	}
+	TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+	export TF_VAR_control_plane_name
+	deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+	TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+	export TF_VAR_deployer_tfstate_key
+
+	if [ -n "$CONTROL_PLANE_NAME" ]; then
+		DEPLOYER_ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
+		DEPLOYER_LOCATION=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
+		DEPLOYER_NETWORK=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f3)
+		deployer_configuration_file=$(get_configuration_file "$automation_config_directory" "$DEPLOYER_ENVIRONMENT" "$DEPLOYER_LOCATION" "$DEPLOYER_NETWORK")
+		echo "Loading deployer configuration from ${deployer_configuration_file}"
+		load_config_vars "${deployer_configuration_file}" \
+				tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault
+
+		TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+		export TF_VAR_spn_keyvault_id
+		keyvault=$DEPLOYER_KEYVAULT
+
+		export TF_VAR_tfstate_resource_id
+		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
+		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
+		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+
+	fi
+
 
 	[[ -z "$deployment_system" ]] && {
 		print_banner "Installer" "type is required" "error"
@@ -221,20 +256,6 @@ function parse_arguments() {
 
 	if [ -n "$CONTROL_PLANE_NAME" ]; then
 		deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-	fi
-
-	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
-		WORKLOAD_ZONE_NAME=$(echo $parameterfile_name | cut -d'-' -f1-3)
-		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
-			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
-			export TF_VAR_landscape_tfstate_key
-		else
-			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-			if [ -z $WORKLOAD_ZONE_NAME ] && [ -n "$landscape_tfstate_key" ]; then
-				WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
-			fi
-		fi
 	fi
 
 	if [ "${deployment_system}" == sap_system ]; then
@@ -279,8 +300,6 @@ function parse_arguments() {
 		return $?
 	fi
 
-	automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
 	# Check that Terraform and Azure CLI is installed
 	if ! validate_dependencies; then
 		return $?
@@ -290,19 +309,21 @@ function parse_arguments() {
 	if ! validate_key_parameters "$parameterFilename"; then
 		return $?
 	fi
-
-	if [ -n "$landscape_tfstate_key" ]; then
-		environment=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-		region_code=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-		network_logical_name=$(echo "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+	if [ -n "$WORKLOAD_ZONE_NAME" ]; then
+		environment=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $1}' | xargs)
+		region_code=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $2}' | xargs)
+		network_logical_name=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $3}' | xargs)
 	else
-		environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-		region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-		network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+		environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
+		region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
+		network_logical_name=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)		
 	fi
 
+
 	system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
-	save_config_vars "${system_environment_file_name}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME
+	echo "System environment file name: ${system_environment_file_name}"
+	touch "${system_environment_file_name}"	
+	save_config_vars "${system_environment_file_name}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault
 
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	if valid_region_name "${region}"; then
@@ -555,8 +576,15 @@ function sdaf_installer() {
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
-		print_banner "$banner_title" "Validating parameters failed" "error"
-		return 100
+
+		if [ "${stop_execution:-0}" -eq 1 ]; then
+			echo "Help requested, exiting."
+			return 0
+		else
+			echo "Error parsing arguments, exiting with status 1."
+			return 1
+		fi
+
 	fi
 
 	if ! retrieve_parameters; then
@@ -701,26 +729,26 @@ function sdaf_installer() {
 	if [ "${deployment_system}" == sap_system ]; then
 
 		if [[ -n $landscape_tfstate_key ]]; then
-			workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+			workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
 
 			workloadZone_State_file_Size=$(("$workloadZone_State_file_Size_String"))
 
 			if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
 				print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "info"
-				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
 		fi
 
 		if [[ -n $deployer_tfstate_key ]]; then
 
-			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
 				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
 
-				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
 		fi
 	fi
@@ -729,14 +757,14 @@ function sdaf_installer() {
 
 		if [[ -n $deployer_tfstate_key ]]; then
 
-			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
 				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
 
-				az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
 		fi
 	fi
@@ -753,6 +781,12 @@ function sdaf_installer() {
 
 	if [ ! -f .terraform/terraform.tfstate ]; then
 		print_banner "$banner_title" "New deployment" "info"
+		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
+		export TF_VAR_tfstate_resource_id
+		REMOTE_STATE_SA=${terraform_storage_account_name}
+		REMOTE_STATE_RG=${terraform_storage_account_resource_group_name}
+		save_config_vars "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
@@ -805,6 +839,9 @@ function sdaf_installer() {
 			fi
 		else
 			echo "Terraform state:                     remote"
+			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+			TF_VAR_tfstate_resource_id="$tfstate_resource_id"
+			export TF_VAR_tfstate_resource_id
 			print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
 
 			if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state \
@@ -822,6 +859,10 @@ function sdaf_installer() {
 			fi
 		fi
 	fi
+
+	REMOTE_STATE_SA=${terraform_storage_account_name}
+	REMOTE_STATE_RG=${terraform_storage_account_resource_group_name}
+	save_config_vars "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 	if [ 1 -eq "$new_deployment" ]; then
 		if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
@@ -1216,7 +1257,7 @@ EOF
 	fi
 
 	if [ "${deployment_system}" == sap_library ]; then
-		REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
+		terraform_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 
 		library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 		if [ -n "${library_random_id}" ]; then
@@ -1227,7 +1268,7 @@ EOF
 
 		fi
 
-		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+		getAndStoreTerraformStateStorageAccountDetails "${terraform_storage_account_name}" "${system_environment_file_name}"
 
 	fi
 
