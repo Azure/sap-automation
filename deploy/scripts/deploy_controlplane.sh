@@ -253,6 +253,10 @@ if [ -n "${TF_VAR_use_webapp:-false}" ]; then
 	fi
 fi
 
+if [ -n "${ARM_USE_MSI:-false}" == "true" ]; then
+	deploy_using_msi_only=1
+fi
+
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_file_parametername=$(basename "${deployer_parameter_file}")
 
@@ -434,6 +438,7 @@ if [ 0 == "$step" ]; then
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
 else
 	print_banner "Control Plane deployment" "Deployer is already bootstrapped, skipping to the next step" "info"
+	load_config_vars "${deployer_environment_file_name}" "sshsecret" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
 	echo "##vso[task.setprogress value=20;]Progress Indicator"
 fi
 
@@ -461,19 +466,28 @@ if [ 0 != "$step" ]; then
 		# If the keyvault is not set, check the terraform state file
 		if [ -z "$DEPLOYER_KEYVAULT" ]; then
 			key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-			cd "${deployer_dirname}" || exit
 			if [ -f ./.terraform/terraform.tfstate ]; then
 				azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 				if [ -n "$azure_backend" ]; then
 					echo "Terraform state:                     remote"
 
 					terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-					terraform -chdir="${terraform_module_directory}" init -upgrade=true
+					STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+					REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+					REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+					if terraform -chdir="${terraform_module_directory}" init -upgrade=true       \
+										--backend-config "subscription_id=$STATE_SUBSCRIPTION"   \
+										--backend-config "resource_group_name=$REMOTE_STATE_RG"  \
+										--backend-config "storage_account_name=$REMOTE_STATE_SA" \
+										--backend-config "container_name=tfstate"                \
+										--backend-config "key=${key}.terraform.tfstate"; then
 
-					keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-					save_config_var "keyvault" "${deployer_environment_file_name}"
-					DEPLOYER_KEYVAULT="${keyvault}"
-					save_config_var "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
+
+
+						keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+						DEPLOYER_KEYVAULT="${keyvault}"
+						save_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "keyvault"
+					fi
 				else
 					echo "Terraform state:                     local"
 				fi
