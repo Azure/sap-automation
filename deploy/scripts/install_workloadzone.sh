@@ -619,7 +619,7 @@ if [ ! -f .terraform/terraform.tfstate ]; then
 			return_value=$?
 			print_banner "Install workload zone" "Successfully initialized Terraform with the provided backend configuration." "info"
 		else
-			return_value=0
+			return_value=$?
 			print_banner "Install workload zone" "Failed to initialize Terraform with the provided backend configuration." "error" "Please check the details and your permissions to access the storage account."
 		fi
 else
@@ -627,7 +627,7 @@ else
 			return_value=$?
 			print_banner "Install workload zone" "Successfully initialized Terraform with the provided backend configuration." "info"
 		else
-			return_value=0
+			return_value=$?
 			print_banner "Install workload zone" "Failed to initialize Terraform with the provided backend configuration." "error" "Please check the details and your permissions to access the storage account."
 	fi
 
