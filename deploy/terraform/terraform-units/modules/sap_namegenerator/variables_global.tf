@@ -225,7 +225,6 @@ variable "region_mapping" {
     "malaysiawest"       = "mawe"
     "mexicocentral"      = "mece"
     "northcentralus"     = "ncus"
-    "northcentralus"     = "ncus"
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
     "norwaywest"         = "nowe"

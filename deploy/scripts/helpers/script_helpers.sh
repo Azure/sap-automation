@@ -573,7 +573,6 @@ function workload_zone_showhelp {
 	echo "#      -m or --msi                           If using Managed Service Identity                #"
 	echo "#       or                                                                                    #"
 	echo "#      -c or --spn_id                        (if using SPN) SPN application id                #"
-	echo "#      -p or --spn_secret                    (if using SPN) SPN password                      #"
 	echo "#      -t or --tenant_id                     (if using SPN) SPN Tenant id                     #"
 	echo "#      -p or --spn_secret                    (if using SPN) SPN password                      #"
 	echo "#                                                                                             #"
