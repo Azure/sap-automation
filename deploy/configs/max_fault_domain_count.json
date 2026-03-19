@@ -212,7 +212,7 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "southwestUS",
+    "Location": "southwestus",
     "MaximumFaultDomainCount": "2"
   },
   {

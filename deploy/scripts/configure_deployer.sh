@@ -718,7 +718,6 @@ echo '# Configure environment settings for deployer interactive session'
 # are preferred over any installed standard system versions.
 
 export ARM_SUBSCRIPTION_ID="${subscription_id}"
-export DEPLOYMENT_REPO_PATH="$HOME/Azure_SAP_Automated_Deployment/sap-automation"
 
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
@@ -762,7 +761,6 @@ else
 	echo "Azure DevOps Agent is not configured."
 
 	echo "export SAP_AUTOMATION_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
-	echo "export DEPLOYMENT_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/sap-automation" | tee -a /tmp/deploy_server.sh
 	echo "export CONFIG_REPO_PATH=$HOME/Azure_SAP_Automated_Deployment/WORKSPACES" | tee -a /tmp/deploy_server.sh
 
 	echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh

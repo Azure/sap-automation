@@ -43,7 +43,7 @@ showhelp()
     echo "#   This file contains the logic to validate parameters for the different systems       #"
     echo "#   The script experts the following exports:                                           #"
     echo "#                                                                                       #"
-    echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation        #"
+    echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing sap-automation repo    #"
     echo "#                                                                                       #"
     echo "#                                                                                       #"
     echo "#   Usage: validate.sh                                                                  #"
@@ -76,7 +76,7 @@ missing () {
     echo "#   Missing environment variables: ${option}!!!              #"
     echo "#                                                                                       #"
     echo "#   Please export the folloing variables:                                               #"
-    echo "#      DEPLOYMENT_REPO_PATH (path to the repo folder (sap-automation))                        #"
+    echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                        #"
     echo "#                                                                                       #"
     echo "#########################################################################################"
 }

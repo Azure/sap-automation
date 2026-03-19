@@ -26,7 +26,7 @@ function showhelp {
 	echo "#   This file contains the logic to reimport an Azure artifact to the Terraform state file                       #"
 	echo "#   The script experts the following exports:                                                                    #"
 	echo "#                                                                                                                #"
-	echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                                 #"
+	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation                                 #"
 	echo "#                                                                                                                #"
 	echo "#                                                                                                                #"
 	echo "#                                                                                                                #"
@@ -219,7 +219,7 @@ if [ -z "${operation}" ]; then
 	exit 64 #script usage wrong
 fi
 
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 
 validate_exports
 return_code=$?
@@ -353,7 +353,7 @@ export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 directory=$(pwd)/.terraform
 
-module_dir=$DEPLOYMENT_REPO_PATH/deploy/terraform/run/${type}
+module_dir=$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${type}
 
 export TF_DATA_DIR="${directory}"
 

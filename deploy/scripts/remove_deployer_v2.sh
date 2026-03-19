@@ -58,7 +58,7 @@ function show_deployer_help {
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
 	echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-	echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
+	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing sap-automation repo    #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
 	echo "#   ~/.sap_deployment_automation folder                                                 #"

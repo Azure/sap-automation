@@ -315,13 +315,13 @@ function parse_arguments() {
 	else
 		environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
 		region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
-		network_logical_name=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)		
+		network_logical_name=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)
 	fi
 
 
 	system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
 	echo "System environment file name: ${system_environment_file_name}"
-	touch "${system_environment_file_name}"	
+	touch "${system_environment_file_name}"
 	save_config_vars "${system_environment_file_name}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault
 
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
@@ -785,7 +785,7 @@ function sdaf_installer() {
 		export TF_VAR_tfstate_resource_id
 		REMOTE_STATE_SA=${terraform_storage_account_name}
 		REMOTE_STATE_RG=${terraform_storage_account_resource_group_name}
-		save_config_vars "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
+		save_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
 			--backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
@@ -861,7 +861,7 @@ function sdaf_installer() {
 
 	REMOTE_STATE_SA=${terraform_storage_account_name}
 	REMOTE_STATE_RG=${terraform_storage_account_resource_group_name}
-	save_config_vars "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
+	save_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 	if [ 1 -eq "$new_deployment" ]; then
 		if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
