@@ -268,7 +268,7 @@ save_config_vars "${workload_environment_file_name}" \
 	STATE_SUBSCRIPTION REMOTE_STATE_SA REMOTE_STATE_RG deployer_tfstate_key
 
 if [[ -n $deployer_tfstate_key ]]; then
-	
+
 	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 	if [ "$useSAS" = "true" ]; then
 		export ARM_USE_AZUREAD=false
@@ -373,7 +373,7 @@ if [ -n "$subscription" ]; then
 	else
 		printf -v val %-40.40s "$subscription"
 		print_banner "Install workload zone " "The provided subscription is not valid: ${val}" "error"
-		
+
 		exit 65
 	fi
 fi
@@ -702,7 +702,8 @@ export TF_VAR_management_subscription="${STATE_SUBSCRIPTION}"
 if [ 1 == $check_output ]; then
 	deployed_using_version=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw automation_version)
 	if [ -n "${deployed_using_version}" ]; then
-		printf -v val %-.20s "$deployed_using_version"print_banner "Install workload zone" "Deployed using Terraform templates version: ${val}" "info"
+		printf -v val %-.20s "$deployed_using_version"
+ 		print_banner "Install workload zone" "Deployed using Terraform templates version: ${val}" "info"
 
 		version_compare "${deployed_using_version}" "3.13.2.0"
 		older_version=$?
