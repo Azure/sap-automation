@@ -253,8 +253,10 @@ if [ -n "${TF_VAR_use_webapp:-false}" ]; then
 	fi
 fi
 
-if [ -n "${ARM_USE_MSI:-false}" == "true" ]; then
-	deploy_using_msi_only=1
+if [ -v ARM_USE_MSI ]; then
+	if [ -n "${ARM_USE_MSI:-false}" == "true" ]; then
+		deploy_using_msi_only=1
+	fi
 fi
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")

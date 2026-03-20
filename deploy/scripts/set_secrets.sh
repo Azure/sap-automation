@@ -211,7 +211,7 @@ fi
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 environment_config_information="${automation_config_directory}/${environment}${region_code}${network_code}"
-ZONE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+ZONE_NAME="${environment}-${region_code}-${network_code}"
 
 return_code=0
 
