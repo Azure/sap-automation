@@ -102,6 +102,7 @@
                                             --query "[?name=='{{sapbits_bom_files }}/archives/{{ bom_media_entry.archive }}'].name" --output tsv
       delegate_to:                     localhost
       register:                        blobExists
+      changed_when:                    false
 
     - name:                            "0.1 Bom Validator - Informational"
       ansible.builtin.debug:

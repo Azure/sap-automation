@@ -62,7 +62,7 @@
   ansible.builtin.set_fact:
     swap_value:                        "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
 
-- name:                                "1.1 Swap - Swap space in Integer"
+- name:                                "1.1 Swap - Convert Swap space to Integer"
   ansible.builtin.set_fact:
     swap_size:                         "{{ swap_value | int }}"
 
