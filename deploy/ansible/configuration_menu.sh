@@ -7,6 +7,7 @@
 export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
 
 cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
+source "${cmd_dir}/script_helper.sh"
 
 
 #         # /*---------------------------------------------------------------------------8
@@ -43,17 +44,31 @@ cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 sap_params_file=sap-parameters.yaml
 
 if [[ ! -e "${sap_params_file}" ]]; then
-        echo "Error: '${sap_params_file}' file not found!"
+        print_banner "Software download" "SAP parameters file '${sap_params_file}' not found!" "error" "Current directory '$(basename "$(pwd)")'"
         exit 1
 fi
 
 # Extract the sap_sid from the sap_params_file, so that we can determine
 # the inventory file name to use.
 sap_sid="$(awk '$1 == "sap_sid:" {print $2}' ${sap_params_file})"
+# if [[ ! -e "${sap_sid}" ]]; then
+#         print_banner "Configuration" "SAP SID variable 'sap_sid' not found in parameters file!" "error" "Please ensure that the 'sap_sid' variable is defined in '${sap_params_file}'"
+#         exit 1
+# fi
+
 
 workload_vault_name="$(awk '$1 == "kv_name:" {print $2}' ${sap_params_file})"
+# if [[ -z "${workload_vault_name}" ]]; then
+#         print_banner "Configuration" "Key Vault name variable 'kv_name' not found in parameters file!" "error" "Please ensure that the 'kv_name' variable is defined in '${sap_params_file}'"
+#         exit 1
+# fi
 
 prefix="$(awk '$1 == "secret_prefix:" {print $2}' ${sap_params_file})"
+# if [[ -z "${prefix}" ]]; then
+#         print_banner "Configuration" "Secret prefix variable 'secret_prefix' not found in parameters file!" "error" "Please ensure that the 'secret_prefix' variable is defined in '${sap_params_file}'"
+#         exit 1
+# fi
+
 password_secret_name=$prefix-sid-password
 
 password_secret=$(az keyvault secret show --vault-name ${workload_vault_name} --name ${password_secret_name} --query value --output table)
@@ -70,6 +85,12 @@ export           ANSIBLE_PRIVATE_KEY_FILE=sshkey
 export           ANSIBLE_COLLECTIONS_PATH=/opt/ansible/collections:${ANSIBLE_COLLECTIONS_PATH:+${ANSIBLE_COLLECTIONS_PATH}}
 export           ANSIBLE_CONFIG="${cmd_dir}/ansible.cfg"
 export           ANSIBLE_LOOKUP_PLUGINS="${cmd_dir}/lookup_plugins":${ANSIBLE_LOOKUP_PLUGINS:+${ANSIBLE_LOOKUP_PLUGINS}}
+
+# if [[ ! -f "${ANSIBLE_INVENTORY}" ]]; then
+#         print_banner "Configuration" "Ansible inventory file '${ANSIBLE_INVENTORY}' not found!" "error" 
+#         exit 1
+# fi
+
 
 # We really should be determining the user dynamically, or requiring
 # that it be specified in the inventory settings (currently true)
@@ -199,8 +220,34 @@ do
         # NOTE: If you set DEBUG to a non-empty value in your environment
         # the following line will cause the ansible-playbook command to be
         # echoed rather than executed.
-        ${DEBUG:+echo} \
-        ansible-playbook "${playbook_options[@]}" "${playbooks[@]}"
+        echo "ansible-playbook ${playbooks[@]}"
+
+        CUSTOM_PLAYBOOKS_PATH="${CONFIG_REPO_PATH}/ANSIBLE"
+
+        for item in "${playbooks[@]}"
+        do
+                basename_item_pre=$(basename "$item" .yaml)_pre.yaml
+                basename_item_post=$(basename "$item" .yaml)_post.yaml
+
+                
+                if [[ -f "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_pre}" ]]; then
+                        print_banner "SAP Configuration and Installation" "Executing pre-playbook '${basename_item_pre}'" info
+                        ${DEBUG:+echo} \
+                                ansible-playbook "${playbook_options[@]}" "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_pre}"
+                fi
+
+                echo ""
+                print_banner "SAP Configuration and Installation" "Executing playbook $(basename "$item")" info
+                ${DEBUG:+echo} \
+                        ansible-playbook "${playbook_options[@]}" "$item"
+                echo ""
+
+                if [[ -f "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_post}" ]]; then
+                        print_banner "SAP Configuration and Installation" "Executing post-playbook '${basename_item_post}'" info
+                        ${DEBUG:+echo} \
+                                ansible-playbook "${playbook_options[@]}" "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_post}"
+                fi
+        done
 
         break
 done
