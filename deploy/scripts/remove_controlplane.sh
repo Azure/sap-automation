@@ -192,6 +192,9 @@ fi
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
 CONTROL_PLANE_NAME=$(echo "$(basename "$deployer_parameter_file")" | cut -d'-' -f1-3)
+TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
+export TF_VAR_control_plane_name
+
 deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export deployer_tfstate_key
 environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
