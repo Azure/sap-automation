@@ -212,6 +212,9 @@ generic_environment_file_name="${automation_config_directory}"/config
 ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
 LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
 NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
+export TF_VAR_control_plane_name
 
 if [ -z "$ENVIRONMENT" ] || [ -z "$LOCATION" ] || [ -z "$NETWORK" ]; then
 	echo "Could not extract environment, location or network from parameter file name"

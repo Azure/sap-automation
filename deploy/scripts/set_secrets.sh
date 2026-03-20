@@ -321,7 +321,7 @@ else
 	fi
 fi
 
-print_banner "Set secrets" "Setting secrets for environment ${environment} in keyvault ${keyvault}" "info"
+print_banner "Set secrets" "Setting secrets for environment ${ZONE_NAME} in keyvault ${keyvault}" "info"
 
 echo "Key vault:                           ${keyvault}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
