@@ -528,6 +528,8 @@ if [ 0 != "$step" ]; then
 					--vault "${keyvault}" \
 					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
 					--msi \
+					--spn_id "${client_id:-$ARM_CLIENT_ID}" \
+					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
 					--tenant_id "${tenant_id:-$ARM_TENANT_ID}"; then
 					print_banner "Control Plane deployment" "Secrets have been set successfully" "success"
 				else
