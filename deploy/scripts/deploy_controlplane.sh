@@ -257,7 +257,7 @@ if [ -n "${TF_VAR_use_webapp:-false}" ]; then
 fi
 
 if [ -v ARM_USE_MSI ]; then
-	if [ -n "${ARM_USE_MSI:-false}" == "true" ]; then
+	if [[ "${ARM_USE_MSI:-false}" == "true" ]]; then
 		deploy_using_msi_only=1
 	fi
 fi
