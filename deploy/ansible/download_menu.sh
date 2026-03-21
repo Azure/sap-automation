@@ -112,7 +112,7 @@ playbook_options=(
         --extra-vars="_workspace_directory=`pwd`"
         --extra-vars="@${sap_params_file}"
         --extra-vars="bom_processing=true"
-        --extra-vars="BOM_directory=${BOM_CATALOG:-}" \
+        --extra-vars="BOM_directory=${BOM_CATALOG:-}"
         "${@}"
 )
 
