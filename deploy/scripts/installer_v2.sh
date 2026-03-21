@@ -235,6 +235,7 @@ function parse_arguments() {
 		TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
 		export TF_VAR_spn_keyvault_id
 		keyvault=$DEPLOYER_KEYVAULT
+		TF_VAR_tfstate_resource_id=tfstate_resource_id
 
 		export TF_VAR_tfstate_resource_id
 		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
