@@ -85,7 +85,7 @@ materials:
   media:
 {% for media in root_media_list | flatten | select('mapping') | list %}
 
-{{'    %-16s' | format('- name:' | trim) }}{{' \"%s\"' | format(media.name | trim) }}
+{{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"' | format(media.name | trim) }}
 {%   set preferred_media_keys = ['archive', 'checksum', 'filename', 'path', 'url', 'download', 'extract', 'extractDir', 'creates', 'permissions'] %}
 {%   for key in preferred_media_keys %}
 {%     if key in media %}
