@@ -162,7 +162,7 @@
               vars:
                 suffix:                '_DBLOAD'
                 prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type | default('ABAP') }}/DB'
+                path:                  "/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type | default('ABAP') }}/DB"
                 tier:                  'dbload'
 
             - name:                    "Database load playbook - Show errors from DBLoad"

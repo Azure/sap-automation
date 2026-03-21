@@ -82,7 +82,7 @@
                                    foreach ($module in $modules) {
                                      if (-not (Get-Module -ListAvailable -Name $module)) {
                                        Install-Module $module -Force -Scope AllUsers -Confirm:$false
-                                     } else { 
+                                     } else {
                                        Update-Module -Name $module -Force -Scope AllUsers -Confirm:$false
                                      }
                                    }
