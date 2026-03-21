@@ -321,10 +321,13 @@
 #
 - name:                                "0.1 BoM Validator - Filter combined BoM"
   ansible.builtin.set_fact:
-    root_media_list:                   "{{ root_media_list | unique(attribute='archive') | list }}"
+    root_media_list:                   "{{ root_media_list | flatten | select('mapping') | unique(attribute='archive') | list }}"
 # Step: 07 - END
 # -------------------------------------+---------------------------------------8
 
+- name:                               "0.1 BoM Validator - Show new BoM"
+  ansible.builtin.debug:
+    var:                              root_media_list
 
 # -------------------------------------+---------------------------------------8
 # Step: 08
