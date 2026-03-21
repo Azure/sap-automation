@@ -488,7 +488,7 @@ fi
 
 if [[ -z ${tfstate_resource_id} ]]; then
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
-	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"	
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 fi
 
@@ -719,24 +719,24 @@ if [ 1 != $return_value ]; then
 
 			deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output deployer_public_ip_address | tr -d \")
 			if [ -n "${deployer_public_ip_address}" ]; then
-				save_config_var "deployer_public_ip_address" "${deployer_config_information}"
+				save_config_var "deployer_public_ip_address" "${system_environment_file_name}"
 			fi
 
 			APP_SERVICE_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw webapp_url_base | tr -d \")
 			if [ -n "${APP_SERVICE_NAME}" ]; then
-				save_config_var "APP_SERVICE_NAME" "${deployer_config_information}"
+				save_config_var "APP_SERVICE_NAME" "${system_environment_file_name}"
 				export APP_SERVICE_NAME
 			fi
 
 			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
 			if [ -n "${HAS_WEBAPP}" ]; then
-				save_config_var "HAS_WEBAPP" "${deployer_config_information}"
+				save_config_var "HAS_WEBAPP" "${system_environment_file_name}"
 				export HAS_WEBAPP
 			fi
 
 			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 			if [ -n "$keyvault" ]; then
-				save_config_var "keyvault" "${deployer_config_information}"
+				save_config_var "keyvault" "${system_environment_file_name}"
 			fi
 		fi
 	elif [ "${deployment_system}" == sap_landscape ]; then
