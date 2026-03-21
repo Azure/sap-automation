@@ -531,7 +531,6 @@ if [ 0 != "$step" ]; then
 					--network_code "${NETWORK}" \
 					--region "${region_code}" \
 					--vault "${keyvault}" \
-					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
 					--msi \
 					--spn_id "${client_id:-$ARM_CLIENT_ID}" \
 					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
@@ -837,7 +836,7 @@ if [ 4 -eq $step ]; then
 			return_code=$?
 		else
 			print_banner "Control Plane deployment" "Migrating the SAP Library state failed" "error"
-			
+
 			step=4
 			save_config_var "step" "${deployer_environment_file_name}"
 			exit 40
