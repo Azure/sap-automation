@@ -168,7 +168,7 @@ fi
 #                                                                                          #
 ############################################################################################
 
-if [ "$PLATFORM" == "devops" ]; then
+if [ "${PLATFORM:-}" == "devops" ]; then
 	cd "$BUILD_REPOSITORY_LOCALPATH" || exit
 fi
 
