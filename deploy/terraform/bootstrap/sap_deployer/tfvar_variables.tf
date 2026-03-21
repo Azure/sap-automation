@@ -521,7 +521,7 @@ variable "spn_id"                                     {
 
 variable "public_network_access_enabled"              {
                                                         description = "Boolean value indicating if public access should be enabled for key vaults and storage"
-                                                        default     = true
+                                                        default     = false
                                                         type        = bool
                                                       }
 
