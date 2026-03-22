@@ -259,8 +259,8 @@ resource "azurerm_virtual_machine_extension" "configure" {
                                                    app_token            = var.infrastructure.devops.app_token,
                                                    repository           = var.infrastructure.devops.repository,
                                                    server_url           = var.infrastructure.devops.server_url,
-                                                   platform             = var.infrastructure.devops.platform
-                                                   organization         = var.infrastructure.devops.organization
+                                                   platform             = var.infrastructure.devops.platform,
+                                                   organization         = var.infrastructure.devops.organization,
                                                    branch               = var.infrastructure.devops.branch
                                                  }
                                                )
