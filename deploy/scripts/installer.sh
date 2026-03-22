@@ -316,7 +316,9 @@ if [[ -n $STATE_SUBSCRIPTION ]]; then
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		print_banner "Installer" "The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}" "error"
-		echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
+		if [ 1 == $called_from_ado ]; then
+			echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
+		fi
 		exit $return_code
 	fi
 
@@ -556,6 +558,14 @@ terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9 |
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3 | tr -d '\r')
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5 | tr -d '\r')
 
+
+if [ "${terraform_storage_account_name}" !=  "${REMOTE_STATE_SA}" ]; then
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
+	terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9 | tr -d '\r')
+	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3 | tr -d '\r')
+	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5 | tr -d '\r')
+fi
+
 check_output=0
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
@@ -573,17 +583,18 @@ az account set --subscription "${terraform_storage_account_subscription_id}"
 if [ ! -f .terraform/terraform.tfstate ]; then
 	print_banner "$banner_title" "New deployment" "info"
 
-	if ! terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
+	if terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
 		--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 		--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 		--backend-config "storage_account_name=${terraform_storage_account_name}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
 		return_value=$?
-		print_banner "$banner_title" "Terraform init failed." "error"
-		exit $return_value
 	else
 		return_value=$?
+		print_banner "$banner_title" "Terraform init failed." "error"
+		unset TF_DATA_DIR
+		exit $return_value
 	fi
 
 else
@@ -591,7 +602,6 @@ else
 
 	if local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate); then
 		if [ -n "$local_backend" ]; then
-			print_banner "$banner_title" "Migrating the state to Azure" "info"
 
 			terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
@@ -601,8 +611,11 @@ else
 			else
 				return_value=10
 				print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
+				unset TF_DATA_DIR
 				exit $return_value
 			fi
+			print_banner "$banner_title" "Migrating the state to Azure" "info"
+
 		fi
 
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
@@ -748,7 +761,10 @@ if [ 1 != $return_value ]; then
 	elif [ "${deployment_system}" == sap_library ]; then
 		if [ -z "${REMOTE_STATE_SA}" ]; then
 			print_banner "$banner_title" "The SAP Library storage account is not defined" "error"
-			echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
+			if [ 1 == $called_from_ado ]; then
+				echo "##vso[task.logissue type=error]The SAP Library storage account is not defined"
+			fi
+
 			exit 1
 		fi
 		state_path="LIBRARY"
@@ -913,7 +929,9 @@ if [ $fatal_errors == 1 ]; then
 	if [ 1 == "$called_from_ado" ]; then
 		unset TF_DATA_DIR
 		echo "Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer" >"${system_environment_file_name}".err
-		echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
+		if [ 1 == $called_from_ado ]; then
+			echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
+		fi
 		exit 1
 	fi
 

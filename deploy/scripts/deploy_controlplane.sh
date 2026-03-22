@@ -440,11 +440,15 @@ if [ 0 == "$step" ]; then
 
 	load_config_vars "${deployer_environment_file_name}" "sshsecret" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
 
-	echo "##vso[task.setprogress value=20;]Progress Indicator"
+	if [ "$ado_flag" == "--ado" ]; then
+		echo "##vso[task.setprogress value=20;]Progress Indicator"
+	fi
 else
 	print_banner "Control Plane deployment" "Deployer is already bootstrapped, skipping to the next step" "info"
 	load_config_vars "${deployer_environment_file_name}" "sshsecret" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
-	echo "##vso[task.setprogress value=20;]Progress Indicator"
+	if [ "$ado_flag" == "--ado" ]; then
+		echo "##vso[task.setprogress value=20;]Progress Indicator"
+	fi
 fi
 
 cd "$root_dirname" || exit
@@ -655,8 +659,8 @@ if [ 2 -eq $step ]; then
 	REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 	STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
-	save_config_var "REMOTE_STATE_SA" "${deployer_environment_file_name}"
-	save_config_var "STATE_SUBSCRIPTION" "${deployer_environment_file_name}"
+	tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
+	save_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 	if [ "${ado_flag}" != "--ado" ]; then
 		az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
@@ -675,17 +679,23 @@ if [ 2 -eq $step ]; then
 
 	cd "${current_directory}" || exit
 	save_config_var "step" "${deployer_environment_file_name}"
-	echo "##vso[task.setprogress value=60;]Progress Indicator"
+	if [ "$ado_flag" == "--ado" ]; then
+		echo "##vso[task.setprogress value=60;]Progress Indicator"
+	fi
 
 else
 	print_banner "Control Plane deployment" "SAP Library is already bootstrapped, skipping to the next step" "info"
-	echo "##vso[task.setprogress value=60;]Progress Indicator"
+	if [ "$ado_flag" == "--ado" ]; then
+		echo "##vso[task.setprogress value=60;]Progress Indicator"
+	fi
 
 fi
 
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
-echo "##vso[task.setprogress value=80;]Progress Indicator"
+if [ "$ado_flag" == "--ado" ]; then
+	echo "##vso[task.setprogress value=80;]Progress Indicator"
+fi
 
 ##########################################################################################
 #                                                                                        #
@@ -720,7 +730,9 @@ if [ 3 -eq "$step" ]; then
 	if [ -z "${REMOTE_STATE_SA}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_environment_file_name}"
-		echo "##vso[task.setprogress value=40;]Progress Indicator"
+		if [ "$ado_flag" == "--ado" ]; then
+			echo "##vso[task.setprogress value=40;]Progress Indicator"
+		fi
 		echo ""
 		print_banner "Control Plane deployment" "Could not find the SAP Library, please re-run!" "error"
 		exit 11
@@ -948,7 +960,9 @@ fi
 
 step=3
 save_config_var "step" "${deployer_environment_file_name}"
-echo "##vso[task.setprogress value=100;]Progress Indicator"
+if [ "$ado_flag" == "--ado" ]; then
+	echo "##vso[task.setprogress value=100;]Progress Indicator"
+fi
 
 unset TF_DATA_DIR
 

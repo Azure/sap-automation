@@ -484,7 +484,13 @@ if [ 1 = "${deploy_using_msi_only:-}" ]; then
 
 		if [ -f secret.err ]; then
 			error_message=$(cat secret.err)
-			echo "##vso[task.logissue type=error]${error_message}"
+			if [ 1 == $called_from_ado ]; then
+
+				echo "##vso[task.logissue type=error]${error_message}"
+			else
+				echo "Error: ${error_message}"
+			fi
+
 			rm secret.err
 			exit 65
 		fi
@@ -505,7 +511,11 @@ else
 
 			if [ -f secret.err ]; then
 				error_message=$(cat secret.err)
-				echo "##vso[task.logissue type=error]${error_message}"
+				if [ 1 == $called_from_ado ]; then
+					echo "##vso[task.logissue type=error]${error_message}"
+				else
+					echo "Error: ${error_message}"
+				fi
 
 				exit 65
 			fi

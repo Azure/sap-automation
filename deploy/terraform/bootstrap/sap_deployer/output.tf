@@ -103,8 +103,13 @@ output "deployer_uai"                            {
                                                  }
 
 output "deployer_sshkey"                         {
-                                                   description = "Name of the secreet containing the deployer ssh key"
+                                                   description = "Name of the secret containing the deployer ssh key"
                                                    value       = module.sap_deployer.ppk_secret_name
+                                                 }
+
+output "deployer_username"                      {
+                                                   description = "Name of deployer username"
+                                                   value       = var.deployer_authentication_username
                                                  }
 
 ###############################################################################
