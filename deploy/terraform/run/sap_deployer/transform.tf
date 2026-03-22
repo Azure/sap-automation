@@ -84,6 +84,8 @@ locals {
                                            server_url                     = var.github_server_url
                                            api_url                        = var.github_api_url
                                            platform                       = var.devops_platform
+                                           organization                   = var.organization
+                                           branch                         = var.branch
                                          }
 
     tfstate_resource_id                = var.tfstate_resource_id

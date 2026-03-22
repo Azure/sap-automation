@@ -837,7 +837,7 @@ variable "application_configuration_name"          {
 
 #######################################4#######################################8
 #                                                                              #
-#                          Network Security Perimeter definitions             #
+#                          Network Security Perimeter definitions              #
 #                                                                              #
 #######################################4#######################################8
 
@@ -866,3 +866,19 @@ variable "network_security_perimeter_id"       {
                                                   }
                                                 }
 
+
+#######################################4#######################################8
+#                                                                              #
+#                             Repository parameters                            #
+#                                                                              #
+#######################################4#######################################8
+
+variable "organization"                          {
+                                                    description = "If defined, The Github organization name"
+                                                    default     = "Azure"
+                                                 }
+
+variable "branch"                                {
+                                                    description = "If defined, The branch name to use for configuration of the deployer"
+                                                    default     = "main"
+                                                 }

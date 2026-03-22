@@ -260,6 +260,8 @@ resource "azurerm_virtual_machine_extension" "configure" {
                                                    repository           = var.infrastructure.devops.repository,
                                                    server_url           = var.infrastructure.devops.server_url,
                                                    platform             = var.infrastructure.devops.platform
+                                                   organization         = var.infrastructure.devops.organization
+                                                   branch               = var.infrastructure.devops.branch
                                                  }
                                                )
                                              )
