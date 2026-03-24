@@ -913,8 +913,6 @@ export deployer_keyvault
 terraform_state_storage_account="${REMOTE_STATE_SA}"
 export terraform_state_storage_account
 
-set -x
-
 load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address" "DEPLOYER_SSHKEY_SECRET_NAME" "DEPLOYER_USERNAME"
 
 if [ 5 -eq $step ]; then
@@ -925,26 +923,32 @@ if [ 5 -eq $step ]; then
 		print_banner "Control Plane deployment" "Copying the parameterfiles" "info"
 
 		printf "%s\n" "Collecting secrets from KV"
+
 		temp_file=$(mktemp)
 		ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${DEPLOYER_SSHKEY_SECRET_NAME}" --query value --output tsv)
 		echo "${ppk}" >"${temp_file}"
 		chmod 600 "${temp_file}"
 
-		remote_deployer_dir="/home/"${DEPLOYER_USERNAME:-azureadm}"/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
-		remote_library_dir="/home/"${DEPLOYER_USERNAME:-azureadm}"/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-		remote_config_dir="/home/"${DEPLOYER_USERNAME:-azureadm}"/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation"
+		remote_deployer_dir="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER/$(basename "$deployer_parameter_file" .tfvars)"
+		echo "Remote deployer directory:            ${remote_deployer_dir}"
+		remote_library_dir="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/LIBRARY/$(basename "$library_parameter_file" .tfvars)"
+		echo "Remote library directory:             ${remote_library_dir}"
+		remote_config_dir="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation"
+		echo "Remote config directory:              ${remote_config_dir}"
 
-		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2>/dev/null
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2>/dev/null
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate 2>/dev/null
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate 2>/dev/null
+		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}/.terraform"
 
-		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform 2>/dev/null
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2>/dev/null
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"$remote_library_dir"/. 2>/dev/null
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}/$(basename "$deployer_parameter_file")"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate
 
-		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}" 2>/dev/null
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_environment_file_name}" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_config_dir}"/. 2>/dev/null
+		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}/.terraform"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/$(basename "$library_parameter_file")"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/terraform.tfstate"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/.terraform/terraform.tfstate"
+
+		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_environment_file_name}" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_config_dir}/$(basename "$deployer_environment_file_name")"
 		rm "${temp_file}"
 	fi
 fi
