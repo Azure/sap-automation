@@ -741,6 +741,18 @@ if [ 1 != $return_value ]; then
 				export APP_SERVICE_NAME
 			fi
 
+			DEPLOYER_SSHKEY_SECRET_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey | tr -d \")
+			if [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
+				save_config_var "DEPLOYER_SSHKEY_SECRET_NAME" "${system_environment_file_name}"
+				export DEPLOYER_SSHKEY_SECRET_NAME
+			fi
+
+			DEPLOYER_USERNAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_username | tr -d \")
+			if [ -n "${DEPLOYER_USERNAME}" ]; then
+				save_config_var "DEPLOYER_USERNAME" "${system_environment_file_name}"
+				export DEPLOYER_USERNAME
+			fi
+
 			HAS_WEBAPP=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_service_deployment | tr -d \")
 			if [ -n "${HAS_WEBAPP}" ]; then
 				save_config_var "HAS_WEBAPP" "${system_environment_file_name}"
@@ -1114,6 +1126,18 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
 		save_config_var "APP_SERVICE_DEPLOYMENT" "${system_environment_file_name}"
 		export APP_SERVICE_DEPLOYMENT
+	fi
+
+	DEPLOYER_SSHKEY_SECRET_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey | tr -d \")
+	if [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
+		save_config_var "DEPLOYER_SSHKEY_SECRET_NAME" "${system_environment_file_name}"
+		export DEPLOYER_SSHKEY_SECRET_NAME
+	fi
+
+	DEPLOYER_USERNAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_username | tr -d \")
+	if [ -n "${DEPLOYER_USERNAME}" ]; then
+		save_config_var "DEPLOYER_USERNAME" "${system_environment_file_name}"
+		export DEPLOYER_USERNAME
 	fi
 
 	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")

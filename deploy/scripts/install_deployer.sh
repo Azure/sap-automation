@@ -469,12 +469,7 @@ fi
 echo "Terraform Apply return code:         $install_deployer_return_value"
 
 if [ 0 != $install_deployer_return_value ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                      $bold_red_underscore !!! Error when Creating the deployer !!! $reset_formatting                       #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Install Deployer" "Error when Creating the deployer" "error"
 
 	if [ -f "${deployer_plan_name}" ]; then
 		echo "Removing the plan file: $deployer_plan_name"
@@ -489,22 +484,33 @@ if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -
 	save_config_var "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
 	export DEPLOYER_KEYVAULT
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "$banner_title" "Deployer Keyvault: $val" "info"
+
 else
 	install_deployer_return_value=2
 fi
+
+DEPLOYER_USERNAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_username | tr -d \")
+if [ -n "${DEPLOYER_USERNAME}" ]; then
+	save_config_var "DEPLOYER_USERNAME" "${deployer_environment_file_name}"
+	export DEPLOYER_USERNAME
+fi
+
+
+DEPLOYER_SSHKEY_SECRET_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey | tr -d \")
+if [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
+	save_config_var "DEPLOYER_SSHKEY_SECRET_NAME" "${deployer_environment_file_name}"
+	export DEPLOYER_SSHKEY_SECRET_NAME
+	print_banner "$banner_title" "Deployer SSH Key Secret Name: $DEPLOYER_SSHKEY_SECRET_NAME" "info" "Deployer Username: ${DEPLOYER_USERNAME:-azureadm}"
+fi
+
+
 
 APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
 if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
 	save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
 	export APPLICATION_CONFIGURATION_NAME
-	echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
+	print_banner "$banner_title" "Application Configuration Name: $APPLICATION_CONFIGURATION_NAME" "info"
 fi
 
 APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
