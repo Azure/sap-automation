@@ -111,7 +111,6 @@
   when:
     - result is succeeded or result is skipped
     - sa_enabled | default(false)
-    # - sa_enabled is not defined or sa_enabled | bool
   block:
 
 # -------------------------------------+---------------------------------------8

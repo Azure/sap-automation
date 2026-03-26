@@ -63,9 +63,9 @@ product_ids:
 {%   endfor %}
 {% endif %}
 
-{% if patch_information is defined %}
+{% if patch_information is mapping %}
 
-patch_information:
+patch_information:ls
 
 {%   if patch_information is mapping %}
 {%     for pKey,pValue in patch_information.items() %}
