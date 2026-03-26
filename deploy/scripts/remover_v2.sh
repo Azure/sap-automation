@@ -109,10 +109,22 @@ function parse_arguments() {
 			;;
 		-d | --deployer_tfstate_key)
 			deployer_tfstate_key="$2"
+			CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
+			CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
+			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+			TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+			export TF_VAR_control_plane_name
+			export TF_VAR_deployer_tfstate_key
 			shift 2
 			;;
 		-c | --control_plane_name)
 			CONTROL_PLANE_NAME="$2"
+			CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
+			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+			TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+			
+			export TF_VAR_deployer_tfstate_key
+			export TF_VAR_control_plane_name
 			shift 2
 			;;
 		-n | --application_configuration_name)
@@ -127,10 +139,18 @@ function parse_arguments() {
 			;;
 		-l | --landscape_tfstate_key)
 			landscape_tfstate_key="$2"
+			WORKLOAD_ZONE_NAME=$(echo "$landscape_tfstate_key" | cut -d"-" -f1-3)
+			TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+			export TF_VAR_workload_zone_name
+			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+			export TF_VAR_landscape_tfstate_key
 			shift 2
 			;;
 		-o | --storage_accountname)
 			terraform_storage_account_name="$2"
+			export terraform_storage_account_name
+			getAndStoreTerraformStateStorageAccountDetails "${terraform_storage_account_name}" ""
+
 			shift 2
 			;;
 		-p | --parameter_file)
@@ -139,6 +159,7 @@ function parse_arguments() {
 			;;
 		-s | --state_subscription)
 			terraform_storage_account_subscription_id="$2"
+			export terraform_storage_account_subscription_id
 			shift 2
 			;;
 		-t | --type)
@@ -149,6 +170,9 @@ function parse_arguments() {
 			WORKLOAD_ZONE_NAME="$2"
 			TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
 			export TF_VAR_workload_zone_name
+			TF_VAR_landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+			export TF_VAR_landscape_tfstate_key
+
 			shift 2
 			;;
 		-f | --force)
@@ -361,10 +385,6 @@ function retrieve_parameters() {
 		if [ -z "${terraform_storage_account_name:-}" ]; then
 			load_config_vars "${system_environment_file_name}" \
 				tfstate_resource_id keyvault
-			if [ -n "$keyvault" ]; then
-				TF_VAR_spn_keyvault_id=$(az keyvault show --name "${keyvault}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-				export TF_VAR_spn_keyvault_id
-			fi
 
 			if [ -n "$tfstate_resource_id" ]; then
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
@@ -558,10 +578,6 @@ function sdaf_remover() {
 
 		az account set --sub "${current_subscription_id}"
 
-	fi
-
-	if [ "${deployment_system}" != sap_deployer ]; then
-		echo "Deployer Keyvault ID:                $keyvault"
 	fi
 
 	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --out tsv)
