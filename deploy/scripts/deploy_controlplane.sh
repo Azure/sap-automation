@@ -624,7 +624,7 @@ if [ -n "${keyvault}" ] && [ 0 != "$step" ]; then
 	    print_banner "Control Plane deployment" "Detected a failed deployment" "error"
 		exit 10
 	else
-		TF_VAR_deployer_kv_user_arm_id=keyvault_id
+		TF_VAR_deployer_kv_user_arm_id="${keyvault_id}"
 		export TF_VAR_deployer_kv_user_arm_id
 	fi
 else
