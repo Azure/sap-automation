@@ -145,7 +145,7 @@ function getAndStoreTerraformStateStorageAccountDetails {
 	export REMOTE_STATE_RG
 	export STATE_SUBSCRIPTION
 	export TF_VAR_tfstate_resource_id
-	export tfstate_resource_id=$tf_resource_id
+	export tfstate_resource_id="${tfstate_resource_id}"
 
 	if [ -f "${config_file_name}" ]; then
 
