@@ -250,7 +250,7 @@ if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
 	if [ -n "$azure_backend" ]; then
 		echo "Terraform state:                     remote"
 		step=3
-		save_config_vars "step"
+		save_config_vars "${deployer_environment_file_name}" "step"
 		echo "key=${deployer_tf_state}"
 
 		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
