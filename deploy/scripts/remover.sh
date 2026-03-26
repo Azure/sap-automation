@@ -391,7 +391,7 @@ if [ -f terraform.tfvars ]; then
 	allRemovalParameters+=(-var-file ${param_dirname}/terraform.tfvars)
 fi
 
-if [ "called_from_ado" = "1" ] || [ "$approve" == "--auto-approve" ]; then
+if [ "$called_from_ado" = "1" ] || [ "$approve" == "--auto-approve" ]; then
 	allRemovalParameters+=(--auto-approve)
 fi
 

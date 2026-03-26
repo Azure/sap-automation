@@ -247,7 +247,7 @@ if [ -z "${keyvault}" ]; then
 	exit $return_code
 fi
 
-if [ $deploy_using_msi_only = 0 }; then
+if [ $deploy_using_msi_only = 0 ]; then
 
 	if [ -z "${client_id:-$ARM_CLIENT_ID}" ]; then
 		load_config_vars "${environment_config_information}" "client_id"
