@@ -197,17 +197,6 @@ if [ -z "${region_code}" ]; then
 	get_region_code "$region"
 fi
 
-# if ! valid_environment "${environment}"; then
-#     echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
-#     showhelp
-#     exit 65	#/* data format error */
-# fi
-
-# if ! valid_region_code "${region_code}"; then
-#    echo "The 'region' must be a non-empty string composed of 4 uppercase letters!"
-#    showhelp
-#    exit 65	#/* data format error */
-# fi
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 environment_config_information="${automation_config_directory}/${environment}${region_code}${network_code}"
@@ -258,35 +247,38 @@ if [ -z "${keyvault}" ]; then
 	exit $return_code
 fi
 
-if [ -z "${client_id:-$ARM_CLIENT_ID}" ]; then
-	load_config_vars "${environment_config_information}" "client_id"
-	if [ -z "$client_id" ]; then
-		read -r -p "SPN App ID: " client_id
-	fi
-else
-	if is_valid_guid "${client_id}"; then
-		echo ""
-	else
-		printf -v val %-40.40s "$client_id"
-		print_banner "Set secrets" "The provided client_id is not valid: ${val}" "error"
-		return_code=65
-		exit $return_code
-	fi
-fi
+if [ $deploy_using_msi_only = 0 }; then
 
-if [ -z "${tenant_id:-$ARM_TENANT_ID}" ]; then
-	load_config_vars "${environment_config_information}" "tenant_id"
-	if [ -z "${tenant_id}" ]; then
-		read -r -p "SPN Tenant ID: " tenant_id
-	fi
-else
-	if is_valid_guid "${tenant_id}"; then
-		echo ""
+	if [ -z "${client_id:-$ARM_CLIENT_ID}" ]; then
+		load_config_vars "${environment_config_information}" "client_id"
+		if [ -z "$client_id" ]; then
+			read -r -p "SPN App ID: " client_id
+		fi
 	else
-		printf -v val %-40.40s "$tenant_id"
-		print_banner "Set secrets" "The provided tenant_id is not valid: ${val}" "error"
-		return_code=65
-		exit $return_code
+		if is_valid_guid "${client_id}"; then
+			echo ""
+		else
+			printf -v val %-40.40s "$client_id"
+			print_banner "Set secrets" "The provided client_id is not valid: ${val}" "error"
+			return_code=65
+			exit $return_code
+		fi
+	fi
+
+	if [ -z "${tenant_id:-$ARM_TENANT_ID}" ]; then
+		load_config_vars "${environment_config_information}" "tenant_id"
+		if [ -z "${tenant_id}" ]; then
+			read -r -p "SPN Tenant ID: " tenant_id
+		fi
+	else
+		if is_valid_guid "${tenant_id}"; then
+			echo ""
+		else
+			printf -v val %-40.40s "$tenant_id"
+			print_banner "Set secrets" "The provided tenant_id is not valid: ${val}" "error"
+			return_code=65
+			exit $return_code
+		fi
 	fi
 fi
 
