@@ -232,7 +232,7 @@
 # is started/running.
 #
 # -------------------------------------+---------------------------------------8
-- name:                                Ensure chronyd service is running
+- name:                                "1.7 chrony - Ensure chronyd service is running"
   ansible.builtin.service:
     name:                              chronyd
     state:                             started
