@@ -78,6 +78,8 @@ while :; do
 	case "$1" in
 	-a | --storageaccountname)
 		REMOTE_STATE_SA="$2"
+		export REMOTE_STATE_SA
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" ""
 		shift 2
 		;;
 	-c | --spn_id)
@@ -209,9 +211,22 @@ echo "Region code:                         ${region_code}"
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
 
-ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+deployer_dirname=$(dirname "${deployer_parameter_file}")
+deployer_file_parametername=$(basename "${deployer_parameter_file}")
+
+library_dirname=$(dirname "${library_parameter_file}")
+library_file_parametername=$(basename "${library_parameter_file}")
+
+if [ -n "$deployer_tf_state" ]; then
+	ENVIRONMENT=$(echo "$deployer_tf_state" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "$deployer_tf_state" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "$deployer_tf_state" | awk -F'-' '{print $3}' | xargs)
+else
+	ENVIRONMENT=$(echo "$deployer_file_parametername" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "$deployer_file_parametername" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "$deployer_file_parametername" | awk -F'-' '{print $3}' | xargs)
+fi
+
 CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
 TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 export TF_VAR_control_plane_name
@@ -227,6 +242,79 @@ deployer_environment_file_name=$(get_configuration_file "$automation_config_dire
 if [ $force == 1 ]; then
 	if [ -f "${deployer_environment_file_name}" ]; then
 		rm "${deployer_environment_file_name}"
+	fi
+fi
+
+if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
+	azure_backend=$(grep "\"type\": \"azurerm\"" "${deployer_dirname}/.terraform/terraform.tfstate" || true)
+	if [ -n "$azure_backend" ]; then
+		echo "Terraform state:                     remote"
+		step=3
+		save_config_vars "step"
+		echo "key=${deployer_tf_state}"
+
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
+		TF_VAR_subscription_id=$STATE_SUBSCRIPTION
+
+		export ARM_SUBSCRIPTION_ID
+		export TF_VAR_subscription_id
+
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${deployer_environment_file_name}"
+
+		terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure  \
+							--backend-config "subscription_id=$STATE_SUBSCRIPTION"           \
+							--backend-config "resource_group_name=$REMOTE_STATE_RG"          \
+							--backend-config "storage_account_name=$REMOTE_STATE_SA"         \
+							--backend-config "container_name=tfstate"                        \
+							--backend-config "key=${deployer_tf_state}"; then
+
+			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name| tr -d \")
+			if valid_kv_name "$keyvault"; then
+
+				echo "Key vault:                           ${keyvault}"
+				
+				DEPLOYER_KEYVAULT="${keyvault}"
+				keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+				if [ -n "$keyvault_id" ]; then
+					TF_VAR_deployer_kv_user_arm_id=$keyvault_id
+					export TF_VAR_deployer_kv_user_arm_id
+					ARM_SUBSCRIPTION_ID=$(echo "${keyvault_id}" | cut -d/ -f3 | tr -d \" | xargs)
+					export ARM_SUBSCRIPTION_ID
+
+					step=1
+				else
+					step=0
+				fi
+				step=3
+				save_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "keyvault" "STATE_SUBSCRIPTION" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "ARM_SUBSCRIPTION_ID"
+			fi
+
+		fi
+	else
+		echo "Terraform state:                     local"
+		terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true --backend-config "path=${deployer_dirname}/terraform.tfstate"; then
+			keyvault=$(terraform -chdir="${terraform_module_directory}" output   -no-color -raw deployer_kv_user_name | tr -d \")
+			if valid_kv_name "$keyvault"; then
+				DEPLOYER_KEYVAULT="${keyvault}"
+				keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+				if [ -n "$keyvault_id" ]; then
+					TF_VAR_deployer_kv_user_arm_id=$keyvault_id
+					export TF_VAR_deployer_kv_user_arm_id
+					ARM_SUBSCRIPTION_ID=$(echo "${keyvault_id}" | cut -d/ -f3 | tr -d \" | xargs)
+					export ARM_SUBSCRIPTION_ID
+
+					step=1
+				else
+					step=0
+				fi
+			fi
+			save_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "keyvault" "step"
+		fi
 	fi
 fi
 
@@ -261,12 +349,6 @@ if [ -v ARM_USE_MSI ]; then
 		deploy_using_msi_only=1
 	fi
 fi
-
-deployer_dirname=$(dirname "${deployer_parameter_file}")
-deployer_file_parametername=$(basename "${deployer_parameter_file}")
-
-library_dirname=$(dirname "${library_parameter_file}")
-library_file_parametername=$(basename "${library_parameter_file}")
 
 # relative_deployer_path=$(dirname $(realpath ${deployer_parameter_file}))
 
@@ -312,7 +394,6 @@ if [ -n "${subscription}" ]; then
 
 	if [ $recover == 1 ]; then
 		if [ -n "$REMOTE_STATE_SA" ]; then
-			save_config_var "REMOTE_STATE_SA" "${deployer_environment_file_name}"
 			getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${deployer_environment_file_name}"
 			#Support running deploy_controlplane on new host when the resources are already deployed
 			step=3
@@ -358,8 +439,12 @@ echo "Step:                                $step"
 
 if [ 0 == "$step" ]; then
 
-	allParameters=$(printf " --parameterfile %s %s" "${deployer_file_parametername}" "${autoApproveParameter}")
-
+	# Declare an array
+	allParameters=(--parameterfile "${deployer_file_parametername}")
+	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(--auto-approve)
+	fi
+ 
 	cd "${deployer_dirname}" || exit
 
 	# Ensure subscription_id is populated in the parameter file.
@@ -371,32 +456,18 @@ if [ 0 == "$step" ]; then
 		sed -i.bak "s|subscription_id *= *\"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"|subscription_id = \"${subscription}\"|" "${deployer_file_parametername}"
 	fi
 
-	echo "Calling install_deployer.sh:         $allParameters"
+
+	echo "Calling install_deployer.sh:         ${allParameters[*]}"
 	echo "Deployer State File:                 ${deployer_tf_state}"
 
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
-
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-			--parameterfile "${deployer_file_parametername}" --auto-approve; then
-			return_code=$?
-		else
-			return_code=$?
-			print_banner "Control Plane deployment" "Bootstrapping of the deployer failed with return code ${return_code}" "error"
-			step=0
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 10
-		fi
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" "${allParameters[@]}"; then
+		return_code=$?
 	else
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer.sh" \
-			--parameterfile "${deployer_file_parametername}"; then
-			return_code=$?
-		else
-			return_code=$?
-			print_banner "Control Plane deployment" "Bootstrapping of the deployer failed with return code ${return_code}" "error"
-			step=0
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 10
-		fi
+		return_code=$?
+		print_banner "Control Plane deployment" "Bootstrapping of the deployer failed with return code ${return_code}" "error"
+		step=0
+		save_config_var "step" "${deployer_environment_file_name}"
+		exit 10
 	fi
 	return_code=$?
 
@@ -419,7 +490,7 @@ if [ 0 == "$step" ]; then
 		fi
 	fi
 
-	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT"
+	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_SSHKEY_SECRET_NAME" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
 	echo "Key vault:             ${DEPLOYER_KEYVAULT}"
 	keyvault="${DEPLOYER_KEYVAULT}"
 
@@ -438,14 +509,12 @@ if [ 0 == "$step" ]; then
 
 	cd "$root_dirname" || exit
 
-	load_config_vars "${deployer_environment_file_name}" "sshsecret" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
-
 	if [ "$ado_flag" == "--ado" ]; then
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	fi
 else
 	print_banner "Control Plane deployment" "Deployer is already bootstrapped, skipping to the next step" "info"
-	load_config_vars "${deployer_environment_file_name}" "sshsecret" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
+	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_SSHKEY_SECRET_NAME" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
 	if [ "$ado_flag" == "--ado" ]; then
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	fi
@@ -495,12 +564,15 @@ if [ 0 != "$step" ]; then
 
 						keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
 						DEPLOYER_KEYVAULT="${keyvault}"
-						save_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "keyvault"
+						save_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "keyvault" "STATE_SUBSCRIPTION" "REMOTE_STATE_SA" "REMOTE_STATE_RG"
 					fi
 				else
 					echo "Terraform state:                     local"
 				fi
 			fi
+		else
+			echo "Key vault:                           ${DEPLOYER_KEYVAULT}"
+			keyvault="${DEPLOYER_KEYVAULT}"
 		fi
 
 		if [ -z "$keyvault" ]; then
@@ -513,37 +585,25 @@ if [ 0 != "$step" ]; then
 
 		if [ 1 -eq $step ]; then
 
+			allParameters=(--vault "$keyvault")
+			allParameters+=(--environment "$environment")
+			allParameters+=(--region "$region_code")
+			allParameters+=(--network_code "$NETWORK")
+			allParameters+=(--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}")
+			allParameters+=(--tenant_id "${tenant_id:-$ARM_TENANT_ID}")
+			allParameters+=(--spn_id "${client_id:-$ARM_CLIENT_ID}")
+			
 			if [ "$deploy_using_msi_only" -eq 0 ]; then
-
-				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
-					--environment "${environment}" \
-					--region "${region_code}" \
-					--network_code "${NETWORK}" \
-					--vault "${keyvault}" \
-					--spn_id "${client_id:-$ARM_CLIENT_ID}" \
-					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
-					--spn_secret "${client_secret:-$ARM_CLIENT_SECRET}" \
-					--tenant_id "${tenant_id:-$ARM_TENANT_ID}"; then
-					print_banner "Control Plane deployment" "Secrets have been set successfully" "success"
-				else
-					print_banner "Control Plane deployment" "Failed to set secrets" "error"
-					exit 10
-				fi
+				allParameters+=(--spn_secret "${client_secret:-$ARM_CLIENT_SECRET}")
 			else
-				if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
-					--environment "${environment}" \
-					--network_code "${NETWORK}" \
-					--region "${region_code}" \
-					--vault "${keyvault}" \
-					--msi \
-					--spn_id "${client_id:-$ARM_CLIENT_ID}" \
-					--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}" \
-					--tenant_id "${tenant_id:-$ARM_TENANT_ID}"; then
-					print_banner "Control Plane deployment" "Secrets have been set successfully" "success"
-				else
-					print_banner "Control Plane deployment" "Failed to set secrets" "error"
-					exit 10
-				fi
+				allParameters+=(--msi)
+			fi
+			
+			if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/set_secrets.sh" "${allParameters[@]}"; then
+				print_banner "Control Plane deployment" "Secrets have been set successfully" "success"
+			else
+				print_banner "Control Plane deployment" "Failed to set secrets" "error"
+				exit 10
 			fi
 		fi
 
@@ -556,13 +616,15 @@ fi
 if [ -n "${keyvault}" ] && [ 0 != "$step" ]; then
 
 	echo "Checking for keyvault:               ${keyvault}"
+	keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+	ARM_SUBSCRIPTION_ID=$(echo "${keyvault_id}" | cut -d/ -f3 | tr -d \" | xargs)
+	export ARM_SUBSCRIPTION_ID
 
-	kv_found=$(az keyvault show --name="$keyvault" --subscription "${subscription}" --query name)
-	if [ -z "${kv_found}" ]; then
+	if [ -z "${keyvault_id}" ]; then
 	    print_banner "Control Plane deployment" "Detected a failed deployment" "error"
 		exit 10
 	else
-		TF_VAR_deployer_kv_user_arm_id=$(az keyvault show --name="$keyvault" --subscription "${subscription}" --query id)
+		TF_VAR_deployer_kv_user_arm_id=keyvault_id
 		export TF_VAR_deployer_kv_user_arm_id
 	fi
 else
@@ -607,6 +669,12 @@ fi
 
 if [ 2 -eq $step ]; then
 	print_banner "Control Plane deployment" "Bootstrapping the library" "info"
+	allParameters=(--parameterfile "${library_file_parametername}" )
+	allParameters+=(--deployer_statefile_foldername "${deployer_dirname}")
+	allParameters+=(--keyvault "${keyvault}")
+	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(--auto-approve)
+	fi
 
 	relative_path="${library_dirname}"
 	export TF_DATA_DIR="${relative_path}/.terraform"
@@ -619,41 +687,19 @@ if [ 2 -eq $step ]; then
 		rm -Rf .terraform terraform.tfstate*
 	fi
 
-	echo "Calling install_library.sh with: --parameterfile ${library_file_parametername} --deployer_statefile_foldername ${deployer_dirname} --keyvault ${keyvault} ${autoApproveParameter}"
+	echo "Calling install_library.sh:          ${allParameters[*]}"
 
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" "${allParameters[@]}"; then
 
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
-			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${deployer_dirname}" \
-			--keyvault "${keyvault}" --auto-approve; then
-			step=3
-			save_config_var "step" "${deployer_environment_file_name}"
-			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library succeeded" "success"
-		else
-			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library failed" "error"
-			step=2
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 20
-
-		fi
+		step=3
+		save_config_var "step" "${deployer_environment_file_name}"
+		print_banner "Control Plane deployment" "Bootstrapping of the SAP Library succeeded" "success"
 	else
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
-			--parameterfile "${library_file_parametername}" \
-			--deployer_statefile_foldername "${relative_path}" \
-			--keyvault "${keyvault}"; then
-			return_code=$?
-			step=3
-			save_config_var "step" "${deployer_environment_file_name}"
-			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library succeeded" "success"
-		else
-			return_code=$?
-			print_banner "Control Plane deployment" "Bootstrapping of the SAP Library failed" "error"
+		print_banner "Control Plane deployment" "Bootstrapping of the SAP Library failed" "error"
+		step=2
+		save_config_var "step" "${deployer_environment_file_name}"
+		exit 20
 
-			step=2
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 20
-		fi
 	fi
 
 	REMOTE_STATE_RG=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_sa_resource_group_name | tr -d \")
@@ -742,38 +788,26 @@ if [ 3 -eq "$step" ]; then
 	TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
 	export TF_VAR_subscription_id
 
-	echo "Calling installer.sh with:          --parameterfile ${deployer_file_parametername} \
-  --storageaccountname ${REMOTE_STATE_SA} --state_subscription ${STATE_SUBSCRIPTION} --type sap_deployer ${autoApproveParameter} ${ado_flag}"
-
+	allParameters=(--parameterfile "${deployer_file_parametername}")
+	allParameters+=(--storageaccountname "${REMOTE_STATE_SA}")
+	allParameters+=(--state_subscription "${STATE_SUBSCRIPTION}")
+	allParameters+=(--type "sap_deployer")
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(--auto-approve)
+	fi
 
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
-			--type sap_deployer \
-			--parameterfile ${deployer_file_parametername} \
-			--storageaccountname "${REMOTE_STATE_SA}" \
-			$ado_flag \
-			--auto-approve; then
-			return_code=0
-		else
-			print_banner "Control Plane deployment" "Migrating the Deployer state failed" "error"
-			step=3
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 30
-		fi
+	echo "Calling installer.sh with:           ${allParameters[*]}"
+
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" "${allParameters[@]}"; then
+		print_banner "Control Plane deployment" "Migrating the Deployer state succeeded" "success"
+		step=4		
+		save_config_var "step" "${deployer_environment_file_name}"
+		return_code=0
 	else
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
-			--type sap_deployer \
-			--parameterfile ${deployer_file_parametername} \
-			--storageaccountname "${REMOTE_STATE_SA}"; then
-			step=4
-			save_config_var "step" "${deployer_environment_file_name}"
-			return_code=0
-		else
-			print_banner "Control Plane deployment" "Migrating the Deployer state failed" "error"
-			step=3
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 30
-		fi
+		print_banner "Control Plane deployment" "Migrating the Deployer state failed" "error"
+		step=3
+		save_config_var "step" "${deployer_environment_file_name}"
+		exit 30
 	fi
 
 	cd "${current_directory}" || exit
@@ -785,9 +819,7 @@ fi
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
 
-load_config_vars "${deployer_environment_file_name}" "keyvault"
-load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address"
-load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
+load_config_vars "${deployer_environment_file_name}" "keyvault" "deployer_public_ip_address" "REMOTE_STATE_SA"
 
 ##########################################################################################
 #                                                                                        #
@@ -807,65 +839,46 @@ if [ 4 -eq $step ]; then
 		# If the library state file exists, we will use it to get the remote state storage account and
 		# resource group name
 		if [ -z "$REMOTE_STATE_SA" ]; then
-			echo "DEBUG: Using the remote state storage account from the library state file"
 			REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		else
-			echo "DEBUG: Using the remote state storage account from the deployer state file"
 			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
-			echo "DEBUG: Remote state storage account: ${REMOTE_STATE_SA}"
 		fi
 		if [ -z "$REMOTE_STATE_RG" ]; then
-			echo "DEBUG: Using the remote state resource group name from the library state file"
 			REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		else
-			echo "DEBUG: Using the remote state resource group name from the deployer state file"
 			load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
 		fi
 		if [ -z "$STATE_SUBSCRIPTION" ]; then
 			# If the state subscription is not set, we will use the one from the deployer state file
 			# This is needed to support running deploy_controlplane on new host when the resources are already deployed
-			echo "DEBUG: Using the state subscription from the library state file"
 			STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		else
 			load_config_vars "${deployer_environment_file_name}" "STATE_SUBSCRIPTION"
 		fi
 	fi
-	echo "Calling installer.sh with:          \
-        --type sap_library \
-      --parameterfile ${library_file_parametername} \
-      --storageaccountname ${REMOTE_STATE_SA} \
-      --deployer_tfstate_key ${deployer_tf_state}"
+	allParameters=(--parameterfile "${library_file_parametername}")
+	allParameters+=(--storageaccountname "${REMOTE_STATE_SA}")
+	allParameters+=(--state_subscription "${STATE_SUBSCRIPTION}")
+	allParameters+=(--deployer_tfstate_key "${deployer_tf_state}")
+	allParameters+=(--type "sap_library")
 
 	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(--auto-approve)
+	fi
 
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
-			--type sap_library \
-			--parameterfile "${library_file_parametername}" \
-			--storageaccountname "${REMOTE_STATE_SA}" \
-			--deployer_tfstate_key "${deployer_tf_state}" \
-			$ado_flag \
-			--auto-approve; then
-			return_code=$?
-		else
-			print_banner "Control Plane deployment" "Migrating the SAP Library state failed" "error"
+	echo "Calling installer.sh with: ${allParameters[@]}"	
 
-			step=4
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 40
-		fi
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" "${allParameters[@]}"; then
+		return_code=$?
+		print_banner "Control Plane deployment" "Migrating the SAP Library state succeeded" "success"
+		step=5
+		save_config_var "step" "${deployer_environment_file_name}"
 	else
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
-			--type sap_library \
-			--parameterfile "${library_file_parametername}" \
-			--storageaccountname "${REMOTE_STATE_SA}" \
-			--deployer_tfstate_key "${deployer_tf_state}"; then
-			return_code=$?
-		else
-			print_banner "Control Plane deployment" "Migrating the SAP Library state failed" "error"
-			step=4
-			save_config_var "step" "${deployer_environment_file_name}"
-			exit 40
-		fi
+		print_banner "Control Plane deployment" "Migrating the SAP Library state failed" "error"
+
+		step=4
+		save_config_var "step" "${deployer_environment_file_name}"
+		exit 40
 	fi
 
 	cd "$root_dirname" || exit
@@ -944,8 +957,8 @@ if [ 5 -eq $step ]; then
 
 		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}/.terraform"
 		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/$(basename "$library_parameter_file")"
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/terraform.tfstate"
-		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/.terraform/terraform.tfstate"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$library_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/terraform.tfstate"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$library_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/.terraform/terraform.tfstate"
 
 		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
 		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_environment_file_name}" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_config_dir}/$(basename "$deployer_environment_file_name")"

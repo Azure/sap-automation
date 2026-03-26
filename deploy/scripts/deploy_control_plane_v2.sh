@@ -253,13 +253,16 @@ function bootstrap_deployer() {
 
 	if [ 0 -eq $step ]; then
 		print_banner "Bootstrap Deployer " "Bootstrapping the deployer..." "info"
-		allParameters=$(printf " --parameter_file %s %s" "${deployer_parameter_file_name}" "${autoApproveParameter}")
+		allParameters=(--parameter_file "${deployer_file_parametername}")
+		if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+			allParameters+=(--auto-approve)
+		fi
 
 		cd "${deployer_dirname}" || exit
 
-		echo "Calling install_deployer_v2.sh:         $allParameters"
+		echo "Calling install_deployer_v2.sh:         ${allParameters[*]}"
 
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" --parameter_file "${deployer_parameter_file_name}" "$autoApproveParameter"; then
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_deployer_v2.sh" "${allParameters[@]}"; then
 			local_return_code=$?
 			print_banner "Bootstrap Deployer " "Bootstrapping the deployer succeeded" "success"
 			step=1
@@ -427,14 +430,21 @@ function bootstrap_library {
 
 		cd "${library_dirname}" || exit
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
+		allParameters=(--parameter_file "${library_parameter_file_name}")
+		allParameters+=(--deployer_statefile_foldername "${relative_path}")
+		allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")	
+		if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+			allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
+		fi
+		if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+			allParameters+=(--auto-approve)
+		fi
+ 		
+		cd "${deployer_dirname}" || exit
 
-		echo "Calling install_library_v2.sh with: --parameter_file ${library_parameter_file_name} --deployer_statefile_foldername ${relative_path} ${autoApproveParameter} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
+		echo "Calling install_library_v2.sh:         ${allParameters[*]}"
 
-		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library_v2.sh" \
-			--parameter_file "${library_parameter_file_name}" \
-			--deployer_statefile_foldername "${relative_path}" \
-			--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}" \
-			"$autoApproveParameter"; then
+		if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library_v2.sh" "${allParameters[@]}"; then
 			step=3
 			save_config_var "step" "${deployer_environment_file_name}"
 			print_banner "$banner_title" "Bootstrapping the library succeeded." "success"
@@ -579,12 +589,21 @@ function migrate_deployer_state() {
 	fi
 
 	echo ""
-	echo "Calling installer_v2.sh with: --type sap_deployer --parameter_file ${deployer_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --storage_accountname "${terraform_storage_account_name:-}" --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
+	allParameters=(--parameter_file "${deployer_parameter_file_name}")
+	allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")	
+	allParameters+=(--storage_accountname "${terraform_storage_account_name}")	
+	allParameters+=(--type sap_deployer)
+	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+		allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
+	fi
+
+	if [ "$devops_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(--auto-approve)
+	fi
+	echo "Calling installer_v2.sh with: ${allParameters[*]}"
 	echo ""
 
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file "$deployer_parameter_file_name" --type sap_deployer \
-		--control_plane_name "${CONTROL_PLANE_NAME}" \
-		--storage_accountname "$terraform_storage_account_name" $devops_flag "${autoApproveParameter}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}"; then
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" "${allParameters[@]}"; then
 		print_banner "$banner_title" "Migrating the Deployer state succeeded." "success"
 
 	else
@@ -697,7 +716,7 @@ function migrate_library_state() {
 	if [ -z "${terraform_storage_account_name}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_environment_file_name}"
-		if [ $devops_flag == "--devops" ]; then
+		if [ "$devops_flag" == "--devops" ]; then
 			echo "##vso[task.setprogress value=40;]Progress Indicator"
 		fi
 		print_banner "$banner_title" "Could not find the SAP Library, please re-run!" "error"
@@ -705,11 +724,20 @@ function migrate_library_state() {
 	fi
 
 	echo ""
-	echo "Calling installer_v2.sh with: --type sap_library --parameter_file ${library_parameter_file_name} --control_plane_name ${CONTROL_PLANE_NAME} --application_configuration_name ${APPLICATION_CONFIGURATION_NAME:-}"
+		allParameters=(--parameter_file "${library_parameter_file_name}")
+		allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")	
+		allParameters+=(--storage_accountname "${terraform_storage_account_name}")	
+		allParameters+=(--type sap_library)
+		if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+			allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
+		fi
+		if [ "$devops_flag" == "--devops" ] || [ "$approve" == "--auto-approve" ]; then
+			allParameters+=(--auto-approve)
+		fi
+
+	echo "Calling installer_v2.sh with:  	 ${allParameters[*]}"
 	echo ""
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --type sap_library --parameter_file "${library_parameter_file_name}" \
-		--control_plane_name "${CONTROL_PLANE_NAME}" --storage_accountname "${terraform_storage_account_name}" \
-		$devops_flag "${autoApproveParameter}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME:-}"; then
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" "${allParameters[@]}"; then
 		return_code=$?
 		print_banner "$banner_title" "Migrating the Library state succeeded." "success"
 
@@ -737,44 +765,41 @@ function migrate_library_state() {
 ############################################################################################
 
 function copy_files_to_public_deployer() {
-	if [ "${devops_flag}" == "none" ]; then
+	load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address" "DEPLOYER_SSHKEY_SECRET_NAME" "DEPLOYER_USERNAME"
+	if [ -n "${deployer_public_ip_address:-}" ] && [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
+
 		cd "${current_directory}" || exit
 
-		load_config_vars "${deployer_environment_file_name}" "sshsecret"
-		load_config_vars "${deployer_environment_file_name}" "keyvault"
-		load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address"
-		if [ ! -f /etc/profile.d/deploy_server.sh ]; then
-			# Only run this when not on deployer
-			print_banner "Copy-Files" "Copying the parameter files..." "info"
+		print_banner "Control Plane deployment" "Copying the parameterfiles" "info"
 
-			if [ -n "${sshsecret}" ]; then
-				step=3
-				save_config_var "step" "${deployer_environment_file_name}"
-				printf "%s\n" "Collecting secrets from KV"
-				temp_file=$(mktemp)
-				ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${sshsecret}" | jq -r .value)
-				echo "${ppk}" >"${temp_file}"
-				chmod 600 "${temp_file}"
+		printf "%s\n" "Collecting secrets from KV"
 
-				remote_deployer_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$deployer_parameter_file")
-				remote_library_dir="/home/azureadm/Azure_SAP_Automated_Deployment/WORKSPACES/"$(dirname "$library_parameter_file")
-				remote_config_dir="$CONFIG_REPO_PATH/.sap_deployment_automation"
+		temp_file=$(mktemp)
+		ppk=$(az keyvault secret show --vault-name "${keyvault}" --name "${DEPLOYER_SSHKEY_SECRET_NAME}" --query value --output tsv)
+		echo "${ppk}" >"${temp_file}"
+		chmod 600 "${temp_file}"
 
-				ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}"/.terraform 2>/dev/null
-				scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2>/dev/null
-				scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate 2>/dev/null
-				scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate 2>/dev/null
+		remote_deployer_dir="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER/$(basename "$deployer_parameter_file" .tfvars)"
+		echo "Remote deployer directory:            ${remote_deployer_dir}"
+		remote_library_dir="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/LIBRARY/$(basename "$library_parameter_file" .tfvars)"
+		echo "Remote library directory:             ${remote_library_dir}"
+		remote_config_dir="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation"
+		echo "Remote config directory:              ${remote_config_dir}"
 
-				ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}"/.terraform 2>/dev/null
-				scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate azureadm@"${deployer_public_ip_address}":"${remote_deployer_dir}"/. 2>/dev/null
-				scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" azureadm@"${deployer_public_ip_address}":"$remote_library_dir"/. 2>/dev/null
+		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_deployer_dir}/.terraform"
 
-				ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 azureadm@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}" 2>/dev/null
-				scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_environment_file_name}" azureadm@"${deployer_public_ip_address}":"${remote_config_dir}"/. 2>/dev/null
-				rm "${temp_file}"
-			fi
-		fi
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$deployer_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}/$(basename "$deployer_parameter_file")"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate
 
+		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}/.terraform"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/$(basename "$library_parameter_file")"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$library_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/terraform.tfstate"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$library_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/.terraform/terraform.tfstate"
+
+		ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
+		scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_environment_file_name}" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_config_dir}/$(basename "$deployer_environment_file_name")"
+		rm "${temp_file}"
 	fi
 
 }

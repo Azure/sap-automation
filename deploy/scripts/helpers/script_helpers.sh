@@ -1167,8 +1167,10 @@ function ImportAndReRunApply {
 	local error_count=0
 
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
-	# echo "Import parameters: ${importParameters[*]}"
-	# echo "Apply parameters: ${applyParameters[*]}"
+	if [ "${DEBUG}" = "true" ]; then
+		echo "Import parameters: ${importParameters[*]}"
+		echo "Apply parameters: ${applyParameters[*]}"
+	fi
 
 	if [ -f "$fileName" ]; then
 

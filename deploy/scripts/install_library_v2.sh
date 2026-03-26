@@ -127,6 +127,7 @@ function parse_arguments() {
 		exit 1
 	fi
 
+	import="false"
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
@@ -146,6 +147,12 @@ function parse_arguments() {
 			;;
 		-i | --auto-approve)
 			approve="--auto-approve"
+			autoApproveParameter="--auto-approve"
+			import="true"
+			shift
+			;;
+		--importexisting)
+			import="true"
 			shift
 			;;
 		-n | --application_configuration_name)
@@ -503,7 +510,8 @@ function install_library() {
 	if [ -f apply_output.json ]; then
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
-		if [[ -n $errors_occurred ]]; then
+		if [ -n "$errors_occurred" ]; then
+
 			# shellcheck disable=SC2086
 			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 				return_value=$?

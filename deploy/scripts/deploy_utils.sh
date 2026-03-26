@@ -133,24 +133,28 @@ function getAndStoreTerraformStateStorageAccountDetails {
 
 	echo "Trying to find the storage account:  ${REMOTE_STATE_SA}"
 
-	save_config_vars "${config_file_name}" REMOTE_STATE_SA
-	if [ -z "$STATE_SUBSCRIPTION" ]; then
-		tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" --output tsv)
-		REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].resourceGroup | [0]" --output tsv)
-	else
-		tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription "$STATE_SUBSCRIPTION" --query "[].id | [0]" --output tsv)
-		REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription "$STATE_SUBSCRIPTION" --query "[].resourceGroup | [0]" --output tsv)
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
 
-	fi
 	fail_if_null tfstate_resource_id
 
-	export REMOTE_STATE_RG=$REMOTE_STATE_RGNAME
+	STATE_SUBSCRIPTION=$(echo "${tfstate_resource_id}" | cut -d/ -f3 | tr -d \" | xargs)
+	REMOTE_STATE_RG=$(echo "${tfstate_resource_id}" | cut -d/ -f5 | tr -d \" | xargs)
+
+	TF_VAR_tfstate_resource_id=$tfstate_resource_id
+	
+	export REMOTE_STATE_RG
+	export STATE_SUBSCRIPTION
+	export TF_VAR_tfstate_resource_id
 	export tfstate_resource_id=$tf_resource_id
 
-	save_config_vars "${config_file_name}" \
-		REMOTE_STATE_RG \
-		tfstate_resource_id \
-		STATE_SUBSCRIPTION
+	if [ -f "${config_file_name}" ]; then
+
+		save_config_vars "${config_file_name}" \
+			REMOTE_STATE_SA \
+			REMOTE_STATE_RG \
+			tfstate_resource_id \
+			STATE_SUBSCRIPTION
+	fi
 	echo "Found the storage account:           ${REMOTE_STATE_SA}"
 }
 

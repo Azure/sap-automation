@@ -57,6 +57,7 @@ function showhelp {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
+import="false"
 INPUT_ARGUMENTS=$(getopt -n install_deployer -o p:ih --longoptions parameterfile:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -74,6 +75,12 @@ while :; do
 		;;
 	-i | --auto-approve)
 		approve="--auto-approve"
+		import="true"
+		shift
+		;;
+	--importexisting)
+		import="true"
+			
 		shift
 		;;
 	-h | --help)
@@ -420,48 +427,43 @@ if [ -f apply_output.json ]; then
 
 	if [[ -n $errors_occurred ]]; then
 		install_deployer_return_value=10
-		if [ -n "${approve}" ]; then
-
+		# shellcheck disable=SC2086
+		if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+			install_deployer_return_value=0
+		else
+			install_deployer_return_value=$?
+		fi
+		if [ -f apply_output.json ]; then
 			# shellcheck disable=SC2086
 			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 				install_deployer_return_value=0
 			else
 				install_deployer_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_deployer_return_value=0
-				else
-					install_deployer_return_value=$?
-				fi
+		fi
+		if [ -f apply_output.json ]; then
+			# shellcheck disable=SC2086
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_deployer_return_value=0
+			else
+				install_deployer_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_deployer_return_value=0
-				else
-					install_deployer_return_value=$?
-				fi
+		fi
+		if [ -f apply_output.json ]; then
+			# shellcheck disable=SC2086
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_deployer_return_value=0
+			else
+				install_deployer_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_deployer_return_value=0
-				else
-					install_deployer_return_value=$?
-				fi
+		fi
+		if [ -f apply_output.json ]; then
+			# shellcheck disable=SC2086
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_deployer_return_value=0
+			else
+				install_deployer_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_deployer_return_value=0
-				else
-					install_deployer_return_value=$?
-				fi
-			fi
-		else
-			install_deployer_return_value=10
 		fi
 	fi
 fi

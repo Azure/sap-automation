@@ -321,7 +321,7 @@ function parse_arguments() {
 
 
 	system_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${environment}" "${region_code}" "${network_logical_name}")
-	echo "System environment file name: ${system_environment_file_name}"
+	echo "System environment file name:        ${system_environment_file_name}"
 	touch "${system_environment_file_name}"
 	save_config_vars "${system_environment_file_name}" deployer_tfstate_key APPLICATION_CONFIGURATION_ID CONTROL_PLANE_NAME tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault
 
@@ -716,39 +716,43 @@ function sdaf_installer() {
 	echo ""
 
 	echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
-	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --resource-group "${terraform_storage_account_resource_group_name}" --subscription "${terraform_storage_account_subscription_id:-$ARM_SUBSCRIPTION_ID}" --query allowSharedKeyAccess --out tsv)
+	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 	if [ "$useSAS" = "true" ]; then
 		echo "Storage Account Authentication:      Key"
+		AZURE_STORAGE_AUTH_MODE=key
+		export AZURE_STORAGE_AUTH_MODE
 		export ARM_USE_AZUREAD=false
 	else
 		echo "Storage Account Authentication:      Entra ID"
+		AZURE_STORAGE_AUTH_MODE=login
+		export AZURE_STORAGE_AUTH_MODE
 		export ARM_USE_AZUREAD=true
 	fi
 
 	if [ "${deployment_system}" == sap_system ]; then
 
 		if [[ -n $landscape_tfstate_key ]]; then
-			workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+			workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
 
 			workloadZone_State_file_Size=$(("$workloadZone_State_file_Size_String"))
 
 			if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
-				print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "info"
-				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+				print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
+				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
 		fi
 
 		if [[ -n $deployer_tfstate_key ]]; then
 
-			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
 
-				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
 		fi
 	fi
@@ -757,14 +761,14 @@ function sdaf_installer() {
 
 		if [[ -n $deployer_tfstate_key ]]; then
 
-			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+			deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
 
-				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
 		fi
 	fi
@@ -1179,10 +1183,22 @@ function sdaf_installer() {
 			save_config_var "webapp_id" "${system_environment_file_name}"
 		fi
 
-		APP_CONFIG_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+ 		APP_CONFIG_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
 		if [ -n "${APP_CONFIG_DEPLOYMENT}" ]; then
 			save_config_var "APP_CONFIG_DEPLOYMENT" "${system_environment_file_name}"
 			export APP_CONFIG_DEPLOYMENT
+		fi
+
+		DEPLOYER_SSHKEY_SECRET_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey | tr -d \")
+		if [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
+			save_config_var "DEPLOYER_SSHKEY_SECRET_NAME" "${system_environment_file_name}"
+			export DEPLOYER_SSHKEY_SECRET_NAME
+		fi
+
+		DEPLOYER_USERNAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_username | tr -d \")
+		if [ -n "${DEPLOYER_USERNAME}" ]; then
+			save_config_var "DEPLOYER_USERNAME" "${system_environment_file_name}"
+			export DEPLOYER_USERNAME
 		fi
 
 		APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")

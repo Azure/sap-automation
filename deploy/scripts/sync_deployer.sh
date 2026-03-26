@@ -54,6 +54,8 @@ while :; do
 		;;
 	-o | --storageaccountname)
 		REMOTE_STATE_SA="$2"
+		export REMOTE_STATE_SA
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" ""
 		shift 2
 		;;
 	-h | --help)

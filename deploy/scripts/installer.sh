@@ -76,6 +76,12 @@ while :; do
 		;;
 	--control_plane_name)
 		CONTROL_PLANE_NAME="$2"
+		CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		
+		export TF_VAR_deployer_tfstate_key
+		export TF_VAR_control_plane_name
 		shift 2
 		;;
 	-p | --parameterfile)
@@ -84,6 +90,8 @@ while :; do
 		;;
 	-o | --storageaccountname)
 		REMOTE_STATE_SA="$2"
+		export REMOTE_STATE_SA
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" ""
 		shift 2
 		;;
 	-s | --state_subscription)
@@ -93,14 +101,19 @@ while :; do
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
 		CONTROL_PLANE_NAME=$(echo "$(basename "$deployer_tfstate_key")" | cut -d'-' -f1-3)
+		CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
 		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
 		export TF_VAR_control_plane_name
+		TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+		export TF_VAR_deployer_tfstate_key
 		shift 2
 		;;
 	-l | --landscape_tfstate_key)
 		landscape_tfstate_key="$2"
 		WORKLOAD_ZONE_NAME=$(echo "$landscape_tfstate_key" | cut -d"-" -f1-3)
 		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+		TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+		export TF_VAR_landscape_tfstate_key
 		export TF_VAR_workload_zone_name
 		shift 2
 		;;
@@ -139,10 +152,9 @@ fi
 echo "Parameter file:                      $parameterfile"
 echo "Current directory:                   $(pwd)"
 echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
-echo "Terraform state storage account name:${REMOTE_STATE_SA}"
+echo "Terraform state storageaccount name: ${REMOTE_STATE_SA}"
 
 landscape_tfstate_key_exists=false
-
 
 parameterfile_name=$(basename "${parameterfile}")
 param_dirname=$(dirname "${parameterfile}")
@@ -180,6 +192,17 @@ if [ -z "${deployment_system}" ]; then
 	echo "#########################################################################################"
 	echo ""
 	exit 64 #script usage wrong
+fi
+
+if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
+	WORKLOAD_ZONE_NAME=$(echo $parameterfile_name | cut -d'-' -f1-3)
+	if [ -n "$WORKLOAD_ZONE_NAME" ]; then
+		landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+		TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+		export TF_VAR_landscape_tfstate_key
+		export TF_VAR_workload_zone_name
+	fi
 fi
 
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
@@ -253,10 +276,6 @@ else
 	system_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
 fi
 
-echo "Configuration file:                  $system_environment_file_name"
-echo "Deployment region:                   $region"
-echo "Deployment region code:              $region_code"
-
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
 echo "Agent IP:                            $this_ip"
@@ -280,7 +299,19 @@ if [[ -n "$TF_PARALLELLISM" ]]; then
 	parallelism=$TF_PARALLELLISM
 fi
 
-echo "Parallelism count:                   $parallelism"
+if [[ -z $STATE_SUBSCRIPTION ]]; then
+	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
+else
+
+	if is_valid_guid "$STATE_SUBSCRIPTION"; then
+		save_config_var "STATE_SUBSCRIPTION" "${system_environment_file_name}"
+	else
+		printf -v val %-40.40s "$STATE_SUBSCRIPTION"
+		print_banner "Installer" "The provided state_subscription is not valid: ${val}" "error"
+		exit 65
+	fi
+
+fi
 
 param_dirname=$(pwd)
 export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -288,42 +319,19 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 init "${automation_config_directory}" "${generic_environment_file_name}" "${system_environment_file_name}"
 
 if [[ -z $REMOTE_STATE_SA ]]; then
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id" "STATE_SUBSCRIPTION" "ARM_SUBSCRIPTION_ID"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
 else
 	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
 fi
 
-tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
-TF_VAR_tfstate_resource_id=$tfstate_resource_id
-export TF_VAR_tfstate_resource_id
+if [ ! -v tfstate_resource_id ]; then
+	if [ -n "${REMOTE_STATE_SA}" ]; then
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+	fi
+	GetAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+fi
 
 var_file="${param_dirname}"/"${parameterfile}"
-
-if [ -f terraform.tfvars ]; then
-	extra_vars="-var-file=${param_dirname}/terraform.tfvars"
-else
-	unset extra_vars
-fi
-
-if [[ -z $STATE_SUBSCRIPTION ]]; then
-	STATE_SUBSCRIPTION=$ARM_SUBSCRIPTION_ID
-fi
-
-if [[ -n $STATE_SUBSCRIPTION ]]; then
-	print_banner "Installer" "Changing the subscription to ${STATE_SUBSCRIPTION}" "info"
-	az account set --sub "${STATE_SUBSCRIPTION}"
-
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		print_banner "Installer" "The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}" "error"
-		if [ 1 == $called_from_ado ]; then
-			echo "##vso[task.logissue type=error]The deployment account (MSI or SPN) does not have access to ${STATE_SUBSCRIPTION}"
-		fi
-		exit $return_code
-	fi
-
-	account_set=1
-fi
 
 if [[ -z $deployer_tfstate_key ]]; then
 	load_config_vars "${system_environment_file_name}" "deployer_tfstate_key"
@@ -354,24 +362,30 @@ else
 	export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 
 fi
+
+echo "Configuration file:                  $system_environment_file_name"
+echo "Deployment region:                   $region"
+echo "Deployment region code:              $region_code"
+echo "Parallelism count:                   $parallelism"
 echo "Deployer state file name:            ${deployer_tfstate_key}"
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
 TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
 export TF_VAR_deployer_tfstate_key
 
-
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ]; then
 	echo "Storage Account Authentication:      Key"
+	AZURE_STORAGE_AUTH_MODE=key
+	export AZURE_STORAGE_AUTH_MODE
 	export ARM_USE_AZUREAD=false
 else
 	echo "Storage Account Authentication:      Entra ID"
+	AZURE_STORAGE_AUTH_MODE=login
+	export AZURE_STORAGE_AUTH_MODE
 	export ARM_USE_AZUREAD=true
 fi
-
-landscape_tfstate_key_parameter=''
 
 if [[ -z $landscape_tfstate_key ]]; then
 	load_config_vars "${system_environment_file_name}" "landscape_tfstate_key"
@@ -398,26 +412,26 @@ fi
 if [ "${deployment_system}" == sap_system ]; then
 
 	if [[ -n $landscape_tfstate_key ]]; then
-		workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
+		workloadZone_State_file_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[?name=='$landscape_tfstate_key'].properties.contentLength" --output tsv)
 
 		workloadZone_State_file_Size=$(("$workloadZone_State_file_Size_String"))
 
 		if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
-			print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "info"
-			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 		fi
 	fi
 
 	if [[ -n $deployer_tfstate_key ]]; then
 
-		deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+		deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 		deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 		if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
 
-			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 		fi
 	fi
 fi
@@ -426,31 +440,18 @@ if [ "${deployment_system}" == sap_landscape ]; then
 
 	if [[ -n $deployer_tfstate_key ]]; then
 
-		deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
+		deployer_Statefile_Size_String=$(az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[?name=='$deployer_tfstate_key'].properties.contentLength" --output tsv)
 
 		deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 		if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "info"
+			print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
 
-			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --auth-mode login --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
+			az storage blob list --container-name tfstate --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 		fi
 	fi
 fi
 
-if [[ -z $STATE_SUBSCRIPTION ]]; then
-	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
-else
-
-	if is_valid_guid "$STATE_SUBSCRIPTION"; then
-		save_config_var "STATE_SUBSCRIPTION" "${system_environment_file_name}"
-	else
-		printf -v val %-40.40s "$STATE_SUBSCRIPTION"
-		print_banner "Installer" "The provided state_subscription is not valid: ${val}" "error"
-		exit 65
-	fi
-
-fi
 
 #setting the user environment variables
 # Obsolete now that Terraform handles the authentication without depending on environment variables
@@ -466,8 +467,6 @@ if [[ -n ${subscription} ]]; then
 	fi
 	export ARM_SUBSCRIPTION_ID="${subscription}"
 fi
-
-load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
 	if [ 1 != $called_from_ado ]; then
@@ -504,11 +503,6 @@ if [ -n "${landscape_tfstate_key}" ]; then
 	export TF_VAR_landscape_tfstate_key
 fi
 
-if [ -n "${deployer_tfstate_key}" ]; then
-	TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
-	export TF_VAR_deployer_tfstate_key
-fi
-
 terraform_module_directory="$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${deployment_system}"
 cd "${param_dirname}" || exit
 
@@ -529,11 +523,6 @@ if [ ! -d "${terraform_module_directory}" ]; then
 	exit 1
 fi
 
-# This is used to tell Terraform if this is a new deployment or an update
-deployment_parameter=""
-# This is used to tell Terraform the version information from the state file
-version_parameter=""
-
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 terraform --version
@@ -550,14 +539,12 @@ echo "Workload zone state file:            ${landscape_tfstate_key}"
 echo "Terraform state resource id:         ${tfstate_resource_id}"
 echo "Current directory:                   $(pwd)"
 echo ""
-
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
 terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9 | tr -d '\r')
 terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3 | tr -d '\r')
 terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5 | tr -d '\r')
-
 
 if [ "${terraform_storage_account_name}" !=  "${REMOTE_STATE_SA}" ]; then
 	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
@@ -683,7 +670,8 @@ if [ 1 -eq $new_deployment ]; then
 			exit 1
 		fi
 	else
-		version_parameter="-var terraform_template_version=${deployed_using_version}"
+		TF_VAR_terraform_template_version="${deployed_using_version}"
+		export TF_VAR_terraform_template_version
 
 		print_banner "$banner_title" "Deployed using the Terraform templates version: $deployed_using_version" "info"
 
@@ -697,18 +685,25 @@ if [ -f plan_output.log ]; then
 fi
 
 # Default to use MSI
-credentialVariable=" -var use_spn=false "
 if checkforEnvVar TF_VAR_use_spn; then
 	use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
-	if [ "$use_spn" == "true" ]; then
-		credentialVariable=" -var use_spn=true "
-	fi
+else
+	TF_VAR_use_spn=false
+	export TF_VAR_use_spn
 fi
 
-allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
+# Declare an array
+allParameters=(-var-file ${var_file})
+if [ -f terraform.tfvars ]; then
+	allParameters+=(-var-file ${param_dirname}/terraform.tfvars)
+fi
+if [ 1 -eq "$new_deployment" ]; then
+	allParameters+=(-var deployment=new)
+fi
+
 apply_needed=0
 
-if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan "${allParameters[@]}" -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
 	print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 else
@@ -807,35 +802,12 @@ if [ 1 != $return_value ]; then
 
 fi
 
-useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
-
-if [ "$useSAS" = "true" ]; then
-	echo "Storage Account authentication:      key"
-	export ARM_USE_AZUREAD=false
-else
-	echo "Storage Account authentication:      Entra ID"
-	export ARM_USE_AZUREAD=true
-fi
-
-if [ "$useSAS" = "true" ]; then
-	container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
-else
-	container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists --auth-mode login)
-fi
-
+container_exists=$(az storage container exists --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors --query exists)
 if [ "${container_exists}" == "false" ]; then
-	if [ "$useSAS" = "true" ]; then
-		az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
-	else
-		az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --auth-mode login --only-show-errors
-	fi
+	az storage container create --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --name tfvars --only-show-errors
 fi
 
-if [ "$useSAS" = "true" ]; then
-	az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-else
-	az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --auth-mode login --only-show-errors --output none
-fi
+az storage blob upload --file "${parameterfile}" --container-name tfvars/LANDSCAPE/"${key}" --name "${parameterfile_name}" --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 
 fatal_errors=0
 
@@ -963,6 +935,10 @@ if [ $fatal_errors == 1 ]; then
 fi
 
 if [ 1 == $apply_needed ]; then
+	if [ "called_from_ado" = "1" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(--auto-approve)
+	fi
+
 
 	if [ -f error.log ]; then
 		rm error.log
@@ -972,16 +948,22 @@ if [ 1 == $apply_needed ]; then
 	fi
 
 	print_banner "$banner_title" "Running Terraform apply" "info"
+ 
+	allImportParameters=(-var-file ${var_file})
+	if [ -f terraform.tfvars ]; then
+		allImportParameters+=(-var-file ${param_dirname}/terraform.tfvars)
+	fi
+	if [ -f terraform.tfvars ]; then
+		allParameters+=(-var-file ${param_dirname}/terraform.tfvars)
+	fi
 
-	allParameters=$(printf " -var-file=%s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" "${approve} ")
-	allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
 	if [ -f apply_output.json ]; then
 		rm apply_output.json
 	fi
 
 	if [ -n "${approve}" ]; then
 		# shellcheck disable=SC2086
-		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
+		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false "${allParameters[@]}" | tee apply_output.json; then
 			return_value=${PIPESTATUS[0]}
 		else
 			return_value=${PIPESTATUS[0]}
@@ -989,7 +971,7 @@ if [ 1 == $apply_needed ]; then
 
 	else
 		# shellcheck disable=SC2086
-		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
+		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${allParameters[@]}" ; then
 			return_value=$?
 		else
 			return_value=$?
@@ -1018,68 +1000,64 @@ if [ 1 == $apply_needed ]; then
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
-			if [ -n "${approve}" ]; then
 
+			# shellcheck disable=SC2086
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
+				return_value=$?
+			else
+				return_value=$?
+				print_banner "$banner_title" "First retry failed" "success" "ImportAndReRunApply return code: $return_value"
+			fi
+
+			sleep 10
+
+			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
 					return_value=$?
 				else
 					return_value=$?
-					print_banner "$banner_title" "First retry failed" "success" "ImportAndReRunApply return code: $return_value"
+					print_banner "$banner_title" "Second retry failed" "success" "ImportAndReRunApply return code: $return_value"
+				fi
+			fi
+
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
+					return_value=$?
+				else
+					return_value=$?
+					print_banner "$banner_title" "Third retry failed" "success" "ImportAndReRunApply return code: $return_value"
 				fi
 
-				sleep 10
+			fi
 
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
-						return_value=$?
-						print_banner "$banner_title" "Second retry failed" "success" "ImportAndReRunApply return code: $return_value"
-					fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
+					return_value=$?
+				else
+					return_value=$?
+					print_banner "$banner_title" "Fourth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 				fi
-
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
-						return_value=$?
-						print_banner "$banner_title" "Third retry failed" "success" "ImportAndReRunApply return code: $return_value"
-					fi
-
+			fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
+					return_value=$?
+				else
+					return_value=$?
+					print_banner "$banner_title" "Fifth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 				fi
-
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
-						return_value=$?
-						print_banner "$banner_title" "Fourth retry failed" "success" "ImportAndReRunApply return code: $return_value"
-					fi
+			fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
+					return_value=$?
+				else
+					return_value=$?
+					print_banner "$banner_title" "Sixth retry failed" "success" "ImportAndReRunApply return code: $return_value"
 				fi
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
-						return_value=$?
-						print_banner "$banner_title" "Fifth retry failed" "success" "ImportAndReRunApply return code: $return_value"
-					fi
-				fi
-				if [ -f apply_output.json ]; then
-					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=$?
-					else
-						return_value=$?
-						print_banner "$banner_title" "Sixth retry failed" "success" "ImportAndReRunApply return code: $return_value"
-					fi
-				fi
-			else
-				return_value=10
 			fi
 
 		fi
@@ -1183,7 +1161,6 @@ fi
 
 if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
-	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
 
 	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
 	if [ -n "${library_random_id}" ]; then
@@ -1211,65 +1188,36 @@ unset TF_DATA_DIR
 #                                                                               #
 #################################################################################
 
-useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
+	--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 
-if [ "$useSAS" = "true" ]; then
-	echo "Storage Account authentication:      key"
-	az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
+if [ -f "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" ]; then
+	az storage blob upload --file "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" --container-name tfvars/"${state_path}"/"${key}/.terraform" --name "${parameterfile_name}" \
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-else
-	echo "Storage Account authentication:      Entra ID"
-	az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
-		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
 fi
 
 if [ -f sap-parameters.yaml ]; then
 	if [ "${deployment_system}" == sap_system ]; then
 		echo "Uploading the yaml files from ${param_dirname} to the storage account"
-		if [ "$useSAS" = "true" ]; then
 			az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
 				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-		else
-			az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
-				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
-		fi
 
 		hosts_file=$(ls *_hosts.yaml)
-		if [ "$useSAS" = "true" ]; then
-			az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
-				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-		else
-			az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
-				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
-		fi
+		az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
-	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-	else
-		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
-	fi
-fi
-if [ "${deployment_system}" == sap_library ]; then
-	if [ "$useSAS" = "true" ]; then
-		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-	else
-		az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
-			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --auth-mode login --no-progress --overwrite --only-show-errors --output none
-	fi
+	az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo -e "#                        $green Deployment completed $reset_formatting                                         #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+if [ "${deployment_system}" == sap_library ]; then
+	az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+fi
+
+print_banner "$banner_title" "Deployment finished with return code: $return_value" "info"
 
 exit $return_value

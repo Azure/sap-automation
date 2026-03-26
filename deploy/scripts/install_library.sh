@@ -42,7 +42,7 @@ SCRIPT_NAME="$(basename "$0")"
 echo "Entering: ${SCRIPT_NAME}"
 
 #Internal helper functions
-function showhelp {
+function showhelp_library {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -80,8 +80,8 @@ INPUT_ARGUMENTS=$(getopt -n install_library -o p:d:v:ih --longoptions parameterf
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
-	showhelp
-
+	showhelp_library
+	exit 3
 fi
 
 eval set -- "$INPUT_ARGUMENTS"
@@ -100,7 +100,7 @@ while :; do
 		shift
 		;;
 	-h | --help)
-		showhelp
+		showhelp_library
 		exit 3
 		;;
 	-v | --keyvault)
@@ -117,7 +117,7 @@ done
 deployment_system=sap_library
 use_deployer=true
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi
@@ -393,48 +393,43 @@ if [ -f apply_output.json ]; then
 
 	if [[ -n $errors_occurred ]]; then
 
-		if [ -n "${approve}" ]; then
-
+		# shellcheck disable=SC2086
+		if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+			install_library_return_value=0
+		else
+			install_library_return_value=$?
+		fi
+		if [ -f apply_output.json ]; then
 			# shellcheck disable=SC2086
 			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
 				install_library_return_value=0
 			else
 				install_library_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_library_return_value=0
-				else
-					install_library_return_value=$?
-				fi
+		fi
+		if [ -f apply_output.json ]; then
+			# shellcheck disable=SC2086
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_library_return_value=0
+			else
+				install_library_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_library_return_value=0
-				else
-					install_library_return_value=$?
-				fi
+		fi
+		if [ -f apply_output.json ]; then
+			# shellcheck disable=SC2086
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_library_return_value=0
+			else
+				install_library_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_library_return_value=0
-				else
-					install_library_return_value=$?
-				fi
+		fi
+		if [ -f apply_output.json ]; then
+			# shellcheck disable=SC2086
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_library_return_value=0
+			else
+				install_library_return_value=$?
 			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-					install_library_return_value=0
-				else
-					install_library_return_value=$?
-				fi
-			fi
-		else
-			install_library_return_value=10
 		fi
 	fi
 

@@ -47,10 +47,18 @@ while :; do
 		;;
 	--control_plane_name)
 		CONTROL_PLANE_NAME="$2"
+		CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+		
+		export TF_VAR_deployer_tfstate_key
+		export TF_VAR_control_plane_name
 		shift 2
 		;;
 	-o | --storageaccountname)
 		REMOTE_STATE_SA="$2"
+		export REMOTE_STATE_SA
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" ""
 		shift 2
 		;;
 	-s | --state_subscription)
@@ -62,12 +70,23 @@ while :; do
 		shift 2
 		;;
 	-d | --deployer_tfstate_key)
-		deployer_tfstate_key="$2"
-		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
-		shift 2
+			deployer_tfstate_key="$2"
+			CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
+			CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
+			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+			TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+			export TF_VAR_control_plane_name
+			export TF_VAR_deployer_tfstate_key
+			shift 2
 		;;
 	-l | --landscape_tfstate_key)
 		landscape_tfstate_key="$2"
+		WORKLOAD_ZONE_NAME=$(echo "$landscape_tfstate_key" | cut -d"-" -f1-3)
+		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+		export TF_VAR_workload_zone_name
+		TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+		export TF_VAR_landscape_tfstate_key
+
 		shift 2
 		;;
 	-i | --auto-approve)
@@ -92,14 +111,6 @@ done
 #variables
 tfstate_resource_id=""
 tfstate_parameter=""
-
-deployer_tfstate_key_parameter=""
-landscape_tfstate_key_parameter=""
-
-# unused variables
-#show_help=false
-#deployer_tfstate_key_exists=false
-#landscape_tfstate_key_exists=false
 echo "parameterfile:                       $parameterfile"
 
 working_directory=$(pwd)
@@ -186,6 +197,9 @@ if [ "${deployment_system}" == "sap_system" ] || [ "${deployment_system}" == "sa
 	environment=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $2}' | xargs)
 	network_logical_name=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $3}' | xargs)
+	TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+	export TF_VAR_landscape_tfstate_key
+
 elif [ "${deployment_system}" == "sap_deployer" ]; then
 	CONTROL_PLANE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
 	deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
@@ -193,6 +207,9 @@ elif [ "${deployment_system}" == "sap_deployer" ]; then
 	environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
 	network_logical_name=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)
+	TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
+	export TF_VAR_deployer_tfstate_key
+
 elif [ "${deployment_system}" == "sap_library" ]; then
 	environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
@@ -217,12 +234,6 @@ echo "Deployment region code:              $region_code"
 echo "Working_directory:                   $working_directory"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
-
-if [ -f terraform.tfvars ]; then
-	extra_vars="-var-file=${param_dirname}/terraform.tfvars"
-else
-	unset extra_vars
-fi
 
 echo ""
 echo -e "${green}Terraform details:"
@@ -251,35 +262,17 @@ fi
 init "${automation_config_directory}" "${generic_environment_file_name}" "${system_environment_file_name}"
 var_file="${parameterfile_dirname}"/"${parameterfile}"
 if [ -z "$REMOTE_STATE_SA" ]; then
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA"
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
-	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
-	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
-else
-	save_config_vars "${system_environment_file_name}" REMOTE_STATE_SA
-	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
-	load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
-	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_RG"
-	load_config_vars "${system_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id" "STATE_SUBSCRIPTION"
 fi
+getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 
-load_config_vars "${system_environment_file_name}" "deployer_tfstate_key"
-load_config_vars "${system_environment_file_name}" "landscape_tfstate_key"
-load_config_vars "${system_environment_file_name}" "ARM_SUBSCRIPTION_ID"
-
-deployer_tfstate_key_parameter=''
 if [ "${deployment_system}" != sap_deployer ]; then
-	deployer_tfstate_key_parameter=" -var deployer_tfstate_key=${deployer_tfstate_key} "
 	echo "Deployer State File:                 ${deployer_tfstate_key}"
 fi
 
-landscape_tfstate_key_parameter=''
 if [ "${deployment_system}" == sap_system ]; then
-	landscape_tfstate_key_parameter=" -var landscape_tfstate_key=${landscape_tfstate_key} "
 	echo "Landscape State File:                ${landscape_tfstate_key}"
 fi
-
-tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id} "
 
 #setting the user environment variables
 # set_executing_user_environment_variables "none"
@@ -316,18 +309,6 @@ if [ -f backend.tf ]; then
 	rm backend.tf
 fi
 
-if [ -n "${REMOTE_STATE_SA}" ]; then
-	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
-
-	if [ "$useSAS" = "true" ]; then
-		echo "Storage Account Authentication:      Key"
-		export ARM_USE_AZUREAD=false
-	else
-		echo "Storage Account Authentication:      Entra ID"
-		export ARM_USE_AZUREAD=true
-	fi
-fi
-
 cd "${param_dirname}" || exit
 pwd
 echo ""
@@ -342,20 +323,18 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
+		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "Remover" "Terraform init succeeded" "success"
 		else
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			print_banner "Remover" "Terraform init failed" "error"
 			exit 1
 		fi
 	else
-		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 
 		if terraform -chdir="${terraform_module_directory}" init -reconfigure \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
@@ -363,15 +342,12 @@ if [ -f .terraform/terraform.tfstate ]; then
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
-			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-			echo ""
+			print_banner "Remover" "Terraform init succeeded" "success"
 		else
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
+			print_banner "Remover" "Terraform init failed" "error"
 			exit 1
 		fi
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 	fi
 else
 	if terraform -chdir="${terraform_module_directory}" init -reconfigure \
@@ -380,19 +356,24 @@ else
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
-		echo ""
-		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-		echo ""
+		print_banner "Remover" "Terraform init succeeded" "success"
 	else
-		echo ""
-		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-		echo ""
+		print_banner "Remover" "Terraform init failed" "error"
 		exit 1
 	fi
 fi
 
-tfstate_resource_id=$(az storage account show --name "${REMOTE_STATE_SA}" --query id --subscription "${STATE_SUBSCRIPTION}" --out tsv)
-export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+if [ -n "${REMOTE_STATE_SA}" ]; then
+	useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+
+	if [ "$useSAS" = "true" ]; then
+		echo "Storage Account Authentication:      Key"
+		export ARM_USE_AZUREAD=false
+	else
+		echo "Storage Account Authentication:      Entra ID"
+		export ARM_USE_AZUREAD=true
+	fi
+fi
 
 created_resource_group_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_id | tr -d \")
 created_resource_group_id_length="${#created_resource_group_id}"
@@ -405,25 +386,27 @@ else
 	resource_group_exist=true
 fi
 
+allRemovalParameters=(-var-file ${parameterfile_path})
+if [ -f terraform.tfvars ]; then
+	allRemovalParameters+=(-var-file ${param_dirname}/terraform.tfvars)
+fi
+
+if [ "called_from_ado" = "1" ] || [ "$approve" == "--auto-approve" ]; then
+	allRemovalParameters+=(--auto-approve)
+fi
+
+
 if [ "$resource_group_exist" ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                            $cyan Running Terraform destroy$reset_formatting                                 #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "Remover" "Resource group exists, proceeding with destroy" "info"
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
-		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-			"$deployer_tfstate_key_parameter"
+		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}" 
 
-		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
-		terraform -chdir="${terraform_module_directory}" destroy -refresh=false -var-file="${var_file}" \
-			"$deployer_tfstate_key_parameter"
+		print_banner "Remover" "Processing $deployment_system removal as defined in:  "info" "$parameterfile_name"
+		terraform -chdir="${terraform_module_directory}" destroy -refresh=false "${allRemovalParameters[@]}" 
 
 	elif [ "$deployment_system" == "sap_library" ]; then
-		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
+		print_banner "Remover" "Processing $deployment_system removal as defined in:  "info" "$parameterfile_name"
 
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
 		if [ ! -d "${terraform_bootstrap_directory}" ]; then
@@ -432,84 +415,20 @@ if [ "$resource_group_exist" ]; then
 			print_banner "Remover" "Unable to find bootstrap directory: ${val}" "error"
 			exit 66 #cannot open input file/folder
 		fi
+
 		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
 
-		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-			"$deployer_tfstate_key_parameter"
+		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}" 
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false -var-file="${var_file}" "${approve}" -var use_deployer=false \
-			"$deployer_tfstate_key_parameter"
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false "${allRemovalParameters[@]}" -var use_deployer=false 
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
-		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
-		echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter deployer_tfstate_key_parameter"
+		print_banner "Remover" "Processing $deployment_system removal as defined in $parameterfile_name" "info"
+		echo "Calling destroy with:           ${allRemovalParameters[*]}"
 
-		allParameters=$(printf " -var-file=%s %s %s  %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${deployer_tfstate_key_parameter}")
-
-		# moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'sid_ppk' removed from state"
-		# 	fi
-		# fi
-
-		# moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'sid_pk' removed from state"
-		# 	fi
-		# fi
-
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'sid_username' removed from state"
-		# 	fi
-		# fi
-
-		# moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'sid_password' removed from state"
-		# 	fi
-		# fi
-
-		# moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'witness_access_key' removed from state"
-		# 	fi
-		# fi
-
-		# moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'deployer_keyvault_user_name' removed from state"
-		# 	fi
-		# fi
-
-		# moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'witness_name' removed from state"
-		# 	fi
-		# fi
-
-		# moduleID="module.sap_landscape.azurerm_key_vault_secret.cp_subscription_id"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'cp_subscription_id' removed from state"
-		# 	fi
-		# fi
-		# moduleID="module.sap_landscape.data.azurerm_key_vault_secret.cp_subscription_id"
-		# if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 	if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 		echo "Secret 'data.cp_subscription_id' removed from state"
-		# 	fi
-		# fi
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy "${allRemovalParameters[@]}" "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
 				return_value=$?
 			else
 				return_value=${PIPESTATUS[0]}
@@ -523,7 +442,7 @@ if [ "$resource_group_exist" ]; then
 
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy "${allRemovalParameters[@]}" -parallelism="$parallelism"; then
 				return_value=$?
 			else
 				return_value=$?
@@ -539,13 +458,11 @@ if [ "$resource_group_exist" ]; then
 	else
 
 		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
-		echo "Calling destroy with:          -var-file=${var_file} $approve $tfstate_parameter $landscape_tfstate_key_parameter $deployer_tfstate_key_parameter"
-
-		allParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${tfstate_parameter}" "${landscape_tfstate_key_parameter}" "${deployer_tfstate_key_parameter}")
+		echo "Calling destroy with:           ${allRemovalParameters[*]}"
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
+			if terraform -chdir="${terraform_module_directory}" destroy "${allRemovalParameters[@]}" "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
 				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
@@ -555,7 +472,7 @@ if [ "$resource_group_exist" ]; then
 			fi
 		else
 			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
+			if terraform -chdir="${terraform_module_directory}" destroy "${allRemovalParameters[@]}" -parallelism="$parallelism"; then
 				return_value=$?
 				print_banner "Remover" "Terraform destroy succeeded" "success"
 			else
@@ -621,43 +538,6 @@ if [ "${deployment_system}" == sap_library ]; then
 	sed -i /REMOTE_STATE_SA/d "${system_environment_file_name}"
 	sed -i /tfstate_resource_id/d "${system_environment_file_name}"
 fi
-
-# if [ "${deployment_system}" == sap_system ]; then
-
-#     echo "#########################################################################################"
-#     echo "#                                                                                       #"
-#     echo -e "#                            $cyan Clean up load balancer IP $reset_formatting        #"
-#     echo "#                                                                                       #"
-#     echo "#########################################################################################"
-
-#     database_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color database_loadbalancer_ip | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
-#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/tolist/})
-#     database_loadbalancer_public_ip_address=$(echo ${database_loadbalancer_public_ip_address/,]/]})
-#     echo "Database Load Balancer IP: $database_loadbalancer_public_ip_address"
-
-#     load_config_vars "${parameterfile_name}" "database_loadbalancer_ips"
-#     database_loadbalancer_ips=$(echo ${database_loadbalancer_ips} | xargs)
-
-#     if [[ "${database_loadbalancer_public_ip_address}" != "${database_loadbalancer_ips}" ]];
-#     then
-#       database_loadbalancer_ips=${database_loadbalancer_public_ip_address}
-#       save_config_var "database_loadbalancer_ips" "${parameterfile_name}"
-#     fi
-
-#     scs_loadbalancer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color scs_loadbalancer_ips | tr -d "\n"  | tr -d "("  | tr -d ")" | tr -d " ")
-#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/tolist/})
-#     scs_loadbalancer_public_ip_address=$(echo ${scs_loadbalancer_public_ip_address/,]/]})
-#     echo "SCS Load Balancer IP: $scs_loadbalancer_public_ip_address"
-
-#     load_config_vars "${parameterfile_name}" "scs_server_loadbalancer_ips"
-#     scs_server_loadbalancer_ips=$(echo ${scs_server_loadbalancer_ips} | xargs)
-
-#     if [[ "${scs_loadbalancer_public_ip_address}" != "${scs_server_loadbalancer_ips}" ]];
-#     then
-#       scs_server_loadbalancer_ips=${scs_loadbalancer_public_ip_address}
-#       save_config_var "scs_server_loadbalancer_ips" "${parameterfile_name}"
-#     fi
-# fi
 
 unset TF_DATA_DIR
 
