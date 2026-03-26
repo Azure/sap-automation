@@ -589,10 +589,11 @@ if [ 0 != "$step" ]; then
 			allParameters+=(--environment "$environment")
 			allParameters+=(--region "$region_code")
 			allParameters+=(--network_code "$NETWORK")
+			allParameters+=(--keyvault_subscription "${subscription:-$ARM_SUBSCRIPTION_ID}")
 			allParameters+=(--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}")
 			allParameters+=(--tenant_id "${tenant_id:-$ARM_TENANT_ID}")
 			allParameters+=(--spn_id "${client_id:-$ARM_CLIENT_ID}")
-			
+			ss
 			if [ "$deploy_using_msi_only" -eq 0 ]; then
 				allParameters+=(--spn_secret "${client_secret:-$ARM_CLIENT_SECRET}")
 			else

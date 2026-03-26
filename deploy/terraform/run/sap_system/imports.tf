@@ -65,7 +65,7 @@ locals {
 #
 
 data "azurerm_key_vault_secret" "subscription_id" {
-  count        = local.retrieve_subscription_from_kv ? 1 : 0
+  count        = 1
   name         = format("%s-subscription-id", local.environment_name)
   key_vault_id = local.key_vault.spn.id
 

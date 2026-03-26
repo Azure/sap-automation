@@ -192,13 +192,17 @@ generic_environment_file_name="${automation_config_directory}"/config
 
 if [ "${deployment_system}" == "sap_system" ] || [ "${deployment_system}" == "sap_landscape" ]; then
 	WORKLOAD_ZONE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
+	TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+	export TF_VAR_workload_zone_name
+
 	landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+	TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
+	export TF_VAR_landscape_tfstate_key
 	export landscape_tfstate_key
+
 	environment=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $1}' | xargs)
 	region_code=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $2}' | xargs)
 	network_logical_name=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $3}' | xargs)
-	TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
-	export TF_VAR_landscape_tfstate_key
 
 elif [ "${deployment_system}" == "sap_deployer" ]; then
 	CONTROL_PLANE_NAME=$(echo "$parameterfile" | cut -d'-' -f1-3)
