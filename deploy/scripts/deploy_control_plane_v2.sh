@@ -399,7 +399,7 @@ function bootstrap_library {
 	##########################################################################################
 	local banner_title="Bootstrap Library"
 	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT" "APPLICATION_CONFIGURATION_NAME"
-	if [ -v APPLICATION_CONFIGURATION_NAME ]; then
+	if [[ -z "${APPLICATION_CONFIGURATION_ID:-}" && -n "${APPLICATION_CONFIGURATION_NAME:-}" ]]; then
 		APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 		export APPLICATION_CONFIGURATION_ID
 	fi
