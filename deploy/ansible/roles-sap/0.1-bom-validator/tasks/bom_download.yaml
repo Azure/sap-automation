@@ -136,7 +136,7 @@
 - name:                                 "0.1 Bom Validator - Informational check of the proceed parameter"
   ansible.builtin.assert:
     that:
-      - "proceed"
+      - proceed
     success_msg: |-
                                         Download for file {{ bom_media_entry.archive }}:  ENABLED
 

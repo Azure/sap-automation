@@ -49,7 +49,7 @@
   ansible.builtin.set_fact:
     this_bom_name:                      "{{ current_bom_name | default(bom_base_name + bom_suffix) }}"
 
-- name:                                "3.3.1 BoM Processing - Show new name"
+- name:                                "3.3.1 BoM Processing - Show the new name"
   ansible.builtin.debug:
     msg:
       - "BoM Name:   {{ this_bom_name }}"

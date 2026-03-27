@@ -2,25 +2,25 @@
 # Licensed under the MIT License.
 
 ---
-- name:                                "aggregate_bom: - Informational"
+- name:                                "0.1 BOM Validator - Aggregate BoM Files - Informational"
   ansible.builtin.debug:
     var:                               bom_dir
     verbosity:                         1
 
-- name:                                 "aggregate_bom: - One time block"
+- name:                                 "0.1 BOM Validator - Aggregate BoM Files - One time block"
   block:
-    - name:                            "aggregate_bom: - new bom name"
+    - name:                            "0.1 BOM Validator - Aggregate BoM Files - New bom name"
       when:                            this_bom_name is not defined
       ansible.builtin.set_fact:
         this_bom_name:                  "{{ bom_base_name }}{{ bom_suffix }}"
 
-    - name:                            "Informational"
+    - name:                            "0.1 BOM Validator - Aggregate BoM Files - Informational - Show BoM"
       ansible.builtin.debug:
         var:                           this_bom_name
         verbosity:                     1
 
     # Create download directory structure
-    - name:                            "aggregate_bom: - Create temporary BOM directories"
+    - name:                            "0.1 BOM Validator - Aggregate BoM Files - Create temporary BOM directories"
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
       become_user:                     "{{ orchestration_ansible_user }}"
@@ -30,7 +30,7 @@
         mode:                          0755
 
     # Write aggregated bom
-    - name:                            "aggregate_bom: - write aggregated BOM"
+    - name:                            "0.1 BOM Validator - Aggregate BoM Files - Write aggregated BOM"
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
       become_user:                     "{{ orchestration_ansible_user }}"
@@ -42,7 +42,7 @@
       register:                        first_pass
 
 # Find local bom directories
-- name:                                 "aggregate_bom: - find files and directories"
+- name:                                 "0.1 BOM Validator - Aggregate BoM Files - Find files and directories"
   when:                                 bom_dir.location == 'local'
   ansible.builtin.find:
     paths:                              "{{ bom_dir.path }}"
@@ -51,11 +51,11 @@
   register:                             bom_directory_all_files
 
 # Process file objects
-- name:                                 "aggregate_bom: - process file objects"
+- name:                                 "0.1 BOM Validator - Aggregate BoM Files - Process file objects"
   when:                                 bom_directory_all_files.files is defined
   ansible.builtin.include_tasks:        aggregate_bom_files.yaml
   vars:
-    task_prefix:                        aggregate_bom_files
+    task_prefix:                        "0.1 BOM Validator - Aggregate BoM Files -"
     this_bom_name:                      "{{ bom_dir.path | basename }}"
   loop:                                 "{{ bom_directory_all_files.files | flatten(levels=1) }}"
   loop_control:

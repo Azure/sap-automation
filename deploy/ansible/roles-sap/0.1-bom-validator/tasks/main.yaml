@@ -285,7 +285,7 @@
     - bom.materials.dependencies is defined
     - bom.materials.dependencies | length > 0
 
-- name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
+- name:                                "0.1 BoM Validator - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
     msg:
       - "Application Platform                {{ root_bom.platform | default('Not defined') }}"
@@ -370,7 +370,7 @@
     state:                             directory
     mode:                              0755
 
-- name:                                "0.1 BOM Validator: - write combined BoM"
+- name:                                "0.1 BOM Validator - Write combined BoM"
   become:                              true
   become_user:                         "{{ orchestration_ansible_user }}"
   delegate_to:                         localhost
@@ -398,7 +398,7 @@
 # Step: 10-01
 # Description:
 #
-    - name:                               "0.1 BoM Validator - delete combined BoM using SAS Token"
+    - name:                               "0.1 BoM Validator - Delete combined BoM using SAS Token"
       ansible.builtin.command: >-
                                           az storage blob delete
                                             --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
@@ -477,7 +477,7 @@
 # Step: 10-01
 # Description:
 #
-    - name:                               "0.1 BoM Validator - delete combined BoM"
+    - name:                               "0.1 BoM Validator - Delete combined BoM"
       ansible.builtin.command: >-
                                           az storage blob delete
                                             --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}

@@ -330,7 +330,7 @@
 # Step: 08 - END
 # -------------------------------------+---------------------------------------8
 
-- name:                                 "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Get account information"
+- name:                                 "0.1 BoM Validator - Pre Check - Get account information"
   ansible.builtin.command: >-
                                         az account show --query user --output yaml
   vars:
@@ -340,7 +340,7 @@
   ignore_errors:                        true
   changed_when:                         false
 
-- name:                                 "0.1 BoM Validator - Pre Check - {{ task_prefix }} - Show account information"
+- name:                                 "0.1 BoM Validator - Pre Check - Show account information"
   ansible.builtin.debug:
     msg:                                "Running as: {{ azresult.stdout }}"
 
@@ -368,7 +368,7 @@
     sa_enabled:                         true
   when:
     - "sapbits_location_base_path is defined"                                 # Has the variable been defined
-    - "sapbits_location_base_path | trim | length != 0"                       #  and given a value
+    - "sapbits_location_base_path | trim | length != 0"                       # and given a value
     - not allowSharedKeyAccess or (sapbits_sas_token is defined and (sapbits_sas_token | trim | length != 0))
     # - "sapbits_access_key         is defined"                                 # Has the variable been defined
     # - "sapbits_access_key         | trim | length != 0"                       #  and given a value

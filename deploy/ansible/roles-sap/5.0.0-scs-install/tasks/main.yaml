@@ -112,12 +112,15 @@
   when:                                reinstall
 
 - name:                                "5.0.0 SAP Central Services Installation - Check if {{ sid_to_be_deployed.sid | upper }} is installed"
+  when:                                "'scs' in supported_tiers"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
-  when:                                "'scs' in supported_tiers"
-
+ 
 - name:                                "5.0.0 SAP Central Services Installation"
+  when:
+    - "'scs' in supported_tiers"
+    - not scs_installed.stat.exists
   block:
 
 # *====================================4=======================================8
@@ -254,11 +257,10 @@
         - scs_installed_according_to_sapinst is defined
         - scs_installed_according_to_sapinst | length > 0
 
-  when:
-    - "'scs' in supported_tiers"
-    - not scs_installed.stat.exists
 
 - name:                                "5.0.0 SAP Central Services Installation - SAP Central Services is already installed"
+  when:
+    - scs_installed.stat.exists
   block:
 
     - name:                            "5.0.0 SAP Central Services Installation - SAP Central Services Install status"
@@ -268,8 +270,6 @@
     - name:                            "5.0.0 SAP Central Services Installation - SAP Central Services: - return value"
       ansible.builtin.set_fact:
         scs_already_installed:         true
-  when:
-    - scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8
