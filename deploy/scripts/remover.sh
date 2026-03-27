@@ -6,8 +6,8 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-bold_red_underscore="\e[1;4;31m"
 bold_red="\e[1;31m"
+green="\e[1;32m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
@@ -27,7 +27,13 @@ if [ "$DEBUG" = True ]; then
 	set -o errexit
 fi
 
-#Internal helper functions
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
+
+banner_title="Remover"
+
+detect_platform
 
 #process inputs - may need to check the option i for auto approve as it is not used
 INPUT_ARGUMENTS=$(getopt -n remover -o p:o:t:s:d:l:ahi --longoptions type:,parameterfile:,storageaccountname:,state_subscription:,deployer_tfstate_key:,landscape_tfstate_key:,control_plane_name:,ado,auto-approve,help -- "$@")
@@ -109,8 +115,6 @@ while :; do
 done
 
 #variables
-tfstate_resource_id=""
-tfstate_parameter=""
 echo "parameterfile:                       $parameterfile"
 
 working_directory=$(pwd)
@@ -127,13 +131,13 @@ else
 fi
 
 if [ "${parameterfile_dirname}" != "${working_directory}" ]; then
-    print_banner "Remover" "Please run the remover script from the folder containing the parameter file" "error"
+    print_banner "$banner_title" "Please run the remover script from the folder containing the parameter file" "error"
 	exit 3
 fi
 
 if [ ! -f "${parameterfile}" ]; then
 	printf -v val %-35.35s "$parameterfile"
-	print_banner "Remover" "Parameter file does not exist: ${val}" "error"
+	print_banner "$banner_title" "Parameter file does not exist: ${val}" "error"
 	exit 2 #No such file or directory
 fi
 
@@ -169,6 +173,7 @@ if [ 0 != $return_code ]; then
 fi
 
 # Check that parameter files have environment and location defined
+region=""
 validate_key_parameters "$parameterfile_name"
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -241,7 +246,7 @@ key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
 echo ""
 echo -e "${green}Terraform details:"
-echo -e "-------------------------------------------------------------------------${reset}"
+echo -e "-------------------------------------------------------------------------${reset_formatting}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"
@@ -313,7 +318,6 @@ if [ -f backend.tf ]; then
 	rm backend.tf
 fi
 
-cd "${param_dirname}" || exit
 pwd
 echo ""
 echo "#########################################################################################"
@@ -333,9 +337,9 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
-			print_banner "Remover" "Terraform init succeeded" "success"
+			print_banner "$banner_title" "Terraform init succeeded" "success"
 		else
-			print_banner "Remover" "Terraform init failed" "error"
+			print_banner "$banner_title" "Terraform init failed" "error"
 			exit 1
 		fi
 	else
@@ -346,9 +350,9 @@ if [ -f .terraform/terraform.tfstate ]; then
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
-			print_banner "Remover" "Terraform init succeeded" "success"
+			print_banner "$banner_title" "Terraform init succeeded" "success"
 		else
-			print_banner "Remover" "Terraform init failed" "error"
+			print_banner "$banner_title" "Terraform init failed" "error"
 			exit 1
 		fi
 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
@@ -360,9 +364,9 @@ else
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
-		print_banner "Remover" "Terraform init succeeded" "success"
+		print_banner "$banner_title" "Terraform init succeeded" "success"
 	else
-		print_banner "Remover" "Terraform init failed" "error"
+		print_banner "$banner_title" "Terraform init failed" "error"
 		exit 1
 	fi
 fi
@@ -390,33 +394,32 @@ else
 	resource_group_exist=true
 fi
 
-allRemovalParameters=(-var-file ${parameterfile_path})
+allRemovalParameters=("-var-file ${parameterfile_path}")
 if [ -f terraform.tfvars ]; then
-	allRemovalParameters+=(-var-file ${param_dirname}/terraform.tfvars)
+	allRemovalParameters+=("-var-file terraform.tfvars")
 fi
 
-if [ "$called_from_ado" = "1" ] || [ "$approve" == "--auto-approve" ]; then
+if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 	allRemovalParameters+=(--auto-approve)
 fi
 
-
 if [ "$resource_group_exist" ]; then
-	print_banner "Remover" "Resource group exists, proceeding with destroy" "info"
+	print_banner "$banner_title" "Resource group exists, proceeding with destroy" "info"
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
 		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}" 
 
-		print_banner "Remover" "Processing $deployment_system removal as defined in:  "info" "$parameterfile_name"
+		print_banner "$banner_title" "Processing $deployment_system removal as defined in:" "info" "$parameterfile_name"
 		terraform -chdir="${terraform_module_directory}" destroy -refresh=false "${allRemovalParameters[@]}" 
 
 	elif [ "$deployment_system" == "sap_library" ]; then
-		print_banner "Remover" "Processing $deployment_system removal as defined in:  "info" "$parameterfile_name"
+		print_banner "$banner_title" "Processing $deployment_system removal as defined in:" "info" "$parameterfile_name"
 
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
 		if [ ! -d "${terraform_bootstrap_directory}" ]; then
 
 			printf -v val %-40.40s "$terraform_bootstrap_directory"
-			print_banner "Remover" "Unable to find bootstrap directory: ${val}" "error"
+			print_banner "$banner_title" "Unable to find bootstrap directory: ${val}" "error"
 			exit 66 #cannot open input file/folder
 		fi
 
@@ -427,7 +430,7 @@ if [ "$resource_group_exist" ]; then
 		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false "${allRemovalParameters[@]}" -var use_deployer=false 
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
-		print_banner "Remover" "Processing $deployment_system removal as defined in $parameterfile_name" "info"
+		print_banner "$banner_title" "Processing $deployment_system removal as defined in $parameterfile_name" "info"
 		echo "Calling destroy with:           ${allRemovalParameters[*]}"
 
 		if [ -n "${approve}" ]; then
@@ -452,10 +455,10 @@ if [ "$resource_group_exist" ]; then
 				return_value=$?
 			fi
 		fi
-		if [ 0 -eq $return_value ]; then
-				print_banner "Remover" "Terraform destroy succeeded" "success"
+		if [ 0 -eq "$return_value" ]; then
+				print_banner "$banner_title" "Terraform destroy succeeded" "success"
 		else
-				print_banner "Remover" "Terraform destroy failed" "error"
+				print_banner "$banner_title" "Terraform destroy failed" "error"
 			exit 1
 		fi
 
@@ -468,20 +471,20 @@ if [ "$resource_group_exist" ]; then
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy "${allRemovalParameters[@]}" "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
 				return_value=$?
-				print_banner "Remover" "Terraform destroy succeeded" "success"
+				print_banner "$banner_title" "Terraform destroy succeeded" "success"
 			else
 				return_value=$?
-				print_banner "Remover" "Terraform destroy failed" "error"
+				print_banner "$banner_title" "Terraform destroy failed" "error"
 				exit 1
 			fi
 		else
 			# shellcheck disable=SC2086
 			if terraform -chdir="${terraform_module_directory}" destroy "${allRemovalParameters[@]}" -parallelism="$parallelism"; then
 				return_value=$?
-				print_banner "Remover" "Terraform destroy succeeded" "success"
+				print_banner "$banner_title" "Terraform destroy succeeded" "success"
 			else
 				return_value=$?
-				print_banner "Remover" "Terraform destroy failed" "error"
+				print_banner "$banner_title" "Terraform destroy failed" "error"
 				exit 1
 			fi
 		fi
@@ -490,24 +493,24 @@ if [ "$resource_group_exist" ]; then
 			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
 
 			if [[ -n $errors_occurred ]]; then
-				print_banner "Remover" "Errors during the destroy phase" "error"
+				print_banner "$banner_title" "Errors during the destroy phase" "error"
 
 				return_value=2
 				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
 				if [[ -n ${all_errors} ]]; then
-					readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+					readarray -t errors_strings < <(echo "${all_errors}" | jq -c '.')
 					for errors_string in "${errors_strings[@]}"; do
 						string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
 						if [[ -z ${string_to_report} ]]; then
 							string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
 						fi
 
-						report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
+						report=$(echo "$string_to_report" | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
 						if [[ -n ${report} ]]; then
-							print_banner "Remover" "$report" "error"
+							print_banner "$banner_title" "$report" "error"
 							echo "##vso[task.logissue type=error]${report}"
 						else
-							print_banner "Remover" "$string_to_report" "error"
+							print_banner "$banner_title" "$string_to_report" "error"
 							echo "##vso[task.logissue type=error]${string_to_report}"
 						fi
 

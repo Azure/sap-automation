@@ -5,8 +5,6 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-bold_red_underscore="\e[1;4;31m"
-bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
@@ -24,6 +22,9 @@ source "${script_directory}/helpers/script_helpers.sh"
 SCRIPT_NAME="$(basename "$0")"
 
 echo "Entering: ${SCRIPT_NAME}"
+banner_title="Install Deployer"
+
+detect_platform
 
 #Internal helper functions
 function showhelp {
@@ -57,7 +58,7 @@ function showhelp {
 }
 
 #process inputs - may need to check the option i for auto approve as it is not used
-import="false"
+
 INPUT_ARGUMENTS=$(getopt -n install_deployer -o p:ih --longoptions parameterfile:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -75,12 +76,6 @@ while :; do
 		;;
 	-i | --auto-approve)
 		approve="--auto-approve"
-		import="true"
-		shift
-		;;
-	--importexisting)
-		import="true"
-			
 		shift
 		;;
 	-h | --help)
@@ -137,6 +132,7 @@ fi
 
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 # Convert the region to the correct code
+region_code=""
 get_region_code "$region"
 
 key=$(echo "${parameterfile}" | cut -d. -f1)
@@ -196,15 +192,23 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-extra_vars=""
-reinstalled=0
-
+# Declare an array
+allParameters=("-var-file ${var_file}")
 if [ -f terraform.tfvars ]; then
-	extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+	allParameters+=("-var-file ${param_dirname}/terraform.tfvars")
 fi
 
-allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
-allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
+if [ "$PLATFORM" != "cli" ] ; then
+	allParameters+=(-input=false)
+fi
+
+allImportParameters=("-var-file ${var_file}")
+if [ -f terraform.tfvars ]; then
+	allImportParameters+=("-var-file ${param_dirname}/terraform.tfvars")
+fi
+if [ -f terraform.tfvars ]; then
+	allImportParameters+=("-var-file ${param_dirname}/terraform.tfvars")
+fi
 
 if [ ! -d ./.terraform/ ]; then
 	print_banner "New deployment" "info"
@@ -253,109 +257,85 @@ else
 					echo "Sleeping for 30 seconds to allow the key vault network rule to take effect"
 					sleep 30
 				else
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+					print_banner "${banner_title}" "Terraform init: succeeded" "success"
 					exit 10
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					print_banner "Install Deployer" "Terraform init: succeeded" "success"
+					print_banner "${banner_title}" "Terraform init: succeeded" "success"
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					print_banner "Install Deployer" "Terraform init: failed" "error"
+					print_banner "${banner_title}" "Terraform init: failed" "error"
 					exit 10
 				fi
 			fi
 		else
 			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-				print_banner "Install Deployer" "Terraform init: succeeded" "success"
+				print_banner "${banner_title}" "Terraform init: succeeded" "success"
 			else
 				echo ""
-				print_banner "Install Deployer" "Terraform init: failed" "error"
+				print_banner "${banner_title}" "Terraform init: failed" "error"
 				exit 10
 			fi
 		fi
 
 	else
-		print_banner "Install Deployer" "New deployment" "info"
+		print_banner "${banner_title}" "New deployment" "info"
 		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 	fi
-	echo "Parameters:                          $allParameters"
-	terraform -chdir="${terraform_module_directory}" refresh $allParameters
+	echo "Parameters:                          ${allParameters[*]}"
+	terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"
 fi
-install_deployer_return_value=$?
-if [ 1 == $install_deployer_return_value ]; then
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                             $bold_red_underscore Errors during the init phase $reset_formatting                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+install_deployer_return_value=$?
+
+if [ 1 == $install_deployer_return_value ]; then
+	print_banner "${banner_title}" "Error when running terraform init" "error"
+
 	unset TF_DATA_DIR
 	exit $install_deployer_return_value
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                             Running Terraform plan                                    #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "${banner_title}" "Running Terraform plan" "info"
 
 # shellcheck disable=SC2086
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
 	install_deployer_return_value=${PIPESTATUS[0]}
 else
 	install_deployer_return_value=${PIPESTATUS[0]}
 fi
-echo "Terraform plan return code:          $install_deployer_return_value"
-if [ 0 == $install_deployer_return_value ]; then
-	echo ""
-	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
-	echo ""
+
+if [ 0 == "$install_deployer_return_value" ]; then
+	print_banner "${banner_title}" "Terraform plan succeeded ($install_deployer_return_value), no changes to apply" "success"
 	install_deployer_return_value=0
-elif [ 2 == $install_deployer_return_value ]; then
-	echo ""
-	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
-	echo ""
+elif [ 2 == "$install_deployer_return_value" ]; then
+	print_banner "${banner_title}" "Terraform plan succeeded ($install_deployer_return_value), changes to apply" "info"
 	install_deployer_return_value=0
 else
-	echo ""
-	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
-	echo ""
-
-fi
-
-if [ 1 == $install_deployer_return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                             $bold_red_underscore Errors during the plan phase $reset_formatting                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	print_banner "${banner_title}" "Terraform plan failed ($install_deployer_return_value)" "error"
 	if [ -f plan_output.log ]; then
 		cat plan_output.log
 		rm plan_output.log
 	fi
 	unset TF_DATA_DIR
-	exit $install_deployer_return_value
+	exit "$install_deployer_return_value"
 fi
 
 if [ -f plan_output.log ]; then
 	rm plan_output.log
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                             Running Terraform apply                                   #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "${banner_title}" "Running Terraform apply" "info"
+if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+	allParameters+=(-json)
+	allParameters+=(--auto-approve)
+	allParameters+=(-no-color) 
+	allParameters+=(-compact-warnings)
+	applyOutputfile="apply_output.json"
+else
+	applyOutputfile="apply_output.log"
+fi
 
 parallelism=10
 
@@ -370,56 +350,24 @@ fi
 
 install_deployer_return_value=0
 
-if [ -n "${approve}" ]; then
-	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters \
-		-no-color -compact-warnings -json -input=false -auto-approve | tee apply_output.json; then
-		install_deployer_return_value=${PIPESTATUS[0]}
-	else
-		install_deployer_return_value=${PIPESTATUS[0]}
-	fi
-	if [ $install_deployer_return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
-		echo ""
-	else
-		# return code 2 is ok
-		echo ""
-		echo -e "${cyan} Terraform apply:                    succeeded ($install_deployer_return_value)$reset_formatting"
-		echo ""
-		# remove the plan file as it is not needed anymore
-		if [ -f "$deployer_plan_name" ]; then
-			echo "Removing the plan file: $deployer_plan_name"
-			rm -f "$deployer_plan_name"
-		fi
-		# shellcheck disable=SC2086
-		install_deployer_return_value=0
-	fi
+if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${allParameters[@]}" | tee "${applyOutputfile}"; then
+	install_deployer_return_value=${PIPESTATUS[0]}
 else
+	install_deployer_return_value=${PIPESTATUS[0]}
+fi
+
+if [ "$install_deployer_return_value" -eq 1 ]; then
+	print_banner "${banner_title}" "Error when running terraform apply" "error"	
+else
+	# return code 2 is ok
+	print_banner "${banner_title}" "Terraform apply succeeded ($install_deployer_return_value)" "info"
+	# remove the plan file as it is not needed anymore
+	if [ -f "$deployer_plan_name" ]; then
+		echo "Removing the plan file: $deployer_plan_name"
+		rm -f "$deployer_plan_name"
+	fi
 	# shellcheck disable=SC2086
-	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
-		install_deployer_return_value=$?
-	else
-		install_deployer_return_value=$?
-	fi
-	if [ $install_deployer_return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
-		az account show --query user --output yaml
-		echo ""
-		exit 10
-	else
-		# return code 2 is ok
-		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded ($install_deployer_return_value)$reset_formatting"
-		echo ""
-		# remove the plan file as it is not needed anymore
-		if [ -f "$deployer_plan_name" ]; then
-			echo "Removing the plan file: $deployer_plan_name"
-			rm -f "$deployer_plan_name"
-		fi
-		install_deployer_return_value=0
-	fi
+	install_deployer_return_value=0
 fi
 
 if [ -f apply_output.json ]; then
@@ -427,51 +375,26 @@ if [ -f apply_output.json ]; then
 
 	if [[ -n $errors_occurred ]]; then
 		install_deployer_return_value=10
-		# shellcheck disable=SC2086
-		if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-			install_deployer_return_value=0
-		else
-			install_deployer_return_value=$?
-		fi
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-				install_deployer_return_value=0
+
+		for i in {1..5}; do
+			print_banner "Terraform apply" "Errors detected in apply output, attempt $i of 5 to import existing resources and re-run apply" "warning"
+			if [ -f apply_output.json ]; then
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}"; then
+					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
+				fi
 			else
-				install_deployer_return_value=$?
+				break
 			fi
-		fi
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-				install_deployer_return_value=0
-			else
-				install_deployer_return_value=$?
-			fi
-		fi
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-				install_deployer_return_value=0
-			else
-				install_deployer_return_value=$?
-			fi
-		fi
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
-				install_deployer_return_value=0
-			else
-				install_deployer_return_value=$?
-			fi
-		fi
+		done
 	fi
 fi
 
 echo "Terraform Apply return code:         $install_deployer_return_value"
 
-if [ 0 != $install_deployer_return_value ]; then
-	print_banner "Install Deployer" "Error when Creating the deployer" "error"
+if [ 0 != "$install_deployer_return_value" ]; then
+	print_banner "${banner_title}" "Error when Creating the deployer" "error"
 
 	if [ -f "${deployer_plan_name}" ]; then
 		echo "Removing the plan file: $deployer_plan_name"
@@ -564,4 +487,4 @@ fi
 unset TF_DATA_DIR
 echo "Exiting: ${SCRIPT_NAME} ($install_deployer_return_value)"
 
-exit $install_deployer_return_value
+exit "$install_deployer_return_value"

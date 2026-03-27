@@ -149,8 +149,8 @@ while :; do
 		;;
 	-h | --help)
 		showhelp
-		exit 3
 		shift
+		exit 3
 		;;
 	-v | --verbose)
 		# Enable debugging
@@ -228,14 +228,15 @@ if [ 0 != $return_code ]; then
 fi
 
 # Check that parameter files have environment and location defined
+region=""
 validate_key_parameters "$parameter_file"
 if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-if valid_region_name ${region}; then
+if valid_region_name "${region}"; then
 	# Convert the region to the correct code
-	get_region_code ${region}
+	get_region_code "${region}"
 else
 	echo "Invalid region: $region"
 	exit 2
@@ -297,7 +298,6 @@ else
 		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		storage_account_name="${REMOTE_STATE_SA}"
-		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		subscription_id="${STATE_SUBSCRIPTION}"
 
 		tfstate_resource_id=$(az resource list --name "${storage_account_name}" --subscription "${subscription_id}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
@@ -386,8 +386,6 @@ if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 		export TF_VAR_landscape_tfstate_key="${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
 		save_config_var "workload_zone_name" "${system_environment_file_name}"
 	fi
-else
-	workload_zone_name_parameter=""
 fi
 
 echo "Looking for resource:" "${moduleID}"

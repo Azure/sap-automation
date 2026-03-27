@@ -32,6 +32,7 @@ fi
 script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 SCRIPT_NAME="$(basename "$0")"
+detect_platform
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -184,11 +185,8 @@ function parse_arguments() {
 		exit 2 #No such file or directory
 	fi
 
-	if [ "$devops_flag" == "--devops" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 		echo "Approve:                             Automatically"
-		autoApproveParameter="--auto-approve"
-	else
-		autoApproveParameter=""
 	fi
 	key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 	deployer_tfstate_key="${key}.terraform.tfstate"
@@ -206,6 +204,7 @@ function parse_arguments() {
 	fi
 
 	# Check that parameter files have environment and location defined
+	region=""
 	if ! validate_key_parameters "$deployer_parameter_file"; then
 		return_code=$?
 		exit $return_code
@@ -251,10 +250,10 @@ function bootstrap_deployer() {
 		save_config_var "step" "${deployer_environment_file_name}"
 	fi
 
-	if [ 0 -eq $step ]; then
-		print_banner "Bootstrap Deployer " "Bootstrapping the deployer..." "info"
-		allParameters=(--parameter_file "${deployer_file_parametername}")
-		if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ 0 -eq "$step" ]; then
+		print_banner "Bootstrap Deployer" "Bootstrapping the deployer..." "info"
+		allParameters=("--parameter_file ${deployer_parameter_file}")
+		if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 			allParameters+=(--auto-approve)
 		fi
 
@@ -417,7 +416,7 @@ function bootstrap_library {
 		export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 	fi
 
-	if [ 2 -eq $step ]; then
+	if [ 2 -eq "$step" ]; then
 		print_banner "$banner_title" "Bootstrapping the library..." "info"
 		if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 			TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
@@ -436,7 +435,7 @@ function bootstrap_library {
 		if [ -v APPLICATION_CONFIGURATION_NAME ]; then
 			allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
 		fi
-		if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+		if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 			allParameters+=(--auto-approve)
 		fi
  		
@@ -539,7 +538,7 @@ function migrate_deployer_state() {
 	fi
 
 	if [ -z "$terraform_storage_account_name" ]; then
-		print_banner "$banner_title" "Sourcing parameters from: " "info" "$(basename ${deployer_environment_file_name})"
+		print_banner "$banner_title" "Sourcing parameters from:" "info" "$(basename "${deployer_environment_file_name}")"
 		load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 
@@ -986,7 +985,6 @@ function deploy_control_plane() {
 	force=0
 	step=0
 	devops_flag="none"
-	autoApproveParameter=""
 	return_value=0
 
 	# Define an array of helper scripts
@@ -999,6 +997,7 @@ function deploy_control_plane() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	print_banner "Control Plane Deployment" "Entering $SCRIPT_NAME" "info"
+	detect_platform
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then

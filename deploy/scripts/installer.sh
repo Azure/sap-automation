@@ -7,7 +7,6 @@
 set -o pipefail
 
 #colors for terminal
-bold_red_underscore="\e[1;4;31m"
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
 green="\e[1;32m"
@@ -18,18 +17,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-# Detect version from environment variable
-caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
-
 banner_title="Installer"
-
-if [[ "$caller_version" == "v1" ]]; then
-	isCallerV1=0
-	echo "INFO: Detected v1 caller via environment variable"
-else
-	isCallerV1=1
-	echo "INFO: Detected v2 caller via environment variable"
-fi
 
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
@@ -37,13 +25,15 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+detect_platform
+
 function missing {
 	printf -v val %-.40s "$1"
 	echo ""
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
-	echo "#   Missing environment variables: ${option}!!!              #"
+	echo "#   Missing environment variables: ${val}!!!              #"
 	echo "#                                                                                       #"
 	echo "#   Please export the folloing variables:                                               #"
 	echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
@@ -100,7 +90,7 @@ while :; do
 		;;
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
-		CONTROL_PLANE_NAME=$(echo "$(basename "$deployer_tfstate_key")" | cut -d'-' -f1-3)
+		CONTROL_PLANE_NAME=$(basename "$deployer_tfstate_key" | cut -d'-' -f1-3)
 		CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
 		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
 		export TF_VAR_control_plane_name
@@ -195,7 +185,7 @@ if [ -z "${deployment_system}" ]; then
 fi
 
 if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
-	WORKLOAD_ZONE_NAME=$(echo $parameterfile_name | cut -d'-' -f1-3)
+	WORKLOAD_ZONE_NAME=$(echo "$parameterfile_name" | cut -d'-' -f1-3)
 	if [ -n "$WORKLOAD_ZONE_NAME" ]; then
 		landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
@@ -328,7 +318,7 @@ if [ ! -v tfstate_resource_id ]; then
 	if [ -n "${REMOTE_STATE_SA}" ]; then
 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 	fi
-	GetAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
+	
 fi
 
 var_file="${param_dirname}"/"${parameterfile}"
@@ -357,8 +347,7 @@ else
 	export TF_VAR_spn_keyvault_id
 
 	echo "Deployer Keyvault ID:                $TF_VAR_spn_keyvault_id"
-	deployer_parameter="  -var subscription_id=${STATE_SUBSCRIPTION} "
-
+	
 	export ARM_SUBSCRIPTION_ID=$STATE_SUBSCRIPTION
 
 fi
@@ -528,7 +517,7 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 terraform --version
 echo ""
 echo -e "${green}Terraform details:"
-echo -e "-------------------------------------------------------------------------${reset}"
+echo -e "-------------------------------------------------------------------------${reset_formatting}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"
@@ -552,8 +541,6 @@ if [ "${terraform_storage_account_name}" !=  "${REMOTE_STATE_SA}" ]; then
 	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3 | tr -d '\r')
 	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5 | tr -d '\r')
 fi
-
-check_output=0
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -581,7 +568,7 @@ if [ ! -f .terraform/terraform.tfstate ]; then
 		return_value=$?
 		print_banner "$banner_title" "Terraform init failed." "error"
 		unset TF_DATA_DIR
-		exit $return_value
+		exit "$return_value"
 	fi
 
 else
@@ -599,7 +586,7 @@ else
 				return_value=10
 				print_banner "$banner_title" "Terraform local init failed" "error" "Terraform init return code: $return_value"
 				unset TF_DATA_DIR
-				exit $return_value
+				exit "$return_value"
 			fi
 			print_banner "$banner_title" "Migrating the state to Azure" "info"
 
@@ -615,12 +602,10 @@ else
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
 			print_banner "$banner_title" "Terraform init succeeded." "success"
-
-			allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 		else
 			return_value=10
 			print_banner "$banner_title" "Terraform init failed" "error" "Terraform init return code: $return_value"
-			exit $return_value
+			exit "$return_value"
 		fi
 	else
 		echo "Terraform state:                     remote"
@@ -637,7 +622,7 @@ else
 		else
 			return_value=10
 			print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
-			exit $return_value
+			exit "$return_value"
 		fi
 	fi
 fi
@@ -645,11 +630,9 @@ fi
 if [ 1 -eq "$new_deployment" ]; then
 	if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 		print_banner "$banner_title" "New deployment" "info"
-		deployment_parameter=" -var deployment=new "
-		new_deployment=0
+		new_deployment=1
 	else
 		print_banner "$banner_title" "Existing deployment was detected" "info"
-		deployment_parameter=""
 		new_deployment=0
 	fi
 fi
@@ -679,46 +662,60 @@ if [ 1 -eq $new_deployment ]; then
 fi
 
 print_banner "$banner_title" "Running Terraform Plan" "cyan"
+# Declare an array
+allParameters=(-var-file "${var_file}")
+if [ -f terraform.tfvars ]; then
+	allParameters+=("-var-file ${param_dirname}/terraform.tfvars")
+fi
+
+if [ "$PLATFORM" != "cli" ] ; then
+	allParameters+=(-input=false)
+fi
+
+if [ 1 -eq "$new_deployment" ]; then
+	allParameters+=(-var deployment=new)
+fi
+
+allImportParameters=("-var-file ${var_file}")
+if [ -f terraform.tfvars ]; then
+	allImportParameters+=("-var-file ${param_dirname}/terraform.tfvars")
+fi
+if [ -f terraform.tfvars ]; then
+	allImportParameters+=("-var-file ${param_dirname}/terraform.tfvars")
+fi
 
 if [ -f plan_output.log ]; then
 	rm plan_output.log
 fi
 
-# Default to use MSI
-if checkforEnvVar TF_VAR_use_spn; then
-	use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
-else
-	TF_VAR_use_spn=false
-	export TF_VAR_use_spn
-fi
-
-# Declare an array
-allParameters=(-var-file ${var_file})
-if [ -f terraform.tfvars ]; then
-	allParameters+=(-var-file ${param_dirname}/terraform.tfvars)
-fi
-if [ 1 -eq "$new_deployment" ]; then
-	allParameters+=(-var deployment=new)
-fi
-
 apply_needed=0
 
-if terraform -chdir="$terraform_module_directory" plan "${allParameters[@]}" -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
 	return_value=${PIPESTATUS[0]}
-	print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 else
 	return_value=${PIPESTATUS[0]}
+fi
 
-	if [ 1 -eq $return_value ]; then
-		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
-		# exit $return_value
-	fi
+if [ 0 == "$return_value" ]; then
+	print_banner "${banner_title}" "Terraform plan succeeded ($return_value), no changes to apply" "success"
+	return_value=0
+elif [ 2 == "$return_value" ]; then
+	print_banner "${banner_title}" "Terraform plan succeeded ($return_value), changes to apply" "info"
 	apply_needed=1
 
+	return_value=0
+else
+	print_banner "${banner_title}" "Terraform plan failed ($return_value)" "error"
+	if [ -f plan_output.log ]; then
+		cat plan_output.log
+		rm plan_output.log
+	fi
+	unset TF_DATA_DIR
+	exit "$return_value"
 fi
 
 state_path="SYSTEM"
-if [ 1 != $return_value ]; then
+if [ 1 != "$return_value" ]; then
 
 	if [ "${deployment_system}" == sap_deployer ]; then
 		state_path="DEPLOYER"
@@ -798,7 +795,6 @@ if [ 1 != $return_value ]; then
 			fi
 		fi
 	fi
-	apply_needed=1
 
 fi
 
@@ -924,10 +920,11 @@ if [ $fatal_errors == 1 ]; then
 	else
 		read -r -p "Do you want to continue with the deployment Y/N? " ans
 		answer=${ans^^}
-		if [ "$answer" == 'Y' ]; then
-			apply_needed=true
+		if [ "$answer" == "Y" ]; then
+			apply_needed=1
 		else
 			unset TF_DATA_DIR
+			echo "Deployment cancelled by user. Please inspect the output of Terraform plan carefully."
 			exit 1
 		fi
 	fi
@@ -935,11 +932,6 @@ if [ $fatal_errors == 1 ]; then
 fi
 
 if [ 1 == $apply_needed ]; then
-	if [ "called_from_ado" = "1" ] || [ "$approve" == "--auto-approve" ]; then
-		allParameters+=(--auto-approve)
-	fi
-
-
 	if [ -f error.log ]; then
 		rm error.log
 	fi
@@ -948,39 +940,30 @@ if [ 1 == $apply_needed ]; then
 	fi
 
 	print_banner "$banner_title" "Running Terraform apply" "info"
- 
-	allImportParameters=(-var-file ${var_file})
-	if [ -f terraform.tfvars ]; then
-		allImportParameters+=(-var-file ${param_dirname}/terraform.tfvars)
-	fi
-	if [ -f terraform.tfvars ]; then
-		allParameters+=(-var-file ${param_dirname}/terraform.tfvars)
+
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(-json)
+		allParameters+=(--auto-approve)
+		allParameters+=(-no-color) 
+		allParameters+=(-compact-warnings)
+		applyOutputfile="apply_output.json"
+	else
+		applyOutputfile="apply_output.log"
 	fi
 
 	if [ -f apply_output.json ]; then
 		rm apply_output.json
 	fi
 
-	if [ -n "${approve}" ]; then
-		# shellcheck disable=SC2086
-		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false "${allParameters[@]}" | tee apply_output.json; then
-			return_value=${PIPESTATUS[0]}
-		else
-			return_value=${PIPESTATUS[0]}
-		fi
-
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${allParameters[@]}" | tee "${applyOutputfile}"; then
+		return_value=${PIPESTATUS[0]}
 	else
-		# shellcheck disable=SC2086
-		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${allParameters[@]}" ; then
-			return_value=$?
-		else
-			return_value=$?
-		fi
+		return_value=${PIPESTATUS[0]}
 	fi
 
-	if [ $return_value -eq 1 ]; then
+	if [ "$return_value" -eq 1 ]; then
 		print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
-	elif [ $return_value -eq 2 ]; then
+	elif [ "$return_value" -eq 2 ]; then
 		# return code 2 is ok
 		print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
 		if [ -f apply_output.json ]; then
@@ -996,70 +979,23 @@ if [ 1 == $apply_needed ]; then
 	fi
 
 	if [ -f apply_output.json ]; then
-
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
+			return_value=10
 
-			# shellcheck disable=SC2086
-			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
-				return_value=$?
-			else
-				return_value=$?
-				print_banner "$banner_title" "First retry failed" "success" "ImportAndReRunApply return code: $return_value"
-			fi
-
-			sleep 10
-
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
-					return_value=$?
+			for i in {1..10}; do
+				print_banner "Terraform apply" "Errors detected in apply output, attempt $i of 10 to import existing resources and re-run apply" "warning"
+				if [ -f apply_output.json ]; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}"; then
+						return_value=0
+					else
+						return_value=$?
+					fi
 				else
-					return_value=$?
-					print_banner "$banner_title" "Second retry failed" "success" "ImportAndReRunApply return code: $return_value"
+					break
 				fi
-			fi
-
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
-					return_value=$?
-				else
-					return_value=$?
-					print_banner "$banner_title" "Third retry failed" "success" "ImportAndReRunApply return code: $return_value"
-				fi
-
-			fi
-
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
-					return_value=$?
-				else
-					return_value=$?
-					print_banner "$banner_title" "Fourth retry failed" "success" "ImportAndReRunApply return code: $return_value"
-				fi
-			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
-					return_value=$?
-				else
-					return_value=$?
-					print_banner "$banner_title" "Fifth retry failed" "success" "ImportAndReRunApply return code: $return_value"
-				fi
-			fi
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}" $parallelism; then
-					return_value=$?
-				else
-					return_value=$?
-					print_banner "$banner_title" "Sixth retry failed" "success" "ImportAndReRunApply return code: $return_value"
-				fi
-			fi
-
+			done
 		fi
 	fi
 fi
@@ -1067,10 +1003,10 @@ if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
-if [ 1 == $return_value ]; then
+if [ 1 == "$return_value" ]; then
 	print_banner "$banner_title" "Errors during the apply phase" "error"
 	unset TF_DATA_DIR
-	exit $return_value
+	exit "$return_value"
 fi
 
 if [ "${deployment_system}" == sap_deployer ]; then
@@ -1199,25 +1135,25 @@ fi
 if [ -f sap-parameters.yaml ]; then
 	if [ "${deployment_system}" == sap_system ]; then
 		echo "Uploading the yaml files from ${param_dirname} to the storage account"
-			az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
+			az storage blob upload --file sap-parameters.yaml --container-name "tfvars/${state_path}/${key}" --name sap-parameters.yaml \
 				--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 
-		hosts_file=$(ls *_hosts.yaml)
-		az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
+		hosts_file=$(ls ./*_hosts.yaml)
+		az storage blob upload --file "${hosts_file}" --container-name "tfvars/${state_path}/${key}" --name "${hosts_file}" \
 			--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 	fi
 fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
-	az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+	az storage blob upload --file "${system_environment_file_name}" --container-name "tfvars/.sap_deployment_automation" --name "${environment}${region_code}${network_logical_name}" \
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 fi
 
 if [ "${deployment_system}" == sap_library ]; then
-	az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${environment}${region_code}${network_logical_name}" \
+	az storage blob upload --file "${system_environment_file_name}" --container-name "tfvars/.sap_deployment_automation" --name "${environment}${region_code}${network_logical_name}" \
 		--subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
 fi
 
 print_banner "$banner_title" "Deployment finished with return code: $return_value" "info"
 
-exit $return_value
+exit "$return_value"

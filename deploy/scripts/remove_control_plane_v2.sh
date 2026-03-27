@@ -171,7 +171,7 @@ function parse_arguments() {
 		exit 2 #No such file or directory
 	fi
 
-	if [ "$ado_flag" == "--ado" ] || [ "$approve_parameter" == "--auto-approve" ]; then
+	if [ "$PLATFORM" != "cli" ] || [ "$approve_parameter" == "--auto-approve" ]; then
 		echo "Approve:                             Automatically"
 		autoApproveParameter="--auto-approve"
 	else
@@ -320,6 +320,8 @@ function remove_control_plane() {
 
 	# Call the function with the array
 	source_helper_scripts "${helper_scripts[@]}"
+	detect_platform
+
 
 	# Parse command line arguments
 	parse_arguments "$@"

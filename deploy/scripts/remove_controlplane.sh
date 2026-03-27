@@ -6,8 +6,6 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-bold_red_underscore="\e[1;4;31m"
-bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
@@ -93,8 +91,6 @@ function missing {
 
 }
 
-force=0
-ado=0
 INPUT_ARGUMENTS=$(getopt -n remove_control_plane -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -127,6 +123,7 @@ while :; do
 		;;
 	-a | --ado)
 		approve_parameter="--auto-approve;ado=1"
+		approve="--auto-approve"
 		shift
 		;;
 	-g | --keep_agent)
@@ -135,6 +132,7 @@ while :; do
 		;;
 	-i | --auto-approve)
 		approve_parameter="--auto-approve"
+		approve="--auto-approve"
 		shift
 		;;
 	-h | --help)
@@ -181,6 +179,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
+region=""
 if valid_region_name "${region}"; then
 	# Convert the region to the correct code
 	get_region_code "${region}"
@@ -191,7 +190,7 @@ fi
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
-CONTROL_PLANE_NAME=$(echo "$(basename "$deployer_parameter_file")" | cut -d'-' -f1-3)
+CONTROL_PLANE_NAME=$(basename "$deployer_parameter_file" | cut -d'-' -f1-3)
 TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
 export TF_VAR_control_plane_name
 
@@ -206,11 +205,11 @@ SYSTEM_CONFIGURATION_FILE="${deployer_environment_file_name}"
 export SYSTEM_CONFIGURATION_FILE
 
 load_config_vars "${deployer_environment_file_name}" "step"
-if [ 1 -eq $step ]; then
+if [ 1 -eq "$step" ]; then
 	exit 0
 fi
 
-if [ 0 -eq $step ]; then
+if [ 0 -eq "$step" ]; then
 	exit 0
 fi
 
@@ -363,7 +362,6 @@ else
 	fi
 fi
 
-deployer_statefile_foldername_path=$(dirname "${deployer_parameter_file}")
 if [ 0 != $return_value ]; then
 	unset TF_DATA_DIR
 	exit 10
@@ -428,19 +426,27 @@ else
 	fi
 fi
 
-extra_vars=""
-
-if [ -f terraform.tfvars ]; then
-	extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
-fi
-
 export TF_DATA_DIR="${param_dirname}/.terraform"
 export TF_use_spn=false
 
 print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
+allRemovalParameters=("-var-file ${library_parameter_file}")
+if [ -f terraform.tfvars ]; then
+	allRemovalParameters+=("-var-file terraform.tfvars")
+fi
+if [ -n "${deployer_statefile_foldername}" ]; then
+	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
+	allRemovalParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
+fi
 
-if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"; then
-	return_value=$?
+if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+	allRemovalParameters+=(--auto-approve)
+fi
+if [ "$PLATFORM" != "cli" ] ; then
+	allRemovalParameters+=(-input=false)
+fi
+
+if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee plan_output.log; then
 	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 
 	if [ -f "${param_dirname}/terraform.tfstate" ]; then
@@ -455,7 +461,7 @@ if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-fi
 	if [ -d "${param_dirname}/.terraform" ]; then
 		rm -rf "${param_dirname}/.terraform"
 	fi
-
+	return_value=$?
 else
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
@@ -463,13 +469,7 @@ else
 	exit 20
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                                       Reset settings                                  #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Remove Control Plane" "Reset local settings" "info"
 
 # shellcheck disable=SC2034
 REMOTE_STATE_RG=''
@@ -544,17 +544,22 @@ else
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	extra_vars=""
-
+	print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
+	allRemovalParameters=("-var-file ${deployer_parameter_file}")
 	if [ -f terraform.tfvars ]; then
-		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+		allRemovalParameters+=("-var-file terraform.tfvars")
 	fi
 
-	print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allRemovalParameters+=(--auto-approve)
+	fi
+	if [ "$PLATFORM" != "cli" ] ; then
+		allRemovalParameters+=(-input=false)
+	fi
 
-	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+	if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee plan_output.log; then
 		return_value=$?
-		print_banner "Remove Control Plane" "Terraform destroy (deployer) succeeded" "success"
+		print_banner "Remove Control Plane " "Terraform destroy (deployer) succeeded" "success"
 
 		if [ -f "${param_dirname}/terraform.tfstate" ]; then
 			rm "${param_dirname}/terraform.tfstate"
@@ -605,8 +610,11 @@ else
 			keyvault
 	else
 		return_value=$?
-		print_banner "Remove Control Plane" "Terraform destroy (deployer) failed" "error"
+		print_banner "Remove Control Plane " "Terraform destroy (deployer) failed" "error"
+		unset TF_DATA_DIR
+		exit 20
 	fi
+
 
 fi
 

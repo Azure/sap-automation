@@ -36,8 +36,6 @@ SCRIPT_NAME="$(basename "$0")"
 banner_title="Bootstrap Library"
 
 CONFIG_REPO_PATH="${script_directory}/.."
-CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-readonly CONFIG_DIR
 
 ############################################################################################
 # This function sources the provided helper scripts and checks if they exist.              #
@@ -127,7 +125,6 @@ function parse_arguments() {
 		exit 1
 	fi
 
-	import="false"
 	eval set -- "$input_opts"
 	while true; do
 		case "$1" in
@@ -147,12 +144,6 @@ function parse_arguments() {
 			;;
 		-i | --auto-approve)
 			approve="--auto-approve"
-			autoApproveParameter="--auto-approve"
-			import="true"
-			shift
-			;;
-		--importexisting)
-			import="true"
 			shift
 			;;
 		-n | --application_configuration_name)
@@ -170,6 +161,10 @@ function parse_arguments() {
 			;;
 		-v | --keyvault)
 			keyvault="$2"
+			keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$keyvault' | project id, name, subscription" --query data[0].id --output tsv)
+			TF_VAR_spn_keyvault_id="$keyvault_id"
+			export TF_VAR_spn_keyvault_id
+
 			shift 2
 			;;
 		--)
@@ -179,8 +174,6 @@ function parse_arguments() {
 		esac
 	done
 	if [ ! -f "${parameter_file_name}" ]; then
-
-		printf -v val %-40.40s "$parameter_file_name"
 		print_banner "$banner_title" "Parameter file does not exist: $parameter_file_name" "error"
 		return 2 #No such file or directory
 	fi
@@ -278,6 +271,8 @@ function install_library() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	print_banner "$banner_title" "Starting the script: $SCRIPT_NAME" "info"
+	detect_platform
+
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
@@ -351,7 +346,6 @@ function install_library() {
 
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
-	extra_vars=""
 	parallelism=10
 
 	#Provide a way to limit the number of parallel tasks for Terraform
@@ -359,11 +353,6 @@ function install_library() {
 		parallelism=$TF_PARALLELLISM
 	fi
 	echo "Parallelism count:                   $parallelism"
-
-	extra_vars=""
-	if [ -f terraform.tfvars ]; then
-		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
-	fi
 
 	if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 		TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
@@ -445,39 +434,55 @@ function install_library() {
 	fi
 
 	print_banner "$banner_title" "Running Terraform plan" "info"
-
-	return_value=0
+	# Declare an array
+	allParameters=("-var-file ${var_file}")
+	if [ -f terraform.tfvars ]; then
+		allParameters+=("-var-file terraform.tfvars")
+	fi
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(--auto-approve)
+	fi
 
 	if [ -n "${deployer_statefile_foldername}" ]; then
 		echo "Deployer folder specified:           ${deployer_statefile_foldername}"
-		terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
-			-var-file="${var_file}" -input=false \
-			-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee plan_output.log
-		return_value=${PIPESTATUS[0]}
-		if [ $return_value -eq 1 ]; then
-			print_banner "$banner_title" "Terraform plan failed" "error"
-			unset TF_DATA_DIR
-			return $return_value
+		allParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
+	fi
 
-		else
-			print_banner "$banner_title" "Terraform plan succeeded" "success"
-		fi
-		allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
-		allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
+	if [ "$PLATFORM" != "cli" ] ; then
+		allParameters+=(-input=false)
+	fi
 
+	allImportParameters=("-var-file ${var_file}")
+	if [ -f terraform.tfvars ]; then
+		allImportParameters+=("-var-file ${param_dirname}/terraform.tfvars")
+	fi
+	
+	return_value=0
+
+	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false "${allParameters[@]}" | tee plan_output.log; then
+		install_library_return_value=${PIPESTATUS[0]}
 	else
-		terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
-			-var-file="${var_file}" -input=false | tee -a plan_output.log
-		return_value=${PIPESTATUS[0]}
-		if [ $return_value -eq 1 ]; then
-			print_banner "$banner_title" "Terraform plan failed" "error"
-			unset TF_DATA_DIR
-			return $return_value
-		else
-			print_banner "$banner_title" "Terraform plan succeeded" "success"
+		install_library_return_value=${PIPESTATUS[0]}
+	fi
+
+	if [ 0 == "$install_library_return_value" ]; then
+		print_banner "${banner_title}" "Terraform plan succeeded ($install_library_return_value), no changes to apply" "success"
+		install_library_return_value=0
+	elif [ 2 == "$install_library_return_value" ]; then
+		print_banner "${banner_title}" "Terraform plan succeeded ($install_library_return_value), changes to apply" "info"
+		install_library_return_value=0
+	else
+		print_banner "${banner_title}" "Terraform plan failed ($install_library_return_value)" "error"
+		if [ -f plan_output.log ]; then
+			cat plan_output.log
+			rm plan_output.log
 		fi
-		allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
-		allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
+		unset TF_DATA_DIR
+		exit "$install_library_return_value"
+	fi
+
+	if [ -f plan_output.log ]; then
+		rm plan_output.log
 	fi
 
 	return_value=0
@@ -488,82 +493,61 @@ function install_library() {
 	fi
 	print_banner "$banner_title" "Running Terraform apply" "info"
 
-	if [ -n "${approve}" ]; then
-		# shellcheck disable=SC2086
-		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee apply_output.json
-		return_value=${PIPESTATUS[0]}
-
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(-json)
+		allParameters+=(--auto-approve)
+		allParameters+=(-no-color) 
+		allParameters+=(-compact-warnings)
+		applyOutputfile="apply_output.json"
 	else
-		# shellcheck disable=SC2086
-		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters
-		return_value=$?
+		applyOutputfile="apply_output.log"
 	fi
 
-	if [ $return_value -eq 1 ]; then
-		print_banner "$banner_title" "Terraform apply failed" "error"
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${allParameters[@]}" | tee "${applyOutputfile}"; then
+		install_library_return_value=${PIPESTATUS[0]}
+	else
+		install_library_return_value=${PIPESTATUS[0]}
+	fi
+
+	if [ "$install_library_return_value" -eq 1 ]; then
+		print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 	else
 		# return code 2 is ok
-		print_banner "$banner_title" "Terraform apply succeeded" "success"
-		return_value=0
+		print_banner "${banner_title}" "Terraform apply succeeded ($install_library_return_value)" "info"
+		install_library_return_value=0
+		if [ -f apply_output.json ]; then
+			rm apply_output.json
+		fi
 	fi
 
 	if [ -f apply_output.json ]; then
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
-		if [ -n "$errors_occurred" ]; then
+		if [[ -n $errors_occurred ]]; then
+			install_library_return_value=10
 
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
-			else
-				return_value=0
-			fi
-
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-					return_value=$?
+			for i in {1..5}; do
+				print_banner "Terraform apply" "Errors detected in apply output, attempt $i of 5 to import existing resources and re-run apply" "warning"
+				if [ -f apply_output.json ]; then
+					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}"; then
+						install_library_return_value=0
+					else
+						install_library_return_value=$?
+					fi
 				else
-					return_value=0
+					break
 				fi
-			fi
-
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-					return_value=$?
-				else
-					return_value=0
-				fi
-			fi
-
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-					return_value=$?
-				else
-					return_value=0
-				fi
-			fi
-
-			if [ -f apply_output.json ]; then
-				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-					return_value=$?
-				else
-					return_value=0
-				fi
-			fi
+			done
 		fi
 	fi
 	if [ -f apply_output.json ]; then
 		rm apply_output.json
 	fi
 
-	if [ 1 == $return_value ]; then
+	if [ 1 == "$install_library_return_value" ]; then
 		print_banner "$banner_title" "Errors during the apply phase" "error"
 		unset TF_DATA_DIR
-		return $return_value
+		return "$install_library_return_value"
 	fi
 
 	if [ "$DEBUG" = True ]; then
@@ -583,7 +567,7 @@ function install_library() {
 
 	fi
 
-	return $return_value
+	return "$install_library_return_value"
 }
 
 ###############################################################################

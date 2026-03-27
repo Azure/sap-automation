@@ -6,17 +6,10 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-#colors for terminal
-bold_red="\e[1;31m"
-reset_formatting="\e[0m"
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
-
-# Detect version from environment variable
-caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
 
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
@@ -233,6 +226,9 @@ if [ -z "$keyvault" ]; then
 	fi
 	if valid_kv_name "$keyvault"; then
 		echo "Valid keyvault name format specified"
+		DEPLOYER_KEYVAULT="$keyvault"
+		export DEPLOYER_KEYVAULT
+		save_config_vars "${environment_config_information}" "keyvault" "DEPLOYER_KEYVAULT"
 	else
 		printf -v val %-40.40s "$keyvault"
 		print_banner "Set secrets" "The provided keyvault is not valid: ${val}" "error"
@@ -313,7 +309,7 @@ else
 	fi
 fi
 
-print_banner "Set secrets" "Setting secrets for environment ${ZONE_NAME} in keyvault ${keyvault}" "info"
+print_banner "Set secrets" "Setting secrets for environment ${ZONE_NAME}" "info" "in keyvault ${keyvault}"
 
 echo "Key vault:                           ${keyvault}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"

@@ -12,6 +12,8 @@ set -o pipefail
 script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 SCRIPT_NAME="$(basename "$0")"
 
+banner_title="Installer"
+
 # Fail on any error, undefined variable, or pipeline failure
 
 # Enable debug mode if DEBUG is set to 'True'
@@ -197,15 +199,15 @@ function parse_arguments() {
 	param_dirname=$(dirname "${parameterFilename}")
 
 	if [ "${param_dirname}" != '.' ]; then
-		print_banner "Installer" "Please run this command from the folder containing the parameter file" "error"
+		print_banner "$banner_title" "Please run this command from the folder containing the parameter file" "error"
 	fi
 
 	if [ ! -f "${parameterfile_name}" ]; then
-		print_banner "Installer" "Parameter file does not exist: ${parameterFilename}" "error"
+		print_banner "$banner_title" "Parameter file does not exist: ${parameterFilename}" "error"
 	fi
 
 	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
-		WORKLOAD_ZONE_NAME=$(echo $parameterfile_name | cut -d'-' -f1-3)
+		WORKLOAD_ZONE_NAME=$(echo "$parameterfile_name" | cut -d'-' -f1-3)
 		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
 			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
@@ -214,7 +216,7 @@ function parse_arguments() {
 	fi
 
 	[[ -z "$CONTROL_PLANE_NAME" ]] && {
-		print_banner "Installer" "control_plane_name is required" "error"
+		print_banner "$banner_title" "control_plane_name is required" "error"
 		return 1
 	}
 	TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
@@ -238,20 +240,20 @@ function parse_arguments() {
 		TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 		export TF_VAR_tfstate_resource_id
-		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+		terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+		terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+		terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 	fi
 
 
 	[[ -z "$deployment_system" ]] && {
-		print_banner "Installer" "type is required" "error"
+		print_banner "$banner_title" "type is required" "error"
 		return 1
 	}
 
-	if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
-		CONTROL_PLANE_NAME=$(echo $deployer_tfstate_key | cut -d'-' -f1-3)
+	if [ -z "$CONTROL_PLANE_NAME" ] && [ -n "$deployer_tfstate_key" ]; then
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
 	fi
 
 	if [ -n "$CONTROL_PLANE_NAME" ]; then
@@ -264,7 +266,7 @@ function parse_arguments() {
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 				save_config_var "landscape_tfstate_key" "${system_environment_file_name}"
 			else
-				print_banner "Installer" "Workload terraform statefile name is required" "error"
+				print_banner "$banner_title" "Workload terraform statefile name is required" "error"
 				unset TF_DATA_DIR
 				return 2
 			fi
@@ -283,7 +285,7 @@ function parse_arguments() {
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
 				save_config_var "deployer_tfstate_key" "${system_environment_file_name}"
 			else
-				print_banner "Installer" "Deployer terraform state file name is required" "error"
+				print_banner "$banner_title" "Deployer terraform state file name is required" "error"
 				unset TF_DATA_DIR
 				return 2
 			fi
@@ -334,9 +336,7 @@ function parse_arguments() {
 		return 2
 	fi
 
-	if checkforEnvVar "TEST_ONLY"; then
-		TEST_ONLY="${TEST_ONLY}"
-	else
+	if ! checkforEnvVar "TEST_ONLY"; then
 		TEST_ONLY="false"
 	fi
 
@@ -370,7 +370,7 @@ function retrieve_parameters() {
 		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
 
 		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-			print_banner "Installer" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_NAME ($app_config_subscription)"
+			print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_NAME ($app_config_subscription)"
 			TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
 			keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
 
@@ -383,9 +383,9 @@ function retrieve_parameters() {
 			if [ -z "$tfstate_resource_id" ]; then
 				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
 			else
-				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 			fi
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 
@@ -416,9 +416,9 @@ function retrieve_parameters() {
 			export TF_VAR_spn_keyvault_id
 
 			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 			export terraform_storage_account_resource_group_name
 			export terraform_storage_account_name
@@ -432,9 +432,9 @@ function retrieve_parameters() {
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
 
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 			export terraform_storage_account_resource_group_name
 			export terraform_storage_account_name
@@ -462,7 +462,7 @@ function retrieve_parameters() {
 
 function persist_files() {
 
-	print_banner "Installer" "Backup tfvars to storage account" "info"
+	print_banner "$banner_title" "Backup tfvars to storage account" "info"
 
 	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 	auth_flag=login
@@ -494,7 +494,7 @@ function persist_files() {
 				--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --auth-mode "$auth_flag" --no-progress --overwrite --only-show-errors --output none
 		fi
 
-		hosts_file=$(ls *_hosts.yaml)
+		hosts_file=$(ls ./*_hosts.yaml)
 		az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
 			--subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --auth-mode "$auth_flag" --no-progress --overwrite --only-show-errors --output none
 
@@ -537,7 +537,7 @@ function test_for_removal() {
 		for resource in "${resources[@]}"; do
 			moduleId=$(echo "$resource" | cut -d'~' -f1)
 			description=$(echo "$resource" | cut -d'~' -f2)
-			if ! testIfResourceWouldBeRecreated "$moduleId" $file_name "$description"; then
+			if ! testIfResourceWouldBeRecreated "$moduleId" "$file_name" "$description"; then
 				fatal_errors=1
 				local_return_code=1
 			fi
@@ -573,6 +573,8 @@ function sdaf_installer() {
 
 	# Call the function with the array
 	source_helper_scripts "${helper_scripts[@]}"
+	detect_platform
+
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
@@ -692,11 +694,6 @@ function sdaf_installer() {
 		exit 1
 	fi
 
-	# This is used to tell Terraform if this is a new deployment or an update
-	deployment_parameter=""
-	# This is used to tell Terraform the version information from the state file
-	version_parameter=""
-
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	echo ""
@@ -738,7 +735,7 @@ function sdaf_installer() {
 			workloadZone_State_file_Size=$(("$workloadZone_State_file_Size_String"))
 
 			if [ "$workloadZone_State_file_Size" -lt 50000 ]; then
-				print_banner "Installer" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
+				print_banner "$banner_title" "Workload zone terraform state file ('$landscape_tfstate_key') is empty" "error"
 				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
 		fi
@@ -750,7 +747,7 @@ function sdaf_installer() {
 			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
+				print_banner "$banner_title" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
 
 				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
@@ -766,7 +763,7 @@ function sdaf_installer() {
 			deployer_Statefile_Size=$(("$deployer_Statefile_Size_String"))
 
 			if [ "$deployer_Statefile_Size" -lt 50000 ]; then
-				print_banner "Installer" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
+				print_banner "$banner_title" "Deployer terraform state file ('$deployer_tfstate_key') is empty" "error"
 
 				az storage blob list --container-name tfstate --account-name "${terraform_storage_account_name}" --subscription "${STATE_SUBSCRIPTION}" --query "[].{name:name,size:properties.contentLength,lease:lease.status}" --output table
 			fi
@@ -788,8 +785,8 @@ function sdaf_installer() {
 		tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 		TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 		export TF_VAR_tfstate_resource_id
-		REMOTE_STATE_SA=${terraform_storage_account_name}
-		REMOTE_STATE_RG=${terraform_storage_account_resource_group_name}
+		REMOTE_STATE_SA="${terraform_storage_account_name}"
+		
 		save_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
@@ -864,18 +861,14 @@ function sdaf_installer() {
 		fi
 	fi
 
-	REMOTE_STATE_SA=${terraform_storage_account_name}
-	REMOTE_STATE_RG=${terraform_storage_account_resource_group_name}
 	save_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 
 	if [ 1 -eq "$new_deployment" ]; then
 		if terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 			print_banner "$banner_title" "New deployment" "info"
-			deployment_parameter=" -var deployment=new "
-			new_deployment=0
+			new_deployment=1
 		else
 			print_banner "$banner_title" "Existing deployment was detected" "info"
-			deployment_parameter=""
 			new_deployment=0
 		fi
 	fi
@@ -896,38 +889,66 @@ function sdaf_installer() {
 				exit 1
 			fi
 		else
-			version_parameter="-var terraform_template_version=${deployed_using_version}"
+			TF_VAR_terraform_template_version="${deployed_using_version}"
+			export TF_VAR_terraform_template_version
 
 			print_banner "$banner_title" "Deployed using the Terraform templates version: $deployed_using_version" "info"
 
 		fi
 	fi
 
-	# Default to use MSI
-	credentialVariable=" -var use_spn=false "
-	if checkforEnvVar TF_VAR_use_spn; then
-		use_spn=$(echo $TF_VAR_use_spn | tr "[:upper:]" "[:lower:]")
-		if [ "$use_spn" == "true" ]; then
-			credentialVariable=" -var use_spn=true "
-		fi
+	print_banner "$banner_title" "Running Terraform Plan" "cyan"
+	# Declare an array
+	allParameters=("-var-file ${var_file}")
+	if [ -f terraform.tfvars ]; then
+		allParameters+=(-var-file "${param_dirname}/terraform.tfvars")
 	fi
 
-	allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
+	if [ "$PLATFORM" != "cli" ] ; then
+		allParameters+=(-input=false)
+	fi
+
+	if [ 1 -eq "$new_deployment" ]; then
+		allParameters+=(-var deployment=new)
+	fi
+
+	allImportParameters=("-var-file ${var_file}")
+	if [ -f terraform.tfvars ]; then
+		allImportParameters+=(-var-file "${param_dirname}/terraform.tfvars")
+	fi
+	if [ -f terraform.tfvars ]; then
+		allImportParameters+=(-var-file "${param_dirname}/terraform.tfvars")
+	fi
+
+	if [ -f plan_output.log ]; then
+		rm plan_output.log
+	fi
+
 	apply_needed=0
 
-	if terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings -no-color | tee plan_output.log; then
+	if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
 		return_value=${PIPESTATUS[0]}
-		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 	else
 		return_value=${PIPESTATUS[0]}
-		if [ 1 -eq $return_value ]; then
-			print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
-			return $return_value
-		fi
-		apply_needed=1
-
 	fi
 
+	if [ 0 == "$return_value" ]; then
+		print_banner "${banner_title}" "Terraform plan succeeded ($return_value), no changes to apply" "success"
+		return_value=0
+	elif [ 2 == "$return_value" ]; then
+		print_banner "${banner_title}" "Terraform plan succeeded ($return_value), changes to apply" "info"
+		apply_needed=1
+
+		return_value=0
+	else
+		print_banner "${banner_title}" "Terraform plan failed ($return_value)" "error"
+		if [ -f plan_output.log ]; then
+			cat plan_output.log
+			rm plan_output.log
+		fi
+		unset TF_DATA_DIR
+		return "$return_value"
+	fi
 	state_path="SYSTEM"
 
 	fatal_errors=0
@@ -1015,8 +1036,6 @@ function sdaf_installer() {
 		fi
 	fi
 
-	# apply_needed=1 - This is already set above line: 736 - 740
-
 	if [ "${TEST_ONLY}" == "True" ]; then
 		print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
@@ -1036,15 +1055,16 @@ function sdaf_installer() {
 			exit 1
 		fi
 
-		if [ 1 == $force ]; then
+		if [ 1 == "$force" ]; then
 			apply_needed=1
 		else
 			read -r -p "Do you want to continue with the deployment Y/N? " ans
 			answer=${ans^^}
-			if [ "$answer" == 'Y' ]; then
-				apply_needed=true
+			if [ "$answer" == "Y" ]; then
+				apply_needed=1
 			else
 				unset TF_DATA_DIR
+				echo "Deployment cancelled by user. Please inspect the output of Terraform plan carefully."
 				exit 1
 			fi
 		fi
@@ -1061,101 +1081,57 @@ function sdaf_installer() {
 		fi
 
 		print_banner "$banner_title" "Running Terraform apply" "info"
-
-		allParameters=$(printf " -var-file=%s %s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}" "${approve} ")
-		allImportParameters=$(printf " -var-file=%s %s %s %s %s " "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${credentialVariable}")
-
-		if [ -n "${approve}" ]; then
-			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee apply_output.json; then
-				return_value=${PIPESTATUS[0]}
-			else
-				return_value=${PIPESTATUS[0]}
-			fi
-
+		if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+			allParameters+=(-json)
+			allParameters+=(--auto-approve)
+			allParameters+=(-no-color) 
+			allParameters+=(-compact-warnings)
+			applyOutputfile="apply_output.json"
 		else
-			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
-				return_value=$?
-			else
-				return_value=$?
-			fi
+			applyOutputfile="apply_output.log"
 		fi
 
-		if [ $return_value -eq 1 ]; then
+		if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${allParameters[@]}" | tee "${applyOutputfile}"; then
+			return_value=${PIPESTATUS[0]}
+		else
+			return_value=${PIPESTATUS[0]}
+		fi
+
+		if [ "$return_value" -eq 1 ]; then
 			print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
-		elif [ $return_value -eq 2 ]; then
+		elif [ "$return_value" -eq 2 ]; then
 			# return code 2 is ok
 			print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+			if [ -f apply_output.json ]; then
+				rm apply_output.json
+			fi
 			return_value=0
 		else
 			print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+			if [ -f apply_output.json ]; then
+				rm apply_output.json
+			fi
 			return_value=0
 		fi
 
 		if [ -f apply_output.json ]; then
-
 			errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 			if [[ -n $errors_occurred ]]; then
-				if [ -n "${approve}" ]; then
+				return_value=10
 
-					# shellcheck disable=SC2086
-					if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-						return_value=0
+				for i in {1..10}; do
+					print_banner "Terraform apply" "Errors detected in apply output, attempt $i of 10 to import existing resources and re-run apply" "warning"
+					if [ -f apply_output.json ]; then
+						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}"; then
+							return_value=0
+						else
+							return_value=$?
+						fi
 					else
-						return_value=$?
+						break
 					fi
-
-					sleep 10
-
-					if [ -f apply_output.json ]; then
-						# shellcheck disable=SC2086
-						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=0
-						else
-							return_value=$?
-						fi
-					fi
-
-					if [ -f apply_output.json ]; then
-						# shellcheck disable=SC2086
-						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=0
-						else
-							return_value=$?
-						fi
-
-					fi
-
-					if [ -f apply_output.json ]; then
-						# shellcheck disable=SC2086
-						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=0
-						else
-							return_value=$?
-						fi
-					fi
-					if [ -f apply_output.json ]; then
-						# shellcheck disable=SC2086
-						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=0
-						else
-							return_value=$?
-						fi
-					fi
-					if [ -f apply_output.json ]; then
-						# shellcheck disable=SC2086
-						if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-							return_value=0
-						else
-							return_value=$?
-						fi
-					fi
-				else
-					return_value=10
-				fi
-
+				done
 			fi
 		fi
 	fi
@@ -1165,15 +1141,15 @@ function sdaf_installer() {
 
 	persist_files
 
-	if [ ${DEBUG:-false} == true ]; then
+	if [ "${DEBUG:-false}" == true ]; then
 		echo "Terraform state file:"
 		terraform -chdir="${terraform_module_directory}" output -json
 	fi
 
-	if [ 0 -ne $return_value ]; then
+	if [ 0 -ne "$return_value" ]; then
 		print_banner "$banner_title" "Errors during the apply phase" "error"
 		unset TF_DATA_DIR
-		return $return_value
+		return "$return_value"
 	fi
 
 	if [ "${deployment_system}" == sap_deployer ]; then
@@ -1235,9 +1211,9 @@ function sdaf_installer() {
 		keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 		if valid_kv_name "$keyvault"; then
 			save_config_var "keyvault" "${system_environment_file_name}"
-			print_banner "Installer" "The Control plane keyvault: ${keyvault}" "info"
+			print_banner "$banner_title" "The Control plane keyvault: ${keyvault}" "info"
 		else
-			print_banner "Installer" "The provided keyvault is not valid: ${keyvault}" "error"
+			print_banner "$banner_title" "The provided keyvault is not valid: ${keyvault}" "error"
 		fi
 	fi
 
@@ -1315,7 +1291,7 @@ EOF
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
-	return $return_value
+	return "$return_value"
 }
 
 ###############################################################################

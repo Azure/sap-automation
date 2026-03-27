@@ -71,10 +71,3 @@ output "network_security_perimeter_id" {
                                                azurerm_network_security_perimeter.perimeter[0].id)) : (
                                              "")
 }
-
-
-  
-  
-  
-  
-  

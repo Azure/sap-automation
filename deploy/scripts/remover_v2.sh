@@ -3,11 +3,9 @@
 # Licensed under the MIT License.
 
 green="\e[1;32m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
+
 bold_red_underscore="\e[1;4;31m"
 reset_formatting="\e[0m"
-reset="\e[0m"
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -82,7 +80,7 @@ function source_helper_scripts() {
 function parse_arguments() {
 	local input_opts
 	approve=""
-	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahifg --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,force,help,github -- "$@")
+	input_opts=$(getopt -n remover_v2 -o p:t:o:d:l:s:n:c:w:ahig --longoptions type:,parameter_file:,storage_accountname:,deployer_tfstate_key:,landscape_tfstate_key:,state_subscription:,application_configuration_name:,control_plane_name:,workload_zone_name:,ado,auto-approve,help,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -94,14 +92,14 @@ function parse_arguments() {
 	while true; do
 		case "$1" in
 		-a | --ado)
-			called_from_ado=1
+			PLATFORM="ado"
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
 			shift
 			;;
 		-g | --github)
-			called_from_ado=1
+			PLATFORM="github"
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
@@ -175,10 +173,6 @@ function parse_arguments() {
 
 			shift 2
 			;;
-		-f | --force)
-			force=1
-			shift
-			;;
 		-i | --auto-approve)
 			approve="--auto-approve"
 			shift
@@ -218,8 +212,8 @@ function parse_arguments() {
 		return 1
 	}
 
-	if [ -z $CONTROL_PLANE_NAME ] && [ -n "$deployer_tfstate_key" ]; then
-		CONTROL_PLANE_NAME=$(echo $deployer_tfstate_key | cut -d'-' -f1-3)
+	if [ -z "$CONTROL_PLANE_NAME" ] && [ -n "$deployer_tfstate_key" ]; then
+		CONTROL_PLANE_NAME=$(echo "$deployer_tfstate_key" | cut -d'-' -f1-3)
 	fi
 
 	if [ -n "$CONTROL_PLANE_NAME" ]; then
@@ -227,11 +221,11 @@ function parse_arguments() {
 	fi
 
 	if [ "${deployment_system}" == sap_system ] || [ "${deployment_system}" == sap_landscape ]; then
-		WORKLOAD_ZONE_NAME=$(echo $parameter_file_name | cut -d'-' -f1-3)
+		WORKLOAD_ZONE_NAME=$(echo "$parameter_file_name" | cut -d'-' -f1-3)
 		if [ -n "$WORKLOAD_ZONE_NAME" ]; then
 			landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 		else
-			WORKLOAD_ZONE_NAME=$(echo $landscape_tfstate_key | cut -d'-' -f1-3)
+			WORKLOAD_ZONE_NAME=$(echo "$landscape_tfstate_key" | cut -d'-' -f1-3)
 		fi
 		TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
 		export TF_VAR_workload_zone_name
@@ -240,7 +234,7 @@ function parse_arguments() {
 
 	if [ "${deployment_system}" == sap_system ]; then
 		if [ -z "${landscape_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ "$PLATFORM" == "cli" ]; then
 				read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 				save_config_var "landscape_tfstate_key" "${system_environment_file_name}"
 			else
@@ -260,7 +254,7 @@ function parse_arguments() {
 			export TF_VAR_APPLICATION_CONFIGURATION_ID
 		fi
 		if [ -z "${deployer_tfstate_key}" ]; then
-			if [ 1 != $called_from_ado ]; then
+			if [ "$PLATFORM" == "cli" ]; then
 				read -r -p "Deployer terraform state file name: " deployer_tfstate_key
 				save_config_var "deployer_tfstate_key" "${system_environment_file_name}"
 			else
@@ -298,7 +292,7 @@ function parse_arguments() {
 	else
 		environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
 		region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-		network_logical_name=$(echo "$deployer_tfstate_	key" | awk -F'-' '{print $3}' | xargs)
+		network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
 	fi
 
 	automation_config_directory="${CONFIG_DIR}"
@@ -312,12 +306,6 @@ function parse_arguments() {
 		echo "Invalid region: $region"
 		return 2
 	fi
-	if checkforEnvVar "TEST_ONLY"; then
-		TEST_ONLY="${TEST_ONLY}"
-	else
-		TEST_ONLY="false"
-	fi
-
 	return 0
 }
 
@@ -369,9 +357,9 @@ function retrieve_parameters() {
 
 			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
 
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 			export TF_VAR_management_subscription_id
 			export TF_VAR_spn_keyvault_id
@@ -388,9 +376,9 @@ function retrieve_parameters() {
 
 			if [ -n "$tfstate_resource_id" ]; then
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-				terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-				terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-				terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 				export TF_VAR_tfstate_resource_id
 				export terraform_storage_account_resource_group_name
@@ -400,9 +388,9 @@ function retrieve_parameters() {
 		else
 			tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$terraform_storage_account_name' | project id, name, subscription" --query data[0].id --output tsv)
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 			export TF_VAR_tfstate_resource_id
 			export terraform_storage_account_resource_group_name
@@ -432,9 +420,9 @@ function retrieve_parameters() {
 			export TF_VAR_spn_keyvault_id
 
 			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 			export terraform_storage_account_resource_group_name
 			export terraform_storage_account_name
@@ -448,9 +436,9 @@ function retrieve_parameters() {
 			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
 
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
+			terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+			terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+			terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
 			export terraform_storage_account_resource_group_name
 			export terraform_storage_account_name
@@ -488,6 +476,8 @@ function sdaf_remover() {
 
 	# Call the function with the array
 	source_helper_scripts "${helper_scripts[@]}"
+	detect_platform
+
 
 	# Parse command line arguments
 	if ! parse_arguments "$@"; then
@@ -530,11 +520,9 @@ function sdaf_remover() {
 		set -o errexit
 	fi
 
-	if [ 1 == ${called_from_ado:-0} ]; then
-		this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
-		export TF_VAR_Agent_IP=$this_ip
-		echo "Agent IP:                            $this_ip"
-	fi
+	this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+	export TF_VAR_Agent_IP=$this_ip
+	echo "Agent IP:                            $this_ip"
 
 	# Terraform Plugins
 	if checkIfCloudShell; then
@@ -799,14 +787,14 @@ function sdaf_remover() {
 				return_value=2
 				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
 				if [[ -n ${all_errors} ]]; then
-					readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+					readarray -t errors_strings < <(echo "${all_errors}" | jq -c '.')
 					for errors_string in "${errors_strings[@]}"; do
 						string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
 						if [[ -z ${string_to_report} ]]; then
 							string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
 						fi
 
-						report=$(echo $string_to_report | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
+						report=$(echo "$string_to_report" | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
 						if [[ -n ${report} ]]; then
 							echo -e "#                          $bold_red_underscore  $report $reset_formatting"
 							echo "##vso[task.logissue type=error]${report}"

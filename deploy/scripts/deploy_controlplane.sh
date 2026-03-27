@@ -22,8 +22,6 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-bold_red_underscore="\e[1;4;31m"
-bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
@@ -64,6 +62,8 @@ fi
 SCRIPT_NAME="$(basename "$0")"
 
 echo "Entering: ${SCRIPT_NAME}"
+
+detect_platform
 
 
 INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
@@ -116,7 +116,6 @@ while :; do
 		;;
 	-i | --auto-approve)
 		approve="--auto-approve"
-		autoApproveParameter="--auto-approve"
 		shift
 		;;
 	-m | --msi)
@@ -155,7 +154,7 @@ fi
 
 echo "ADO flag:                            ${ado_flag}"
 
-if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 	echo "Approve:                             Automatically"
 fi
 
@@ -197,6 +196,10 @@ if [ 0 != $return_code ]; then
 fi
 
 # Check that parameter files have environment and location defined
+region=""
+region_code=""
+environment=""
+
 validate_key_parameters "$deployer_parameter_file"
 if [ 0 != $return_code ]; then
 	echo "Errors in parameter file" >"${deployer_environment_file_name}".err
@@ -441,7 +444,7 @@ if [ 0 == "$step" ]; then
 
 	# Declare an array
 	allParameters=(--parameterfile "${deployer_file_parametername}")
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 		allParameters+=(--auto-approve)
 	fi
  
@@ -509,13 +512,13 @@ if [ 0 == "$step" ]; then
 
 	cd "$root_dirname" || exit
 
-	if [ "$ado_flag" == "--ado" ]; then
+	if [ "$PLATFORM" != "cli" ]; then
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	fi
 else
 	print_banner "Control Plane deployment" "Deployer is already bootstrapped, skipping to the next step" "info"
 	load_config_vars "${deployer_environment_file_name}" "DEPLOYER_SSHKEY_SECRET_NAME" "DEPLOYER_KEYVAULT" "deployer_public_ip_address"
-	if [ "$ado_flag" == "--ado" ]; then
+	if [ "$PLATFORM" != "cli" ]; then
 		echo "##vso[task.setprogress value=20;]Progress Indicator"
 	fi
 fi
@@ -673,7 +676,7 @@ if [ 2 -eq $step ]; then
 	allParameters=(--parameterfile "${library_file_parametername}" )
 	allParameters+=(--deployer_statefile_foldername "${deployer_dirname}")
 	allParameters+=(--keyvault "${keyvault}")
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 		allParameters+=(--auto-approve)
 	fi
 
@@ -726,13 +729,13 @@ if [ 2 -eq $step ]; then
 
 	cd "${current_directory}" || exit
 	save_config_var "step" "${deployer_environment_file_name}"
-	if [ "$ado_flag" == "--ado" ]; then
+	if [ "$PLATFORM" != "cli" ]; then
 		echo "##vso[task.setprogress value=60;]Progress Indicator"
 	fi
 
 else
 	print_banner "Control Plane deployment" "SAP Library is already bootstrapped, skipping to the next step" "info"
-	if [ "$ado_flag" == "--ado" ]; then
+	if [ "$PLATFORM" != "cli" ]; then
 		echo "##vso[task.setprogress value=60;]Progress Indicator"
 	fi
 
@@ -740,7 +743,7 @@ fi
 
 unset TF_DATA_DIR
 cd "$root_dirname" || exit
-if [ "$ado_flag" == "--ado" ]; then
+if [ "$PLATFORM" != "cli" ]; then
 	echo "##vso[task.setprogress value=80;]Progress Indicator"
 fi
 
@@ -777,7 +780,7 @@ if [ 3 -eq "$step" ]; then
 	if [ -z "${REMOTE_STATE_SA}" ]; then
 		export step=2
 		save_config_var "step" "${deployer_environment_file_name}"
-		if [ "$ado_flag" == "--ado" ]; then
+		if [ "$PLATFORM" != "cli" ]; then
 			echo "##vso[task.setprogress value=40;]Progress Indicator"
 		fi
 		echo ""
@@ -793,7 +796,7 @@ if [ 3 -eq "$step" ]; then
 	allParameters+=(--storageaccountname "${REMOTE_STATE_SA}")
 	allParameters+=(--state_subscription "${STATE_SUBSCRIPTION}")
 	allParameters+=(--type "sap_deployer")
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 		allParameters+=(--auto-approve)
 	fi
 
@@ -863,11 +866,11 @@ if [ 4 -eq $step ]; then
 	allParameters+=(--deployer_tfstate_key "${deployer_tf_state}")
 	allParameters+=(--type "sap_library")
 
-	if [ "$ado_flag" == "--ado" ] || [ "$approve" == "--auto-approve" ]; then
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 		allParameters+=(--auto-approve)
 	fi
 
-	echo "Calling installer.sh with: ${allParameters[@]}"	
+	echo "Calling installer.sh with: ${allParameters[*]}"	
 
 	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" "${allParameters[@]}"; then
 		return_code=$?
@@ -969,7 +972,7 @@ fi
 
 step=3
 save_config_var "step" "${deployer_environment_file_name}"
-if [ "$ado_flag" == "--ado" ]; then
+if [ "$PLATFORM" != "cli" ]; then
 	echo "##vso[task.setprogress value=100;]Progress Indicator"
 fi
 
