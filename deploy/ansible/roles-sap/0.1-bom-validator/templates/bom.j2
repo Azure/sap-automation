@@ -63,7 +63,7 @@ product_ids:
 {%   endfor %}
 {% endif %}
 
-{% if patch_information is mapping %}
+{% if patch_information is defined and patch_information is mapping %}
 
 patch_information:
 
