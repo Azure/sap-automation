@@ -202,7 +202,7 @@ function parse_arguments() {
 		print_banner "$banner_title - $deployment_system" "Parameter file does not exist: ${parameterFilename}" "error"
 	fi
 
-	[[ -z "$CONTROL_PLANE_NAME" ]] && {
+	[[ -z "${CONTROL_PLANE_NAME:-}" ]] && {
 		print_banner "$banner_title - $deployment_system" "control_plane_name is required" "error"
 		return 1
 	}
@@ -246,6 +246,11 @@ function parse_arguments() {
 			TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
 			export TF_VAR_landscape_tfstate_key
 		fi
+	fi
+
+	if [ -v ARM_SUBSCRIPTION_ID ]; then
+		TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+		export TF_VAR_subscription_id
 	fi
 
 	if [ "${deployment_system}" != sap_deployer ]; then
@@ -396,6 +401,8 @@ function retrieve_parameters() {
 			export terraform_storage_account_resource_group_name
 			export terraform_storage_account_name
 			export terraform_storage_account_subscription_id
+
+			getAndStoreTerraformStateStorageAccountDetails "${terraform_storage_account_name}" "${system_environment_file_name}"
 		fi
 
 	fi
@@ -446,8 +453,9 @@ function retrieve_parameters() {
 		fi
 
 	fi
-
-  if [ "${USE_MSI:-ARM_USE_MSI}" == "true" ]; then
+	
+	getAndStoreTerraformStateStorageAccountDetailsFromDisk "${system_environment_file_name}"
+	if [ "${USE_MSI:-ARM_USE_MSI}" == "true" ]; then
 		unset ARM_CLIENT_SECRET
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
