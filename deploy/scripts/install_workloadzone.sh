@@ -58,9 +58,9 @@ while :; do
 	-d | --deployer_tfstate_key)
 		deployer_tfstate_key="$2"
 		CONTROL_PLANE_NAME=$(echo "$(basename "$deployer_tfstate_key")" | cut -d'-' -f1-3)
-			CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
-			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
-			export TF_VAR_control_plane_name
+		CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
+		TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+		export TF_VAR_control_plane_name
 		TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
 		export TF_VAR_deployer_tfstate_key
 		shift 2
@@ -132,9 +132,7 @@ while :; do
 		;;
 	esac
 done
-tfstate_resource_id=""
 tfstate_parameter=""
-landscape_tfstate_key=""
 
 deployment_system="sap_landscape"
 
