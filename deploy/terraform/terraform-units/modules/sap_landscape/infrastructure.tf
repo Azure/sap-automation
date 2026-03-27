@@ -134,9 +134,9 @@ resource "time_sleep" "wait_for_subnets" {
                                            app       = try(azurerm_subnet.app[0].id, "")
                                            db        = try(azurerm_subnet.db[0].id, "")
                                            web       = try(azurerm_subnet.web[0].id, "")
-                                           iscsi     = try(azurerm_subnet.iscsi[0].id
+                                           iscsi     = try(azurerm_subnet.iscsi[0].id, "")
                                            storage   = try(azurerm_subnet.storage[0].id, "")
-                                           ams       = try(azurerm_subnet.ams[0].id,
+                                           ams       = try(azurerm_subnet.ams[0].id, "")
                                            anf       = try(azurerm_subnet.anf[0].id, "")
 
                                        }
