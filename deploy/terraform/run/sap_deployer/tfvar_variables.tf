@@ -457,7 +457,7 @@ variable "set_secret_expiry"                         {
 
 variable "enable_rbac_authorization"                 {
                                                        description = "Enables RBAC authorization for Azure keyvault"
-                                                       default     = false
+                                                       default     = true
                                                      }
 
 #######################################4#######################################8
@@ -896,7 +896,7 @@ variable "network_security_perimeter_id"       {
 #######################################4#######################################8
 
 variable "organization"                          {
-                                                    description = "If defined, The Github organization name"
+                                                    description = "If defined, The GitHub organization name"
                                                     default     = "Azure"
                                                  }
 

@@ -890,7 +890,7 @@ resources:
         Add-Content -Path $WikiFileName -Value "Using the code directly from GitHub"
 
         $ResourcesUrl = $AdoOrganization + "/_git/" + [uri]::EscapeDataString($AdoProject) + "?path=/pipelines/resources.yml"
-        $LogEntry = ("Please update [resources.yml](" + $ResourcesUrl + ") to point to Github instead of Azure DevOps.")
+        $LogEntry = ("Please update [resources.yml](" + $ResourcesUrl + ") to point to GitHub instead of Azure DevOps.")
       }
       #endregion
 
@@ -971,7 +971,7 @@ resources:
       if ($CreateConnections -and $GitHubConnection.Length -eq 0) {
         $GitHubConnectionUrl = $AdoOrganization + "/" + [uri]::EscapeDataString($AdoProject) + "/_settings/adminservices"
         Write-Host ""
-        Write-Host "The browser will now open, please create a new Github connection, record the name of the connection." -ForegroundColor Blue
+        Write-Host "The browser will now open, please create a new GitHub connection, record the name of the connection." -ForegroundColor Blue
         Write-Host "URL: " $GitHubConnectionUrl -ForegroundColor Blue
         Start-Process $GitHubConnectionUrl
         Read-Host "Please press enter when you have created the connection"

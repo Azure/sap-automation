@@ -27,7 +27,7 @@ HDB_Schema_Check_Dialogs.dropSchema                                   = true
 NW_ABAP_Import_Dialog.migmonJobNum                                    = 12
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 
-{% if platform | upper == 'HANA' and instance_type | upper == 'ABAP' %}
+{% if platform | upper == 'HANA' and application_type | upper == 'ABAP' %}
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
@@ -54,10 +54,9 @@ NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
-
 {% endif %}
 
-{% if platform | upper == 'HANA' and instance_type | upper == 'JAVA' %}
+{% if platform | upper == 'HANA' and application_type | upper == 'JAVA' %}
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT

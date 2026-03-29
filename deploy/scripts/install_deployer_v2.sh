@@ -413,15 +413,9 @@ function install_deployer() {
         elif [ "$return_value" -eq 2 ]; then
             # return code 2 is ok
             print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
-            if [ -f apply_output.json ]; then
-                rm apply_output.json
-            fi
             return_value=0
         else
             print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
-            if [ -f apply_output.json ]; then
-                rm apply_output.json
-            fi
             return_value=0
         fi
 

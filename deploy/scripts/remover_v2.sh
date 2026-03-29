@@ -764,9 +764,13 @@ function sdaf_remover() {
 		fi
 	fi
 
-	if [ -d ".terraform" ]; then
-		rm -rf ".terraform"
+    if [ "$return_value" -eq 0 ]; then
+
+		if [ -d ".terraform" ]; then
+			rm -rf ".terraform"
+		fi
 	fi
+
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Removal completed." "info" "Exiting $SCRIPT_NAME"
 

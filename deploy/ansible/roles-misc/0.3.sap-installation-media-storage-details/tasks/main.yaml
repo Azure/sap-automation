@@ -105,7 +105,7 @@
 - name:                                "0.3 Installation Media - Extract SAP Binaries Storage Account SAS (temp)"
   when:                                 az_StorageAccountSubscription.stdout is defined and az_StorageAccountSubscription.stdout | length > 0
   ansible.builtin.set_fact:
-    terraform_subscription_id:         "{{ az_StorageAccountSubscription.stdout }}"
+    terraform_subscription_id:         "{{ az_StorageAccountSubscription.stdout | default('') }}"
 
 - name:                                "0.3 Installation Media - Extract Shared Key Access token flag"
   ansible.builtin.set_fact:

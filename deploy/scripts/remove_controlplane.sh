@@ -452,7 +452,7 @@ if [ "$PLATFORM" != "cli" ] ; then
 fi
 
 if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee destroy_output.log; then
-	return_value=$?
+	return_value=${PIPESTATUS[0]}
 	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 
 	if [ -f "${param_dirname}/terraform.tfstate" ]; then
@@ -468,7 +468,7 @@ if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameter
 		rm -rf "${param_dirname}/.terraform"
 	fi
 else
-	return_value=$?
+	return_value=${PIPESTATUS[0]}
 	print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
 	unset TF_DATA_DIR
 	exit 20

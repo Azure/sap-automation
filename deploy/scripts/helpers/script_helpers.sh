@@ -639,7 +639,6 @@ function workload_zone_missing {
 	echo "#      -c or --spn_id                        (if using SPN) SPN application id                #"
 	echo "#      -p or --spn_secret                    (if using SPN) SPN password                      #"
 	echo "#      -t or --tenant_id                     (if using SPN) SPN Tenant id                     #"
-	echo "#      -p or --spn_secret                    (if using SPN) SPN password                      #"
 	echo "#                                                                                             #"
 	echo "#      -f or --force                         Ignore local Terraform files.                    #"
 	echo "#      -i or --auto-approve                  Silent install (will import existing resources)  #"

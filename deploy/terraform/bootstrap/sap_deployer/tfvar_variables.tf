@@ -876,7 +876,7 @@ variable "network_security_perimeter_id"       {
 #######################################4#######################################8
 
 variable "organization"                          {
-                                                    description = "If defined, The Github organization name"
+                                                    description = "If defined, The GitHub organization name"
                                                     default     = "Azure"
                                                  }
 

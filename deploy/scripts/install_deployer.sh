@@ -205,9 +205,6 @@ allImportParameters=(-var-file "${var_file}")
 if [ -f terraform.tfvars ]; then
     allImportParameters+=(-var-file ${param_dirname}/terraform.tfvars)
 fi
-if [ -f terraform.tfvars ]; then
-    allImportParameters+=(-var-file ${param_dirname}/terraform.tfvars)
-fi
 
 if [ ! -d ./.terraform/ ]; then
     print_banner "New deployment" "info"

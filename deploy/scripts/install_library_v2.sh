@@ -221,7 +221,9 @@ function install_library() {
     local reset="\033[0m"
     deployment_system=sap_library
     use_deployer=true
-    approve=""
+
+    SCRIPT_NAME="$(basename "$0")"
+
     # Define an array of helper scripts
     helper_scripts=(
         "${script_directory}/helpers/script_helpers.sh"
@@ -472,14 +474,11 @@ function install_library() {
         fi
 
         if [ "$install_library_return_value" -eq 1 ]; then
-            print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
+            print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $install_library_return_value"
         else
             # return code 2 is ok
             print_banner "${banner_title}" "Terraform apply succeeded ($install_library_return_value)" "info"
             install_library_return_value=0
-            if [ -f apply_output.json ]; then
-                rm apply_output.json
-            fi
         fi
 
         if [ -f apply_output.json ]; then
@@ -573,7 +572,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
     readonly script_directory
 
-    SCRIPT_NAME="$(basename "$0")"
     banner_title="Bootstrap Library"
 
     CONFIG_REPO_PATH="${script_directory}/.."

@@ -345,9 +345,9 @@
           #
             - name:                                 "0.1 Bom Validator - Update BOM"
               ansible.builtin.set_fact:
-                root_media_list:                    "{{ root_media_list_update }}"
+                local_media_list:                    "{{ local_media_list_update }}"
               vars:
-                root_media_list_update:             "{#- -#}{% set _ = root_media_list[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ root_media_list }}"
+                local_media_list_update:             "{#- -#}{% set _ = local_media_list[bom_media_index].update({'checksum': fs_check.stat.checksum}) -%} {{ local_media_list }}"
           # Step: 05-03-03-01 - END
           # ---------------------------+-------------------------------------------------8
 
@@ -357,7 +357,7 @@
           #
             - name:                        "0.1 Bom Validator - Show Entry"
               ansible.builtin.debug:
-                var:                       root_media_list[bom_media_index]
+                var:                       local_media_list[bom_media_index]
                 verbosity:                 1
           # Step: 05-03-03-02 - END
           # ---------------------------+-------------------------------------------------8
