@@ -298,12 +298,17 @@ key=$(echo "${deployer_tfvars_filename}" | cut -d. -f1)
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ]; then
-	echo "Storage Account Authentication:        Key"
-	export ARM_USE_AZUREAD=false
-else
-	echo "Storage Account Authentication:        Entra ID"
-	export ARM_USE_AZUREAD=true
-fi
+		echo "Storage Account Authentication:      Key"
+		AZURE_STORAGE_AUTH_MODE=key
+		export AZURE_STORAGE_AUTH_MODE
+		export ARM_USE_AZUREAD=false
+	else
+		echo "Storage Account Authentication:      Entra ID"
+		AZURE_STORAGE_AUTH_MODE=login
+		export AZURE_STORAGE_AUTH_MODE
+		export ARM_USE_AZUREAD=true
+	fi
+	
 
 TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
 export TF_VAR_subscription_id
@@ -430,9 +435,9 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 export TF_use_spn=false
 
 print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
-allRemovalParameters=("-var-file ${library_parameter_file}")
+allRemovalParameters=(-var-file ${library_parameter_file})
 if [ -f terraform.tfvars ]; then
-	allRemovalParameters+=("-var-file terraform.tfvars")
+	allRemovalParameters+=(-var-file terraform.tfvars)
 fi
 if [ -n "${deployer_statefile_foldername}" ]; then
 	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
@@ -446,7 +451,8 @@ if [ "$PLATFORM" != "cli" ] ; then
 	allRemovalParameters+=(-input=false)
 fi
 
-if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee destroy_output.log; then
+	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
 
 	if [ -f "${param_dirname}/terraform.tfstate" ]; then
@@ -461,7 +467,6 @@ if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameter
 	if [ -d "${param_dirname}/.terraform" ]; then
 		rm -rf "${param_dirname}/.terraform"
 	fi
-	return_value=$?
 else
 	return_value=$?
 	print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
@@ -545,9 +550,9 @@ else
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
-	allRemovalParameters=("-var-file ${deployer_parameter_file}")
+	allRemovalParameters=(-var-file "${deployer_parameter_file}")
 	if [ -f terraform.tfvars ]; then
-		allRemovalParameters+=("-var-file terraform.tfvars")
+		allRemovalParameters+=(-var-file terraform.tfvars)
 	fi
 
 	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then

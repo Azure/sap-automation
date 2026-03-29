@@ -95,7 +95,6 @@ function print_banner() {
 	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
 
 	echo ""
-	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_title}${reset}#"
@@ -109,7 +108,6 @@ function print_banner() {
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"
-	echo -e "${reset}"
 	echo ""
 }
 
@@ -1167,7 +1165,7 @@ function ImportAndReRunApply {
 	local error_count=0
 
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
-	if [ "${DEBUG}" = "true" ]; then
+	if [ "${DEBUG:-false}" = "true" ]; then
 		echo "Import parameters: ${importParameters[*]}"
 		echo "Apply parameters: ${applyParameters[*]}"
 	fi
@@ -1293,8 +1291,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 					import_return_value=0
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
@@ -1314,8 +1312,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 					error_count=${#errors[@]}
 
@@ -1450,28 +1448,15 @@ function validate_key_vault {
 	fi
 
 	if [ -z "$kv_name_check" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                               $bold_red  Unable to access keyvault: $keyvault_to_check $reset_formatting                            #"
-		echo "#                             Please ensure the key vault exists.                       #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Installer" "Unable to access keyvault: $keyvault_to_check" "error" "Please ensure the key vault exists and you have access to it."
 		exit 10
 	fi
 
 	access_error=$(az keyvault secret list --vault "$keyvault_to_check" --subscription "${subscription}" --only-show-errors | grep "The user, group or application" || true)
 	if [ -n "${access_error}" ]; then
-
 		az_subscription_id=$(az account show --query id -o tsv)
 		printf -v val %-40.40s "$az_subscription_id"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#$bold_red User account ${val} does not have access to: $keyvault  $reset_formatting"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
-		echo "##vso[task.setprogress value=40;]Progress Indicator"
+		print_banner "Installer" "Unable to access keyvault: $keyvault_to_check" "error" "Please ensure the user account has at least secret list permissions to the key vault."
 		return 65
 
 	fi

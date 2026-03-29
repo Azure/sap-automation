@@ -657,7 +657,7 @@ function valid_region_code() {
 # An Keyvault name value must be made up of letters and numbers
 # an uppercase letter.
 function valid_kv_name() {
-	if [[ "${keyvault}" =~ "^[A-Za-z0-9]{1,10}$" ]]; then
+	if [[ "${keyvault:-}" =~ "^[A-Za-z0-9]{1,10}$" ]]; then
 		return 1
 	else
 		return 0

@@ -343,8 +343,14 @@ subscription_id=$(echo "${tfstate_resource_id}" | cut -d/ -f3 | tr -d \" | xargs
 
 useSAS=$(az storage account show --name "${storage_account_name}" --query allowSharedKeyAccess --subscription "${subscription_id}" --out tsv)
 if [ "$useSAS" = "true" ]; then
+	echo "Storage Account Authentication:      Key"
+	AZURE_STORAGE_AUTH_MODE=key
+	export AZURE_STORAGE_AUTH_MODE
 	export ARM_USE_AZUREAD=false
 else
+	echo "Storage Account Authentication:      Entra ID"
+	AZURE_STORAGE_AUTH_MODE=login
+	export AZURE_STORAGE_AUTH_MODE
 	export ARM_USE_AZUREAD=true
 fi
 

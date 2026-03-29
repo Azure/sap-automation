@@ -394,9 +394,9 @@ else
 	resource_group_exist=true
 fi
 
-allRemovalParameters=("-var-file ${parameterfile_path}")
+allRemovalParameters=(-var-file "${parameterfile_path}")
 if [ -f terraform.tfvars ]; then
-	allRemovalParameters+=("-var-file terraform.tfvars")
+	allRemovalParameters+=(-var-file terraform.tfvars)
 fi
 
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then

@@ -767,7 +767,7 @@ resource "azurerm_key_vault_secret" "tenant" {
                                          ]
   content_type                         = "secret"
   name                                 = format("%s-tenant-id", upper(var.naming.prefix.WORKLOAD_ZONE))
-  value                                = data.azurerm_client_config.current.subscription_id
+  value                                = data.azurerm_client_config.current.tenant_id
   key_vault_id                         = var.deployer_tfstate.deployer_kv_user_arm_id
   expiration_date                       = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (

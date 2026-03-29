@@ -474,7 +474,6 @@ function retrieve_parameters() {
 #   sdaf_remover                                                                           #
 ############################################################################################
 function sdaf_remover() {
-	extra_vars=""
 
 	# Define an array of helper scripts
 	helper_scripts=(
@@ -545,7 +544,26 @@ function sdaf_remover() {
 	fi
 
 	param_dirname=$(pwd)
-	export TF_DATA_DIR=".terraform"
+	export TF_DATA_DIR="${param_dirname}/.terraform"
+
+	if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+		remote_backend=$(grep "\"type\": \"azurerm\"" "${param_dirname}/.terraform/terraform.tfstate" || true)
+		if [ -n "${remote_backend}" ]; then
+
+			terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+			terraform_storage_account_name=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
+			TF_VAR_tfstate_resource_id="$tfstate_resource_id"
+			TF_VAR_management_subscription_id="$terraform_storage_account_subscription_id"
+			export TF_VAR_tfstate_resource_id
+			export TF_VAR_management_subscription_id
+
+		fi
+	else
+		print_banner "$banner_title - $deployment_system" "No existing Terraform state found in the current directory" "info" "System name $(basename "$param_dirname")"
+		return 10;
+	fi
 
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
@@ -554,37 +572,19 @@ function sdaf_remover() {
 
 	var_file="${param_dirname}"/"${parameterFilename}"
 
-	if [ -f terraform.tfvars ]; then
-		extra_vars="-var-file=terraform.tfvars"
-	else
-		extra_vars=""
-	fi
-
-	current_subscription_id=$(az account show --query id -o tsv)
-
-	if [[ -n "$terraform_storage_account_subscription_id" ]] && [[ "$terraform_storage_account_subscription_id" != "$current_subscription_id" ]]; then
-		print_banner "$banner_title - $deployment_system" "Changing the subscription to: $terraform_storage_account_subscription_id" "info"
-		az account set --sub "${terraform_storage_account_subscription_id}"
-
-		return_code=$?
-		if [ 0 != $return_code ]; then
-			print_banner "$banner_title - $deployment_system" "The deployment account (MSI or SPN) does not have access to: $terraform_storage_account_subscription_id" "error"
-			exit $return_code
-		fi
-
-		az account set --sub "${current_subscription_id}"
-
-	fi
-
 	useSAS=$(az storage account show --name "${terraform_storage_account_name}" --query allowSharedKeyAccess --subscription "${terraform_storage_account_subscription_id}" --out tsv)
 
-	if [ "$useSAS" = "true" ]; then
-		echo "Storage Account Authentication:      Key"
-		export ARM_USE_AZUREAD=false
-	else
-		echo "Storage Account Authentication:      Entra ID"
-		export ARM_USE_AZUREAD=true
-	fi
+    if [ "$useSAS" = "true" ]; then
+        echo "Storage Account Authentication:      Key"
+        AZURE_STORAGE_AUTH_MODE=key
+        export AZURE_STORAGE_AUTH_MODE
+        export ARM_USE_AZUREAD=false
+    else
+        echo "Storage Account Authentication:      Entra ID"
+        AZURE_STORAGE_AUTH_MODE=login
+        export AZURE_STORAGE_AUTH_MODE
+        export ARM_USE_AZUREAD=true
+    fi
 
 	#setting the user environment variables
 
@@ -598,7 +598,6 @@ function sdaf_remover() {
 		exit 1
 	fi
 
-	terraform --version
 	echo ""
 	echo -e "${green}Terraform details:"
 	echo -e "-------------------------------------------------------------------------------$reset_formatting"
@@ -617,180 +616,105 @@ function sdaf_remover() {
 	export TF_VAR_subscription_id
 
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
-	export TF_DATA_DIR=".terraform"
+	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	var_file="${param_dirname}"/"${parameter_file_name}"
 
+	echo terraform_storage_account_subscription_id="${terraform_storage_account_subscription_id}"
+	echo terraform_storage_account_name="${terraform_storage_account_name}"
+	echo terraform_storage_account_resource_group_name="${terraform_storage_account_resource_group_name}"
+
 	cd "${param_dirname}" || exit
-	if [ ! -f .terraform/terraform.tfstate ]; then
+	az account set --subscription "$ARM_SUBSCRIPTION_ID"
+	if [ -f .terraform/terraform.tfstate ]; then
 
-		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
+		echo "Terraform state:                     remote"
+		print_banner "$banner_title - $deployment_system" "The system has already been deployed and the state file is in Azure" "info" "System name $(basename "$param_dirname")"
+		echo "key=${key}.terraform.tfstate"
 
-		if terraform -chdir="${terraform_module_directory}" init -force-copy \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
+			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
 			return_value=$?
-			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success"
-
 		else
 			return_value=$?
-			print_banner "$banner_title - $deployment_system" "Terraform init failed" "error"
-			return 100
+			print_banner "$banner_title - $deployment_system" "Terraform init failed." "error" "System name $(basename "$param_dirname")"
+			return $return_value
 		fi
 	else
-		echo "Terraform state:                     remote"
-		print_banner "$banner_title - $deployment_system" "The system has already been deployed and the state file is in Azure" "info"
-
-		if ! terraform -chdir="${terraform_module_directory}" init -force-copy -upgrade=true \
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy -migrate-state \
 			--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 			--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 			--backend-config "storage_account_name=${terraform_storage_account_name}" \
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			print_banner "$banner_title - $deployment_system" "Terraform init failed." "error"
-			return $return_value
+			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
 		else
 			return_value=$?
-			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success"
+			print_banner "$banner_title - $deployment_system" "Terraform init failed" "error" "System name $(basename "$param_dirname")"
+			return 100
 		fi
 	fi
 
 	print_banner "$banner_title - $deployment_system" "Running Terraform destroy" "info"
+    allParameters=(-var-file "${var_file}")
+    if [ -f terraform.tfvars ]; then
+        allParameters+=(-var-file "${param_dirname}/terraform.tfvars")
+    fi
+
+    if [ "$PLATFORM" != "cli" ]; then
+        allParameters+=(-input=false)
+    fi
+
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(-json)
+		allParameters+=(-auto-approve)
+		allParameters+=(-no-color)
+		allParameters+=(-compact-warnings)
+		deleteOutputfile="delete_output.json"
+	else
+		deleteOutputfile="delete_output.log"
+	fi
+
+	if [ -f "$deleteOutputfile" ]; then
+		rm "$deleteOutputfile"
+	fi
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
-		terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_file}"
+		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
+		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
+
+		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allParameters[@]}"
+		terraform -chdir="${terraform_module_directory}" destroy "${allParameters[@]}"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
 		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
 
-		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}"
+		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allParameters[@]}"
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false
-	elif [ "$deployment_system" == "sap_landscape" ]; then
-
-		allParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
-
-		# echo "Listing the resources in the state file"
-
-		# if terraform -chdir="${terraform_module_directory}" state list; then
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_ppk"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_ppk' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_pk"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_pk' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_username"
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_username' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.sid_password"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'sid_password' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_access_key"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'witness_access_key' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.deployer_keyvault_user_name"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'deployer_keyvault_user_name' removed from state"
-		# 		fi
-		# 	fi
-
-		# 	moduleID="module.sap_landscape.azurerm_key_vault_secret.witness_name"
-		# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-		# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-		# 			echo "Secret 'witness_name' removed from state"
-		# 		fi
-		# 	fi
-		# fi
-
-		if [ -n "${approve}" ]; then
-			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee destroy_output.json; then
-				return_value=$?
-				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
-			else
-				return_value=$?
-				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
-			fi
-			if [ -f destroy_output.json ]; then
-				errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
-				if [[ -n $errors_occurred ]]; then
-					return_value=10
-				fi
-			fi
-
-		else
-			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
-				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
-				return_value=$?
-			else
-				return_value=$?
-				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
-			fi
-		fi
+		terraform -chdir="${terraform_bootstrap_directory}" destroy "${allParameters[@]}" -var use_deployer=false
 	else
-
-		allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
-
-		if [ -n "${approve}" ]; then
-			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism="$parallelism" | tee -a destroy_output.json; then
-				return_value=${PIPESTATUS[0]}
-				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
-			else
-				return_value=${PIPESTATUS[0]}
-				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
-			fi
+		if terraform -chdir="${terraform_module_directory}" destroy "${allParameters[@]}" -parallelism="$parallelism" | tee "$deleteOutputfile"; then
+			return_value=$?
+			print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success" "System name $(basename "$param_dirname")"
 		else
-			# shellcheck disable=SC2086
-			if terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="$parallelism"; then
-				return_value=$?
-				print_banner "$banner_title - $deployment_system" "Terraform destroy succeeded" "success"
-			else
-				return_value=$?
-				print_banner "$banner_title - $deployment_system" "Terraform destroy failed" "error"
-			fi
+			return_value=$?
+			print_banner "$banner_title - $deployment_system" "Terraform destroy failed ($return_value)" "error" "System name $(basename "$param_dirname")"
 		fi
 
-		if [ -f destroy_output.json ]; then
-			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
-
+		if [ -f delete_output.json ]; then
+			
+			errors_occurred=$(jq 'select(."@level" == "error") | length' "$deleteOutputfile"	)
 			if [[ -n $errors_occurred ]]; then
-				print_banner "$banner_title - $deployment_system" "Errors during the destroy phase" "success"
-				echo ""
-				echo "#########################################################################################"
-				echo "#                                                                                       #"
-				echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
-				echo "#                                                                                       #"
-				echo "#########################################################################################"
-				echo ""
+				return_value=10
+
+				print_banner "$banner_title - $deployment_system" "Errors during the destroy phase" "error" "System name $(basename "$param_dirname")"
 
 				return_value=2
 				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
@@ -805,10 +729,14 @@ function sdaf_remover() {
 						report=$(echo "$string_to_report" | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
 						if [[ -n ${report} ]]; then
 							echo -e "#                          $bold_red_underscore  $report $reset_formatting"
-							echo "##vso[task.logissue type=error]${report}"
+							if [ "$PLATFORM" == "devops" ]; then
+								echo "##vso[task.logissue type=error]${report}"
+							fi
 						else
 							echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
-							echo "##vso[task.logissue type=error]${string_to_report}"
+							if [ "$PLATFORM" == "devops" ]; then
+								echo "##vso[task.logissue type=error]${string_to_report}"
+							fi
 						fi
 
 					done
@@ -816,11 +744,10 @@ function sdaf_remover() {
 				fi
 
 			fi
-
 		fi
 
-		if [ -f destroy_output.json ]; then
-			rm destroy_output.json
+		if [ -f "$deleteOutputfile" ]; then
+			rm "$deleteOutputfile"
 		fi
 
 	fi
@@ -830,7 +757,6 @@ function sdaf_remover() {
 			rm "${system_environment_file_name}"
 
 		fi
-
 		if [ "${deployment_system}" == sap_library ]; then
 			sed -i /REMOTE_STATE_RG/d "${system_environment_file_name}"
 			sed -i /REMOTE_STATE_SA/d "${system_environment_file_name}"
@@ -838,6 +764,9 @@ function sdaf_remover() {
 		fi
 	fi
 
+	if [ -d ".terraform" ]; then
+		rm -rf ".terraform"
+	fi
 	unset TF_DATA_DIR
 	print_banner "$banner_title" "Removal completed." "info" "Exiting $SCRIPT_NAME"
 
