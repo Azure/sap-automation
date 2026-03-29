@@ -34,22 +34,12 @@ data "azurerm_private_dns_zone" "appconfig" {
 
 }
 
-
-
 data  "azurerm_app_configuration" "app_config" {
   count                                = local.application_configuration_deployed ? 1 : 0
   provider                             = azurerm.deployer
   name                                 = local.app_config_name
   resource_group_name                  = local.app_config_resource_group_name
 }
-
-data "azurerm_app_configuration_key" "deployer_network_id" {
-  count                                = local.application_configuration_deployed ? 1 : 0
-  configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
-  key                                  = format("%s_Deployer_network_id", var.deployer.control_plane_name)
-  label                                = var.deployer.control_plane_name
-}
-
 
 resource "azurerm_app_configuration_key" "libraryStateFileName" {
   provider                             = azurerm.deployer

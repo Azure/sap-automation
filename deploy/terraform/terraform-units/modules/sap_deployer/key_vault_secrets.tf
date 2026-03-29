@@ -19,6 +19,29 @@ resource "azurerm_key_vault_secret" "subscription" {
     ignore_changes = [ expiration_date]
   }
 }
+
+resource "azurerm_key_vault_secret" "tenant" {
+  count                                = !var.key_vault.exists ? (1) : (0)
+  depends_on                           = [
+                                           time_sleep.wait_for_keyvault
+                                         ]
+  name                                 = format("%s-tenant-id", upper(var.naming.prefix.DEPLOYER))
+  value                                = data.azurerm_client_config.deployer.tenant_id
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  expiration_date                      = var.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+  tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
+}
+
 resource "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && length(var.key_vault.private_key_secret_name) == 0 && !var.key_vault.exists ) ? 1 : 0
   depends_on                           = [
