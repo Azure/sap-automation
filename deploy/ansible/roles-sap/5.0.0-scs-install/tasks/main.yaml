@@ -116,7 +116,7 @@
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
- 
+
 - name:                                "5.0.0 SAP Central Services Installation"
   when:
     - "'scs' in supported_tiers"

@@ -98,7 +98,7 @@
     - not is_executed_by_acss
   ansible.builtin.command: >-
                                        az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '{{ account_name }}' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv
-                                       
+
   changed_when:                        false
   register:                            az_StorageAccountSubscription
 
