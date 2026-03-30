@@ -15,7 +15,7 @@ This script helps to automate the setup of a GitHub App, repository secrets, env
 
 ### Prerequisites
 
-1. **Python**: Ensure Python 3.10 or higher is installed on your machine. You can download it from [Python official website](https://www.python.org/downloads/). Note: macOS ships with Python 3.9 by default,  you will need to install a newer version (e.g. via [Homebrew](https://brew.sh): `brew install python@3.12`).
+1. **Python**: Ensure Python 3.10 or higher is installed on your machine. You can download it from [Python official website](https://www.python.org/downloads/). Note: on macOS, the preinstalled Python (if any) is often older than 3.10 (or may be missing); check `python3 --version` and install a newer version if needed (e.g. via [Homebrew](https://brew.sh): `brew install python@3.12`).
 2. **Azure CLI**: Ensure the Azure CLI is installed. You can download it from [Azure CLI installation guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli).
 3. **Azure Login**: Run `az login` in your terminal to authenticate with Azure before running the script.
 
