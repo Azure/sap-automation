@@ -449,6 +449,7 @@ function bootstrap_library {
         cd "${deployer_dirname}" || exit
 
         echo "Calling install_library:         ${allParameters[*]}"
+        return 20:
 
         if install_library "${allParameters[@]}"; then
             step=3
