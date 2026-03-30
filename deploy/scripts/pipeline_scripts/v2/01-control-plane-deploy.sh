@@ -370,11 +370,20 @@ print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
 cd "$CONFIG_REPO_PATH" || exit
 start_group "Deploying control plane"
+source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh"
+allParameters=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--auto-approve)
+allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+if [ "${USE_MSI:-false}" == "true" ]; then
+	allParameters+=(--msi)
+fi
 
-if
-	"${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" \
-		--control_plane_name "$CONTROL_PLANE_NAME" \
-		--auto-approve ${msi_flag} $platform_flag
+if deploy_control_plane "${allParameters[@]}"; then
 then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then

@@ -347,7 +347,6 @@ set +eu
 
 msi_flag=""
 if [ "${USE_MSI:-false}" == "true" ]; then
-	msi_flag=" --msi "
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Managed Identity"
@@ -414,9 +413,21 @@ end_group
 start_group "Deploy the control plane"
 # Deploy the control plane
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
-	--subscription "$ARM_SUBSCRIPTION_ID" \
-	--auto-approve ${platform_flag} ${msi_flag} --only_deployer; then
+source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh"
+allParameters=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--auto-approve)
+allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+if [ "${USE_MSI:-false}" == "true" ]; then
+	allParameters+=(--msi)
+fi
+allParameters+=(--only_deployer)
+
+if "deploy_control_plane "${allParameters[@]}"; then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
