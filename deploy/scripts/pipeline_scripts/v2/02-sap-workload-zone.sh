@@ -283,6 +283,9 @@ if [ "${USE_MSI:-false}" == "true" ]; then
 	allParameters+=(--msi)
 fi
 
+echo "Calling sdaf_installer with: ${allParameters[*]}"
+echo ""
+
 if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
@@ -296,6 +299,7 @@ else
 		echo "ERROR: Terraform apply failed."
 	fi
 fi
+printenv
 echo "Return code from deployment:         ${return_code}"
 
 if [ -f "${workload_environment_file_name}" ]; then

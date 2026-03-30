@@ -271,6 +271,8 @@ function bootstrap_deployer() {
         else
             local_return_code=$?
             echo "Return code from install_deployer: ${local_return_code}"
+            step=0
+            save_config_var "step" "${deployer_environment_file_name}"
             print_banner "Bootstrap Deployer " "Bootstrapping the deployer failed" "error" "Return code: ${local_return_code}"
         fi
     fi
@@ -449,8 +451,7 @@ function bootstrap_library {
         cd "${deployer_dirname}" || exit
 
         echo "Calling install_library:         ${allParameters[*]}"
-        return 20:
-
+        
         if install_library "${allParameters[@]}"; then
             step=3
             save_config_var "step" "${deployer_environment_file_name}"
