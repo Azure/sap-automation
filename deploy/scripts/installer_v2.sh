@@ -1091,7 +1091,7 @@ function sdaf_installer() {
                 return_value=10
 
                 for i in {1..10}; do
-                    print_banner "Terraform apply" "Errors detected in apply output, attempt $i of 10 to import existing resources and re-run apply" "warning"
+                    print_banner "Terraform apply" "Errors detected in apply output" "warning" "Attempt $i of 10 to import existing resources"
                     if [ -f apply_output.json ]; then
                         if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "${allImportParameters[*]}" "${allParameters[*]}"; then
                             return_value=0

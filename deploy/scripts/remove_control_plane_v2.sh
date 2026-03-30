@@ -679,10 +679,10 @@ function remove_control_plane() {
 		echo "Terraform state:                     unknown"
 		if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${library_dirname}/terraform.tfstate"; then
 			return_value=$?
-			print_banner "$banner_title - Library" "Terraform init succeeded (library - local)" "success"
+			print_banner "$banner_title - Library" "Terraform init succeeded (library - local)" "success" "System name $(basename "$library_dirname")"
 		else
 			return_value=$?
-			print_banner "$banner_title - Library" "Terraform init failed (library - local)" "error"
+			print_banner "$banner_title - Library" "Terraform init failed (library - local)" "error" "System name $(basename "$library_dirname")"
 		fi
 	fi
 
@@ -718,7 +718,7 @@ function remove_control_plane() {
 
 	if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee destroy_output.log; then
 		return_value=$?
-		print_banner "$banner_title - Library" "Terraform destroy (library) succeeded" "success"
+		print_banner "$banner_title - Library" "Terraform destroy (library) succeeded" "success"  "System name $(basename "$library_dirname")"
 
 		if [ -f "${library_dirname}/terraform.tfstate" ]; then
 			rm "${library_dirname}/terraform.tfstate"
@@ -749,13 +749,13 @@ function remove_control_plane() {
 			tfstate_resource_id
 	else
 		return_value=$?
-		print_banner "$banner_title - Library" "Terraform destroy (library) failed" "error"
+		print_banner "$banner_title - Library" "Terraform destroy (library) failed" "error" "System name $(basename "$library_dirname")"
 		unset TF_DATA_DIR
 		return 20
 	fi
 
 	cd "${current_directory}" || exit
-
+	
 	if [ 1 -eq $keep_agent ]; then
 
 		cd "${deployer_dirname}" || exit
@@ -768,15 +768,15 @@ function remove_control_plane() {
 			print_banner "$banner_title - Deployer" "Terraform init succeeded (deployer - local)" "success"
 		else
 			return_value=$?
-			print_banner "$banner_title - Deployer" "Terraform init failed (deployer - local)" "error"
+			print_banner "$banner_title - Deployer" "Terraform init failed (deployer - local)" "error" "System name $(basename "$deployer_dirname")"
 		fi
 
 		if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
 			return_value=$?
-			print_banner "$banner_title - Deployer" "Terraform apply (deployer) succeeded" "success"
+			print_banner "$banner_title - Deployer" "Terraform apply (deployer) succeeded" "success" "System name $(basename "$deployer_dirname")"
 		else
 			return_value=0
-			print_banner "$banner_title - Deployer" "Terraform apply (deployer) failed" "error"
+			print_banner "$banner_title - Deployer" "Terraform apply (deployer) failed" "error" "System name $(basename "$deployer_dirname")"
 		fi
 
 		print_banner "$banner_title - Deployer" "Keeping the Azure DevOps agent" "info"
@@ -808,7 +808,7 @@ function remove_control_plane() {
 		print_banner "$banner_title - Deployer" "Running Terraform destroy (deployer)" "info"
 		if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee destroy_output.log; then
 			return_value=$?
-			print_banner "$banner_title - Deployer" "Terraform destroy (deployer) succeeded" "success"
+			print_banner "$banner_title - Deployer" "Terraform destroy (deployer) succeeded" "success" "System name $(basename "$deployer_dirname")"
 
 			if [ -f "${deployer_dirname}/terraform.tfstate" ]; then
 				rm "${deployer_dirname}/terraform.tfstate"
@@ -868,7 +868,7 @@ function remove_control_plane() {
 
 		else
 			return_value=$?
-			print_banner "$banner_title - Deployer" "Terraform destroy (deployer) failed" "error"
+			print_banner "$banner_title - Deployer" "Terraform destroy (deployer) failed" "error" "System name $(basename "$deployer_dirname")"
 			return 20
 		fi
 		step=0
