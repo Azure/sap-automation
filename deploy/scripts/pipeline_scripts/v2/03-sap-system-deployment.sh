@@ -279,12 +279,28 @@ echo "Statefile subscription:              $terraform_storage_account_subscripti
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 
-cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	"$platform_flag" --auto-approve; then
+allParameters=(--parameter_file "${$SAP_SYSTEM_TFVARS_FILENAME}")
+allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
+allParameters+=(--storage_accountname "${terraform_storage_account_name}")
+allParameters+=(--workload_zone_name "${WORKLOAD_ZONE_NAME}")
+allParameters+=(--type sap_system)
+allParameters+=(--auto-approve)
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+if [ "${USE_MSI:-false}" == "true" ]; then
+	allParameters+=(--msi)
+fi
+
+echo "Calling sdaf_installer with: ${allParameters[*]}"
+echo ""
+
+if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"
 else

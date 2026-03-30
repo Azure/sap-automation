@@ -451,6 +451,9 @@ function install_library() {
     if [ -f terraform.tfvars ]; then
         allImportParameters+=(-var-file terraform.tfvars)
     fi
+    if [ -n "${deployer_statefile_foldername}" ]; then
+        allImportParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
+    fi
 
     install_library_return_value=0
 

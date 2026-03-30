@@ -595,8 +595,8 @@ function sdaf_installer() {
 
     # Define an array of helper scripts
     helper_scripts=(
-        "${script_directory}/helpers/script_helpers.sh"
-        "${script_directory}/deploy_utils.sh"
+        "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/helpers/script_helpers.sh"
+        "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_utils.sh"
     )
 
     # Call the function with the array
@@ -670,8 +670,8 @@ function sdaf_installer() {
     fi
     key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
-    if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-        echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME}"
+    if [ -n "${APPLICATION_CONFIGURATION_NAME:-}" ]; then
+        echo "Application configuration name:      ${APPLICATION_CONFIGURATION_NAME:-Undefined}"
     fi
     echo "Configuration file:                  $system_environment_file_name"
     echo "Deployment region:                   $region"
