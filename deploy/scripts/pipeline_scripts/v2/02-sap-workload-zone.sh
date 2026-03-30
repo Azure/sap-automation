@@ -269,7 +269,6 @@ source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 
 allParameters=(--parameter_file "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars")
 allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
-allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")
 allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
 allParameters+=(--storage_accountname "${terraform_storage_account_name}")
 allParameters+=(--type sap_landscape)
@@ -278,9 +277,6 @@ if [ "$PLATFORM" == "devops" ]; then
 	allParameters+=(--ado)
 elif [ "$PLATFORM" == "github" ]; then
 	allParameters+=(--github)
-fi
-if [ "${USE_MSI:-false}" == "true" ]; then
-	allParameters+=(--msi)
 fi
 
 echo "Calling sdaf_installer with: ${allParameters[*]}"
