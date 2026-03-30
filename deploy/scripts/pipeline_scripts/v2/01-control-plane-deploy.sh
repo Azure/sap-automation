@@ -103,7 +103,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	export VARIABLE_GROUP_ID
 	TF_VAR_DevOpsInfrastructure_object_id=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEVOPS_OBJECT_ID" "${deployer_environment_file_name}" "DevOpsInfrastructureObjectId")
 	if [ -n "$TF_VAR_DevOpsInfrastructure_object_id" ]; then
-		echo "DevOps Infrastructure Object ID:      ${TF_VAR_DevOpsInfrastructure_object_id}"
+		echo "DevOps Infrastructure Object ID:     ${TF_VAR_DevOpsInfrastructure_object_id}"
 		export TF_VAR_DevOpsInfrastructure_object_id
 	else
 		echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
@@ -386,7 +386,6 @@ if [ "${USE_MSI:-false}" == "true" ]; then
 fi
 
 if deploy_control_plane "${allParameters[@]}"; then
-then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
