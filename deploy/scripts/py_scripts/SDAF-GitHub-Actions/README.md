@@ -28,7 +28,7 @@ This script helps to automate the setup of a GitHub App, repository secrets, env
 2. Change directory
     `cd deploy/scripts/py_scripts/SDAF-GitHub-Actions`
 
-3. **Create a Virtual Environment**: Create and activate a virtual environment using Python 3.10+. On macOS, if `python3` still points to the system Python 3.9, use the versioned binary (e.g. `python3.12`) instead.
+3. **Create a Virtual Environment**: Create and activate a virtual environment using Python 3.10+. On macOS, if `python3` still points to the system/default Python (< 3.10), use the versioned binary (e.g. `python3.12`) instead.
 
     `python3 -m venv venv`
 
