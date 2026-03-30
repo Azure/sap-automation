@@ -338,3 +338,25 @@ resource "local_file" "deployer_md" {
   directory_permission = "0770"
 }
 
+
+resource "local_file" "deployer_exports" {
+  content = templatefile(format("%s/templates/deployer_exports.tmpl", path.module), {
+              subscription_id             = var.infrastructure.resource_group.exists ? (
+                                           split("/", data.azurerm_resource_group.deployer[0].id))[2] : (
+                                           split("/", azurerm_resource_group.deployer[0].id)[2]
+                                         )
+              app_configuration_name      = var.app_config_service.deploy ? (
+                                            length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].name : data.azurerm_app_configuration.app_config[0].name) : (
+                                            "")
+              terraform_storage_account_name = var.infrastructure.tfstate_storage_account_name
+              control_plane_name          = var.naming.prefix.DEPLOYER
+              keyvault_name               = var.key_vault.exists ? (
+                                            data.azurerm_key_vault.kv_user[0].name) : (
+                                            azurerm_key_vault.kv_user[0].name)  
+
+              }
+            )
+  filename             = format("%s/exports.sh", path.cwd)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}

@@ -52,8 +52,6 @@ fi
 
 banner_title="Remove Control Plane"
 
-terraform_storage_account_name=""
-
 ############################################################################################
 # This function sources the provided helper scripts and checks if they exist.              #
 # If a script is not found, it prints an error message and exits with a non-zero status.   #
@@ -79,6 +77,54 @@ function source_helper_scripts() {
 		fi
 	done
 }
+
+
+############################################################################################
+# This function reads the SDAF environment variables.                                      #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   remover_check_environment_variables                                                #
+# Example:                   																				                       #
+#   remover_check_environment_variables                                                #
+############################################################################################
+
+function check_environment_variables() {
+    if [ -v SDAF_CONTROL_PLANE_NAME ]; then
+        CONTROL_PLANE_NAME="$SDAF_CONTROL_PLANE_NAME"
+        TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+        TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+        export TF_VAR_control_plane_name
+        export TF_VAR_deployer_tfstate_key
+    fi
+
+    if [ -v SDAF_APPLICATION_CONFIGURATION_NAME ]; then
+        APPLICATION_CONFIGURATION_NAME="$SDAF_APPLICATION_CONFIGURATION_NAME"
+        TF_VAR_application_configuration_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+        export TF_VAR_application_configuration_id
+    fi
+
+    if [ -v SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME ]; then
+        TERRAFORM_STORAGE_ACCOUNT_NAME="$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+        export TERRAFORM_STORAGE_ACCOUNT_NAME
+		terraform_storage_account_name="$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+        getAndStoreTerraformStateStorageAccountDetails "${TERRAFORM_STORAGE_ACCOUNT_NAME}" ""
+    fi
+
+    if [ -v SDAF_KEYVAULT_NAME ]; then
+        KEYVAULT_NAME="$SDAF_KEYVAULT_NAME"
+        export KEYVAULT_NAME
+		keyvault_name="$SDAF_KEYVAULT_NAME"
+		DEPLOYER_KEYVAULT="$SDAF_KEYVAULT_NAME"
+		export DEPLOYER_KEYVAULT
+    fi
+
+    return 0
+}
+
+
 
 ############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
@@ -238,63 +284,65 @@ function parse_arguments() {
 
 function retrieve_parameters() {
 
-	if is_valid_id "${APPLICATION_CONFIGURATION_ID:-}" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-		key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "${CONTROL_PLANE_NAME}")
-		if [ -z "$key_vault_id" ]; then
-			if [ $ado_flag == "--ado" ]; then
-				echo "##vso[task.logissue type=error]Key '${CONTROL_PLANE_NAME}_KeyVaultResourceId' was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' )."
+	getAndStoreTerraformStateStorageAccountDetailsFromDisk "${deployer_environment_file_name}"
+
+	if [ -v APPLICATION_CONFIGURATION_ID ]; then
+		app_config_name=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f9)
+		app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
+
+		if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+			print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$app_config_name ($app_config_subscription)"
+
+			if [ -z "${terraform_storage_account_name:-}" ]; then
+				tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+				export TF_VAR_tfstate_resource_id
+				export terraform_storage_account_name
+				export terraform_storage_account_resource_group_name
+				export terraform_storage_account_subscription_id
 			fi
+
+			TF_VAR_deployer_kv_user_arm_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+			if [ -n "$TF_VAR_deployer_kv_user_arm_id" ]; then
+				TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+				export TF_VAR_spn_keyvault_id
+			fi
+	
+
+			TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+			export TF_VAR_management_subscription_id
+
+			keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
+			export keyvault
 		fi
-		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-		export tfstate_resource_id
-		tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-		TF_VAR_tfstate_resource_id=$tfstate_resource_id
-		export TF_VAR_tfstate_resource_id
-
-		terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-		export terraform_storage_account_name
-
-		terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-		export terraform_storage_account_resource_group_name
-
-		terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-		TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-		export TF_VAR_spn_keyvault_id
-
-		keyvault=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultName" "${CONTROL_PLANE_NAME}")
-		export keyvault
-
-		app_service_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_AppServiceId" "${CONTROL_PLANE_NAME}")
-		export app_service_id
-
-		export terraform_storage_account_subscription_id
 	else
-		if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
-			local_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
-			if [ -n "${local_backend}" ]; then
-
-				terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-				terraform_storage_account_name=$(grep -m1 "storage_account_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-				terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-				tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
-			fi
-		else
+		if [ -z "${terraform_storage_account_name:-}" ]; then
 			load_config_vars "${deployer_environment_file_name}" \
-				tfstate_resource_id DEPLOYER_KEYVAULT
+				tfstate_resource_id
 
-			TF_VAR_spn_keyvault_id=$(az keyvault show --name "${DEPLOYER_KEYVAULT}" --query id --subscription "${ARM_SUBSCRIPTION_ID}" --out tsv)
-			export TF_VAR_spn_keyvault_id
+			if [ -n "$tfstate_resource_id" ]; then
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+				terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+				terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 
-			export TF_VAR_tfstate_resource_id
-			terraform_storage_account_name=$(echo $tfstate_resource_id | cut -d'/' -f9)
-			export terraform_storage_account_name
-
-			terraform_storage_account_resource_group_name=$(echo $tfstate_resource_id | cut -d'/' -f5)
-			export terraform_storage_account_resource_group_name
-
-			terraform_storage_account_subscription_id=$(echo $tfstate_resource_id | cut -d'/' -f3)
-			export terraform_storage_account_subscription_id
+				export TF_VAR_tfstate_resource_id
+				export terraform_storage_account_resource_group_name
+				export terraform_storage_account_name
+				export terraform_storage_account_subscription_id
+			fi
 		fi
+
+	fi
+
+	if [ "${USE_MSI:-ARM_USE_MSI}" == "true" ]; then
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+
 	fi
 
 }
@@ -323,6 +371,8 @@ function remove_control_plane() {
 	# Call the function with the array
 	source_helper_scripts "${helper_scripts[@]}"
 	detect_platform
+
+	check_environment_variables
 
 
 	# Parse command line arguments
@@ -548,11 +598,11 @@ function remove_control_plane() {
 	fi
 
 	if valid_kv_name "${DEPLOYER_KEYVAULT}" ; then
-		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT"
-		az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled
+		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT" --output none
+		az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled --output none
 	fi
 	if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
-		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network
+		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
 	fi
 
 	sleep 30

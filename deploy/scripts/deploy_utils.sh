@@ -170,6 +170,8 @@ function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
 		terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 
+		echo "Using the Terraform configuration file to find the storage account details:  ${terraform_storage_account_name}"
+
 		if [[ -n "${terraform_storage_account_name}" ]]; then
 			export terraform_storage_account_subscription_id
 			export terraform_storage_account_name
@@ -194,7 +196,6 @@ function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
 				export STATE_SUBSCRIPTION
 				export TF_VAR_tfstate_resource_id
 
-
 				if [ -f "${config_file_name}" ]; then
 
 					save_config_vars "${config_file_name}" \
@@ -203,7 +204,7 @@ function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
 						tfstate_resource_id \
 						STATE_SUBSCRIPTION
 				fi
-		
+	
 			fi
 		fi
 	fi

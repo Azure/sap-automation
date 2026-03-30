@@ -1,0 +1,11 @@
+#!/bin/bash
+export                 ARM_SUBSCRIPTION_ID="${subscription_id}"
+%{~ if length(app_configuration_name) != 0 }
+export SDAF_APPLICATION_CONFIGURATION_NAME="${app_configuration_name}"
+%{~ endif }
+export SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME="${terraform_storage_account_name}"
+%{~ if length(keyvault_name) != 0 }
+export                  SDAF_KEYVAULT_NAME="${keyvault_name}"
+%{~ endif }
+export             SDAF_CONTROL_PLANE_NAME="${control_plane_name}"
+export             SDAF_WORKLOAD_ZONE_NAME="${workload_zone_name}"

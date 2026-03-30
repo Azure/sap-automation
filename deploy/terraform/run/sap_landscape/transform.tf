@@ -31,36 +31,37 @@ locals {
                                          }
 
   temp_infrastructure                  = {
-                                           additional_network_id         = length(var.additional_network_id) > 0 ? (
-                                                                            var.additional_network_id) : (
-                                                                            try(length(data.terraform_remote_state.deployer[0].outputs.additional_network_id) > 0, false) ? (
-                                                                              data.terraform_remote_state.deployer[0].outputs.additional_network_id) : (
-                                                                              ""))
-                                           additional_subnet_id          = var.additional_subnet_id
-                                           codename                      = var.codename
-                                           deploy_defender_extension     = var.deploy_defender_extension
-                                           deploy_monitoring_extension   = var.deploy_monitoring_extension
-                                           encryption_at_host_enabled    = var.encryption_at_host_enabled
-                                           environment                   = var.environment
-                                           patch_assessment_mode         = var.patch_assessment_mode
-                                           patch_mode                    = var.patch_mode
-                                           platform_updates              = var.platform_updates
-                                           region                        = lower(var.location)
-                                           shared_access_key_enabled     = var.shared_access_key_enabled
-                                           shared_access_key_enabled_nfs = var.shared_access_key_enabled_nfs
-                                           tags                          = var.resourcegroup_tags
-                                           user_assigned_identity_id     = var.user_assigned_identity_id
-                                           application_configuration_id  = try(coalesce(
-                                                                             var.application_configuration_id,
-                                                                             try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
-                                                                           ), "")
+                                           additional_network_id          = length(var.additional_network_id) > 0 ? (
+                                                                             var.additional_network_id) : (
+                                                                             try(length(data.terraform_remote_state.deployer[0].outputs.additional_network_id) > 0, false) ? (
+                                                                               data.terraform_remote_state.deployer[0].outputs.additional_network_id) : (
+                                                                               ""))
+                                           additional_subnet_id           = var.additional_subnet_id
+                                           codename                       = var.codename
+                                           deploy_defender_extension      = var.deploy_defender_extension
+                                           deploy_monitoring_extension    = var.deploy_monitoring_extension
+                                           encryption_at_host_enabled     = var.encryption_at_host_enabled
+                                           environment                    = var.environment
+                                           patch_assessment_mode          = var.patch_assessment_mode
+                                           patch_mode                     = var.patch_mode
+                                           platform_updates               = var.platform_updates
+                                           region                         = lower(var.location)
+                                           shared_access_key_enabled      = var.shared_access_key_enabled
+                                           shared_access_key_enabled_nfs  = var.shared_access_key_enabled_nfs
+                                           tags                           = var.resourcegroup_tags
+                                           user_assigned_identity_id      = var.user_assigned_identity_id
+                                           application_configuration_id   = try(coalesce(
+                                                                              var.application_configuration_id,
+                                                                              try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
+                                                                            ), "")
 
-                                           use_application_configuration = length(try(coalesce(
-                                                                             var.application_configuration_id,
-                                                                             try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
-                                                                           ), "")) > 0 ? true : false
-                                           workload_zone_name            = local.workload_zone_name
-                                           control_plane_name            = var.control_plane_name
+                                           use_application_configuration  = length(try(coalesce(
+                                                                              var.application_configuration_id,
+                                                                              try(data.terraform_remote_state.deployer[0].outputs.application_configuration_id, "")
+                                                                            ), "")) > 0 ? true : false
+                                           workload_zone_name             = local.workload_zone_name
+                                           control_plane_name             = var.control_plane_name
+                                           terraform_storage_account_name = local.tfstate_storage_account_name
                                          }
 
   authentication                       = {
