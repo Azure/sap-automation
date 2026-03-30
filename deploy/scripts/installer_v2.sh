@@ -678,7 +678,7 @@ function sdaf_installer() {
     echo "State file:                          ${key}.terraform.tfstate"
     echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
     echo "Deployer state file:                 ${TF_VAR_deployer_tfstate_key}"
-    echo "Workload zone state file:            ${TF_VAR_landscape_tfstate_key}"
+    echo "Workload zone state file:            ${TF_VAR_landscape_tfstate_key:-}"
     echo "Control plane keyvault:              ${keyvault}"
     echo ""
     echo "Current directory:                   $(pwd)"
