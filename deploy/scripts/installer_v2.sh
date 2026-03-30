@@ -108,7 +108,7 @@ function installer_parse_arguments() {
 			CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
 			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
 			TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-			
+
 			export TF_VAR_deployer_tfstate_key
 			export TF_VAR_control_plane_name
 			shift 2
@@ -203,7 +203,7 @@ function installer_parse_arguments() {
         print_banner "$banner_title" "control_plane_name is required" "error"
         return 1
     }
-    
+
     if [ -n "$CONTROL_PLANE_NAME" ]; then
         DEPLOYER_ENVIRONMENT=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
         DEPLOYER_LOCATION=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
@@ -281,7 +281,7 @@ function installer_parse_arguments() {
     if ! validate_key_parameters "$parameterFilename"; then
         return $?
     fi
-    if [ -n "$WORKLOAD_ZONE_NAME" ]; then
+    if [ -n "${WORKLOAD_ZONE_NAME:-}" ]; then
         environment=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $1}' | xargs)
         region_code=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $2}' | xargs)
         network_logical_name=$(echo "$WORKLOAD_ZONE_NAME" | awk -F'-' '{print $3}' | xargs)
@@ -608,7 +608,7 @@ function sdaf_installer() {
     echo "Current directory:                   $(pwd)"
     echo "Control Plane name:                  ${CONTROL_PLANE_NAME}"
     echo "Control Plane state file name:       ${TF_VAR_deployer_tfstate_key}"
-    if [ -n "${WORKLOAD_ZONE_NAME}" ]; then
+    if [ -n "${WORKLOAD_ZONE_NAME:-}" ]; then
         echo "Workload zone name:                  ${WORKLOAD_ZONE_NAME}"
         TF_VAR_landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
         echo "Workload state file name:            ${TF_VAR_landscape_tfstate_key}"
@@ -1003,7 +1003,7 @@ function sdaf_installer() {
     fi
 
     if [ 1 == $apply_needed ]; then
-        print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"    
+        print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
         if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
             allParameters+=(-json)
             allParameters+=(-auto-approve)
@@ -1058,7 +1058,7 @@ function sdaf_installer() {
             fi
         fi
     fi
-   
+
     if [ -f apply_output.json ]; then
         rm apply_output.json
     fi
