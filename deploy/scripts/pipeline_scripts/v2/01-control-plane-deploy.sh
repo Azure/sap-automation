@@ -140,8 +140,6 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 terraform_storage_account_name=""
 terraform_storage_account_resource_group_name=$LIBRARY_FOLDERNAME
 
-msi_flag=""
-
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.14.5}"
@@ -231,7 +229,6 @@ echo "Subscription ID:                     $TF_VAR_subscription_id"
 
 if [ -n "${DEPLOYER_KEYVAULT}" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
-	keyvault_parameter=" --keyvault ${DEPLOYER_KEYVAULT} "
 else
 	echo "Deployer Key Vault:                  undefined"
 	exit 2
@@ -246,7 +243,6 @@ if [ -n "$tfstate_resource_id" ]; then
 	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5)
 	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 	echo "Terraform storage account:           $terraform_storage_account_name"
-	storage_account_parameter=" --terraform_storage_account_name ${terraform_storage_account_name} "
 
 	export terraform_storage_account_name
 	export terraform_storage_account_resource_group_name
@@ -338,9 +334,7 @@ fi
 
 export TF_LOG_PATH="${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log"
 
-msi_flag=""
 if [ "${USE_MSI:-false}" == "true" ]; then
-	msi_flag=" --msi "
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Managed Identity"
@@ -355,16 +349,6 @@ if [ "${DEBUG:-false}" == "true" ]; then
 	printenv | grep ARM_
 fi
 echo -e "$green--- Control Plane deployment---$reset_formatting"
-
-# Platform-specific flags
-if [ "$PLATFORM" == "devops" ]; then
-	platform_flag=" --ado"
-elif [ "$PLATFORM" == "github" ]; then
-	platform_flag=" --github"
-else
-	platform_flag=""
-fi
-
 
 print_banner "$banner_title" "Calling deploy_control_plane_v2" "info"
 
@@ -518,16 +502,16 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 				git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 				rm "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
 			elif [ "$PLATFORM" == "github" ]; then
-				rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+				rm "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" >/dev/null 2>&1 || true
 
 				echo "Encrypting state file"
 				gpg --batch \
-					--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
+					--output "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" \
 					--encrypt \
 					--disable-dirmngr --recipient sap-azure-deployer@example.com \
 					--trust-model always \
-					DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
-				git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
+					"DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+				git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
 			else
 				pass="localpassword"
 			fi
@@ -549,7 +533,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 			fi
 		fi
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
-			if [ 0 == $return_code ]; then
+			if [ 0 -eq "$return_code" ]; then
 				echo "Removing the deployer state gpg file"
 				git rm -q --ignore-unmatch -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
 				added=1
@@ -563,7 +547,7 @@ if [ -f "${library_tfvars_file_name}" ]; then
 	added=1
 fi
 
-if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+if [ -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md" ]; then
 	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
 	added=1
 fi
@@ -588,15 +572,15 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
 				rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
 			elif [ "$PLATFORM" == "github" ]; then
-				rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+				rm "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" >/dev/null 2>&1 || true
 				echo "Encrypting state file"
 				gpg --batch \
-					--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
+					--output "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" \
 					--encrypt \
 					--disable-dirmngr --recipient sap-azure-deployer@example.com \
 					--trust-model always \
-					LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
-				git add -f LIBRARY/$LIBRARY_FOLDERNAME/state.gpg
+					"LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
 			else
 				pass="localpassword"
 			fi
@@ -650,7 +634,7 @@ if [ 1 = $added ]; then
 		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
 	fi
 
-	if [ $DEBUG = True ]; then
+	if [ "${DEBUG}" = "true" ]; then
 		git status --verbose
 		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then
@@ -733,11 +717,11 @@ end_group
 # Platform-specific summary handling
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-	  cat DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md
-	  sudo cp "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
+	  cat "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md"
+	  sudo cp "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${CONTROL_PLANE_NAME}.md;]$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 
