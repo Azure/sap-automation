@@ -70,6 +70,38 @@ function show_library_help {
     echo "#########################################################################################"
 }
 
+
+############################################################################################
+# This function reads the SDAF environment variables.                                      #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   install_library_check_environment_variables                                                #
+# Example:                   																				                       #
+#   install_library_check_environment_variables                                                #
+############################################################################################
+
+function install_library_check_environment_variables() {
+    if [ -v SDAF_CONTROL_PLANE_NAME ]; then
+        CONTROL_PLANE_NAME="$SDAF_CONTROL_PLANE_NAME"
+        TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+        TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+        export TF_VAR_control_plane_name
+        export TF_VAR_deployer_tfstate_key
+    fi
+
+    if [ -v SDAF_APPLICATION_CONFIGURATION_NAME ]; then
+        APPLICATION_CONFIGURATION_NAME="$SDAF_APPLICATION_CONFIGURATION_NAME"
+        TF_VAR_application_configuration_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+        export TF_VAR_application_configuration_id
+    fi
+
+    return 0
+}
+
+
 ############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
 # Arguments:                                                                               #
@@ -235,6 +267,8 @@ function install_library() {
 
     print_banner "$banner_title" "Starting the script: $SCRIPT_NAME" "info"
     detect_platform
+
+    install_library_check_environment_variables
 
     # Parse command line arguments
     if ! install_library_parse_arguments "$@"; then

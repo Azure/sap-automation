@@ -59,6 +59,51 @@ function installer_source_helper_scripts() {
 }
 
 ############################################################################################
+# This function reads the SDAF environment variables.                                      #
+# Arguments:                                                                               #
+#   None                                                                                   #
+# Returns:                                                                                 #
+#   0 on success, non-zero on failure                                                      #
+# Usage:                     																				                       #
+#   installer_check_environment_variables                                                #
+# Example:                   																				                       #
+#   installer_check_environment_variables                                                #
+############################################################################################
+
+
+function installer_check_environment_variables() {
+    if [ -v SDAF_CONTROL_PLANE_NAME ]; then
+        CONTROL_PLANE_NAME="$SDAF_CONTROL_PLANE_NAME"
+        TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+        TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+        export TF_VAR_control_plane_name
+        export TF_VAR_deployer_tfstate_key
+    fi
+
+    if [ -v SDAF_WORKLOAD_ZONE_NAME ]; then
+        WORKLOAD_ZONE_NAME="$SDAF_WORKLOAD_ZONE_NAME"
+        TF_VAR_workload_zone_name="$WORKLOAD_ZONE_NAME"
+        TF_VAR_landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+        export TF_VAR_workload_zone_name
+        export TF_VAR_landscape_tfstate_key
+    fi
+
+    if [ -v SDAF_APPLICATION_CONFIGURATION_NAME ]; then
+        APPLICATION_CONFIGURATION_NAME="$SDAF_APPLICATION_CONFIGURATION_NAME"
+        TF_VAR_application_configuration_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+        export TF_VAR_application_configuration_id
+    fi
+
+    if [ -v SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME ]; then
+        TERRAFORM_STORAGE_ACCOUNT_NAME="$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+        export TERRAFORM_STORAGE_ACCOUNT_NAME
+        getAndStoreTerraformStateStorageAccountDetails "${TERRAFORM_STORAGE_ACCOUNT_NAME}" ""
+    fi
+
+    return 0
+}
+
+############################################################################################
 # Function to parse all the command line arguments passed to the script.                   #
 # Arguments:                                                                               #
 #   None                                                                                   #
@@ -550,6 +595,8 @@ function sdaf_installer() {
     # Call the function with the array
     installer_source_helper_scripts "${helper_scripts[@]}"
     detect_platform
+
+    installer_check_environment_variables
 
     # Parse command line arguments
     if ! installer_parse_arguments "$@"; then
