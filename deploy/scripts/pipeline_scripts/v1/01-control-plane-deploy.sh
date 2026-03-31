@@ -316,6 +316,10 @@ if [ "$USE_MSI" != "true" ]; then
 		--auto-approve --ado \
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
+		if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
+			source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
+		fi
+
 		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
 		echo "Return code from deploy_controlplane $return_code."
 	else
@@ -333,6 +337,9 @@ else
 		--auto-approve --ado --msi \
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
+		if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
+			source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
+		fi
 		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
 		echo "Return code from deploy_controlplane $return_code."
 	else
@@ -342,6 +349,41 @@ else
 	fi
 
 fi
+
+if [ -v SDAF_APPLICATION_CONFIGURATION_NAME	]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$SDAF_APPLICATION_CONFIGURATION_NAME"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "true"
+	fi
+else
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "false"
+	fi
+fi
+
+if [ -v SDAF_APPSERVICE_NAME	]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_NAME" "$SDAF_APPSERVICE_NAME"
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "true"
+	fi
+else
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "false"
+	fi
+fi
+
+if [ -v SDAF_KEYVAULT_NAME	]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$SDAF_KEYVAULT_NAME"
+	fi
+fi
+
+if [ -v SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME	]; then
+	if [ "$PLATFORM" == "devops" ]; then
+		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+	fi
+fi
+
 
 echo -e "$green--- Adding deployment automation configuration to devops repository ---$reset"
 added=0
