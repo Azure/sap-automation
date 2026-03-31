@@ -315,6 +315,21 @@ function install_deployer() {
                 return $return_value
             fi
 
+        else
+            print_banner "$banner_title" "State is not using Azure backend, Running terraform init" "info"
+            if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+                return_value=$?
+                print_banner "$banner_title" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
+            else
+                return_value=$?
+                print_banner "$banner_title" "Terraform init failed." "error" "System name $(basename "$param_dirname")"
+                unset TF_DATA_DIR
+                return $return_value
+            fi
+            echo "Parameters:                          ${allParameters[*]}"
+            terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"
+    fi
+
         fi
     else
         print_banner "$banner_title" "Running terraform init" "info"
@@ -327,8 +342,6 @@ function install_deployer() {
             unset TF_DATA_DIR
             return $return_value
         fi
-        echo "Parameters:                          ${allParameters[*]}"
-        terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"
     fi
 
     print_banner "$banner_title" "Running Terraform plan" "info"
