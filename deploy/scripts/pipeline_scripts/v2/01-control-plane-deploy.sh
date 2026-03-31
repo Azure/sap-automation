@@ -375,6 +375,8 @@ if deploy_control_plane "${allParameters[@]}"; then
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
 	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
+
+	printenv | sort
 else
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then

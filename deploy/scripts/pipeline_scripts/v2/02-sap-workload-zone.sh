@@ -285,6 +285,15 @@ echo ""
 if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
+	if [ -v KEYVAULT ]; then
+		echo "Key Vault:                  ${KEYVAULT}"
+
+		if [ -n "$KEYVAULT" ] && [ "$PLATFORM" == "devops" ]; then
+			echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
+		fi
+	fi
+
 else
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME failed" "error"
@@ -295,22 +304,9 @@ else
 		echo "ERROR: Terraform apply failed."
 	fi
 fi
-printenv
+
 echo "Return code from deployment:         ${return_code}"
 
-if [ -f "${workload_environment_file_name}" ]; then
-	KEYVAULT=$(grep -m1 "^workloadkeyvault=" "${workload_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-	echo "Key Vault:                  ${KEYVAULT}"
-
-	if [ "$PLATFORM" == "devops" ]; then
-
-		if [ -n "$KEYVAULT" ]; then
-			echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
-		fi
-	fi
-
-fi
 
 set +o errexit
 
