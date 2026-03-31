@@ -206,8 +206,6 @@ if [ -f terraform.tfvars ]; then
     allImportParameters+=(-var-file ${param_dirname}/terraform.tfvars)
 fi
 
-echo "DEBUG": "Terraform parameters: ${allParameters[*]}"
-
 if [ ! -d ./.terraform/ ]; then
     print_banner "New deployment" "info"
     terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"

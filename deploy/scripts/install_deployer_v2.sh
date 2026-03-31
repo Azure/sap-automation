@@ -223,6 +223,7 @@ function install_deployer() {
 
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/sap_deployer/"
     export TF_DATA_DIR="${param_dirname}"/.terraform
+    cd "${param_dirname}" || exit
 
     this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
     if [ -n "$this_ip" ]; then
