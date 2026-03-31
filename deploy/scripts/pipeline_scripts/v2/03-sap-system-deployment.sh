@@ -281,7 +281,7 @@ echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 
-allParameters=(--parameter_file "${$SAP_SYSTEM_TFVARS_FILENAME}")
+allParameters=(--parameter_file "${SAP_SYSTEM_TFVARS_FILENAME}")
 allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
 allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
 allParameters+=(--storage_accountname "${terraform_storage_account_name}")
