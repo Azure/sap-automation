@@ -81,9 +81,11 @@ else
 fi
 for name in $files; do
 	if [ -n "$name" ]; then
-		echo "Downloading file: " "$name"
+		
 		dirName=$(dirname "$name")
+		echo "Downloading file: " "$name" to "$dirName"
 		mkdir -p "$dirName"
+		touch "$name"
 		if [ "$useSAS" = "true" ]; then
 			az storage blob download --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --file "${name}" --name "${name}" --only-show-errors --output none --no-progress
 		else
