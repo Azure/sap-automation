@@ -293,9 +293,6 @@ if [ "$PLATFORM" == "devops" ]; then
 elif [ "$PLATFORM" == "github" ]; then
 	allParameters+=(--github)
 fi
-if [ "${USE_MSI:-false}" == "true" ]; then
-	allParameters+=(--msi)
-fi
 
 echo "Calling sdaf_installer with: ${allParameters[*]}"
 echo ""
