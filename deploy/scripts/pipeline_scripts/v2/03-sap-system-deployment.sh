@@ -40,8 +40,6 @@ if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
 	configure_devops
 
-	platform_flag="--ado"
-
 	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
@@ -61,9 +59,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
-	platform_flag="--github"
-else
-	platform_flag=""
 fi
 
 banner_title="Deploy SAP System"
@@ -106,8 +101,6 @@ if [ "$USE_MSI" == "true" ]; then
 	export ARM_USE_MSI
 fi
 
-
-
 if [ "$PLATFORM" == "devops" ]; then
 	if [ "$USE_MSI" != "true" ]; then
 
@@ -143,11 +136,11 @@ LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:u
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 SID=$(grep -m1 "^sid" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $1}')
-LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $2}')
+ENVIRONMENT_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $1}')
+LOCATION_CODE_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
-NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
-SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
+NETWORK_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $3}')
+SID_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $4}')
 
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
@@ -229,7 +222,6 @@ else
 		echo "::warning title=Application Configuration ID Not Defined::Variable APPLICATION_CONFIGURATION_ID was not defined."
 	fi
 	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
@@ -296,6 +288,9 @@ fi
 
 echo "Calling sdaf_installer with: ${allParameters[*]}"
 echo ""
+
+cd "${CONFIG_REPO_PATH}" || exit
+cd "SYSTEM/${SAP_SYSTEM_FOLDERNAME}"	|| exit
 
 if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?

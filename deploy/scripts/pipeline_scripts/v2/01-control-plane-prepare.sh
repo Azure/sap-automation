@@ -331,7 +331,7 @@ elif [ "$PLATFORM" == "github" ]; then
 		fi
 	else
 		echo "Generating PGP key"
-		echo "${pass}" | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
+		echo "${pass}" | "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh"
 		gpg --output "${CONFIG_REPO_PATH}/private.pgp" --armor --export-secret-key sap-azure-deployer@example.com
 		git add "${CONFIG_REPO_PATH}/private.pgp"	
 		commit_changes "Adding PGP key for encryption of state file" true
