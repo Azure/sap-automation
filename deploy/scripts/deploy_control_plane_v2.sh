@@ -1178,6 +1178,9 @@ Deployment Date: $now
 
 
 EOF
+    if [ -f ./exports.sh ]; then
+        source ./exports.sh
+    fi
 
     deployer_keyvault="${DEPLOYER_KEYVAULT}"
     export deployer_keyvault

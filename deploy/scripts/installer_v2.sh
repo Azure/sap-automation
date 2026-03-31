@@ -1266,6 +1266,10 @@ Deployed on: "${now}"
 EOF
 
     fi
+    if [ -f ./exports.sh ]; then
+        source ./exports.sh
+    fi
+
     unset TF_DATA_DIR
     print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
 
