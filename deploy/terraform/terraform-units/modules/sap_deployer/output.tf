@@ -353,6 +353,7 @@ resource "local_file" "deployer_exports" {
               keyvault_name               = var.key_vault.exists ? (
                                             data.azurerm_key_vault.kv_user[0].name) : (
                                             azurerm_key_vault.kv_user[0].name)  
+              app_service_name            = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
 
               }
             )

@@ -376,7 +376,40 @@ if deploy_control_plane "${allParameters[@]}"; then
 	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
 
-	printenv | sort
+	if [ -v SDAF_APPLICATION_CONFIGURATION_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$SDAF_APPLICATION_CONFIGURATION_NAME"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "true"
+		fi
+	else
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "false"
+		fi
+	fi
+
+	if [ -v SDAF_APPSERVICE_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_NAME" "$SDAF_APPSERVICE_NAME"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "true"
+		fi
+	else
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "false"
+		fi
+	fi
+
+	if [ -v SDAF_KEYVAULT_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$SDAF_KEYVAULT_NAME"
+		fi
+	fi
+
+	if [ -v SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME	]; then
+		if [ "$PLATFORM" == "devops" ]; then
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "$SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME"
+		fi
+	fi
+
 else
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
@@ -387,69 +420,6 @@ fi
 
 end_group
 
-if [ "$PLATFORM" == "devops" ]; then
-	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-	if [ -n "$DEPLOYER_KEYVAULT" ]; then
-		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"; then
-			echo "Saved DEPLOYER_KEYVAULT in variable group."
-		else
-			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
-		fi
-	fi
-fi
-
-ARM_CLIENT_ID=$(grep -m1 "^ARM_CLIENT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${ARM_CLIENT_ID}" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_CLIENT_ID" "$ARM_CLIENT_ID"
-	fi
-fi
-export ARM_CLIENT_ID
-
-ARM_OBJECT_ID=$(grep -m1 "^ARM_OBJECT_ID=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${ARM_OBJECT_ID}" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "ARM_OBJECT_ID" "$ARM_OBJECT_ID"
-	fi
-fi
-
-export ARM_OBJECT_ID
-
-APPLICATION_CONFIGURATION_NAME=$(grep -m1 "^APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
-	export APPLICATION_CONFIGURATION_NAME
-	echo "APPLICATION_CONFIGURATION_NAME:      ${APPLICATION_CONFIGURATION_NAME}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"
-	fi
-fi
-
-APPLICATION_CONFIGURATION_DEPLOYMENT=$(grep -m1 "^APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
-	export APPLICATION_CONFIGURATION_DEPLOYMENT
-	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  ${APPLICATION_CONFIGURATION_DEPLOYMENT}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_DEPLOYMENT" "$APPLICATION_CONFIGURATION_DEPLOYMENT"
-	fi
-fi
-
-APP_SERVICE_NAME=$(grep -m1 "^APP_SERVICE_NAME" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APP_SERVICE_NAME}" ]; then
-	export APP_SERVICE_NAME
-	echo "APP_SERVICE_NAME:      ${APP_SERVICE_NAME}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$APP_SERVICE_NAME"
-	fi
-fi
-
-APP_SERVICE_DEPLOYMENT=$(grep -m1 "^HAS_WEBAPP" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
-if [ -n "${APP_SERVICE_DEPLOYMENT}" ]; then
-	export APP_SERVICE_DEPLOYMENT
-	echo "APP_SERVICE_DEPLOYMENT:      ${APP_SERVICE_DEPLOYMENT}"
-	if [ "$PLATFORM" == "devops" ]; then
-		saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "$APP_SERVICE_DEPLOYMENT"
-	fi
-fi
 if [ "$PLATFORM" == "devops" ]; then
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
 	saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
