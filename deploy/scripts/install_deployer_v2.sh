@@ -328,8 +328,6 @@ function install_deployer() {
             fi
             echo "Parameters:                          ${allParameters[*]}"
             terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"
-    fi
-
         fi
     else
         print_banner "$banner_title" "Running terraform init" "info"

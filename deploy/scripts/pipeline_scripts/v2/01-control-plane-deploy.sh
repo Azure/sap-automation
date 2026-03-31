@@ -118,7 +118,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	# Set required environment variables for GitHub
 	export USER=${GITHUB_ACTOR:-githubuser}
 	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
-	platform_flag="--github"
 	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
 	export TF_VAR_github_server_url
 
@@ -130,8 +129,6 @@ elif [ "$PLATFORM" == "github" ]; then
 
 	TF_VAR_devops_platform="github"
 	export TF_VAR_devops_platform
-else
-	platform_flag=""
 fi
 
 banner_title="Deploy Control Plane"
