@@ -8,6 +8,7 @@ source "${SCRIPT_DIR}/shared_platform_config.sh"
 source "${SCRIPT_DIR}/shared_functions.sh"
 source "${SCRIPT_DIR}/set-colors.sh"
 
+banner_title="Control Plane Removal"
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME "
@@ -291,11 +292,6 @@ source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh"
 
 allParameters=(--parameter_file "$DEPLOYER_TFVARS_FILENAME")
 allParameters+=(--auto-approve)
-if [ "$PLATFORM" == "devops" ]; then
-	allParameters+=(--ado)
-elif [ "$PLATFORM" == "github" ]; then
-	allParameters+=(--github)
-fi
 
 echo "Calling sdaf_remove_deployer with: ${allParameters[*]}"
 
@@ -341,9 +337,9 @@ if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 	changed=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile" ]; then
-	sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$deployerTFvarsFile"
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
+	sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 	changed=1
 fi
 
@@ -438,7 +434,7 @@ if [ 1 == $changed ]; then
 		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
 	fi
 
-	if [ $DEBUG = True ]; then
+	if [ "${DEBUG:-false}" = "true" ]; then
 		git status --verbose
 		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then
