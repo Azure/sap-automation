@@ -284,17 +284,33 @@ fi
 end_group
 
 start_group "Finalize the control plane removal"
+
 cd "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 # Remove the control plane
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh"
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
-	--parameter_file "$DEPLOYER_TFVARS_FILENAME"; then
+allParameters=(--parameter_file "$DEPLOYER_TFVARS_FILENAME")
+allParameters+=(--auto-approve)
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+
+echo "Calling sdaf_remove_deployer with: ${allParameters[*]}"
+
+if sdaf_remove_deployer "${allParameters[@]}"; then
 	return_code=$?
-	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
-	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
+	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 2 completed" "success"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Control Plane ${CONTROL_PLANE_NAME} removal step 2 completed."
+	fi
 else
 	return_code=$?
-	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 failed."
+	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 2 failed" "error"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Control Plane ${CONTROL_PLANE_NAME} removal step 2 failed."
+	fi
 fi
 
 echo "Return code from remove_deployer: $return_code."

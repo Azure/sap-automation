@@ -216,20 +216,36 @@ else
 	platform_flag=""
 fi
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
-	--deployer_parameter_file "$deployer_tfvars_file_name" \
-	--library_parameter_file "$library_tfvars_file_name" \
-	"$platform_flag" --auto-approve --keep_agent; then
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh"
+
+allParameters=(--deployer_parameter_file "${deployer_tfvars_file_name}")
+allParameters+=(--library_parameter_file "${library_tfvars_file_name}")
+allParameters+=(--keep_agent)
+allParameters+=(--auto-approve)
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+
+echo "Calling remove_control_plane with: ${allParameters[*]}"
+echo ""
+
+if remove_control_plane "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed" "success"
-
-	echo "##vso[task.logissue type=warning]Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed."
+	fi
 else
 	return_code=$?
 	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 1 failed" "error"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Control Plane ${CONTROL_PLANE_NAME} removal step 1 failed."
+	fi
 fi
 
-echo "Return code from remove_control_plane_v2: $return_code."
+echo "Return code from remove_control_plane: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 1 ---$reset_formatting"
 cd "$CONFIG_REPO_PATH" || exit
