@@ -386,12 +386,12 @@ if deploy_control_plane "${allParameters[@]}"; then
 
 	if [ -v SDAF_APPSERVICE_NAME	]; then
 		if [ "$PLATFORM" == "devops" ]; then
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_NAME" "$SDAF_APPSERVICE_NAME"
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "true"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$SDAF_APPSERVICE_NAME"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "true"
 		fi
 	else
 		if [ "$PLATFORM" == "devops" ]; then
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "false"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_DEPLOYMENT" "false"
 		fi
 	fi
 
