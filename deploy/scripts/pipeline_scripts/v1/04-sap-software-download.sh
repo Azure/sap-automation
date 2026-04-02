@@ -38,7 +38,7 @@ set -eu
 
 cd "$CONFIG_REPO_PATH" || exit
 
-sample_path="$SAMPLE_REPO_PATH/SAP"
+sample_path="$SAMPLE_REPO_PATH"
 
 if [ "$USE_MSI" != "true" ]; then
   if [ -z "$ARM_CLIENT_ID" ]; then

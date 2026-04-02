@@ -338,9 +338,6 @@ fi
 
 if [ 0 == $return_code ]; then
 	changed=1
-	if [ -f ".sap_deployment_automation/${environment}${region_code}${network_code}" ]; then
-		rm ".sap_deployment_automation/${environment}${region_code}${network_code}"
-	fi
 	git rm -q --ignore-unmatch "$deployer_environment_file_name"
 	git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
 	git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}"

@@ -147,51 +147,62 @@
 # Description:  Check for MS provided BOM if not in SA
 #
 - name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }})"
+  when:                                 result is failed or always_upload_jinja_templates or (sa_enabled is defined and not sa_enabled)
+  # when:                                 result is failed or always_upload_jinja_templates or sa_enabled is not defined or not sa_enabled
   block:
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-01
-# Description:
-#
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-01
+    # Description:
+    #
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }})"
       ansible.builtin.stat:
-        path:                          "{{ BOM_directory }}/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
+        path:                          "{{ BOM_directory }}/BOM/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
       register:                        microsoft_supplied_bom
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
 
-# Step: 05-01 - END
-# -------------------------------------+---------------------------------------8
+    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }})"
+      when:                            not microsoft_supplied_bom.stat.exists
+      ansible.builtin.stat:
+        path:                          "{{ BOM_directory }}/SAP/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
+      register:                        microsoft_supplied_bom
+      delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-02
-# Description:
-#
+
+    # Step: 05-01 - END
+    # -------------------------------------+---------------------------------------8
+
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-02
+    # Description:
+    #
     - name:                             "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
       ansible.builtin.debug:
         msg: |-
-                                        BOM PATH:   {{ BOM_directory }}/{{  this_bom_name }}/{{  this_bom_name }}.yaml
+                                        BOM PATH:   {{ BOM_directory }}/SAP/{{  this_bom_name }}/{{  this_bom_name }}.yaml
                                         BOM Exists: {{ microsoft_supplied_bom.stat.exists }}
         verbosity:                      0
-# Step: 05-02 - END
-# -------------------------------------+---------------------------------------8
+    # Step: 05-02 - END
+    # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-03
-# Description:
-#
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-03
+    # Description:
+    #
     - name:                             "{{ task_prefix }} Register Microsoft Supplied BOM {{  this_bom_name }}"
       ansible.builtin.include_vars:
         file:                           "{{ microsoft_supplied_bom.stat.path }}"
         name:                           bom_temp
       when:                             microsoft_supplied_bom.stat.exists
-# Step: 05-03 - END
-# -------------------------------------+---------------------------------------8
+    # Step: 05-03 - END
+    # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-04
-# Description:
-#
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-04
+    # Description:
+    #
     - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM ({{  this_bom_name }}) facts"
       ansible.builtin.set_fact:
         bom:                           "{{ bom_temp }}"
@@ -200,45 +211,45 @@
       vars:
         path:                          "{{ microsoft_supplied_bom.stat.path | dirname }}"
       when:                            microsoft_supplied_bom.stat.exists
-# Step: 05-04 - END
-# -------------------------------------+---------------------------------------8
+    # Step: 05-04 - END
+    # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-05
-# Description:
-#
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-05
+    # Description:
+    #
     - name:                             "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }}) in archives"
       block:
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-05-01
-# Description:
-#
+      # -------------------------------------+---------------------------------------8
+      # Step: 05-05-01
+      # Description:
+      #
         - name:                         "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }}) in archives"
           ansible.builtin.stat:
             path:                       "{{ BOM_directory }}/archives/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
           register:                     microsoft_supplied_bom_archive
           delegate_to:                  localhost
           become:                       "{{ bom_processing_become }}"
-# Step: 05-05-01 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 05-05-01 - END
+      # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-05-02
-# Description:
-#
+      # -------------------------------------+---------------------------------------8
+      # Step: 05-05-02
+      # Description:
+      #
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM {{  this_bom_name }} from archives"
           ansible.builtin.include_vars:
             file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
             name:                       bom_temp
           when:                         microsoft_supplied_bom_archive.stat.exists
-# Step: 05-05-02 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 05-05-02 - END
+      # -------------------------------------+---------------------------------------8
 
-# -------------------------------------+---------------------------------------8
-# Step: 05-05-03
-# Description:
-#
+      # -------------------------------------+---------------------------------------8
+      # Step: 05-05-03
+      # Description:
+      #
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BOM ({{  this_bom_name }}) facts"
           ansible.builtin.set_fact:
             bom:                        "{{ bom_temp }}"
@@ -246,16 +257,12 @@
             aggregated_bom_directories: "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
           vars:
             path:                       "{{ microsoft_supplied_bom_archive.stat.path | dirname }}"
-          when:                         microsoft_supplied_bom_archive.stat.exists
-# Step: 05-05-03 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 05-05-03 - END
+      # -------------------------------------+---------------------------------------8
 
-      when:                             not microsoft_supplied_bom.stat.exists
-# Step: 05-05 - END
-# -------------------------------------+---------------------------------------8
+      # Step: 05-05 - END
+      # -------------------------------------+---------------------------------------8
 
-  when:                                 result is failed or always_upload_jinja_templates or (sa_enabled is defined and not sa_enabled)
-  # when:                                 result is failed or always_upload_jinja_templates or sa_enabled is not defined or not sa_enabled
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
 
