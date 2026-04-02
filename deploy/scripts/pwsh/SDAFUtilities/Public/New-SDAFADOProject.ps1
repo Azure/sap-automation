@@ -368,7 +368,7 @@ resources:
     - repository: sap-automation
       type: git
       name: $AdoProject/sap-automation
-      ref: refs/heads/main
+      ref: main
 "@
 
       Set-Content -Path $TemplateFileName -Value $ResourcesContent
@@ -421,11 +421,11 @@ resources:
     - repository: sap-automation
       type: git
       name: $AdoProject/sap-automation
-      ref: refs/heads/main
+      ref: main
     - repository: sap-samples
       type: git
       name: $AdoProject/sap-samples
-      ref: refs/heads/main
+      ref: main
 "@
 
       Set-Content -Path $TemplateFileName -Value $ResourcesSamplesContent
@@ -499,7 +499,7 @@ resources:
       type: GitHub
       endpoint: $GitHubConnection
       name: $GitHubRepoName
-      ref: refs/heads/$BranchName
+      ref: $BranchName
 "@
 
       Set-Content -Path $TemplateFileName -Value $GitHubResourcesContent
@@ -553,12 +553,12 @@ resources:
       type: GitHub
       endpoint: $GitHubConnection
       name: $GitHubRepoName
-      ref: refs/heads/$BranchName
+      ref: $BranchName
     - repository: sap-samples
       type: GitHub
       endpoint: $GitHubConnection
       name: Azure/sap-automation-samples
-      ref: refs/heads/main
+      ref: main
 "@
 
       Set-Content -Path $TemplateFileName -Value $GitHubSamplesContent

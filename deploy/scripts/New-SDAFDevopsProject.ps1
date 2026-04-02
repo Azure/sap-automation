@@ -351,7 +351,7 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename -Value ("      ref: refs/heads/main")
+    Add-Content -Path $templatename -Value ("      ref: main")
     #Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
 
     $cont = Get-Content -Path $templatename -Raw
@@ -400,12 +400,12 @@ if ($confirmation -ne 'y') {
     Add-Content -Path $templatename "    - repository: sap-automation"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-automation"
-    Add-Content -Path $templatename -Value ("      ref: refs/heads/main")
+    Add-Content -Path $templatename -Value ("      ref: main")
     #Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
     Add-Content -Path $templatename "    - repository: sap-samples"
     Add-Content -Path $templatename "      type: git"
     Add-Content -Path $templatename "      name: $ADO_Project/sap-samples"
-    Add-Content -Path $templatename "      ref: refs/heads/main"
+    Add-Content -Path $templatename "      ref: main"
 
     $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
@@ -675,7 +675,7 @@ if ($true -eq $CreateConnection ) {
   Add-Content -Path $templatename "      type: GitHub"
   Add-Content -Path $templatename -Value ("      endpoint: " + $ghConn)
   Add-Content -Path $templatename "      name: Azure/sap-automation"
-  Add-Content -Path $templatename "      ref: refs/heads/main"
+  Add-Content -Path $templatename "      ref: main"
   #  Add-Content -Path $templatename -Value ("      ref: refs/tags/" + $versionLabel)
 
   $cont = Get-Content -Path $templatename -Raw
@@ -725,12 +725,12 @@ if ($true -eq $CreateConnection ) {
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation"
-  Add-Content -Path $templatename "     ref: refs/heads/main"
+  Add-Content -Path $templatename "     ref: main"
   Add-Content -Path $templatename "   - repository: sap-samples"
   Add-Content -Path $templatename "     type: GitHub"
   Add-Content -Path $templatename -Value ("     endpoint: " + $ghConn)
   Add-Content -Path $templatename "     name: Azure/sap-automation-samples"
-  Add-Content -Path $templatename "     ref: refs/heads/main"
+  Add-Content -Path $templatename "     ref: main"
 
   $cont2 = Get-Content -Path $templatename -Raw
 
