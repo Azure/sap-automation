@@ -344,6 +344,7 @@ function sdaf_remove_deployer() {
 		export step
 		save_config_var "step" "${deployer_environment_file_name}"
 		rm "${deployer_environment_file_name}"
+		save_config_var "step" "${deployer_environment_file_name}"
 	fi
 
 	unset TF_DATA_DIR

@@ -718,6 +718,7 @@ function sdaf_remover() {
 			sed -i /REMOTE_STATE_RG/d "${system_environment_file_name}"
 			sed -i /REMOTE_STATE_SA/d "${system_environment_file_name}"
 			sed -i /tfstate_resource_id/d "${system_environment_file_name}"
+			sed -i /STATE_SUBSCRIPTION/d "${system_environment_file_name}"
 		fi
 	fi
 

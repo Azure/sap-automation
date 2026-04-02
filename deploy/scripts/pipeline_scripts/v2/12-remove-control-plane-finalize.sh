@@ -333,88 +333,43 @@ region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
 
 if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 	rm ".sap_deployment_automation/${environment}${region_code}"
-	git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}"
 	changed=1
+fi
+
+if [ 0 == $return_code ]; then
+	changed=1
+	if [ -f ".sap_deployment_automation/${environment}${region_code}${network_code}" ]; then
+		rm ".sap_deployment_automation/${environment}${region_code}${network_code}"
+	fi
+	git rm -q --ignore-unmatch "$deployer_environment_file_name"
+	git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
+	git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}"
+
+	git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
+	git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
+	git rm --ignore-unmatch -q "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
+	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	fi
+	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
+		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
+	fi
+
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+		echo "Removing the library state zip file"
+		git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+	fi
+	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
+		echo "Removing the library state gpg file"
+		git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+	fi
+	git rm --ignore-unmatch -q "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
+	git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
 fi
 
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
 	sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-	changed=1
-fi
-
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
-	changed=1
-fi
-
-if [ -d "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform" ]; then
-	git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
-	changed=1
-fi
-
-if [ 0 == $return_code ]; then
-	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
-		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-		changed=1
-	fi
-
-	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md" ]; then
-		git rm --ignore-unmatch -q "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
-		changed=1
-	fi
-
-	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg" ]; then
-		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-		if [ 0 == $return_code ]; then
-			echo "Removing the library state zip file"
-			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-			changed=1
-		fi
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
-		if [ 0 == $return_code ]; then
-			echo "Removing the library state gpg file"
-			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
-			changed=1
-		fi
-	fi
-
-	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
-		git rm -q -f --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-		changed=1
-	fi
-
-	if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/readme.md" ]; then
-		git rm --ignore-unmatch -q "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
-		changed=1
-	fi
-
-	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
-		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
-		changed=1
-	fi
-
-fi
-if [ -f "$deployer_environment_file_name" ]; then
-	rm "$deployer_environment_file_name"
-	git rm -q --ignore-unmatch "$deployer_environment_file_name"
-	changed=1
-fi
-
-if [ -f ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md" ]; then
-	rm ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
-	git rm -q --ignore-unmatch ".sap_deployment_automation/${CONTROL_PLANE_NAME}.md"
 	changed=1
 fi
 
