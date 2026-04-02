@@ -298,11 +298,16 @@
 
 - name:                                "{{ task_prefix }} Append the file list"
   ansible.builtin.set_fact:
-    local_media_list:                   "{{ bom.materials.media | flatten(levels=1) }}"
+    local_media_list:                  "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - bom is defined
     - bom.materials is defined
     - bom.materials.media is defined
+
+- name:                                 "{{ task_prefix }} Validate that a BOM object is created"
+  when:                                 bom is not defined
+  ansible.builtin.fail:
+    msg:                                "Unable to find the Bill of materials file for {{  this_bom_name }}."
 
 - name:                                 "{{ task_prefix }} Show BOM object"
   when:                                  operation | default('Download') == "SoftwareAcquisition"
@@ -313,10 +318,6 @@
       - "Patch information: {{ patch_information | default('No patch information') }}"
     verbosity:                          2
 
-- name:                                 "{{ task_prefix }} Validate that a BOM object is created"
-  ansible.builtin.fail:
-    msg:                                "Unable to find the Bill of materials file for {{  this_bom_name }}."
-  when:                                 bom is not defined
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8
 
