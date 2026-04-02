@@ -310,7 +310,9 @@
     msg:                                "Unable to find the Bill of materials file for {{  this_bom_name }}."
 
 - name:                                 "{{ task_prefix }} Show BOM object"
-  when:                                  operation | default('Download') == "SoftwareAcquisition"
+  when:
+    - operation | default('Download') == "SoftwareAcquisition"
+    - bom is defined
   ansible.builtin.debug:
     msg:
       - "BoM: {{ bom }}"
@@ -335,6 +337,8 @@
       - "BoM DB platform: {% if bom.platform is defined %}{{ bom.platform }}{% else %}Not defined{% endif %}"
       - "Instance type:   {% if bom.InstanceType is defined %}{{ bom.InstanceType }}{% else %}Not defined{% endif %}"
   when:
+    - operation | default('Download') == "SoftwareAcquisition"
+    - bom is defined
     - bom.name is not search('SWPM')
     - bom.name is not search('SUM')
 # Step: 07 - END
