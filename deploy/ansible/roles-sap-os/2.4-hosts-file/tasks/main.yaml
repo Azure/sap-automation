@@ -105,18 +105,20 @@
 #
 # Description: Optional validation and troubleshooting
 #
+
 - name:                                "2.4 Hosts: - Build topology-aware validation host list"
   ansible.builtin.set_fact:
-    validation_host_candidates:
-      - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
-      - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
-      - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
     validation_hostnames: >-
       {{
         []
         + ([validation_host_candidates[0], validation_host_candidates[1]] if (scs_high_availability | default(false)) else [])
         + ([validation_host_candidates[2]] if (database_high_availability | default(false)) else [])
       }}
+    vars:
+      validation_host_candidates:
+        - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
+        - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
+        - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
 
 - name:                                "2.4 Hosts: - Keep only validation hosts generated for this topology"
   ansible.builtin.set_fact:
