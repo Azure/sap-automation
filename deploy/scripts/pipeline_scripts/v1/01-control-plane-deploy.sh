@@ -232,7 +232,7 @@ fi
 echo -e "$green--- Validations ---$reset"
 
 if [ -z "${TF_VAR_ansible_core_version}" ]; then
-	export TF_VAR_ansible_core_version=2.16.5
+	export TF_VAR_ansible_core_version=2.16.18
 fi
 
 if [ "$USE_WEBAPP" = "true" ]; then
