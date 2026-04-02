@@ -157,6 +157,10 @@
       with_items:
         - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set SAPHanaSR provider path"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR-ScaleOut
+
     - name:                            "5.8 HANA Pacemaker Scale-out - Adjust global.ini on each cluster node ( with susChkSrv )"
       when:
                                        - configure_susChkSrv
@@ -167,12 +171,12 @@
         block: |
                                        [ha_dr_provider_saphanasrmultitarget]
                                        provider = SAPHanaSrMultiTarget
-                                       path = /usr/share/SAPHanaSR-ScaleOut/
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /usr/share/SAPHanaSR-ScaleOut
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = kill
 
@@ -424,6 +428,10 @@
       with_items:
         - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
+    - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Set SAPHanaSR provider path"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR-angi
+
     - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Adjust global.ini on each cluster node ( with susHanaSR and susChkSrv )"
       when:
                                        - configure_susChkSrv
@@ -434,12 +442,12 @@
         block: |
                                        [ha_dr_provider_sushanasr]
                                        provider = susHanaSR
-                                       path = /usr/share/SAPHanaSR-angi
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /usr/share/SAPHanaSR-angi
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = kill
 

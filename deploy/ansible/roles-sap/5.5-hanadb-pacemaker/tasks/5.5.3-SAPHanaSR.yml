@@ -99,6 +99,11 @@
         owner:                         "{{ db_sid | lower }}adm"
         group:                         sapsys
 
+    - name:                            "5.5.3 HANA Pacemaker - Set SAPHanaSR provider path for SUSE"
+      when:                            ansible_os_family | upper == "SUSE"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR
+
     - name:                            "5.5.3 HANA Pacemaker - Adjust global.ini on each cluster node (RHEL)"
       when:
         - ansible_os_family | upper == "REDHAT"
@@ -129,12 +134,12 @@
         block: |
                                        [ha_dr_provider_SAPHanaSR]
                                        provider = SAPHanaSR
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = fence
 
@@ -350,18 +355,22 @@
         group:                         sapsys      # TODO - check the correct group once the python hook package is installed
         mode:                          '0755'
 
+    - name:                            "5.5.3 HANA Pacemaker - Set SAPHanaSR-angi provider path"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR-angi
+
     - name:                            "5.5.3 HANA Pacemaker - Adjust global.ini on each cluster node"
       ansible.builtin.blockinfile:
         path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
         block: |
                                        [ha_dr_provider_sushanasr]
                                        provider = susHanaSR
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = fence
 
