@@ -667,14 +667,14 @@ function sdaf_remover() {
 
 		if [ -f delete_output.json ]; then
 			
-			errors_occurred=$(jq 'select(."@level" == "error") | length' "$deleteOutputfile"	)
+			errors_occurred=$(jq 'select(."@level" == "error") | length' delete_output.json	)
 			if [[ -n $errors_occurred ]]; then
 				return_value=10
 
 				print_banner "$banner_title - $deployment_system" "Errors during the destroy phase" "error" "System name $(basename "$param_dirname")"
 
 				return_value=2
-				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
+				all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' delete_output.json)
 				if [[ -n ${all_errors} ]]; then
 					readarray -t errors_strings < <(echo "${all_errors}" | jq -c '.')
 					for errors_string in "${errors_strings[@]}"; do
