@@ -576,6 +576,7 @@ function New-SDAFADOProject {
       @{ Name = "Deploy Workload Zone"; Description = "Deploys the workload zone"; YamlPath = "/pipelines/02-sap-workload-zone.yml" },
       @{ Name = "SAP SID Infrastructure deployment"; Description = "Deploys the infrastructure required for a SAP SID deployment"; YamlPath = "/pipelines/03-sap-system-deployment.yml" },
       @{ Name = "SAP Software acquisition"; Description = "Downloads the software from SAP"; YamlPath = "/pipelines/04-sap-software-download.yml" },
+      @{ Name = "SAP Software acquisition new"; Description = "Downloads the software from SAP"; YamlPath = "/pipelines/04-sap-software-download_v2.yml" },
       @{ Name = "Configuration and SAP installation"; Description = "Configures the Operating System and installs the SAP application"; YamlPath = "/pipelines/05-DB-and-SAP-installation.yml" },
       @{ Name = "Remove System or Workload Zone"; Description = "Removes either the SAP system or the workload zone"; YamlPath = "/pipelines/10-remover-terraform.yml" },
       @{ Name = "Remove deployments via ARM"; Description = "Removes the resource groups via ARM. Use this only as last resort"; YamlPath = "/pipelines/11-remover-arm-fallback.yml" },
