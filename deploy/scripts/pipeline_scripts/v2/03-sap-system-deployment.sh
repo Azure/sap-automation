@@ -292,6 +292,8 @@ echo ""
 cd "${CONFIG_REPO_PATH}" || exit
 cd "SYSTEM/${SAP_SYSTEM_FOLDERNAME}"	|| exit
 
+echo "PLATFORM: $PLATFORM"
+
 if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success" "System name: $SAP_SYSTEM_FOLDERNAME"
@@ -305,6 +307,7 @@ else
 		echo "ERROR: Deployment failed."
 	fi
 fi
+echo "PLATFORM: $PLATFORM"
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
 	if [ "$PLATFORM" == "devops" ]; then
