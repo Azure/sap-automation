@@ -294,10 +294,10 @@ cd "SYSTEM/${SAP_SYSTEM_FOLDERNAME}"	|| exit
 
 if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"
+	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success" "System name: $SAP_SYSTEM_FOLDERNAME"
 else
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME failed" "error"
+	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME failed" "error" "System name: $SAP_SYSTEM_FOLDERNAME"
 	echo -e "$bold_red--- Deployment failed ---$reset_formatting"
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Deployment failed."
@@ -375,6 +375,9 @@ if [ -f "readme.md" ]; then
 	added=1
 fi
 echo "added: $added"
+echo "PLATFORM: $PLATFORM"
+printenv | sort
+
 # Commit changes based on platform
 if [ 1 -eq $added ]; then
 	commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
@@ -390,7 +393,7 @@ if [ 1 -eq $added ]; then
 		git config --global user.name "Local User"
 	fi
 
-	if [ "$DEBUG" = True ]; then
+	if [ "$DEBUG" = true ]; then
 		git status --verbose
 		if git commit --message --verbose "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
