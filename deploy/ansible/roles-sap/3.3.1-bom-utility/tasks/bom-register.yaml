@@ -172,6 +172,7 @@
     - name:                            "{{ task_prefix }} Microsoft Supplied BOM ({{ this_bom_name }}) result"
       ansible.builtin.set_fact:
         bom_found:                     "{{ microsoft_supplied_bom.stat.exists }}"
+        bom_path:                      "{{ microsoft_supplied_bom.stat.path }}"
 
     # Step: 05-01 - END
     # -------------------------------------+---------------------------------------8
@@ -186,7 +187,6 @@
       when:                            not bom_found
       block:
         - name:                        "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }}) in {{ BOM_directory }}/BOM"
-          when:                        not bom_found
           ansible.builtin.stat:
             path:                      "{{ BOM_directory }}/BOM/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
           register:                    microsoft_supplied_bom
@@ -194,30 +194,26 @@
           become:                      "{{ bom_processing_become }}"
 
         - name:                        "{{ task_prefix }} Show Microsoft Supplied BOM ({{ this_bom_name }}) result"
-          when:                        not bom_found
           ansible.builtin.debug:
             msg: |-
                                       BOM PATH:   {{ BOM_directory }}/BOM/{{  this_bom_name }}/{{ this_bom_name }}.yaml
                                       BOM Exists: {{ microsoft_supplied_bom.stat.exists | default(false) }}
+
+        - name:                            "{{ task_prefix }} Microsoft Supplied BOM ({{ this_bom_name }}) result"
+          ansible.builtin.set_fact:
+            bom_found:                     "{{ microsoft_supplied_bom.stat.exists }}"
+            bom_path:                      "{{ microsoft_supplied_bom.stat.path }}"
+
 
     # -------------------------------------+---------------------------------------8
     # Step: 05-03
     # Description:
     #
     - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM {{  this_bom_name }}"
+      when:                            bom_found
       ansible.builtin.include_vars:
-        file:                          "{{ microsoft_supplied_bom.stat.path }}"
+        file:                          "{{ bom_path }}"
         name:                          bom_temp
-      when:                            microsoft_supplied_bom.stat.exists
-
-    - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM ({{  this_bom_name }}) facts"
-      when:                            microsoft_supplied_bom.stat.exists
-      ansible.builtin.set_fact:
-        bom:                           "{{ bom_temp }}"
-        bom_file:                      "{{ microsoft_supplied_bom.stat.path }}"
-        aggregated_bom_directories:    "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
-      vars:
-        path:                          "{{ microsoft_supplied_bom.stat.path | dirname }}"
 
 
     # Step: 05-03 - END
@@ -228,13 +224,14 @@
     # Description:
     #
     - name:                            "{{ task_prefix }} Register Microsoft Supplied BOM ({{  this_bom_name }}) facts"
-      when:                            microsoft_supplied_bom.stat.exists
+      when:                            bom_found
       ansible.builtin.set_fact:
         bom:                           "{{ bom_temp }}"
         bom_file:                      "{{ microsoft_supplied_bom.stat.path }}"
         aggregated_bom_directories:    "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
       vars:
-        path:                          "{{ microsoft_supplied_bom.stat.path | dirname }}"
+        path:                          "{{ bom_path | dirname }}"
+
     # Step: 05-04 - END
     # -------------------------------------+---------------------------------------8
 
@@ -243,7 +240,7 @@
     # Description:
     #
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }}) in archives"
-      when:                            not microsoft_supplied_bom.stat.exists
+      when:                            not bom_found
       block:
 
       # -------------------------------------+---------------------------------------8
