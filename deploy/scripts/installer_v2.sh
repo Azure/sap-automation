@@ -1242,7 +1242,7 @@ EOF
 
     if [ "${deployment_system}" == sap_system ]; then
 
-        SID=$(grep -m1 "sap_sid" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+        SAP_SID=$(grep -m1 "sap_sid" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
         DB_PLATFORM=$(grep -m1 "platform" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
         SCS_HIGH_AVAILABILITY=$(grep -m1 "scs_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
         DB_HIGH_AVAILABILITY=$(grep -m1 "database_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
@@ -1255,7 +1255,7 @@ Deployed on: "${now}"
 **Configuration details**
 | Resource | Name |
 | -------------------------------------- | ----------------------- |
-| SID                                    | $SID                    |
+| SID                                    | $SAP_SID                |
 | Platform                               | $DB_PLATFORM            |
 | SCS High Availability                  | $SCS_HIGH_AVAILABILITY  |
 | Database High Availability             | $DB_HIGH_AVAILABILITY   |

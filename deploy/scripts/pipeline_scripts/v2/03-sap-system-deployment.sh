@@ -307,7 +307,6 @@ else
 		echo "ERROR: Deployment failed."
 	fi
 fi
-echo "PLATFORM: $PLATFORM"
 echo "Return code from deployment:         ${return_code}"
 if [ 0 != $return_code ]; then
 	if [ "$PLATFORM" == "devops" ]; then
@@ -378,9 +377,6 @@ if [ -f "readme.md" ]; then
 	added=1
 fi
 echo "added: $added"
-echo "PLATFORM: $PLATFORM"
-printenv | sort
-ls -lart
 
 # Commit changes based on platform
 if [ 1 -eq $added ]; then
