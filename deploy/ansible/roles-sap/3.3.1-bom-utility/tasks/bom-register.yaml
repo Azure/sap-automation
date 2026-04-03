@@ -191,7 +191,7 @@
       ansible.builtin.debug:
         msg: |-
                                        BOM PATH:   {{ BOM_directory }}/BOM/{{  this_bom_name }}/{{ this_bom_name }}.yaml
-                                       BOM Exists: {{ microsoft_supplied_bom.stat.exists }}
+                                       BOM Exists: {{ microsoft_supplied_bom.stat.exists | default(false) }}
 
     # -------------------------------------+---------------------------------------8
     # Step: 05-03
