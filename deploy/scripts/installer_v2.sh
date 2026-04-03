@@ -125,14 +125,12 @@ function installer_parse_arguments() {
     while true; do
         case "$1" in
 		-a | --ado)
-			PLATFORM="ado"
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
 			shift
 			;;
 		-g | --github)
-			PLATFORM="github"
 			approve="--auto-approve"
 			TF_IN_AUTOMATION=true
 			export TF_IN_AUTOMATION
@@ -1245,7 +1243,7 @@ EOF
     if [ "${deployment_system}" == sap_system ]; then
 
         SID=$(grep -m1 "sap_sid" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-        PLATFORM=$(grep -m1 "platform" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+        DB_PLATFORM=$(grep -m1 "platform" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
         SCS_HIGH_AVAILABILITY=$(grep -m1 "scs_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
         DB_HIGH_AVAILABILITY=$(grep -m1 "database_high_availability" sap-parameters.yaml | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 
@@ -1258,7 +1256,7 @@ Deployed on: "${now}"
 | Resource | Name |
 | -------------------------------------- | ----------------------- |
 | SID                                    | $SID                    |
-| Platform                               | $PLATFORM               |
+| Platform                               | $DB_PLATFORM            |
 | SCS High Availability                  | $SCS_HIGH_AVAILABILITY  |
 | Database High Availability             | $DB_HIGH_AVAILABILITY   |
 
