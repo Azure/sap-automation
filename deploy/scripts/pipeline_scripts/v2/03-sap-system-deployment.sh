@@ -327,8 +327,6 @@ fi
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
 
-echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
-
 if [ -f stdout.az ]; then
 	rm stdout.az
 fi
@@ -376,10 +374,9 @@ if [ -f "readme.md" ]; then
 	git add "readme.md"
 	added=1
 fi
-
-
+echo "added: $added"
 # Commit changes based on platform
-if [ 1 = $added ]; then
+if [ 1 -eq $added ]; then
 	commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 	if [ "$PLATFORM" == "devops" ]; then
 		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
