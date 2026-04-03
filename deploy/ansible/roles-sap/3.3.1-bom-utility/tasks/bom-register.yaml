@@ -162,7 +162,7 @@
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
 
-    - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
+    - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ this_bom_name }}) result"
       ansible.builtin.debug:
         msg: |-
                                        BOM PATH:   {{ BOM_directory }}/SAP/{{  this_bom_name }}/{{ this_bom_name }}.yaml
@@ -187,7 +187,7 @@
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
 
-    - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
+    - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ this_bom_name }}) result"
       when:                            not microsoft_supplied_bom.stat.exists | default(false)
       ansible.builtin.debug:
         msg: |-
