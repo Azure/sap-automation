@@ -229,7 +229,7 @@
       when:                            bom_found
       ansible.builtin.set_fact:
         bom:                           "{{ bom_temp }}"
-        bom_file:                      "{{ microsoft_supplied_bom.stat.path }}"
+        bom_file:                      "{{ bom_path }}"
         aggregated_bom_directories:    "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
       vars:
         path:                          "{{ bom_path | dirname }}"
