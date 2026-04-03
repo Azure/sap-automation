@@ -161,6 +161,7 @@
       register:                        microsoft_supplied_bom
       delegate_to:                     localhost
       become:                          "{{ bom_processing_become }}"
+      failed_when:                     false
 
     - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ this_bom_name }}) result"
       ansible.builtin.debug:
@@ -171,8 +172,8 @@
 
     - name:                            "{{ task_prefix }} Microsoft Supplied BOM ({{ this_bom_name }}) result"
       ansible.builtin.set_fact:
-        bom_found:                     "{{ microsoft_supplied_bom.stat.exists }}"
-        bom_path:                      "{{ microsoft_supplied_bom.stat.path }}"
+        bom_found:                     "{{ microsoft_supplied_bom.stat.exists | default(false) }}"
+        bom_path:                      "{{ microsoft_supplied_bom.stat.path | default('') }}"
 
     # Step: 05-01 - END
     # -------------------------------------+---------------------------------------8
@@ -192,6 +193,7 @@
           register:                    microsoft_supplied_bom
           delegate_to:                 localhost
           become:                      "{{ bom_processing_become }}"
+          failed_when:                 false
 
         - name:                        "{{ task_prefix }} Show Microsoft Supplied BOM ({{ this_bom_name }}) result"
           ansible.builtin.debug:
@@ -253,6 +255,7 @@
           register:                     microsoft_supplied_bom_archive
           delegate_to:                  localhost
           become:                       "{{ bom_processing_become }}"
+          failed_when:                  false
       # Step: 05-05-01 - END
       # -------------------------------------+---------------------------------------8
 
