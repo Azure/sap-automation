@@ -188,6 +188,7 @@
       become:                          "{{ bom_processing_become }}"
 
     - name:                            "{{ task_prefix }} Show Microsoft Supplied BOM ({{ bom_base_name }}) result"
+      when:                            not microsoft_supplied_bom.stat.exists | default(false)
       ansible.builtin.debug:
         msg: |-
                                        BOM PATH:   {{ BOM_directory }}/BOM/{{  this_bom_name }}/{{ this_bom_name }}.yaml
