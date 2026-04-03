@@ -377,6 +377,7 @@ fi
 echo "added: $added"
 echo "PLATFORM: $PLATFORM"
 printenv | sort
+ls -lart
 
 # Commit changes based on platform
 if [ 1 -eq $added ]; then
