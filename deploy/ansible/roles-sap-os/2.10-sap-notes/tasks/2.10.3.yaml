@@ -65,7 +65,10 @@
 
 - name:                                "2.10.3 SAP Note - Show active saptune solution"
   ansible.builtin.debug:
-    var:                               saptune_solution_enabled
+    msg:                               "Enabled SAPTUNE solution: {{ saptune_solution_enabled }}"
+  when:
+    - active_saptune_solution.stdout_lines is defined
+    - active_saptune_solution.stdout_lines | length > 0
 
 - name:                                "2.10.3 SAP Note - Backward Compatibility - Check required Database HA variables "
   when:
