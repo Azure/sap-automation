@@ -317,15 +317,6 @@ class FilterModule:
                     )
                     entries.extend(scale_out_entries)
 
-            # Default virtual host entry: map to primary IP / VIP only, if defined
-            if default_virtual_host:
-                entries.append(
-                    self._format_hosts_entry(
-                        primary_ip,
-                        f"{default_virtual_host}.{config['sap_fqdn']}",
-                        default_virtual_host,
-                    )
-                )
         return entries
 
     def _generate_custom_virtual_hostname_entries(
