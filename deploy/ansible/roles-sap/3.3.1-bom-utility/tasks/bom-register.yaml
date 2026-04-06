@@ -147,7 +147,9 @@
 # Description:  Check for MS provided BOM if not in SA
 #
 - name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{  this_bom_name }})"
-  when:                                 result is failed or always_upload_jinja_templates or (sa_enabled is defined and not sa_enabled)
+  when:
+    - result is failed or always_upload_jinja_templates or (sa_enabled is defined and not sa_enabled)
+    - not (from_storage_account | default(false))
   # when:                                 result is failed or always_upload_jinja_templates or sa_enabled is not defined or not sa_enabled
   block:
 
@@ -297,11 +299,6 @@
 # Step: 06
 # Description:  Validate that BoM was found
 #
-
-- name:                                "{{ task_prefix }} Append the patch information"
-  when:                                bom.patch_information is defined
-  ansible.builtin.set_fact:
-    patch_information:                 "{% if patch_information is defined %}{{ patch_information + bom.patch_information | flatten(levels=1) }}{% else %}{{ bom.patch_information | flatten(levels=1) }}{% endif %}"
 
 - name:                                "{{ task_prefix }} Append the file list"
   ansible.builtin.set_fact:

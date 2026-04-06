@@ -221,6 +221,11 @@
     - bom.materials.dependencies is defined
     - bom.materials.dependencies | length > 0
 
+- name:                                "0.1 BoM Validator - Get the patch information"
+  when:                                bom.patch_information is defined
+  ansible.builtin.set_fact:
+    patch_information:                 "{% if patch_information is defined %}{{ patch_information + bom.patch_information | flatten(levels=1) }}{% else %}{{ bom.patch_information | flatten(levels=1) }}{% endif %}"
+
 - name:                                "0.1 BoM Validator - Process database BOM"
   when:
     - database_bom_name != ""
@@ -244,6 +249,12 @@
     minimumRedHatVersion:              "{% if bom.minimumRedHatVersion is defined %}{{ bom.minimumRedHatVersion }}{% endif %}"
     minimumSLESVersion:                "{% if bom.minimumSLESVersion is defined %}{{ bom.minimumSLESVersion }}{% endif %}"
 
+- name:                                "0.1 BoM Validator - Append the patch information"
+  when:
+    - database_bom_name != ""
+    - bom.patch_information is defined
+  ansible.builtin.set_fact:
+    patch_information:                 "{% if patch_information is defined %}{{ patch_information + bom.patch_information | flatten(levels=1) }}{% else %}{{ bom.patch_information | flatten(levels=1) }}{% endif %}"
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   when:
@@ -276,6 +287,13 @@
   when:
     - kernel_bom_name != ""
     - bom is defined
+
+- name:                                "0.1 BoM Validator - Append the patch information"
+  when:
+    - kernel_bom_name != ""
+    - bom.patch_information is defined
+  ansible.builtin.set_fact:
+    patch_information:                 "{% if patch_information is defined %}{{ patch_information + bom.patch_information | flatten(levels=1) }}{% else %}{{ bom.patch_information | flatten(levels=1) }}{% endif %}"
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   when:

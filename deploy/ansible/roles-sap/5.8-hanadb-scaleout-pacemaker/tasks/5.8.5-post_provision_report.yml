@@ -39,6 +39,7 @@
   failed_when:                         false
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - Output SBD status"
+  when:                                sbd_status_report.stdout is defined and sbd_status_report.stdout != ''
   ansible.builtin.debug:
     msg:                               "SBD Status: {{ sbd_status_report.stdout }}"
 
