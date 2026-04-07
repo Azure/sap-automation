@@ -295,9 +295,13 @@ function installer_parse_arguments() {
         if [ -n "$APPLICATION_CONFIGURATION_NAME" ] && [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 
             APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-            if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
+            if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
                 TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-			    export TF_VAR_application_configuration_id
+                export TF_VAR_application_configuration_id
+            else
+                print_banner "$banner_title" "Unable to resolve application configuration id for ${APPLICATION_CONFIGURATION_NAME}" "error"
+                unset TF_DATA_DIR
+                return 2
             fi
         fi
         if [ -z "${TF_VAR_deployer_tfstate_key}" ]; then
