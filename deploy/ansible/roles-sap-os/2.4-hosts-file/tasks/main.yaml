@@ -76,12 +76,13 @@
     # Read existing hosts content from target host and preserve non-SAP entries
     existing_hosts_file:               "{{ existing_hosts_slurp.content | b64decode }}"
     # Remove existing SAP managed blocks (including block contents) to avoid duplicates
+    # Handles both LF and CRLF line endings.
     cleaned_hosts_file: >-
       {{
         (existing_hosts_file
-        | regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '.*?^# END ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '\\n?', '')
-        | regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\n?', '')
-        | regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\n?', ''))
+        | regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK -\\s*' + (sap_sid | upper) + '\\s*\\r?\\n.*?^# END ANSIBLE MANAGED BLOCK -\\s*' + (sap_sid | upper) + '\\s*\\r?\\n?', '')
+        | regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\r?\\n?', '')
+        | regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\r?\\n?', ''))
       }}
     existing_hosts_lines:              "{{ cleaned_hosts_file.split('\n') if cleaned_hosts_file else [] }}"
     existing_hosts_content:            "{{ existing_hosts_lines | reject('match', '^$') | list }}"
