@@ -118,7 +118,7 @@ SAPINST.CD.PACKAGE.CD3                                                = {{ targe
 
 {% endif %}
 
-{% if platform | upper == 'ORACLE-ASM' and instance_type | upper == 'JAVA' %}
+{% if platform | upper == 'ORACLE-ASM' and application_type | upper == 'JAVA' %}
 storageBasedCopy.ora.JavaSchema                                       = SAPSR3DB
 {% endif %}
 
@@ -148,7 +148,7 @@ SAPINST.CD.PACKAGE.CD3                                                = {{ targe
 
 {% endif %}
 
-{% if platform | upper == 'ORACLE' and instance_type | upper == 'JAVA' %}
+{% if platform | upper == 'ORACLE' and application_type | upper == 'JAVA' %}
 storageBasedCopy.ora.JavaSchema                                       = SAPSR3DB
 {% endif %}
 
