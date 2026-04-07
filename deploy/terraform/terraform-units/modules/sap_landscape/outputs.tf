@@ -690,7 +690,7 @@ resource "local_file" "resource_group_md" {
 resource "local_file" "workload_zone_exports" {
   content = templatefile(format("%s/templates/workload_zone_exports.tmpl", path.module), {
               subscription_id             = local.resource_group_exists ? (
-                                           split("/", data.azurerm_resource_group.resource_group[0].id))[2] : (
+                                           split("/", data.azurerm_resource_group.resource_group[0].id)[2]) : (
                                            split("/", azurerm_resource_group.resource_group[0].id)[2]
                                          )
               app_configuration_name         = local.app_config_name

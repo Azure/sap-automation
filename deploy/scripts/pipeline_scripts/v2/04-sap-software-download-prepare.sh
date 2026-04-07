@@ -209,7 +209,7 @@ elif [ "$PLATFORM" == "github" ]; then
 	command="ansible-playbook \
 		-e download_directory=${GITHUB_WORKSPACE} \
 		-e s_user=${SUSERNAME} \
-		-e s_user=$SUSERNAME -e BOM_directory=$SAMPLE_REPO_PATH} \
+		-e s_user=$SUSERNAME -e BOM_directory=$SAMPLE_REPO_PATH \
 		-e bom_base_name='${BOM}' \
 		-e deployer_kv_name=${DEPLOYER_KEYVAULT} \
 		-e check_storage_account=${re_download} \

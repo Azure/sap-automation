@@ -342,7 +342,7 @@ resource "local_file" "deployer_md" {
 resource "local_file" "deployer_exports" {
   content = templatefile(format("%s/templates/deployer_exports.tmpl", path.module), {
               subscription_id             = var.infrastructure.resource_group.exists ? (
-                                           split("/", data.azurerm_resource_group.deployer[0].id))[2] : (
+                                           split("/", data.azurerm_resource_group.deployer[0].id)[2]) : (
                                            split("/", azurerm_resource_group.deployer[0].id)[2]
                                          )
               app_configuration_name      = var.app_config_service.deploy ? (

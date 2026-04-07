@@ -434,7 +434,7 @@ function installer_retrieve_parameters() {
 
                 if valid_kv_name "$DEPLOYER_KEYVAULT"; then
 
-                    TF_VAR_spn_keyvault_id=keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
+                    TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
                     export TF_VAR_spn_keyvault_id
                 fi
 

@@ -603,7 +603,7 @@ if [ 1 = $added ]; then
 		commit_message="Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME [skip ci]"
 	fi
 
-	if [ "${DEBUG}" = "true" ]; then
+	if [ "$DEBUG" == "true" ]; then
 		git status --verbose
 		if git commit -m "$commit_message" || true; then
 			if [ "$PLATFORM" == "devops" ]; then
