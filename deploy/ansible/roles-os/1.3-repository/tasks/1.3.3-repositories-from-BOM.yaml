@@ -20,7 +20,7 @@
                                        - ( item.type is defined          and (item.type | lower) == 'rpm' )
                                        - ( item.archive is defined       and (item.archive | trim | length) > 0 )
                                        - ( item.distributions is defined and ((distribution_id | lower) in item.distributions) )
-                                       - ( item.platform is defined and (item.platform == platform) )
+                                       - item.platform is undefined or ( item.platform is defined and (item.platform == platform) )
   become:                              true
   become_user:                         root
   ansible.builtin.yum_repository:
@@ -37,7 +37,7 @@
                                        - bom is defined
                                        - ( item.type is defined          and (item.type | lower) == 'rpm' )
                                        - ( item.archive is defined       and (item.archive | trim | length) > 0 )
-                                       - ( item.platform is defined and (item.platform == platform) )
+                                       - item.platform is undefined or ( item.platform is defined and (item.platform == platform) )
 
   ansible.builtin.debug:
     msg:
@@ -55,8 +55,8 @@
                                        - item.repourl is not defined
                                        - ( item.type is defined          and (item.type | lower) == 'rpm' )
                                        - ( item.archive is defined       and (item.archive | trim | length) > 0 )
-                                       - ( item.distributions is defined and ((distribution_id | lower) in item.distributions) )
-                                       - ( item.platform is defined and (item.platform == platform) )
+                                       - ( item.distributions is defined and (distribution_id | lower in item.distributions) )
+                                       - item.platform is undefined or ( item.platform is defined and (item.platform == platform) )
   become:                              true
   become_user:                         root
   ansible.builtin.dnf:
