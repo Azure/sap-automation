@@ -35,7 +35,6 @@ class FilterModule:
             "sdaf_generate_sap_hosts": self.generate_sap_hosts_entries,
             "sdaf_format_hosts_entry": self.format_hosts_entry,
             "sdaf_validate_network_config": self.validate_network_config,
-            "sdaf_strip_sap_managed_blocks": self.strip_sap_managed_blocks,
         }
 
     def _is_database_host(self, supported_tiers: List[str]) -> bool:
@@ -255,7 +254,6 @@ class FilterModule:
         # Get host tier information
         supported_tiers = host_vars.get("supported_tiers", [])
         is_target_host_db_vm = self._is_scale_out_db_host(supported_tiers)
-        default_virtual_host = host_vars.get("virtual_host")
 
         # Determine if we need to apply network isolation filtering
         apply_filtering = (
@@ -598,41 +596,6 @@ class FilterModule:
     def format_hosts_entry(self, ip_address: str, fqdn: str, hostname: str) -> str:
         """Public filter for formatting a single hosts entry."""
         return self._format_hosts_entry(ip_address, fqdn, hostname)
-
-    def strip_sap_managed_blocks(self, hosts_content: str, sap_sid: str) -> str:
-        """Remove previously generated SAP managed blocks from /etc/hosts content."""
-        if not hosts_content:
-            return ""
-
-        sid_upper = (sap_sid or "").upper()
-        main_begin = f"# BEGIN ANSIBLE MANAGED BLOCK - {sid_upper}"
-        main_end = f"# END ANSIBLE MANAGED BLOCK - {sid_upper}"
-
-        normalized_content = hosts_content.replace("\r\n", "\n").replace("\r", "\n")
-        cleaned_lines: List[str] = []
-
-        skip_until_prefix: Optional[str] = None
-        for line in normalized_content.split("\n"):
-            if skip_until_prefix is not None:
-                if line.startswith(skip_until_prefix):
-                    skip_until_prefix = None
-                continue
-
-            if line.startswith(main_begin):
-                skip_until_prefix = main_end
-                continue
-
-            if line.startswith("# BEGIN ASCS/ERS Entries"):
-                skip_until_prefix = "# END ASCS/ERS Entries"
-                continue
-
-            if line.startswith("# BEGIN DB Entries"):
-                skip_until_prefix = "# END DB Entries"
-                continue
-
-            cleaned_lines.append(line)
-
-        return "\n".join(cleaned_lines)
 
     def validate_network_config(self, network_config: Dict[str, Any]) -> Dict[str, Any]:
         """

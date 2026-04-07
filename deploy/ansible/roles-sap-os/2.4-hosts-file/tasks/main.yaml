@@ -76,13 +76,12 @@
     # Read existing hosts content from target host and preserve non-SAP entries
     existing_hosts_file:               "{{ existing_hosts_slurp.content | b64decode }}"
     # Remove existing SAP managed blocks (including block contents) to avoid duplicates
-    # Handles both LF and CRLF line endings.
     cleaned_hosts_file: >-
       {{
         (existing_hosts_file
-        | regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK -\\s*' + (sap_sid | upper) + '\\s*\\r?\\n.*?^# END ANSIBLE MANAGED BLOCK -\\s*' + (sap_sid | upper) + '\\s*\\r?\\n?', '')
-        | regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\r?\\n?', '')
-        | regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\r?\\n?', ''))
+        | regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '.*?^# END ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '\\n?', '')
+        | regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\n?', '')
+        | regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\n?', ''))
       }}
     existing_hosts_lines:              "{{ cleaned_hosts_file.split('\n') if cleaned_hosts_file else [] }}"
     existing_hosts_content:            "{{ existing_hosts_lines | reject('match', '^$') | list }}"
@@ -106,20 +105,18 @@
 #
 # Description: Optional validation and troubleshooting
 #
-
 - name:                                "2.4 Hosts: - Build topology-aware validation host list"
   ansible.builtin.set_fact:
+    validation_host_candidates:
+      - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
+      - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
+      - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
     validation_hostnames: >-
       {{
         []
         + ([validation_host_candidates[0], validation_host_candidates[1]] if (scs_high_availability | default(false)) else [])
         + ([validation_host_candidates[2]] if (database_high_availability | default(false)) else [])
       }}
-  vars:
-    validation_host_candidates:
-      - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
-      - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
-      - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
 
 - name:                                "2.4 Hosts: - Keep only validation hosts generated for this topology"
   ansible.builtin.set_fact:
