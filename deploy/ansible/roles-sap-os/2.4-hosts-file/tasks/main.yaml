@@ -112,6 +112,9 @@
       - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
       - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
       - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
+
+- name:                                "2.4 Hosts: - Build validation hostnames based on topology"
+  ansible.builtin.set_fact:
     validation_hostnames: >-
       {{
         []
