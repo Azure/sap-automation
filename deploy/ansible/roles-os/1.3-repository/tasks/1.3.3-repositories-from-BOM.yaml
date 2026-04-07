@@ -20,6 +20,7 @@
                                        - ( item.type is defined          and (item.type | lower) == 'rpm' )
                                        - ( item.archive is defined       and (item.archive | trim | length) > 0 )
                                        - ( item.distributions is defined and ((distribution_id | lower) in item.distributions) )
+                                       - ( item.platform is defined and (item.platform == platform) )
   become:                              true
   become_user:                         root
   ansible.builtin.yum_repository:
@@ -36,11 +37,14 @@
                                        - bom is defined
                                        - ( item.type is defined          and (item.type | lower) == 'rpm' )
                                        - ( item.archive is defined       and (item.archive | trim | length) > 0 )
+                                       - ( item.platform is defined and (item.platform == platform) )
+    
   ansible.builtin.debug:
     msg:
       - "Package to be installed:      {{ target_media_location }}/RPM/{{ item.archive }}"
       - "Distribution:                 {{ distribution_id | lower }}"
       - "Supported distributions:      {{ item.distributions }}"
+      - "Platform:                     {{ item.platform }}"
     verbosity:                         2
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
 
@@ -52,6 +56,7 @@
                                        - ( item.type is defined          and (item.type | lower) == 'rpm' )
                                        - ( item.archive is defined       and (item.archive | trim | length) > 0 )
                                        - ( item.distributions is defined and ((distribution_id | lower) in item.distributions) )
+                                       - ( item.platform is defined and (item.platform == platform) )
   become:                              true
   become_user:                         root
   ansible.builtin.dnf:
