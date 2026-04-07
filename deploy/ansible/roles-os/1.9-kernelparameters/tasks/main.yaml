@@ -143,6 +143,7 @@
       ansible.builtin.blockinfile:
         path:                          /etc/security/limits.d/99-sap.conf
         insertafter:                   '#@student        -       maxlogins       4'
+        create:                        true
         state:                         present
         block: |
                 @oinstall  soft    nproc    unlimited
