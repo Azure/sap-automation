@@ -11,9 +11,9 @@ script_directory="$(dirname "${full_script_path}")"
 SCRIPT_NAME="$(basename "$0")"
 
 if printenv DEBUG; then
-	if [ $DEBUG = True ]; then
+	if [ "$DEBUG" = true ]; then
 		set -x
-		DEBUG=True
+		DEBUG=true
 		echo "prefix variables:"
 		printenv | sort
 	fi
@@ -354,7 +354,7 @@ function source_helper_scripts() {
 
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:g:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,gh_pat:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:g:hma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,gh_pat:,help,msi,ado -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -408,12 +408,9 @@ function parse_arguments() {
 			gh_pat="$2"
 			shift 2
 			;;
-		-w | --workload)
-			workload=1
-			shift
-			;;
 		-m | --msi)
 			deploy_using_msi_only=1
+			export deploy_using_msi_only
 			shift
 			;;
 		-a | --ado)
@@ -530,6 +527,8 @@ function set_all_secrets() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	print_banner "$banner_title" "Starting script $SCRIPT_NAME" "info"
+	detect_platform
+
 
 	# Parse command line arguments
 	if parse_arguments "$@"; then

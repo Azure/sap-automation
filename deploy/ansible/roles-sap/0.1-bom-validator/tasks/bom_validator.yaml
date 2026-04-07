@@ -160,9 +160,10 @@
 # Step: 05
 # Description:  Check and download files
 #
+
 - name:                                "0.1 BoM Validator - BOM {{ bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
-  loop:                                "{{ root_media_list | flatten(levels=1) }}"
+  loop:                                "{{ local_media_list }}"
   loop_control:
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index
@@ -172,6 +173,11 @@
     - bom_media_entry.archive != ''
 # Step: 05 - END
 # -------------------------------------+---------------------------------------8
+
+- name:                                "0.1 BoM Validator - Append the file list"
+  ansible.builtin.set_fact:
+    root_media_list:                   "{% if root_media_list is defined %}{{ root_media_list + local_media_list }}{% else %}{{ local_media_list }}{% endif %}"
+
 
 # -------------------------------------+---------------------------------------8
 # Step: 06

@@ -10,7 +10,6 @@ source "${SCRIPT_DIR}/set-colors.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
-
 # External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -110,11 +109,29 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
+	if [ "$USE_MSI" != "true" ]; then
+
+		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+		export ARM_TENANT_ID
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+		export ARM_SUBSCRIPTION_ID
+	else
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	fi
+	LogonToAzure "${USE_MSI:-false}"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
+
 	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' and type=='microsoft.storage/storageaccounts' | project id, name, subscription" --query data[0].id --output tsv)
 
 	TF_VAR_tfstate_resource_id="$tfstate_resource_id"
 	export TF_VAR_tfstate_resource_id
-
 
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
@@ -125,11 +142,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	platform_flag="--github"
 else
 	platform_flag=""
-fi
-
-if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-	export APPLICATION_CONFIGURATION_ID
 fi
 
 banner_title="Deploy Workload Zone"
@@ -170,25 +182,9 @@ if [ "$USE_MSI" == "true" ]; then
 	export ARM_USE_MSI
 fi
 
-if [ "$PLATFORM" == "devops" ]; then
-	if [ "$USE_MSI" != "true" ]; then
-
-		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-		export ARM_TENANT_ID
-		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-		export ARM_SUBSCRIPTION_ID
-	else
-		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-	fi
-	LogonToAzure "${USE_MSI:-false}"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
+if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+	export APPLICATION_CONFIGURATION_ID
 fi
 
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
@@ -351,7 +347,7 @@ if [ 1 = $added ]; then
 		commit_message="Added updates from Workload Zone Deployment for $WORKLOAD_ZONE_NAME [skip ci]"
 	fi
 
-	if [ "${DEBUG:-False}" = "True" ]; then
+	if [ "${DEBUG:-false}" = "true" ]; then
 		git status --verbose
 		if git commit -m "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
@@ -382,8 +378,8 @@ fi
 # Platform-specific summary handling
 if [ -f "${WORKLOAD_ZONE_NAME}.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-	  cat "${WORKLOAD_ZONE_NAME}.md"
-	  sudo cp "${WORKLOAD_ZONE_NAME}.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
+		cat "${WORKLOAD_ZONE_NAME}.md"
+		sudo cp "${WORKLOAD_ZONE_NAME}.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${WORKLOAD_ZONE_NAME}.md;]$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
 		cat "${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY

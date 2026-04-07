@@ -718,7 +718,7 @@
   vars_files:
     - vars/ansible-input-api.yaml # API Input template with defaults
   tasks:
-    - name:                            "Validation Playbook - VAlidate web_sid presence of Web Dispatchers are deployed"
+    - name:                            "Validation Playbook - Validate web_sid presence of Web Dispatchers are deployed"
       ansible.builtin.assert:
         that:
           - web_sid is defined # Has the variable been defined

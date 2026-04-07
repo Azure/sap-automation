@@ -84,6 +84,8 @@ locals {
                                            server_url                     = var.github_server_url
                                            api_url                        = var.github_api_url
                                            platform                       = var.devops_platform
+                                           organization                   = var.organization
+                                           branch                         = var.branch
                                          }
 
     tfstate_resource_id                = var.tfstate_resource_id
@@ -173,6 +175,7 @@ locals {
                                             use_spn                         = var.use_spn
                                             assign_resource_permissions     = var.deployer_assign_resource_permissions
                                             assign_subscription_permissions = var.deployer_assign_subscription_permissions
+                                            network_security_perimeter      = local.network_security_perimeter
                                          }
 
   firewall                             = {
@@ -220,6 +223,15 @@ locals {
                                            exists                                      = length(var.application_configuration_id) > 0 ? true : false
                                            deploy                                      = var.application_configuration_deployment
                                            control_plane_name                          = module.sap_namegenerator.naming.prefix.DEPLOYER
+                                         }
+
+  network_security_perimeter              = {
+                                           name                                        = coalesce(var.network_security_perimeter_name,module.sap_namegenerator.naming_new.network_security_perimeter_name)
+                                           id                                          = var.network_security_perimeter_id
+                                           exists                                      = length(var.network_security_perimeter_id) > 0 ? true : false
+                                           deploy                                      = var.network_security_perimeter_deployment
+                                           network_security_access_mode                = var.network_security_access_mode
+
                                          }
 
 

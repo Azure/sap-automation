@@ -7,8 +7,6 @@
 
 #colors for terminal
 bold_red_underscore="\e[1;4;31m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
 #External helper functions
@@ -21,6 +19,9 @@ source "${script_directory}/deploy_utils.sh"
 
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
+detect_platform
+
+banner_title="Remove Deployer"
 
 #Internal helper functions
 function showhelp {
@@ -32,7 +33,7 @@ function showhelp {
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
 	echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-	echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
+	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing sap-automation repo    #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
 	echo "#   ~/.sap_deployment_automation folder                                                 #"
@@ -75,8 +76,8 @@ while :; do
 		;;
 	-h | --help)
 		showhelp
-		exit 3
 		shift
+		exit 3
 		;;
 	--)
 		shift
@@ -97,27 +98,19 @@ param_dirname=$(dirname "${parameterfile}")
 echo "Parameter file:                       ${parameterfile}"
 
 if [ ! -f "${parameterfile}" ]; then
-	printf -v val %-40.40s "$parameterfile"
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#               Parameter file does not exist: ${val} #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	printf -v val '%-40.40s' "$parameterfile"
+	print_banner "$banner_title" "Parameter file not found: ${val}" "info"
 	exit 2 #No such file or directory
 fi
 
 if [ "$param_dirname" != '.' ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#   Please run this command from the folder containing the parameter file               #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "$banner_title" "Please run this command from the folder containing the parameter file" "info"
 	exit 3
 fi
 
 # Check that parameter files have environment and location defined
+environment=""
+region_code=""
 validate_key_parameters "$parameterfile"
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -126,12 +119,12 @@ fi
 
 region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 # Convert the region to the correct code
-get_region_code $region
+get_region_code "$region"
 
 #Persisting the parameters across executions
 automation_config_directory=~/.sap_deployment_automation/
-generic_environment_file_name="${automation_config_directory}"config
-deployer_environment_file_name="${automation_config_directory}""${environment}""${region_code}"
+generic_environment_file_name="${automation_config_directory}/config"
+deployer_environment_file_name="${automation_config_directory}${environment}${region_code}"
 
 load_config_vars "${deployer_environment_file_name}" "step"
 
@@ -140,7 +133,7 @@ param_dirname=$(pwd)
 init "${automation_config_directory}" "${generic_environment_file_name}" "${deployer_environment_file_name}"
 
 var_file="${param_dirname}"/"${parameterfile}"
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 validate_exports
 return_code=$?
 if [ 0 != $return_code ]; then
@@ -167,13 +160,7 @@ if [ -f terraform.tfvars ]; then
 	extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                             Running Terraform destroy                                 #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "$banner_title" "Running Terraform destroy" "info"
 
 parallelism=10
 
@@ -182,41 +169,31 @@ if [[ -n "$TF_PARALLELLISM" ]]; then
 	parallelism="$TF_PARALLELLISM"
 fi
 
-if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -refresh=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee -a destroy_output.json; then
-	return_value=$?
-	echo ""
-	echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
-	echo ""
+if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -refresh=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee destroy_output.json; then
+	return_value=${PIPESTATUS[0]}
+	print_banner "$banner_title" "Terraform destroy succeeded" "success"
 else
-	return_value=$?
-	echo ""
-	echo -e "${bold_red}Terraform destroy:                     failed$reset_formatting"
-	echo ""
+	return_value=${PIPESTATUS[0]}
+	print_banner "$banner_title" "Terraform destroy failed" "error"
 fi
 
 if [ -f destroy_output.json ]; then
 	errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
 
 	if [[ -n $errors_occurred ]]; then
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                      $bold_red_underscore!!! Errors during the destroy phase !!!$reset_formatting                          #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "$banner_title" "Errors during the destroy phase" "error"
 
 		return_value=2
 		all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
 		if [[ -n ${all_errors} ]]; then
-			readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+			readarray -t errors_strings < <(echo "${all_errors}" | jq -c '.')
 			for errors_string in "${errors_strings[@]}"; do
 				string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
 				if [[ -z ${string_to_report} ]]; then
 					string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
 				fi
 
-				echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+				echo -e "$bold_red_underscore  $string_to_report $reset_formatting"
 				echo "##vso[task.logissue type=error]${string_to_report}"
 
 			done
@@ -229,19 +206,14 @@ if [ -f destroy_output.json ]; then
 	rm destroy_output.json
 fi
 
-if [ 0 == $return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                             Deployer removed successfully                             #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+if [ 0 == "$return_value" ]; then
+	print_banner "$banner_title" "Deployer removed successfully" "success"
 	step=0
+	export step
 	save_config_var "step" "${deployer_environment_file_name}"
 fi
 
 unset TF_DATA_DIR
 
 echo "Return from remove_deployer.sh"
-exit $return_value
+exit "$return_value"

@@ -86,15 +86,17 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Stop HANA on both nodes"
           when:
                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
-          ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+          ansible.builtin.include_tasks:
+            file:                      ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+            apply:
+              environment:
+                PATH:                  /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                HOME:                  /usr/sap/{{ db_sid | upper }}/home
+                DIR_LIBRARY:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                LD_LIBRARY_PATH:       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                SAPSYSTEMNAME:         "{{ db_sid | upper }}"
           vars:
             allow_world_readable_tmpfiles: true
-          environment:
-            PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            HOME:                          /usr/sap/{{ db_sid | upper }}/home
-            DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-            SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
         - name:                        "5.8 HANA Pacemaker Scale-out - Copy Python hooks from /usr/share/SAPHanaSR-ScaleOut/ to /hana/shared/myHooks/ (RHEL)"
           ansible.builtin.copy:
@@ -173,7 +175,17 @@
         - name:                        "5.8 HANA Pacemaker Scale-out - Start HANA on both nodes"
           when:
                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
-          ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+          ansible.builtin.include_tasks:
+            file:                        ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+            apply:
+              environment:
+                PATH:                    /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                HOME:                    /usr/sap/{{ db_sid | upper }}/home
+                DIR_LIBRARY:             /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                LD_LIBRARY_PATH:         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                SAPSYSTEMNAME:           "{{ db_sid | upper }}"
+          vars:
+            allow_world_readable_tmpfiles: true
 
 # # REDHAT only
 # # This needs to be run on all the nodes where HANA is deployed.

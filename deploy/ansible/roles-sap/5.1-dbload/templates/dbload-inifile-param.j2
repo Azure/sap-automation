@@ -1,3 +1,4 @@
+{# This is a SAP parameter input file, not YAML #}
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
@@ -26,7 +27,7 @@ HDB_Schema_Check_Dialogs.dropSchema                                   = true
 NW_ABAP_Import_Dialog.migmonJobNum                                    = 12
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 
-{% if platform | upper == 'HANA' %}
+{% if platform | upper == 'HANA' and application_type | upper == 'ABAP' %}
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
@@ -53,6 +54,24 @@ NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
+{% endif %}
+
+{% if platform | upper == 'HANA' and application_type | upper == 'JAVA' %}
+
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT
+
+HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
+
+NW_HDB_DB.javaSchemaName                                              = SAPJAVA1
+NW_HDB_DB.javaSchemaPassword                                          = {{ main_password }}
+NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
+NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
+NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
+NW_HDB_getDBInfo.usingSSL                                             = true
+NW_JAVA_Export.keyPhrase                                              = {{ main_password }}
 
 {% endif %}
 
@@ -99,6 +118,11 @@ SAPINST.CD.PACKAGE.CD3                                                = {{ targe
 
 {% endif %}
 
+{% if platform | upper == 'ORACLE-ASM' and instance_type | upper == 'JAVA' %}
+storageBasedCopy.ora.JavaSchema                                       = SAPSR3DB
+{% endif %}
+
+
 {% if platform | upper == 'ORACLE' %}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
 
@@ -121,13 +145,16 @@ storageBasedCopy.ora.swowner                                          = oracle
 SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
 SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
 SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+
+{% endif %}
+
+{% if platform | upper == 'ORACLE' and instance_type | upper == 'JAVA' %}
+storageBasedCopy.ora.JavaSchema                                       = SAPSR3DB
 {% endif %}
 
 
+{% if platform | upper == 'SYBASE' %}
 
-{% if platform | upper == 'ASE' %}
-
-# Sort order configuration of the database server
 SYB.NW_DB.aseSortOrder                                                  = binaryalt
 
 # Only if you use the 'autoextend' feature: Increment size for the SAP database default segment in GB

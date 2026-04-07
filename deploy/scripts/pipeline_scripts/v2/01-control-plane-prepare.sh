@@ -18,7 +18,7 @@ source "${parent_directory}/helper.sh"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "${SYSTEM_DEBUG:-false}" == true ]; then
+	if [ "${SYSTEM_DEBUG:-false}" == "true" ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"

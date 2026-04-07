@@ -93,7 +93,7 @@ database_vm_image = {
 
 #database_vm_zones=["1","2"]
 #database_vm_useDHCP=false
-#database_HANA_use_ANF_scaleout_scenario=false
+#database_HANA_use_scaleout_scenario=false
 
 #Application tier
 enable_app_tier_deployment = true

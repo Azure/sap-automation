@@ -34,6 +34,7 @@ locals {
                                                                                                data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (
                                                                                                " "),
                                                                                              " ")))
+                                          management_network_id          = var.management_network_id
                                          }
   key_vault                            = {
                                            id                        = coalesce(try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,""), var.spn_keyvault_id, local.spn_key_vault_arm_id)

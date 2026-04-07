@@ -176,13 +176,13 @@ variable "enable_firewall_for_keyvaults_and_storage" {
                                                      }
 
 variable "public_network_access_enabled"        {
-                                                  description = "Defines if the public access should be enabled for keyvaults and storage accounts"
+                                                  description = "Defines if the public access should be enabled for key vaults and storage accounts"
                                                   default     = false
                                                   type        = bool
                                                 }
 
 variable "peer_with_control_plane_vnet"         {
-                                                  description = "Defines in the SAP VNet will be peered with the controlplane VNet"
+                                                  description = "Defines in the SAP VNet will be peered with the control plane VNet"
                                                   type        = bool
                                                   default     = true
                                                 }

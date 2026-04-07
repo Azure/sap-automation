@@ -27,7 +27,7 @@ locals {
 
 
   # Conditions for credential retrieval
-  retrieve_subscription_from_kv                = length(var.subscription_id) == 0 && var.use_spn
+  retrieve_subscription_from_kv                = length(var.subscription_id) == 0 
   retrieve_cp_credentials                      = var.use_spn && length(local.control_plane_name_resolved) > 0
 }
 

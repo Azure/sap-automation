@@ -20,6 +20,7 @@ resource "time_sleep" "wait_for_keyvault" {
                                           role_assignment_msi_officer = try(azurerm_role_assignment.role_assignment_msi_officer[0].id, "")
                                           role_assignment_ssi_officer = try(azurerm_role_assignment.role_assignment_system_identity[0].id, "")
                                           role_assignment_spn = try(azurerm_role_assignment.role_assignment_spn[0].id, "")
+                                          role_assignment_msi_officer_bootstrap = try(azurerm_role_assignment.role_assignment_msi_officer_bootstrap[0].id, "")
 
                                           endpoint_kv_user = try(azurerm_private_endpoint.kv_user[0].id, "")
                                         }
@@ -139,16 +140,11 @@ resource "azurerm_key_vault_access_policy" "kv_user_systemidentity" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_pre_deployer" {
   provider                             = azurerm.main
-  count                                = var.key_vault.enable_rbac_authorization ? 0 : length(var.spn_id) != 36 ? 0 : 1
+  count                                = var.key_vault.enable_rbac_authorization ? 0 : 1
 
-  key_vault_id                         = azurerm_key_vault.kv_user[0].id
+  key_vault_id                         = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   tenant_id                            = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].tenant_id : data.azurerm_user_assigned_identity.deployer[0].tenant_id
-  # If running as a normal user use the object ID of the user otherwise use the object_id from AAD
-  object_id                            = coalesce((length(var.spn_id) != 36 ? var.spn_id : ""),
-                                            data.azurerm_client_config.deployer.object_id,
-                                            (length(var.arm_client_id) != 36 ? var.arm_client_id : "")
-                                          )
-  #application_id = data.azurerm_client_config.deployer.client_id
+  object_id                            = coalesce(var.spn_id, var.arm_client_id, data.azurerm_client_config.deployer.object_id)
 
   secret_permissions                   = [
                                            "Get",

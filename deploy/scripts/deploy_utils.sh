@@ -18,11 +18,15 @@ fi
 
 function save_config_var() {
 	local var_name=$1 var_file=$2
+	
 	if [ -f "${var_file}" ]; then
 		sed -i -e "" -e /$var_name/d "${var_file}"
+	else
+		echo "File ${var_file} does not exist."
 	fi
-
 	echo "${var_name}=${!var_name}" >>"${var_file}"
+
+	
 }
 
 function save_config_vars() {
@@ -129,26 +133,82 @@ function getAndStoreTerraformStateStorageAccountDetails {
 
 	echo "Trying to find the storage account:  ${REMOTE_STATE_SA}"
 
-	save_config_vars "${config_file_name}" REMOTE_STATE_SA
-	if [ -z "$STATE_SUBSCRIPTION" ]; then
-		tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" --output tsv)
-		REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].resourceGroup | [0]" --output tsv)
-	else
-		tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription "$STATE_SUBSCRIPTION" --query "[].id | [0]" --output tsv)
-		REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription "$STATE_SUBSCRIPTION" --query "[].resourceGroup | [0]" --output tsv)
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
 
-	fi
 	fail_if_null tfstate_resource_id
+	if [ -z "${tfstate_resource_id}" ]; then
+		error_msg "Unable to find the storage account: ${REMOTE_STATE_SA}"
+	else
+		STATE_SUBSCRIPTION=$(echo "${tfstate_resource_id}" | cut -d/ -f3 | tr -d \" | xargs)
+		REMOTE_STATE_RG=$(echo "${tfstate_resource_id}" | cut -d/ -f5 | tr -d \" | xargs)
 
-	export REMOTE_STATE_RG=$REMOTE_STATE_RGNAME
-	export tfstate_resource_id=$tf_resource_id
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		
+		export REMOTE_STATE_RG
+		export STATE_SUBSCRIPTION
+		export TF_VAR_tfstate_resource_id
+		export tfstate_resource_id="${tfstate_resource_id}"
 
-	save_config_vars "${config_file_name}" \
-		REMOTE_STATE_RG \
-		tfstate_resource_id \
-		STATE_SUBSCRIPTION
+		if [ -f "${config_file_name}" ]; then
+
+			save_config_vars "${config_file_name}" \
+				REMOTE_STATE_SA \
+				REMOTE_STATE_RG \
+				tfstate_resource_id \
+				STATE_SUBSCRIPTION
+		fi
+		
+	fi
 	echo "Found the storage account:           ${REMOTE_STATE_SA}"
 }
+
+function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
+	local config_file_name="${1}"
+	if [ -f ".terraform/terraform.tfstate" ]; then
+
+		terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
+		if [[ -n "${terraform_storage_account_name}" ]]; then
+			export terraform_storage_account_subscription_id
+			export terraform_storage_account_name
+			export terraform_storage_account_resource_group_name
+
+			REMOTE_STATE_SA="${terraform_storage_account_name}"
+			REMOTE_STATE_RG="${terraform_storage_account_resource_group_name}"
+			STATE_SUBSCRIPTION="${terraform_storage_account_subscription_id}"
+			TF_VAR_management_subscription_id="${terraform_storage_account_subscription_id}"
+			export TF_VAR_management_subscription_id
+
+			tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
+
+			fail_if_null tfstate_resource_id
+			if [ -z "${tfstate_resource_id}" ]; then
+				error_msg "Unable to find the storage account: ${REMOTE_STATE_SA}"
+			else
+				
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+				
+				export REMOTE_STATE_RG
+				export STATE_SUBSCRIPTION
+				export TF_VAR_tfstate_resource_id
+
+
+				if [ -f "${config_file_name}" ]; then
+
+					save_config_vars "${config_file_name}" \
+						REMOTE_STATE_SA \
+						REMOTE_STATE_RG \
+						tfstate_resource_id \
+						STATE_SUBSCRIPTION
+				fi
+		
+			fi
+		fi
+	fi
+}
+
 
 ##############################################################################
 # Function to get the value of a variable from the Azure App Configuration
@@ -597,7 +657,7 @@ function valid_region_code() {
 # An Keyvault name value must be made up of letters and numbers
 # an uppercase letter.
 function valid_kv_name() {
-	if [[ "${keyvault}" =~ "^[A-Za-z0-9]{1,10}$" ]]; then
+	if [[ "${keyvault:-}" =~ "^[A-Za-z0-9]{1,10}$" ]]; then
 		return 1
 	else
 		return 0
@@ -629,17 +689,43 @@ function get_configuration_file {
 	local region_code=$3
 	local logical_network_name=$4
 
+	local defaultConfigFile="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation/${environment}${region_code}${logical_network_name}"
 	local configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
-
+	
 	if [ ! -f "${configurationFile}" ]; then
 		configurationFile="${directory}/${environment}${region_code}"
 		if [ ! -f "${configurationFile}" ]; then
 			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		else
 			sudo mv "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			if [ -f "${defaultConfigFile}" ]; then
+				configurationFile="${defaultConfigFile}"
+				echo "Found configuration file in default location: ${configurationFile}"
+				echo "Copying configuration file to expected location: ${directory}/${environment}${region_code}${logical_network_name}"
+				sudo cp -ap "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			else
+			  sudo mv "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			fi
 			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		fi
 	fi
 
 	echo "${configurationFile}"
+}
+
+
+function detect_platform() {
+	if [ -n "${GITHUB_ACTIONS+x}" ]; then
+		PLATFORM="github"
+	elif [ -n "${TF_BUILD+x}" ]; then
+		PLATFORM="devops"
+	else
+		# Default to CLI for interactive use
+		if [[ -z "${PLATFORM:-}" ]]; then 
+			PLATFORM="cli"
+		fi
+	fi
+	export PLATFORM
+	echo "Using platform:                      ${PLATFORM}"
+
 }

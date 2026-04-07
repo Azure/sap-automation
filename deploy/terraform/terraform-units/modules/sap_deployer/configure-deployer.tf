@@ -39,7 +39,9 @@ resource "null_resource" "prepare-deployer" {
                                              app_token            = var.infrastructure.devops.app_token,
                                              platform             = var.infrastructure.devops.platform,
                                              repository           = var.infrastructure.devops.repository,
-                                             server_url           = var.infrastructure.devops.server_url
+                                             server_url           = var.infrastructure.devops.server_url,
+                                             organization         = var.infrastructure.devops.organization,
+                                             branch               = var.infrastructure.devops.branch
                                              }
                                            )
 
@@ -83,7 +85,10 @@ resource "local_file" "configure_deployer" {
                                            app_token            = var.infrastructure.devops.app_token,
                                            platform             = var.infrastructure.devops.platform,
                                            repository           = var.infrastructure.devops.repository,
-                                           server_url           = var.infrastructure.devops.server_url
+                                           server_url           = var.infrastructure.devops.server_url,
+                                           organization         = var.infrastructure.devops.organization,
+                                           branch               = var.infrastructure.devops.branch
+
                                            }
                                          )
   filename                             = format("%s/configure_deployer.sh", path.cwd)

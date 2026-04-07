@@ -170,6 +170,13 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     current_bom_name:                  "{{ root_bom_name }}"
     upload:                            true
+
+- name:                                "0.1 BoM Validator - Create the root media list"
+  ansible.builtin.set_fact:
+    root_media_list:                   >-
+      {% if local_media_list is defined %}{{ local_media_list }}{% else %}{{ bom.materials.media
+      | flatten(levels=1) }}{% endif %}
+
 # Step: 04 - END
 # -------------------------------------+---------------------------------------8
 
@@ -239,6 +246,9 @@
 
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies | length > 0
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
@@ -249,9 +259,6 @@
   loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
-  when:
-    - bom.materials.dependencies is defined
-    - bom.materials.dependencies | length > 0
 
 - name:                                "0.1 BoM Validator - Process kernel BOM"
   when:
@@ -271,6 +278,9 @@
     - bom is defined
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
+  when:
+    - bom.materials.dependencies is defined
+    - bom.materials.dependencies | length > 0
   ansible.builtin.include_tasks:       bom_validator.yaml
   vars:
     account:                           "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
@@ -281,11 +291,8 @@
   loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
     loop_var:                          bom_dependency
-  when:
-    - bom.materials.dependencies is defined
-    - bom.materials.dependencies | length > 0
 
-- name:                                "0.1 BoM Validator -  - Show Application, Database, and Kernel BOMs"
+- name:                                "0.1 BoM Validator - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:
     msg:
       - "Application Platform                {{ root_bom.platform | default('Not defined') }}"
@@ -321,10 +328,13 @@
 #
 - name:                                "0.1 BoM Validator - Filter combined BoM"
   ansible.builtin.set_fact:
-    root_media_list:                   "{{ root_media_list | unique(attribute='archive') | list }}"
+    root_media_list:                   "{{ root_media_list | flatten | select('mapping') | unique(attribute='archive') | list }}"
 # Step: 07 - END
 # -------------------------------------+---------------------------------------8
 
+- name:                               "0.1 BoM Validator - Show media List"
+  ansible.builtin.debug:
+    var:                              root_media_list
 
 # -------------------------------------+---------------------------------------8
 # Step: 08
@@ -367,7 +377,7 @@
     state:                             directory
     mode:                              0755
 
-- name:                                "0.1 BOM Validator: - write combined BoM"
+- name:                                "0.1 BOM Validator - Write combined BoM"
   become:                              true
   become_user:                         "{{ orchestration_ansible_user }}"
   delegate_to:                         localhost
@@ -395,7 +405,7 @@
 # Step: 10-01
 # Description:
 #
-    - name:                               "0.1 BoM Validator - delete combined BoM using SAS Token"
+    - name:                               "0.1 BoM Validator - Delete combined BoM using SAS Token"
       ansible.builtin.command: >-
                                           az storage blob delete
                                             --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}
@@ -474,7 +484,7 @@
 # Step: 10-01
 # Description:
 #
-    - name:                               "0.1 BoM Validator - delete combined BoM"
+    - name:                               "0.1 BoM Validator - Delete combined BoM"
       ansible.builtin.command: >-
                                           az storage blob delete
                                             --account-name {{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}

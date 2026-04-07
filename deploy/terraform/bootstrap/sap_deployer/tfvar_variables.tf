@@ -521,7 +521,7 @@ variable "spn_id"                                     {
 
 variable "public_network_access_enabled"              {
                                                         description = "Boolean value indicating if public access should be enabled for key vaults and storage"
-                                                        default     = true
+                                                        default     = false
                                                         type        = bool
                                                       }
 
@@ -792,6 +792,8 @@ variable "add_system_assigned_identity"              {
 
 variable "use_spn"                                   {
                                                        description = "Log in using a service principal when performing the deployment"
+                                                       default     = false
+                                                       type        = bool
 
                                                      }
 
@@ -832,4 +834,53 @@ variable "application_configuration_name"          {
                                                     description = "Defines the Azure application configuration name"
                                                     type        = string
                                                     default     = ""
+                                                 }
+
+
+#######################################4#######################################8
+#                                                                              #
+#                          Network Security Perimeter definitions              #
+#                                                                              #
+#######################################4#######################################8
+
+variable "network_security_perimeter_deployment"  {
+                                                    description = "If defined, will add the Microsoft.Azure.NetworkSecurityPerimeter"
+                                                    default     = false
+                                                 }
+
+
+variable "network_security_perimeter_name"     {
+                                                  description = "If provided, the name of the network security perimeter to be created"
+                                                  default     = ""
+                                                }
+
+variable "network_security_access_mode"         {
+                                                  description = "If provided, the access mode for the network security perimeter association. Possible values are Audit, Enforced, and Learning."
+                                                  default     = "Enforced"
+                                                }
+
+variable "network_security_perimeter_id"       {
+                                                  description = "If provided, the Azure network security perimeter id"
+                                                  default     = ""
+                                                  validation {
+                                                    condition     = length(var.network_security_perimeter_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.network_security_perimeter_id))
+                                                    error_message = "If specified the 'network_security_perimeter_id' variable must be a correct Azure resource identifier."
+                                                  }
+                                                }
+
+
+#######################################4#######################################8
+#                                                                              #
+#                             Repository parameters                            #
+#                                                                              #
+#######################################4#######################################8
+
+variable "organization"                          {
+                                                    description = "If defined, The GitHub organization name"
+                                                    default     = "Azure"
+                                                 }
+
+variable "branch"                                {
+                                                    description = "If defined, The branch name to use for configuration of the deployer"
+                                                    default     = "main"
                                                  }

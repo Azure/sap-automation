@@ -49,7 +49,7 @@
   ansible.builtin.set_fact:
     this_bom_name:                      "{{ current_bom_name | default(bom_base_name + bom_suffix) }}"
 
-- name:                                "3.3.1 BoM Processing - Show new name"
+- name:                                "3.3.1 BoM Processing - Show the new name"
   ansible.builtin.debug:
     msg:
       - "BoM Name:   {{ this_bom_name }}"
@@ -111,7 +111,6 @@
   when:
     - result is succeeded or result is skipped
     - sa_enabled | default(false)
-    # - sa_enabled is not defined or sa_enabled | bool
   block:
 
 # -------------------------------------+---------------------------------------8
@@ -273,7 +272,7 @@
 
 - name:                                "{{ task_prefix }} Append the file list"
   ansible.builtin.set_fact:
-    root_media_list:                   "{% if root_media_list is defined %}{{ root_media_list + bom.materials.media | flatten(levels=1) }}{% else %}{{ bom.materials.media | flatten(levels=1) }}{% endif %}"
+    local_media_list:                   "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - bom is defined
     - bom.materials is defined
@@ -284,7 +283,7 @@
   ansible.builtin.debug:
     msg:
       - "BoM: {{ bom }}"
-      - "Media: {{ root_media_list }}"
+      - "Media: {{ local_media_list }}"
       - "Patch information: {{ patch_information | default('No patch information') }}"
     verbosity:                          2
 

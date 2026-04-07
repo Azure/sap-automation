@@ -30,8 +30,8 @@ locals {
 
   deployer_subscription_id             = coalesce(
                                            try(data.terraform_remote_state.deployer[0].outputs.created_resource_group_subscription_id,""),
-                                           length(var.spn_keyvault_id) > 0 ? (split("/", var.spn_keyvault_id)[2]) : (""),
-                                           local.SAPLibrary_subscription_id
+                                           local.SAPLibrary_subscription_id,
+                                           length(var.spn_keyvault_id) > 0 ? (split("/", var.spn_keyvault_id)[2]) : ("")                                           
                                            )
 
   # spn                                  = {

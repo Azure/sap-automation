@@ -95,7 +95,6 @@ function print_banner() {
 	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
 
 	echo ""
-	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_title}${reset}#"
@@ -109,7 +108,6 @@ function print_banner() {
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"
-	echo -e "${reset}"
 	echo ""
 }
 
@@ -131,7 +129,7 @@ function show_help_installer_v2 {
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo "#   This file contains the logic to deploy the different systems                        #"
+	echo -e "# $cyan  This file contains the logic to deploy the different systems $reset_formatting                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
 	echo "#   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                      #"
@@ -563,21 +561,29 @@ function workload_zone_showhelp {
 	echo "#      -p or --parameterfile                deployer parameter file                           #"
 	echo "#                                                                                             #"
 	echo "#   Optional parameters                                                                       #"
+	echo "#            --control_plane_name            Control Plane Name, i.e. MGMT-WEEU-DEP00         #"
 	echo "#      -d or --deployer_tfstate_key          Deployer terraform state file name               #"
 	echo "#      -e or --deployer_environment          Deployer environment, i.e. MGMT                  #"
+	echo "#                                                                                             #"
 	echo "#      -s or --subscription                  subscription                                     #"
 	echo "#      -k or --state_subscription            subscription for statefile                       #"
-	echo "#      -c or --spn_id                        SPN application id                               #"
-	echo "#      -p or --spn_secret                    SPN password                                     #"
-	echo "#      -t or --tenant_id                     SPN Tenant id                                    #"
-	echo "#      -f or --force                         Clean up the local Terraform files.              #"
-	echo "#      -i or --auto-approve                  Silent install                                   #"
+	echo "#                                                                                             #"
+	echo "#      -m or --msi                           If using Managed Service Identity                #"
+	echo "#       or                                                                                    #"
+	echo "#      -c or --spn_id                        (if using SPN) SPN application id                #"
+	echo "#      -t or --tenant_id                     (if using SPN) SPN Tenant id                     #"
+	echo "#      -p or --spn_secret                    (if using SPN) SPN password                      #"
+	echo "#                                                                                             #"
+	echo "#      -f or --force                         Ignore local Terraform files.                    #"
+	echo "#      -i or --auto-approve                  Silent install (will import existing resources)  #"
 	echo "#      -h or --help                          Help                                             #"
 	echo "#                                                                                             #"
 	echo "#   Example:                                                                                  #"
 	echo "#                                                                                             #"
 	echo "#   [REPO-ROOT]deploy/scripts/install_workloadzone.sh \                                       #"
 	echo "#      --parameterfile PROD-WEEU-SAP01-INFRASTRUCTURE                                         #"
+	echo "#      --control_plane_name MGMT-WEEU-DEP00                                                   #"
+	echo "#      --msi --auto-approve                                                 #"
 	echo "#                                                                                             #"
 	echo "#   Example:                                                                                  #"
 	echo "#                                                                                             #"
@@ -589,7 +595,7 @@ function workload_zone_showhelp {
 	echo "#      --spn_secret ************************ \                                                #"
 	echo "#      --spn_secret yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                    #"
 	echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz \                                     #"
-	echo "#      --auto-approve                                                                         #"
+	echo "#                                                                                             #"
 	echo "##############################################################################################"
 }
 
@@ -609,30 +615,34 @@ function workload_zone_missing {
 	printf -v val %-.40s "$1"
 	echo ""
 	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#   Missing environment variables: ${val}!!!              #"
-	echo "#                                                                                       #"
-	echo "#   Please export the folloing variables:                                               #"
-	echo "#   SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                 #"
-	echo "#   CONFIG_REPO_PATH (path to the configuration repo folder (sap-config)                #"
-	echo "#                                                                                       #"
-	echo "#   Usage: install_workloadzone.sh                                                      #"
-	echo "#      -p or --parameterfile                deployer parameter file                     #"
-	echo "#                                                                                       #"
-	echo "#   Optional parameters                                                                 #"
-	echo "#      -d or --deployer_tfstate_key          Deployer terraform state file name         #"
-	echo "#      -e or --deployer_environment          Deployer environment, i.e. MGMT            #"
-	echo "#      -k or --state_subscription            subscription of keyvault with SPN details  #"
-	echo "#      -v or --keyvault                      Name of Azure keyvault with SPN details    #"
-	echo "#      -s or --subscription                  subscription                               #"
-	echo "#      -c or --spn_id                        SPN application id                         #"
-	echo "#      -o or --storageaccountname            Storage account for terraform state files  #"
-	echo "#      -n or --spn_secret                    SPN password                               #"
-	echo "#      -t or --tenant_id                     SPN Tenant id                              #"
-	echo "#      -f or --force                         Clean up the local Terraform files.        #"
-	echo "#      -i or --auto-approve                  Silent install                             #"
-	echo "#      -h or --help                          Help                                       #"
+	echo "##############################################################################################"
+	echo "#                                                                                             #"
+	echo "#   Missing environment variables: ${val}!!!                    #"
+	echo "#                                                                                             #"
+	echo "#   Please export the folloing variables:                                                     #"
+	echo "#   SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))                       #"
+	echo "#   CONFIG_REPO_PATH (path to the configuration repo folder (sap-config)                      #"
+	echo "#                                                                                             #"
+	echo "#   Usage: install_workloadzone.sh                                                            #"
+	echo "#      -p or --parameterfile                deployer parameter file                           #"
+	echo "#                                                                                             #"
+	echo "#   Optional parameters                                                                       #"
+	echo "#            --control_plane_name            Control Plane Name, i.e. MGMT-WEEU-DEP00         #"
+	echo "#      -d or --deployer_tfstate_key          Deployer terraform state file name               #"
+	echo "#      -e or --deployer_environment          Deployer environment, i.e. MGMT                  #"
+	echo "#                                                                                             #"
+	echo "#      -s or --subscription                  subscription                                     #"
+	echo "#      -k or --state_subscription            subscription for statefile                       #"
+	echo "#                                                                                             #"
+	echo "#      -m or --msi                           If using Managed Service Identity                #"
+	echo "#       or                                                                                    #"
+	echo "#      -c or --spn_id                        (if using SPN) SPN application id                #"
+	echo "#      -p or --spn_secret                    (if using SPN) SPN password                      #"
+	echo "#      -t or --tenant_id                     (if using SPN) SPN Tenant id                     #"
+	echo "#                                                                                             #"
+	echo "#      -f or --force                         Ignore local Terraform files.                    #"
+	echo "#      -i or --auto-approve                  Silent install (will import existing resources)  #"
+	echo "#      -h or --help                          Help                                             #"
 	echo "#########################################################################################"
 }
 
@@ -659,7 +669,7 @@ function validate_exports {
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
-		echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
+		echo "#      ARM_SUBSCRIPTION_ID (target subscription)                                        #"
 		echo "#      CONFIG_REPO_PATH (path to the configuration repo folder (sap-config))            #"
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
@@ -675,7 +685,7 @@ function validate_exports {
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      CONFIG_REPO_PATH (path to the repo folder (sap-automation))                      #"
-		echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
+		echo "#      ARM_SUBSCRIPTION_ID (target subscription)                                        #"
 		echo "#      CONFIG_REPO_PATH (path to the configuration repo folder (sap-config))            #"
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
@@ -690,7 +700,7 @@ function validate_exports {
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
-		echo "#      ARM_SUBSCRIPTION_ID (subscription containing the state file storage account)     #"
+		echo "#      ARM_SUBSCRIPTION_ID (target subscription)                                        #"
 		echo "#      CONFIG_REPO_PATH (path to the configuration repo folder (sap-config))            #"
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
@@ -702,7 +712,7 @@ function validate_exports {
 
 #########################################################################################
 #                                                                                       #
-# Function to validate the WEb App exports needed for the script                        #
+# Function to validate the App Service exports needed for the script                        #
 # Arguments:                                                                            #
 #   None                                                                                #
 # Returns:                                                                              #
@@ -770,20 +780,20 @@ function showhelp {
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo "#   This file contains the logic to deploy the different systems                        #"
+	echo -e "#  $cyan This file contains the logic to deploy the different systems $reset_formatting                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
-	echo "#   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                      #"
-	echo "#   SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation#"
-	echo "#   CONFIG_REPO_PATH (path to the configuration repo folder (sap-config)                #"
+	echo -e "#   $cyan ARM_SUBSCRIPTION_ID $reset_formatting       to specify which subscription to deploy to              #"
+	echo -e "#   $cyan SAP_AUTOMATION_REPO_PATH $reset_formatting  the path to the folder containing sap-automation clone  #"
+	echo -e "#   $cyan CONFIG_REPO_PATH $reset_formatting          (path to the configuration repo folder (sap-config)     #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
-	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                 #"
+	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo "#   Usage: installer.sh                                                                 #"
+	echo -e "#   $cyan Usage:$reset_formatting installer.sh                                                                 #"
 	echo "#    -p or --parameterfile           parameter file                                     #"
-	echo "#    -t or --type                         type of system to remove                      #"
+	echo "#    -t or --type                    type of system to install                          #"
 	echo "#                                         valid options:                                #"
 	echo "#                                           sap_deployer                                #"
 	echo "#                                           sap_library                                 #"
@@ -792,20 +802,95 @@ function showhelp {
 	echo "#                                                                                       #"
 	echo "#   Optional parameters                                                                 #"
 	echo "#                                                                                       #"
-	echo "#    -o or --storageaccountname      Storage account name for state file                #"
-	echo "#    -s or --state_subscription      Subscription for tfstate storage account           #"
-	echo "#    -i or --auto-approve            Silent install                                     #"
-	echo "#    -h or --help                    Show help                                          #"
+	echo "#    --control_plane_name              Name of Control Plane                    #"
+	echo "#    -d or --deployer_tfstate_key      Deployer Terraform state key                     #"
+	echo "#    -l or --landscape_tfstate_key     Landscape Terraform state key                    #"
+	echo "#    -o or --storageaccountname        Storage account name for state file              #"
+	echo "#    -s or --state_subscription        Subscription for tfstate storage account         #"
+	echo "#    -i or --auto-approve              Silent install                                   #"
+	echo "#    -h or --help                      Show help                                        #"
 	echo "#                                                                                       #"
 	echo "#   Example:                                                                            #"
 	echo "#                                                                                       #"
-	echo "#   [REPO-ROOT]deploy/scripts/installer.sh \                                            #"
+	echo "#   installer.sh \                                                                      #"
 	echo "#      --parameterfile DEV-WEEU-SAP01-X00 \                                             #"
+	echo "#      --type sap_system                                                                #"
+	echo "#      --auto-approve                                                                   #"
+	echo "#                                                                                       #"
+	echo "#   installer.sh \                                                                      #"
+	echo "#      --parameterfile DEV-WEEU-SAP01-X00 \                                             #"
+	echo "#      --control_plane_name MGMT-WEEU-DEP00 \                                           #"
 	echo "#      --type sap_system                                                                #"
 	echo "#      --auto-approve                                                                   #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 }
+
+#########################################################################################
+#                                                                                       #
+# Function to show help for the installer script                                        #
+# Arguments:                                                                            #
+#   None                                                                                #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:                                                                        #
+#   show_help_remover                                                                   #
+#                                                                                       #
+#########################################################################################
+
+
+function showhelp_remover {
+
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                 $bold_red_underscore !Warning!: This script will remove deployed systems $reset_formatting                 #"
+	echo "#                                                                                       #"
+	echo -e "#  $cyan This file contains the logic to deploy the different systems $reset_formatting                       #"
+	echo "#   The script experts the following exports:                                           #"
+	echo "#                                                                                       #"
+	echo -e "#   $cyan ARM_SUBSCRIPTION_ID $reset_formatting       to specify which subscription to deploy to              #"
+	echo -e "#   $cyan SAP_AUTOMATION_REPO_PATH $reset_formatting  the path to the folder containing sap-automation clone  #"
+	echo -e "#   $cyan CONFIG_REPO_PATH $reset_formatting          (path to the configuration repo folder (sap-config)     #"
+	echo "#                                                                                       #"
+	echo "#                                                                                       #"
+	echo "#   The script will persist the parameters needed between the executions in the         #"
+	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder.                               #"
+	echo "#                                                                                       #"
+	echo "#                                                                                       #"
+	echo "#   Usage: remover.sh                                                                   #"
+	echo "#    -p or --parameterfile           parameter file                                     #"
+	echo "#    -t or --type                    type of system to remove                           #"
+	echo "#                                         valid options:                                #"
+	echo "#                                           sap_deployer                                #"
+	echo "#                                           sap_library                                 #"
+	echo "#                                           sap_landscape                               #"
+	echo "#                                           sap_system                                  #"
+	echo "#                                                                                       #"
+	echo "#   Optional parameters                                                                 #"
+	echo "#                                                                                       #"
+	echo "#    --control_plane_name            Name of Control Plane                              #"
+	echo "#    -d or --deployer_tfstate_key    Deployer Terraform state key                       #"
+	echo "#    -l or --landscape_tfstate_key   Landscape Terraform state key                      #"
+	echo "#    -o or --storageaccountname      Name of storage account containing state file      #"
+	echo "#    -s or --state_subscription      Subscription containing state file                 #"
+	echo "#    -h or --help                    Show help                                          #"
+	echo "#                                                                                       #"
+	echo "#   Example:                                                                            #"
+	echo "#                                                                                       #"
+	echo "#   remover.sh \                                                                        #"
+	echo "#      --parameterfile DEV-WEEU-SAP01-X00.tfvars \                                      #"
+	echo "#      --type sap_system                                                                #"
+	echo "#                                                                                       #"
+	echo "#   remover.sh \                                                                        #"
+	echo "#      --parameterfile DEV-WEEU-SAP01-X00.tfvars \                                      #"
+	echo "#      --control_plane_name MGMT-WEEU-DEP00 \                                           #"
+	echo "#      --type sap_system                                                                #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+}
+
 
 #########################################################################################
 #                                                                                       #
@@ -863,7 +948,7 @@ function validate_dependencies {
 
 	echo "Checking Terraform:                  $tfPath"
 
-	if [ "$PLATFORM" == "devops" ]; then
+	if [ "${PLATFORM:-undefined}" == "devops" ]; then
 
 		# if /opt/terraform exists, assign permissions to the user
 		if [ -d /opt/terraform ]; then
@@ -1079,8 +1164,10 @@ function ImportAndReRunApply {
 	local error_count=0
 
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
-	# echo "Import parameters: ${importParameters[*]}"
-	# echo "Apply parameters: ${applyParameters[*]}"
+	if [ "${DEBUG:-false}" = "true" ]; then
+		echo "Import parameters: ${importParameters[*]}"
+		echo "Apply parameters: ${applyParameters[*]}"
+	fi
 
 	if [ -f "$fileName" ]; then
 
@@ -1203,8 +1290,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 					import_return_value=0
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
@@ -1224,8 +1311,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 
-					echo -e "$bold_red Errors occurred during the apply phase:$reset"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset"
+					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
+					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 					error_count=${#errors[@]}
 
@@ -1360,28 +1447,15 @@ function validate_key_vault {
 	fi
 
 	if [ -z "$kv_name_check" ]; then
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#                               $bold_red  Unable to access keyvault: $keyvault_to_check $reset_formatting                            #"
-		echo "#                             Please ensure the key vault exists.                       #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
+		print_banner "Installer" "Unable to access keyvault: $keyvault_to_check" "error" "Please ensure the key vault exists and you have access to it."
 		exit 10
 	fi
 
 	access_error=$(az keyvault secret list --vault "$keyvault_to_check" --subscription "${subscription}" --only-show-errors | grep "The user, group or application" || true)
 	if [ -n "${access_error}" ]; then
-
 		az_subscription_id=$(az account show --query id -o tsv)
 		printf -v val %-40.40s "$az_subscription_id"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#$bold_red User account ${val} does not have access to: $keyvault  $reset_formatting"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-
-		echo "##vso[task.setprogress value=40;]Progress Indicator"
+		print_banner "Installer" "Unable to access keyvault: $keyvault_to_check" "error" "Please ensure the user account has at least secret list permissions to the key vault."
 		return 65
 
 	fi

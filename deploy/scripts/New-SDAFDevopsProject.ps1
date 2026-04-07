@@ -452,7 +452,7 @@ else {
 
   $resources_url = $ADO_ORGANIZATION + "/_git/" + [uri]::EscapeDataString($ADO_Project) + "?path=/pipelines/resources.yml"
 
-  $log = ("Please update [resources.yml](" + $resources_url + ") to point to Github instead of Azure DevOps.")
+  $log = ("Please update [resources.yml](" + $resources_url + ") to point to GitHub instead of Azure DevOps.")
 
 }
 
@@ -637,8 +637,8 @@ Add-Content -Path $fname -Value $log
 if ($true -eq $CreateConnection ) {
   $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
   Write-Host ""
-  Write-Host "The browser will now open, please create a new Github connection, record the name of the connection."
-  Write-Host "URL: " $gh_connection_url
+    Write-Host "The browser will now open, please create a new GitHub connection, record the name of the connection."
+    Write-Host "URL: " $gh_connection_url
   Start-Process $gh_connection_url
   Read-Host "Please press enter when you have created the connection"
 

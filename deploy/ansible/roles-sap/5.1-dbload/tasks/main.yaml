@@ -35,7 +35,7 @@
   when:                                reinstall
 
 # Returns bom object
-- name:                                "5.1 Database Load  - Register BoM"
+- name:                                "5.1 Database Load - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
@@ -44,12 +44,12 @@
     task_prefix:                       "DBLoad: "
     sa_enabled:                        true
 
-- name:                                "DBLoad: Set default instance type"
+- name:                                "5.1 Database Load - Set default instance type"
   ansible.builtin.set_fact:
     instance_type:                     "ASCS"
   when:                                bom.InstanceType is not defined
 
-- name:                                "5.1 Database Load  - register instance type"
+- name:                                "5.1 Database Load - Register instance type"
   ansible.builtin.set_fact:
     instance_type:  >-
                                        {%- set _instance_type = 'ASCS' -%}
@@ -244,13 +244,15 @@
     - name:                            "5.1 Database Load  - Show installation variables"
       ansible.builtin.debug:
         msg:
-          - "INSTALLED:  {{ dbload_installed.stat.exists }}"
-          - "INIFILE:    {{ sap_inifile }}"
-          - "PRODUCT ID: {{ product_id }}"
-          - "INSTANCE:   {{ db_instance_number }}"
-          - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-          - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
-          - "SID:        {{ sid_to_be_deployed.sid | upper }}"
+          - "INSTALLED:      {{ dbload_installed.stat.exists }}"
+          - "INIFILE:        {{ sap_inifile }}"
+          - "PRODUCT ID:     {{ product_id }}"
+          - "INSTANCE:       {{ db_instance_number }}"
+          - "SCSHOST:        {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
+          - "DBHOST:         {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
+          - "SID:            {{ sid_to_be_deployed.sid | upper }}"
+          - "APPLICATION:    {{ application_type }}"
+          - "PLATFORM:       {{ platform }}"
 
         # Import this task only if the tier is ora.
     - name:                            "5.1 Database Load  - Import Oracle specific tasks"
@@ -287,7 +289,7 @@
             jid:                       "{{ dbload_results.ansible_job_id }}"
           register:                    job_result
           until:                       job_result.finished
-          retries:                     "{% if dbload_retry_count is defined %}{{ dbload_retry_count }}{% else %}120{% endif %}"
+          retries:                     "{% if dbload_retry_count is defined %}{{ dbload_retry_count | int }}{% else %}120{% endif %}"
           delay:                       60
           when:                        dbload_results.ansible_job_id is defined
 

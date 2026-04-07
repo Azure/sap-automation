@@ -137,6 +137,7 @@ module "hdb_node" {
   db_asg_id                                     = module.common_infrastructure.db_asg_id
   db_subnet                                     = module.common_infrastructure.db_subnet
   deploy_application_security_groups            = var.deploy_application_security_groups
+  deployer_tfstate                              = try(data.terraform_remote_state.deployer[0].outputs, {})
   deployment                                    = var.deployment
   dns_settings                                  = local.dns_settings
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
@@ -475,11 +476,13 @@ module "output_files" {
   #########################################################################################
   #  Miscallaneous                                                                        #
   #########################################################################################
+  deploy_monitoring_extension                   = var.deploy_v1_monitoring_extension
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
   suse_subscription_id                          = var.suse_subscription_id
   scale_out                                     = var.database_HANA_use_scaleout_scenario
   scale_out_no_standby_role                     = var.database_HANA_no_standby_role
+  user_assigned_identity_id                     = var.user_assigned_identity_id
 
   #########################################################################################
   #  iSCSI                                                                                #

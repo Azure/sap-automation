@@ -32,7 +32,7 @@ else {
 
 $LogFileName = "SDAF-" + $(Get-Date -Format "yyyyMMdd-HHmm") + ".md"
 
-Add-Content -Path $LogFileName "# SDAF Assesment #"
+Add-Content -Path $LogFileName "# SDAF Assessment #"
 Add-Content -Path $LogFileName ""
 $OutputString = "Time of assessment: " + $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 Add-Content -Path $LogFileName $OutputString
@@ -79,7 +79,7 @@ else {
   az logout
 # <BEGIN> MKD 20260217
 # AZ CLI 2.83 - syntax for --service-principal user --username NOT --client-id
-# Update for syntax consistancy across scripts - use the same syntax as in helper.sh and script_helpers.sh
+# Update for syntax consistency across scripts - use the same syntax as in helper.sh and script_helpers.sh
   # az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
 	az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 # <END>   MKD 20260217
@@ -170,7 +170,7 @@ if ($authenticationMethod -ne "User Account") {
   $roleName = $(az role assignment list --assignee $ARM_CLIENT_ID --query "[?roleDefinitionName=='User Access Administrator'].roleDefinitionName" --output tsv)
   if ($null -eq $roleName -or $roleName -eq "") {
     Write-Host "The Service Principal does not have the User Access Administrator role" -ForegroundColor Red
-    Write-Host "Please assign the User Access Administrator role to the Service Principal and re-run the script, alternatively configure the tfvars so that role assignmenta are not performed" -ForegroundColor Red
+    Write-Host "Please assign the User Access Administrator role to the Service Principal and re-run the script, alternatively configure the tfvars so that role assignments are not performed" -ForegroundColor Red
 
   }
 }
@@ -229,7 +229,7 @@ if ($selection.ToUpper() -eq "Y") {
   $OutputString = "Creating Storage Account: " + $storageAccountName
   Write-Host $OutputString -foregroundcolor Yellow
   Add-Content -Path $LogFileName $OutputString
-  $OutputString = $(az storage account create --name $storageAccountName --resource-group $resourceGroupName --location $Location  --kind FileStorage --sku Premium_LRS  --allow-blob-public-access false --https-only=false --query "provisioningState")
+  $OutputString = $(az storage account create --name $storageAccountName --resource-group $resourceGroupName --location $Location  --kind FileStorage --sku Premium_LRS  --allow-blob-public-access false --https-only=false  --allow-shared-key-access false --query "provisioningState")
   Write-Host $OutputString
   Add-Content -Path $LogFileName $OutputString
 
@@ -259,7 +259,7 @@ if ($selection.ToUpper() -eq "Y") {
   $OutputString = "Creating Key vault: " + $kvName
   Write-Host $OutputString -foregroundcolor Yellow
   Add-Content -Path $LogFileName $OutputString
-  az keyvault create --name $kvName --resource-group $resourceGroupName --location $Location --query "provisioningState" --enable-purge-protection false --retention-days 7
+  az keyvault create --name $kvName --resource-group $resourceGroupName --location $Location --query "provisioningState" --retention-days 7
 
   az keyvault secret set --vault-name $kvName --name "sdaftestsecret" --value "sdaftestsecretvalue" --query "id"
 }
@@ -339,15 +339,13 @@ if ($selection.ToUpper() -eq "Y") {
   Add-Content -Path $LogFileName $OutputString
 
 
-  Write-Host $$
-
   Write-Host "Checking if the region supports PremiumV2 disks"
   $zone = $(az vm list-skus --resource-type disks --query "[?name=='PremiumV2_LRS'].locationInfo[0].zones | [0] | [0]" --location $Location)
   $vmStatus = ""
 
   if ($null -eq $zone -or $zone -eq "") {
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $ARM_CLIENT_SECRET --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --no-wait --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --platform-fault-domain 1 --query "provisioningState" --output tsv)
   }
   else {
     $diskName = "SDAFdisk"
@@ -356,12 +354,12 @@ if ($selection.ToUpper() -eq "Y") {
     Write-Host "Creating a Premium SSD v2 disk" -foregroundcolor Yellow
     az disk create -n $diskName -g $resourceGroupName --size-gb 100 --disk-iops-read-write 5000 --disk-mbps-read-write 150 --location $Location --zone $zone --sku PremiumV2_LRS --logical-sector-size $logicalSectorSize --query "provisioningState"
     Write-Host "Creating a Virtual Machine" -foregroundcolor Yellow
-    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid  --zone $zone --attach-data-disks $diskName  --query "provisioningState")
+    $vmStatus = $(az vm create --resource-group $resourceGroupName --name $vmName --image $distro --admin-username "azureadm" --admin-password $VM_password --size $vmSKU --vnet-name $vnetName --subnet $subnetName  --vmss $vmssid --platform-fault-domain 1 --zone $zone --attach-data-disks $diskName  --query "provisioningState" --output tsv)
 
   }
 
-  Write-Host $vmStatus
-  $vmStatus = "Succeeded"
+  $vmStatus = "$vmStatus".Trim()
+  Write-Host "VM provisioning status: $vmStatus"
 
   if ($vmStatus -eq "Succeeded") {
 
@@ -454,7 +452,7 @@ if ($selection.ToUpper() -eq "Y") {
     foreach ($IP in $UrlsToCheck.windows.IPs) {
       Write-Host "Checking if $IP is accessible from the Virtual Machine"
       $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
-      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
+
       if ($result.Contains("succeeded!")) {
         $OutputString = "$IP is accessible"
         Write-Host $OutputString -ForegroundColor Green
@@ -479,58 +477,56 @@ if ($selection.ToUpper() -eq "Y") {
     foreach ($url in $UrlsToCheck.sap.urls) {
       Write-Host "Checking if $url is accessible from the Virtual Machine"
       $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
+      if ($result.Contains("200 OK")) {
+        $OutputString = "$url is accessible"
+        Write-Host $OutputString -ForegroundColor Green
+        Add-Content -Path $LogFileName $OutputString
+      }
+      elseif ($result.Contains("403 Forbidden")) {
+        $OutputString = "$url is accessible"
+        Write-Host $OutputString -ForegroundColor Green
+        Add-Content -Path $LogFileName $OutputString
+        Add-Content -Path $LogFileName ""
+      }
+      else {
+        $OutputString = "$url is not accessible"
+        Write-Host $OutputString -ForegroundColor Red
+        Add-Content -Path $LogFileName $OutputString
+        Add-Content -Path $LogFileName ""
+      }
       Add-Content -Path $LogFileName ""
-
-      foreach ($url in $UrlsToCheck.sap.urls) {
-        Write-Host "Checking if $url is accessible from the Virtual Machine"
-        $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "wget -O /tmp/foo.zip $url" --query value[0].message)
-        if ($result.Contains("200 OK")) {
-          $OutputString = "$url is accessible"
-          Write-Host $OutputString -ForegroundColor Green
-          Add-Content -Path $LogFileName $OutputString
-        }
-        elseif ($result.Contains("403 Forbidden")) {
-          $OutputString = "$url is accessible"
-          Write-Host $OutputString -ForegroundColor Green
-          Add-Content -Path $LogFileName $OutputString
-          Add-Content -Path $LogFileName ""
-        }
-        else {
-          $OutputString = "$url is not accessible"
-          Write-Host $OutputString -ForegroundColor Red
-          Add-Content -Path $LogFileName $OutputString
-          Add-Content -Path $LogFileName ""
-        }
-      }
-
-      Write-Host "Checking 'runtime' IPs" -ForegroundColor Yellow
-      Add-Content -Path $LogFileName "Checking 'runtime' IPs"
-
-      foreach ($IP in $UrlsToCheck.sap.IPs) {
-        Write-Host "Checking if $IP is accessible from the Virtual Machine"
-        $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
-        $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name "SDAF-VM"  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
-        if ($result.Contains("succeeded!")) {
-          $OutputString = "$IP is accessible"
-          Write-Host $OutputString -ForegroundColor Green
-          Add-Content -Path $LogFileName $OutputString
-          Add-Content -Path $LogFileName ""
-        }
-        elseif ($result.Contains("Connected")) {
-          $OutputString = "$IP is accessible"
-          Write-Host $OutputString -ForegroundColor Green
-          Add-Content -Path $LogFileName $OutputString
-          Add-Content -Path $LogFileName ""
-        }
-        else {
-          $OutputString = "$IP is not accessible"
-          Write-Host $OutputString -ForegroundColor Red
-          Add-Content -Path $LogFileName $OutputString
-          Add-Content -Path $LogFileName ""
-        }
-      }
-
     }
+
+    Write-Host "Checking 'runtime' IPs" -ForegroundColor Yellow
+    Add-Content -Path $LogFileName "Checking 'runtime' IPs"
+
+    foreach ($IP in $UrlsToCheck.sap.IPs) {
+      Write-Host "Checking if $IP is accessible from the Virtual Machine"
+      $result = $(az vm run-command invoke --resource-group $resourceGroupName  --name $vmName  --command-id RunShellScript  --scripts "nc -zv $IP 443" --query value[0].message)
+      if ($result.Contains("succeeded!")) {
+        $OutputString = "$IP is accessible"
+        Write-Host $OutputString -ForegroundColor Green
+        Add-Content -Path $LogFileName $OutputString
+        Add-Content -Path $LogFileName ""
+      }
+      elseif ($result.Contains("Connected")) {
+        $OutputString = "$IP is accessible"
+        Write-Host $OutputString -ForegroundColor Green
+        Add-Content -Path $LogFileName $OutputString
+        Add-Content -Path $LogFileName ""
+      }
+      else {
+        $OutputString = "$IP is not accessible"
+        Write-Host $OutputString -ForegroundColor Red
+        Add-Content -Path $LogFileName $OutputString
+        Add-Content -Path $LogFileName ""
+      }
+    }
+  }
+  else {
+    $OutputString = "Virtual Machine provisioning failed with status '$vmStatus'. Skipping connectivity checks."
+    Write-Host $OutputString -ForegroundColor Red
+    Add-Content -Path $LogFileName $OutputString
   }
 }
 
@@ -546,7 +542,7 @@ if ($selection.ToUpper() -eq "Y") {
   Add-Content -Path $LogFileName $OutputString
 
   $poolName = "sdafpool"
-  $poolSize_TiB = 2
+  $poolSize_TiB = 4
   $serviceLevel = "Premium" # Valid values are Standard, Premium and Ultra
 
   $OutputString = "Creating NetApp Capacity Pool: " + $poolName

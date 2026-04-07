@@ -6,17 +6,10 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-#colors for terminal
-bold_red="\e[1;31m"
-reset_formatting="\e[0m"
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
-
-# Detect version from environment variable
-caller_version="${SDAFWZ_CALLER_VERSION:-v2}"
 
 #call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
@@ -70,6 +63,7 @@ function showhelp {
 	echo "#   Usage: set_secret.sh                                                                #"
 	echo "#      -e or --environment                   environment name                           #"
 	echo "#      -r or --region                        region name                                #"
+	echo "#      -n or --network_code                  network code                                #"
 	echo "#      -v or --vault                         Azure keyvault name                        #"
 	echo "#      -s or --subscription                  subscription                               #"
 	echo "#      -c or --spn_id                        SPN application id                         #"
@@ -82,18 +76,29 @@ function showhelp {
 	echo "#   [REPO-ROOT]deploy/scripts/set_secret.sh \                                           #"
 	echo "#      --environment PROD  \                                                            #"
 	echo "#      --region weeu  \                                                                 #"
+	echo "#      --network_code SAP01  \                                                          #"
+	echo "#      --vault prodweeuusrabc  \                                                        #"
+	echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                            #"
+	echo "#      --msi                                                                            #"
+	echo "#                                                                                       #"
+	echo "#                                                                                       #"
+	echo "#   [REPO-ROOT]deploy/scripts/set_secret.sh \                                           #"
+	echo "#      --environment PROD  \                                                            #"
+	echo "#      --region weeu  \                                                                 #"
+	echo "#      --network_code SAP01  \                                                          #"
 	echo "#      --vault prodweeuusrabc  \                                                        #"
 	echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx \                            #"
 	echo "#      --spn_id yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy \                                  #"
 	echo "#      --spn_secret ************************ \                                          #"
-	echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz \                               #"
+	echo "#      --tenant_id zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz                                 #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 }
 
 deploy_using_msi_only=0
+network_code=""
 
-INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:hwma --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,workload,help,msi,ado -- "$@")
+INPUT_ARGUMENTS=$(getopt -n set_secrets -o e:r:v:s:c:p:t:b:n:hwma --longoptions environment:,region:,vault:,subscription:,spn_id:,spn_secret:,tenant_id:,keyvault_subscription:,network_code:,workload,help,msi,ado -- "$@")
 VALID_ARGUMENTS=$?
 
 if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -109,6 +114,10 @@ while :; do
 		;;
 	-r | --region)
 		region_code="$2"
+		shift 2
+		;;
+	-n | --network_code)
+		network_code="$2"
 		shift 2
 		;;
 	-v | --vault)
@@ -181,20 +190,11 @@ if [ -z "${region_code}" ]; then
 	get_region_code "$region"
 fi
 
-# if ! valid_environment "${environment}"; then
-#     echo "The 'environment' must be at most 5 characters long, composed of uppercase letters and numbers!"
-#     showhelp
-#     exit 65	#/* data format error */
-# fi
 
-# if ! valid_region_code "${region_code}"; then
-#    echo "The 'region' must be a non-empty string composed of 4 uppercase letters!"
-#    showhelp
-#    exit 65	#/* data format error */
-# fi
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
+environment_config_information="${automation_config_directory}/${environment}${region_code}${network_code}"
+ZONE_NAME="${environment}-${region_code}-${network_code}"
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-environment_config_information="${automation_config_directory}/${environment}${region_code}"
 return_code=0
 
 if [ -f secret.err ]; then
@@ -226,28 +226,25 @@ if [ -z "$keyvault" ]; then
 	fi
 	if valid_kv_name "$keyvault"; then
 		echo "Valid keyvault name format specified"
+		DEPLOYER_KEYVAULT="$keyvault"
+		export DEPLOYER_KEYVAULT
+		save_config_vars "${environment_config_information}" "keyvault" "DEPLOYER_KEYVAULT"
 	else
 		printf -v val %-40.40s "$keyvault"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#       The provided keyvault is not valid:$bold_red ${val} $reset_formatting  #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo "The provided keyvault is not valid " "${val}" >secret.err
+		print_banner "Set secrets" "The provided keyvault is not valid: ${val}" "error"
 		return_code=65
 		exit $return_code
 	fi
 fi
 if [ -z "${keyvault}" ]; then
-	echo "Missing keyvault"
-	echo "No keyvault specified" >secret.err
+	print_banner "Set secrets" "Missing keyvault" "error" "No keyvault specified"
 	showhelp
 	return_code=65 #/* data format error */
-	echo $return_code
 	exit $return_code
 fi
 
-if [ 0 = "${deploy_using_msi_only:-}" ]; then
+if [ $deploy_using_msi_only = 0 ]; then
+
 	if [ -z "${client_id:-$ARM_CLIENT_ID}" ]; then
 		load_config_vars "${environment_config_information}" "client_id"
 		if [ -z "$client_id" ]; then
@@ -258,24 +255,13 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 			echo ""
 		else
 			printf -v val %-40.40s "$client_id"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#       The provided client_id is not valid:$bold_red ${val} $reset_formatting  #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "Set secrets" "The provided client_id is not valid: ${val}" "error"
 			return_code=65
-			echo "The provided client_id is not valid " "${val}" >secret.err
 			exit $return_code
 		fi
 	fi
 
-	if [ -z "$client_secret" ]; then
-		#do not output the secret to screen
-		read -rs -p "        -> Kindly provide SPN Password: " client_secret
-		echo "********"
-	fi
-
-	if [ -z "${tenant_id}" ]; then
+	if [ -z "${tenant_id:-$ARM_TENANT_ID}" ]; then
 		load_config_vars "${environment_config_information}" "tenant_id"
 		if [ -z "${tenant_id}" ]; then
 			read -r -p "SPN Tenant ID: " tenant_id
@@ -285,42 +271,30 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 			echo ""
 		else
 			printf -v val %-40.40s "$tenant_id"
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#       The provided tenant_id is not valid:$bold_red ${val} $reset_formatting  #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "Set secrets" "The provided tenant_id is not valid: ${val}" "error"
 			return_code=65
-			echo "The provided tenant_id is not valid " "${val}" >secret.err
 			exit $return_code
 		fi
 	fi
-	if [ -z "${client_id}" ]; then
-		echo "Missing client_id"
-		echo "No client_id specified" >secret.err
-		showhelp
-		return_code=65 #/* data format error */
-		echo $return_code
-		exit $return_code
-	fi
+fi
+
+
+if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
 	if [ -z "$client_secret" ]; then
-		echo "Missing client_secret"
-		echo "No client_secret specified" >secret.err
+		#do not output the secret to screen
+		read -rs -p "        -> Kindly provide SPN Password: " client_secret
+		echo "********"
+	fi
+
+
+	if [ -z "$client_secret" ]; then
+		print_banner "Set secrets" "Missing client_secret" "error" "No client_secret specified"
 		showhelp
 		return_code=65 #/* data format error */
-		echo $return_code
 		exit $return_code
 	fi
 
-	if [ -z "${tenant_id}" ]; then
-		echo "Missing tenant_id"
-		echo "No tenant_id specified" >secret.err
-		showhelp
-		return_code=65 #/* data format error */
-		echo $return_code
-		exit $return_code
-	fi
 fi
 if [ -z "${subscription}" ]; then
 	read -r -p "SPN Subscription: " subscription
@@ -329,44 +303,37 @@ else
 		echo ""
 	else
 		printf -v val %-40.40s "${subscription}"
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#     The provided subscription is not valid:$bold_red ${val} $reset_formatting #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
+		print_banner "Set secrets" "The provided subscription is not valid: ${val}" "error"	
 		return_code=65 #/* data format error */
-		echo "The provided subscription is not valid " "${val}" >secret.err
 		exit $return_code
 	fi
 fi
 
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                              Setting the secrets                                      #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Set secrets" "Setting secrets for environment ${ZONE_NAME}" "info" "in keyvault ${keyvault}"
 
 echo "Key vault:                           ${keyvault}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 
-save_config_vars "${environment_config_information}" \
-	keyvault \
-	environment \
-	subscription \
-	tenant_id \
-	STATE_SUBSCRIPTION
+secret_name="${ZONE_NAME}"-subscription-id
 
-secret_name="${environment}"-subscription-id
-
-# az keyvault secret show --name "${secret_name}" --vault-name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" >stdout.az 2>&1
-# result=$(grep "ERROR: The user, group or application" stdout.az)
-
-# if [ -n "${result}" ]; then
-#     upn=$(az account show | grep name | grep @ | cut -d: -f2 | cut -d, -f1 -o tsv | xargs)
-#     az keyvault set-policy -n "${keyvault}" --secret-permissions get list recover restore set --upn "${upn}"
-# fi
 if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${subscription}" "configuration"; then
+	echo "Secret ${secret_name} set in keyvault ${keyvault}"
+else
+	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+	exit 20
+fi
+
+#turn off output, we do not want to show the details being uploaded to keyvault
+secret_name="${ZONE_NAME}"-client-id
+if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration"; then
+	echo "Secret ${secret_name} set in keyvault ${keyvault}"
+else
+	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+	exit 20
+fi
+
+secret_name="${ZONE_NAME}"-tenant-id
+if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration"; then
 	echo "Secret ${secret_name} set in keyvault ${keyvault}"
 else
 	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
@@ -375,23 +342,7 @@ fi
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
-	#turn off output, we do not want to show the details being uploaded to keyvault
-	secret_name="${environment}"-client-id
-	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration"; then
-		echo "Secret ${secret_name} set in keyvault ${keyvault}"
-	else
-		echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
-		exit 20
-	fi
-
-	secret_name="${environment}"-tenant-id
-	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration"; then
-		echo "Secret ${secret_name} set in keyvault ${keyvault}"
-	else
-		echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
-		exit 20
-	fi
-	secret_name="${environment}"-client-secret
+	secret_name="${ZONE_NAME}"-client-secret
 	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret"; then
 		echo "Secret ${secret_name} set in keyvault ${keyvault}"
 	else

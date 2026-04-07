@@ -3,8 +3,6 @@
 # Licensed under the MIT License.
 
 #colors for terminal
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
 reset_formatting="\e[0m"
 bold_red_underscore="\e[1;4;31m"
 
@@ -34,6 +32,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
+echo "Entering: ${SCRIPT_NAME}"
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -58,7 +57,7 @@ function show_deployer_help {
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
 	echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-	echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
+	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing sap-automation repo    #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
 	echo "#   ~/.sap_deployment_automation folder                                                 #"
@@ -139,8 +138,8 @@ function parse_arguments() {
 			;;
 		-h | --help)
 			show_deployer_help
-			exit 3
 			shift
+			exit 3
 			;;
 		--)
 			shift
@@ -162,23 +161,18 @@ function parse_arguments() {
 	fi
 
 	# Check that parameter files have environment and location defined
+	region=""
 	if ! validate_key_parameters "$parameterFilename"; then
 		return $?
 	fi
 
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	# Convert the region to the correct code
-	get_region_code $region
+	get_region_code "$region"
 
 	# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 	if ! validate_exports; then
 		return $?
-	fi
-
-	if checkforEnvVar "TEST_ONLY"; then
-		TEST_ONLY="${TEST_ONLY}"
-	else
-		TEST_ONLY="false"
 	fi
 
 }
@@ -324,7 +318,7 @@ function sdaf_remove_deployer() {
 			return_value=10
 			all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
 			if [[ -n ${all_errors} ]]; then
-				readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+				readarray -t errors_strings < <(echo "${all_errors}" | jq -c '.')
 				for errors_string in "${errors_strings[@]}"; do
 					string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
 					if [[ -z ${string_to_report} ]]; then
@@ -344,16 +338,18 @@ function sdaf_remove_deployer() {
 		rm destroy_output.json
 	fi
 
-	if [ 0 == $return_value ]; then
+	if [ 0 == "$return_value" ]; then
 		print_banner "Remove deployer" "Deployer removed successfully" "success"
 		step=0
+		export step
 		save_config_var "step" "${deployer_environment_file_name}"
+		rm "${deployer_environment_file_name}"
 	fi
 
 	unset TF_DATA_DIR
 
 	echo "Return from remove_deployer.sh"
-	return $return_value
+	return "$return_value"
 }
 
 ################################################################################

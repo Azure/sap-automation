@@ -57,34 +57,46 @@ minimumSLESVersion:   {% if minimumSLESVersion is defined %}{{ minimumSLESVersio
 
 product_ids:
 
-{% if root_bom.product_ids is defined %}
+{% if root_bom.product_ids is defined and root_bom.product_ids is mapping %}
 {%   for pKey,pValue in root_bom.product_ids.items() %}
 {{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim | replace('.HDB.', platform_code)) }}
 {%   endfor %}
 {% endif %}
 
-{% if root_bom.patch_information is defined %}
+{% if patch_information is defined and patch_information is mapping %}
 
 patch_information:
 
-{%   for pKey,pValue in patch_information.items() %}
+{%   if patch_information is mapping %}
+{%     for pKey,pValue in patch_information.items() %}
 {{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
-{%   endfor %}
+{%     endfor %}
+{%   else %}
+{%     for patch_entry in patch_information | flatten | select('mapping') | list %}
+{%       for pKey,pValue in patch_entry.items() %}
+{{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
+{%       endfor %}
+{%     endfor %}
+{%   endif %}
 {% endif %}
 
 
 materials:
   media:
-{% for media in root_media_list %}
+{% for media in root_media_list | flatten | select('mapping') | list %}
 
 {{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"' | format(media.name | trim) }}
-{%   for key,value in media.items() %}
-{%     if key != 'name' %}
+{%   set preferred_media_keys = ['archive', 'checksum', 'filename', 'path', 'url', 'download', 'extract', 'extractDir', 'creates', 'permissions'] %}
+{%   for key in preferred_media_keys %}
+{%     if key in media %}
 {%       if key == 'permissions' %}
-{{'      %-13s' | format(key + ':' | trim) }}{{' \'%s\'' | format(value | trim) }}
+{{'      %-13s' | format(key + ':' | trim) }}{{' \'%s\'' | format(media[key] | trim) }}
 {%       else %}
-{{'      %-13s' | format(key + ':' | trim) }}{{' %s'     | format(value | trim) }}
+{{'      %-13s' | format(key + ':' | trim) }}{{' %s'     | format(media[key] | trim) }}
 {%       endif %}
 {%     endif %}
+{%   endfor %}
+{%   for key in media.keys() | reject('equalto', 'name') | reject('in', preferred_media_keys) | sort %}
+{{'      %-13s' | format(key + ':' | trim) }}{{' %s'     | format(media[key] | trim) }}
 {%   endfor %}
 {% endfor %}

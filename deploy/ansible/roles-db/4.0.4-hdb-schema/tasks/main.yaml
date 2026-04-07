@@ -8,12 +8,16 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "HDB Schema: Get DEFAULT.PFL"
+- name:                                "4.04 HDB Schema - Set default instance type"
+  ansible.builtin.set_fact:
+    application_type:                  "{% if bom.InstanceType | default('ABAP') == 'JAVA' %}JAVA{% else %}ABAP{% endif %}"
+
+- name:                                "4.04 HDB Schema: Get DEFAULT.PFL"
   ansible.builtin.slurp:
     src:                               "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
   register:                            profilefile
 
-- name:                                "HDB Schema: Get schema property"
+- name:                                "4.04 HDB Schema: Get schema property"
   ansible.builtin.set_fact:
     schema_property:                  "{{ profilefile['content'] | b64decode | split('\n') | select('search', property_name ) }}"
   loop:                               "{{ hdb_schema_property_names }}"
@@ -22,18 +26,18 @@
   when:
     - (schema_property | default([])) | length <= 0
 
-- name:                                "HDB Schema: Parse schema name"
+- name:                                "4.04 HDB Schema: Parse schema name"
   ansible.builtin.set_fact:
     schema_name:                       "{{ schema_property | first | split('=') | last | trim }}"
   when:
     - (schema_property | default([])) | length > 0
 
-- name:                                "HDB Schema: Set default schema"
+- name:                                "4.04 HDB Schema: Set default schema"
   ansible.builtin.set_fact:
-    schema_name:                       "{{ hana_schema }}"
+    schema_name:                       "{% if application_type == 'ABAP' %}{{ hana_schema }}{% else %}SAPJAVA1{% endif %}"
   when:
     - schema_name is not defined
 
-- name:                                "HDB Schema: Show schema name"
+- name:                                "4.04 HDB Schema: Show schema name"
   ansible.builtin.debug:
     msg:                               "Schema name: {{ schema_name }}"

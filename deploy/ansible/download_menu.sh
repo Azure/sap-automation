@@ -7,6 +7,7 @@ export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
 
 cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 
+source "${cmd_dir}/script_helper.sh"
 
 #         # /*---------------------------------------------------------------------------8
 #         # |                                                                            |
@@ -40,7 +41,7 @@ cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 sap_params_file=sap-parameters.yaml
 
 if [[ ! -e "${sap_params_file}" ]]; then
-        echo "Error: '${sap_params_file}' file not found!"
+        print_banner "Software download" "SAP parameters file '${sap_params_file}' not found!" "error" "Current directory '$(basename "$(pwd)")'"
         exit 1
 fi
 
@@ -70,6 +71,15 @@ export           ANSIBLE_PYTHON_INTERPRETER=auto_silent
 #export          PROFILE_TASKS_TASK_OUTPUT_LIMIT=20
 #export          PROFILE_TASKS_SORT_ORDER=descending
 
+if [ ! -v BOM_CATALOG ]; then
+  print_banner "Software download" "Error: BOM_CATALOG variable is not set!" "error" "It should point to the folder with the BOM files."
+  exit 10
+fi
+
+if [ ! -d "$BOM_CATALOG" ]; then
+  print_banner "Software download" "Error: BOM_CATALOG variable points to a non-existing directory!" "error" "BOM_CATALOG='$BOM_CATALOG'"
+  exit 11
+fi
 
 # Don't show the skipped hosts
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=false
@@ -102,6 +112,7 @@ playbook_options=(
         --extra-vars="_workspace_directory=`pwd`"
         --extra-vars="@${sap_params_file}"
         --extra-vars="bom_processing=true"
+        --extra-vars="BOM_directory=${BOM_CATALOG:-}"
         "${@}"
 )
 

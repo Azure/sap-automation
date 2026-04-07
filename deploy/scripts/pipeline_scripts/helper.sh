@@ -246,6 +246,8 @@ function get_region_from_code() {
 	"CEIN") LOCATION_IN_FILENAME="centralindia" ;;
 	"CEUS") LOCATION_IN_FILENAME="centralus" ;;
 	"CEUA") LOCATION_IN_FILENAME="centraluseuap" ;;
+	"CHCE") LOCATION_IN_FILENAME="chilecentral" ;;
+	"DEEA") LOCATION_IN_FILENAME="denmarkeast" ;;
 	"EAAS") LOCATION_IN_FILENAME="eastasia" ;;
 	"EAUS") LOCATION_IN_FILENAME="eastus" ;;
 	"EUSA") LOCATION_IN_FILENAME="eastus2euap" ;;
@@ -265,6 +267,8 @@ function get_region_from_code() {
 	"JINW") LOCATION_IN_FILENAME="jioindiawest" ;;
 	"KOCE") LOCATION_IN_FILENAME="koreacentral" ;;
 	"KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
+	"MAWE") LOCATION_IN_FILENAME="malaysiawest" ;;
+	"MECE") LOCATION_IN_FILENAME="mexicocentral" ;;
 	"NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
 	"NOEU") LOCATION_IN_FILENAME="northeurope" ;;
 	"NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
@@ -278,6 +282,7 @@ function get_region_from_code() {
 	"SCUG") LOCATION_IN_FILENAME="southcentralusstg" ;;
 	"SOEA") LOCATION_IN_FILENAME="southeastasia" ;;
 	"SOIN") LOCATION_IN_FILENAME="southindia" ;;
+	"SPCE") LOCATION_IN_FILENAME="spaincentral" ;;
 	"SECE") LOCATION_IN_FILENAME="swedencentral" ;;
 	"SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
 	"SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;

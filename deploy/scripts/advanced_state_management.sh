@@ -26,7 +26,7 @@ function showhelp {
 	echo "#   This file contains the logic to reimport an Azure artifact to the Terraform state file                       #"
 	echo "#   The script experts the following exports:                                                                    #"
 	echo "#                                                                                                                #"
-	echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation                                 #"
+	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing the cloned sap-automation                                 #"
 	echo "#                                                                                                                #"
 	echo "#                                                                                                                #"
 	echo "#                                                                                                                #"
@@ -149,8 +149,8 @@ while :; do
 		;;
 	-h | --help)
 		showhelp
-		exit 3
 		shift
+		exit 3
 		;;
 	-v | --verbose)
 		# Enable debugging
@@ -219,7 +219,7 @@ if [ -z "${operation}" ]; then
 	exit 64 #script usage wrong
 fi
 
-# Check that the exports ARM_SUBSCRIPTION_ID and DEPLOYMENT_REPO_PATH are defined
+# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 
 validate_exports
 return_code=$?
@@ -228,20 +228,21 @@ if [ 0 != $return_code ]; then
 fi
 
 # Check that parameter files have environment and location defined
+region=""
 validate_key_parameters "$parameter_file"
 if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
-if valid_region_name ${region}; then
+if valid_region_name "${region}"; then
 	# Convert the region to the correct code
-	get_region_code ${region}
+	get_region_code "${region}"
 else
 	echo "Invalid region: $region"
 	exit 2
 fi
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 if [ -z "$workload_zone_name" ]; then
 	workload_zone_name=$(echo "${parameter_file_name}" | cut -d'-' -f1-3)
 fi
@@ -297,7 +298,6 @@ else
 		STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 		REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		storage_account_name="${REMOTE_STATE_SA}"
-		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		subscription_id="${STATE_SUBSCRIPTION}"
 
 		tfstate_resource_id=$(az resource list --name "${storage_account_name}" --subscription "${subscription_id}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
@@ -343,8 +343,14 @@ subscription_id=$(echo "${tfstate_resource_id}" | cut -d/ -f3 | tr -d \" | xargs
 
 useSAS=$(az storage account show --name "${storage_account_name}" --query allowSharedKeyAccess --subscription "${subscription_id}" --out tsv)
 if [ "$useSAS" = "true" ]; then
+	echo "Storage Account Authentication:      Key"
+	AZURE_STORAGE_AUTH_MODE=key
+	export AZURE_STORAGE_AUTH_MODE
 	export ARM_USE_AZUREAD=false
 else
+	echo "Storage Account Authentication:      Entra ID"
+	AZURE_STORAGE_AUTH_MODE=login
+	export AZURE_STORAGE_AUTH_MODE
 	export ARM_USE_AZUREAD=true
 fi
 
@@ -353,7 +359,7 @@ export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 directory=$(pwd)/.terraform
 
-module_dir=$DEPLOYMENT_REPO_PATH/deploy/terraform/run/${type}
+module_dir=$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${type}
 
 export TF_DATA_DIR="${directory}"
 
@@ -386,8 +392,6 @@ if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 		export TF_VAR_landscape_tfstate_key="${workload_zone_name}-INFRASTRUCTURE.terraform.tfstate"
 		save_config_var "workload_zone_name" "${system_environment_file_name}"
 	fi
-else
-	workload_zone_name_parameter=""
 fi
 
 echo "Looking for resource:" "${moduleID}"

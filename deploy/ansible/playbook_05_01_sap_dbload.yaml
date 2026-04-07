@@ -161,8 +161,8 @@
                 name:                  roles-sap/7.0.0-post-install
               vars:
                 suffix:                '_DBLOAD'
-                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
-                path:                  '/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type }}/DB'
+                prefix:                "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').replace('/PD', '').split(':')[1] }}"
+                path:                  "/INSTALL/DISTRIBUTED/{{ dbl_bom_instance_type | default('ABAP') }}/DB"
                 tier:                  'dbload'
 
             - name:                    "Database load playbook - Show errors from DBLoad"
