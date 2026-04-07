@@ -405,7 +405,7 @@ if [ 1 -eq $added ]; then
 			elif [ "$PLATFORM" == "github" ]; then
 				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
-				echo
+				else
 					echo "Pushed changes to the repository."
 				fi
 			fi
