@@ -7,9 +7,8 @@
 
 # Location of Export CD
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ sap_cd_package_hdbclient }}
-SAPINST.CD.PACKAGE.CD1                                                = {{ sap_cd_package_cd1 }}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
-
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT
 
 archives.downloadBasket                                               = /usr/sap/install/download_basket
 
@@ -57,8 +56,6 @@ HDB_Userstore.doNotResolveHostnames                                   =  {{ virt
 NW_DB6_DB.db6.abap.connect.user                                       = sap{{ db_sid | lower }}
 NW_DB6_DB.db6.abap.schema                                             = sap{{ db_sid | lower }}
 
-
-
 NW_WPConfiguration.ciDialogWPNumber                                   = {{ sap_ciDialogWPNumber}}
 NW_WPConfiguration.ciBtcWPNumber                                      = {{ sap_ciBtcWPNumber }}
 
@@ -85,9 +82,6 @@ storageBasedCopy.ora.listenerName                                    = LISTENER
 storageBasedCopy.ora.listenerPort                                    = 1521
 storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
 storageBasedCopy.ora.swowner                                         = oracle
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
 MessageServer.configureAclInfo                                       = false
 
 {% endif %}
@@ -115,12 +109,5 @@ storageBasedCopy.ora.listenerName                                    = LISTENER
 storageBasedCopy.ora.listenerPort                                    = 1521
 storageBasedCopy.ora.serverVersion                                   = {{ ora_release }}
 storageBasedCopy.ora.swowner                                         = oracle
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/EXPORT/DATA_UNITS/EXP3
 MessageServer.configureAclInfo                                       = false
 {% endif %}
-
-
-
-
