@@ -357,7 +357,7 @@ resource "local_file" "deployer_exports" {
 
               }
             )
-  filename             = format("%s/exports.sh", path.cwd)
+  filename             = format("%s/export.sh", path.cwd)
   file_permission      = "0660"
   directory_permission = "0770"
 }

@@ -9,7 +9,7 @@ export SDAF_APPLICATION_CONFIGURATION_NAME="${app_configuration_name}"
 
 unset SDAF_APPSERVICE_NAME
 %{~ if length(app_service_name) != 0 }
-# This is the name of the application configuration to be used for deployments using this control plane. 
+# This is the name of the appservice to be used for deployments using this control plane. 
 export SDAF_APPSERVICE_NAME="${app_service_name}"
 %{~ endif }
 
