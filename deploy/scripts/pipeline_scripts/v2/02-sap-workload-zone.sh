@@ -285,12 +285,14 @@ echo ""
 if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Deployment of $WORKLOAD_ZONE_NAME succeeded" "success"
-	if [ -v KEYVAULT ]; then
-		echo "Key Vault:                  ${KEYVAULT}"
 
-		if [ -n "$KEYVAULT" ] && [ "$PLATFORM" == "devops" ]; then
+	resolved_keyvault="${KEYVAULT:-${SDAF_WORKLOAD_ZONE_KEYVAULT_NAME:-${workloadkeyvault:-}}}"
+	if [ -n "$resolved_keyvault" ]; then
+		echo "Key Vault:                  ${resolved_keyvault}"
+
+		if [ "$PLATFORM" == "devops" ]; then
 			echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
-			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$KEYVAULT"
+			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "$resolved_keyvault"
 		fi
 	fi
 
