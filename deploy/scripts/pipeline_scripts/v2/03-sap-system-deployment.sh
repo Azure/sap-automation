@@ -415,7 +415,8 @@ if [ 1 -eq $added ]; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
-				echo
+				else
+					echo
 					echo "Pushed changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
