@@ -78,14 +78,12 @@
     # Remove existing SAP managed blocks (including block contents) to avoid duplicates
     # Also remove orphaned SAP entries that became unmoored from their block markers
     # Matches any IP address containing the SAP SID and FQDN pattern
-    cleaned_hosts_file: >-
-      {{
-        (existing_hosts_file
-        | regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '.*?^# END ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '\\n?', '')
-        | regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\n?', '')
-        | regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\n?', '')
-        | regex_replace('(?m)^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+.*' + (sap_sid | lower) + '.*' + (sap_fqdn | regex_escape) + '.*\\n?', ''))
-      }}
+    cleaned_hosts_file:                "{{ existing_hosts_file |
+                                            regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) +
+                                            '.*?^# END ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '\\n?', '') |
+                                            regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\n?', '') |
+                                            regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\n?', '') |
+                                            regex_replace('(?m)^[0-9]+\\\\.[0-9]+\\\\.[0-9]+\\\\.[0-9]+.*' + (sap_sid | lower) + '.*' + (sap_fqdn | regex_escape) + '.*\\n?', '') }}"
     existing_hosts_lines:              "{{ cleaned_hosts_file.split('\n') if cleaned_hosts_file else [] }}"
     existing_hosts_content:            "{{ existing_hosts_lines | reject('match', '^$') | list }}"
 
