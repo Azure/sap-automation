@@ -38,7 +38,7 @@
                                        - ( item.type is defined          and (item.type | lower) == 'rpm' )
                                        - ( item.archive is defined       and (item.archive | trim | length) > 0 )
                                        - ( item.platform is defined and (item.platform == platform) )
-    
+
   ansible.builtin.debug:
     msg:
       - "Package to be installed:      {{ target_media_location }}/RPM/{{ item.archive }}"
