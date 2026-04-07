@@ -6,6 +6,7 @@
 #   2393060 - SAPinst Framework 749 Central Note
 
 archives.downloadBasket                                               = {{ target_media_location }}/download_basket
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
@@ -30,10 +31,6 @@ hanadb.landscape.reorg.useParameterFile                               = DONOTUSE
 {% if platform | upper == 'HANA' and application_type | upper == 'ABAP' %}
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
-SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP4
 
 HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
@@ -59,7 +56,6 @@ NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_
 {% if platform | upper == 'HANA' and application_type | upper == 'JAVA' %}
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT
 
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
 
@@ -112,10 +108,6 @@ storageBasedCopy.javaSchemaPassword                                   = {{ main_
 storageBasedCopy.ora.swowner                                          = oracle
 ora.orasidPassword                                                    = {{ main_password }}
 
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
-
 {% endif %}
 
 {% if platform | upper == 'ORACLE-ASM' and application_type | upper == 'JAVA' %}
@@ -142,9 +134,6 @@ ora.whatIsSHOH                                                        = false
 storageBasedCopy.abapSchemaPassword                                   = {{ main_password }}
 storageBasedCopy.javaSchemaPassword                                   = {{ main_password }}
 storageBasedCopy.ora.swowner                                          = oracle
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
 
 {% endif %}
 
