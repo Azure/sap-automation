@@ -144,6 +144,7 @@
         path:                          /etc/security/limits.d/99-sap.conf
         insertafter:                   '#@student        -       maxlogins       4'
         create:                        true
+        mode:                          '0644'
         state:                         present
         block: |
                 @oinstall  soft    nproc    unlimited
