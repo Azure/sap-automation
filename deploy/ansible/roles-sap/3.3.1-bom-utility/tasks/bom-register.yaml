@@ -205,8 +205,8 @@
 
         - name:                            "{{ task_prefix }} Microsoft Supplied BOM ({{ this_bom_name }}) result"
           ansible.builtin.set_fact:
-            bom_found:                     "{{ microsoft_supplied_bom.stat.exists }}"
-            bom_path:                      "{{ microsoft_supplied_bom.stat.path }}"
+            bom_found:                     "{{ microsoft_supplied_bom.stat.exists | default(false) }}"
+            bom_path:                      "{{ microsoft_supplied_bom.stat.path | default('Not Found') }}"
 
 
     # -------------------------------------+---------------------------------------8
