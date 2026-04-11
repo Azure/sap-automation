@@ -197,7 +197,7 @@
 
     - name:                            "5.3 Additional Application Server Installation - progress"
       ansible.builtin.debug:
-        msg:                           "Starting App Install ({{ sid_to_be_deployed.sid | upper }})"
+        msg:                           "Starting Additional Application Server Install ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "5.3 Additional Application Server Installation - Running sapinst"
       ansible.builtin.shell: |

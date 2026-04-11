@@ -284,7 +284,7 @@
 
         - name:                        "5.2 Primary Application Server Installation - Show starting message"
           ansible.builtin.debug:
-            msg:                       "Starting PAS installation ({{ sid_to_be_deployed.sid | upper }})"
+            msg:                       "Starting Primary Application Server installation ({{ sid_to_be_deployed.sid | upper }})"
 
         - name:                        "5.2 Primary Application Server Installation - Run 'sapinst'"
           ansible.builtin.shell: |
