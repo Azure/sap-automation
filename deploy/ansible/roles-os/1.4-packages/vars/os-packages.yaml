@@ -160,6 +160,7 @@ packages:
     - { tier: 'os',     package: 'pam',                                          node_tier: 'db2',            state: 'latest'  }
     - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',            state: 'present' }
     - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',            state: 'present' }
+    - { tier: 'db2',    package: 'systemd-libs',                                 node_tier: 'db2',            state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
     - { tier: 'os',     package: 'glibc.i686',                                   node_tier: 'sybase',         state: 'present' }
@@ -208,17 +209,21 @@ packages:
   redhat8.2:
   redhat8.4:
   redhat8.6:
-    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.8:
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.9:
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.10:
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
