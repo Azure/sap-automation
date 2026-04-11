@@ -710,7 +710,7 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
-    - name:                            "Database Installation Playbook: - Oracle -Install Oracle"
+    - name:                            "Database Installation Playbook: - Oracle - Install Oracle"
       become:                          true
       become_user:                     root
       when:
@@ -887,6 +887,11 @@
             state:                     touch
             mode:                      0755
 
+        - name:                        "Database Installation Playbook: - Oracle ASM - Set db-install-done flag"
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
+
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
 # |                      Playbook for DB2 DB Install                           |
@@ -958,9 +963,14 @@
           vars:
             suffix:                    "_DB"
             tier:                      'db2'
-            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').replace('/JAVA', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             this_sid:                  "{{ sap_sid }}"
+
+        - name:                        "Database Installation Playbook: - DB2 - Set db-install-done flag"
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -1040,6 +1050,10 @@
             path:                      "INSTALL/DISTRIBUTED/{{ db2_instance_type }}/DB"
             this_sid:                  "{{ sap_sid }}"
 
+        - name:                        "Database Installation Playbook: - DB2 - Set db-install-done flag"
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -1111,11 +1125,16 @@
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_DB"
-            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').replace('/JAVA', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             tier:                      'sybase'
             this_sid:                  "{{ sap_sid | upper }}"
             work_log_component_name: "ASE{{ db_instance_number }}"
+
+        - name:                        "Database Installation Playbook: - ASE - Set db-install-done flag"
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done"
+            state:                     touch
 
 
 # /*----------------------------------------------------------------------------8

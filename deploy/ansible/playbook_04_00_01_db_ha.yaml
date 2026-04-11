@@ -327,7 +327,7 @@
               ansible.builtin.include_role:
                 name:                  roles-sap/7.0.0-post-install
               vars:
-                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+                prefix:                "{{ product_id.replace('.', '/').replace('/ABAP', '').replace('/JAVA', '').split(':')[1] }}"
                 suffix:                "_DC_ACTION"
                 path:                  "/etc/sap_deployment_automation/dataguard_scripts/"
 
