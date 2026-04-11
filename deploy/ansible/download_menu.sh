@@ -138,8 +138,16 @@ do
         # NOTE: If you set DEBUG to a non-empty value in your environment
         # the following line will cause the ansible-playbook command to be
         # echoed rather than executed.
-        ${DEBUG:+echo} \
-        ansible-playbook "${playbook_options[@]}" "${playbooks[@]}"
+
+        for item in "${playbooks[@]}"
+        do
+                echo ""
+                print_banner "SAP Configuration and Installation" "Executing playbook $(basename "$item")" info
+                ${DEBUG:+echo} \
+                        ansible-playbook "${playbook_options[@]}" "$item"
+                echo ""
+        done
+
 
         break
 done
