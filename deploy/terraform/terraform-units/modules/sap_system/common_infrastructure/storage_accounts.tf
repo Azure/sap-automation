@@ -10,7 +10,7 @@
 
 resource "azurerm_storage_account" "sapmnt" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared ? (
+  count                                = local.use_AFS_for_shared  && var.application_tier.enable_deployment ? (
                                            length(var.azure_files_sapmnt_id) > 0 ? (
                                              0) : (
                                              1
@@ -83,7 +83,7 @@ data "azurerm_storage_account" "sapmnt" {
 
 resource "azurerm_private_endpoint" "sapmnt" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared && var.use_private_endpoint ? (
+  count                                = local.use_AFS_for_shared && var.use_private_endpoint && var.application_tier.enable_deployment ? (
                                           length(var.sapmnt_private_endpoint_id) > 0 ? (
                                             0) : (
                                             1
@@ -177,7 +177,7 @@ data "azurerm_private_endpoint_connection" "sapmnt" {
 
 resource "azurerm_storage_share" "sapmnt" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared ? 1 : 0
+  count                                = local.use_AFS_for_shared && var.application_tier.enable_deployment ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.sapmnt,
                                            azurerm_private_endpoint.sapmnt,
@@ -209,7 +209,7 @@ resource "azurerm_storage_share" "sapmnt" {
 // we don't create SMB share if NFS provider when AFS is not used for shared storage
 resource "azurerm_storage_share" "sapmnt_smb" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared && local.app_tier_os == "WINDOWS" ? (
+  count                                = local.use_AFS_for_shared && local.app_tier_os == "WINDOWS" && var.application_tier.enable_deployment ? (
                                            length(var.azure_files_sapmnt_id) > 0 ? (
                                              0) : (
                                              1
