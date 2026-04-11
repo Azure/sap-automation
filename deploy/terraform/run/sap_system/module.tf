@@ -212,6 +212,7 @@ module "app_tier" {
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : local.generator_as_lists
   network_location                              = module.common_infrastructure.network_location
   network_resource_group                        = module.common_infrastructure.network_resource_group
+  NFS_provider                                  = var.NFS_provider
   options                                       = local.options
   order_deployment                              = null
   ppg                                           = var.use_app_proximityplacementgroups ? module.common_infrastructure.app_ppg : module.common_infrastructure.ppg
