@@ -254,14 +254,14 @@ output "sapmnt_path"                             {
                                                                    ) : (
                                                                    var.NFS_provider == "ANF" ? (
                                                                      format("%s:/%s",
-                                                                       var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
+                                                                       try(var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
                                                                          data.azurerm_netapp_volume.sapmnt[0].mount_ip_addresses[0]) : (
                                                                          azurerm_netapp_volume.sapmnt[0].mount_ip_addresses[0]
-                                                                       ),
-                                                                       var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
+                                                                       ), ""),
+                                                                       try(var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
                                                                          data.azurerm_netapp_volume.sapmnt[0].volume_path) : (
                                                                          azurerm_netapp_volume.sapmnt[0].volume_path
-                                                                       )
+                                                                       ), "") 
                                                                      )
                                                                      ) : (
                                                                      ""

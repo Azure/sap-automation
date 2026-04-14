@@ -10,7 +10,7 @@
 
 resource "azurerm_storage_account" "sapmnt" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared  && var.application_tier.enable_deployment ? (
+  count                                = local.use_AFS_for_shared && var.application_tier.enable_deployment ? (
                                            length(var.azure_files_sapmnt_id) > 0 ? (
                                              0) : (
                                              1
@@ -83,6 +83,11 @@ data "azurerm_storage_account" "sapmnt" {
 
 resource "azurerm_private_endpoint" "sapmnt" {
   provider                             = azurerm.main
+
+  depends_on                           = [
+                                           azurerm_storage_account.sapmnt
+                                         ]
+
   count                                = local.use_AFS_for_shared && var.use_private_endpoint && var.application_tier.enable_deployment ? (
                                           length(var.sapmnt_private_endpoint_id) > 0 ? (
                                             0) : (
@@ -149,6 +154,10 @@ resource "azurerm_private_endpoint" "sapmnt" {
 #Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
 resource "time_sleep" "wait_for_private_endpoints" {
   create_duration                      = "120s"
+  triggers                             = {
+                                           end_point = try(azurerm_private_endpoint.sapmnt[0].id, "")
+                                         }
+
 
   depends_on                           = [ azurerm_private_endpoint.sapmnt ]
 }
@@ -180,7 +189,6 @@ resource "azurerm_storage_share" "sapmnt" {
   count                                = local.use_AFS_for_shared && var.application_tier.enable_deployment ? 1 : 0
   depends_on                           = [
                                            azurerm_storage_account.sapmnt,
-                                           azurerm_private_endpoint.sapmnt,
                                            time_sleep.wait_for_private_endpoints
                                          ]
 
