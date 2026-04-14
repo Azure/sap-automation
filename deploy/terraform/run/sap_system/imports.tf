@@ -38,7 +38,8 @@ data "terraform_remote_state" "landscape" {
 #
 
 locals {
-  # Workload zone name used for KV secret lookups - always the full name (e.g. TEST-SWNO-SAP01)
+  # Workload zone name used for KV secret lookups; defaults to the resolved/full workload zone name
+  # when var.workload_zone_name is not provided or empty (for example, TEST-SWNO-SAP01).
   environment_name = local.workload_zone_name
 
   # Control plane naming resolution
