@@ -142,7 +142,7 @@
       register:                        cluster_stable_check
       retries:                         12
       delay:                           10
-      until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in cluster_stable_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in cluster_stable_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name)  in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
       when:                            ansible_distribution_major_version is version('8', '>=')
 
     - name:                            "5.7.3.0 DB2 - REDHAT - Pacemaker - configuration - Ensure Cluster resources are started - RHEL7"
@@ -150,7 +150,7 @@
       register:                        db2_cluster_resource_check
       retries:                         12
       delay:                           10
-      until:                           "'{{ primary_instance_name }} {{ secondary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }} {{ primary_instance_name }}' in db2_cluster_resource_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in db2_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in db2_cluster_resource_check.stdout"
       when:                            ansible_distribution_major_version == "7"
 
     - name:                            "5.7.3.0 DB2 - REDHAT - Pacemaker - configuration - Ensure Cluster resources are started - RHEL8 / RHEL9 / RHEL10"
@@ -158,7 +158,7 @@
       register:                        db2_cluster_resource_check
       retries:                         12
       delay:                           10
-      until:                           "'{{ primary_instance_name }}' in db2_cluster_resource_check.stdout or '{{ secondary_instance_name }}' in db2_cluster_resource_check.stdout"
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in db2_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in db2_cluster_resource_check.stdout"
       when:                            ansible_distribution_major_version is version('8', '>=')
 
 # End of DB2 clustering resources

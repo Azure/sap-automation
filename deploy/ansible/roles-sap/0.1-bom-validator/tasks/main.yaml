@@ -170,6 +170,7 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     current_bom_name:                  "{{ root_bom_name }}"
     upload:                            true
+    main_bom_type:                     true
 
 - name:                                "0.1 BoM Validator - Create the root media list"
   ansible.builtin.set_fact:
@@ -213,7 +214,7 @@
 - name:                                "0.1 BoM Validator - Get the patch information"
   when:                                bom.patch_information is defined
   ansible.builtin.set_fact:
-    patch_information:                 "{% if patch_information is defined %}{{ patch_information + bom.patch_information }}{% else %}{{ bom.patch_information }}{% endif %}"
+    patch_information:                 "{% if patch_information is defined %}{{ patch_information | combine(bom.patch_information, recursive=True) }}{% else %}{{ bom.patch_information }}{% endif %}"
 
 - name:                                "0.1 BoM Validator - Process dependent BoMs in a loop"
   ansible.builtin.include_tasks:       bom_validator.yaml
@@ -222,6 +223,7 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     current_bom_name:                  "{{ bom_dependency.name }}"
     upload:                            false
+    main_bom_type:                      false
   register:                            dependent_bom_collection
   loop:                                "{{ bom.materials.dependencies | flatten(levels=1) }}"
   loop_control:
@@ -241,19 +243,19 @@
         container:                     "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
         current_bom_name:              "{{ database_bom_name }}"
         upload:                        false
+        main_bom_type:                 true
 
     - name:                            "0.1 BoM Validator - Save BOM {{ database_bom_name }} as Dictionary"
       ansible.builtin.set_fact:
-        database_bom:                  "{{ bom }}"
-        database_platform:             "{{ bom.platform | default('Not defined') }}"
-        database_version:              "{{ bom.version | default('Not defined') }}"
+        database_bom:                  "{{ bom_temp }}"
+        database_platform:             "{{ bom_temp.platform | default('Not defined') }}"
+        database_version:              "{{ bom_temp.version | default('Not defined') }}"
 
     - name:                            "0.1 BoM Validator - Append the patch information"
       when:
-        - bom.patch_information is defined
+        - bom_temp.patch_information is defined
       ansible.builtin.set_fact:
-        patch_information:             "{% if patch_information is defined %}{{ patch_information + bom.patch_information }}{% else %}{{ bom.patch_information }}{% endif %}"
-
+        patch_information:             "{% if patch_information is defined %}{{ patch_information | combine(bom_temp.patch_information, recursive=True) }}{% else %}{{ bom_temp.patch_information }}{% endif %}"
 
     - name:                            "0.1 BoM Validator - Show Database BOM details"
       ansible.builtin.debug:
@@ -264,23 +266,23 @@
 
     - name:                            "0.1 BoM Validator - Save minimumDistroVersions"
       ansible.builtin.set_fact:
-        minimumRedHatVersion:          "{% if bom.minimumRedHatVersion is defined %}{{ bom.minimumRedHatVersion }}{% endif %}"
-        minimumSLESVersion:            "{% if bom.minimumSLESVersion is defined %}{{ bom.minimumSLESVersion }}{% endif %}"
+        minimumRedHatVersion:          "{% if bom_temp.minimumRedHatVersion is defined %}{{ bom_temp.minimumRedHatVersion }}{% endif %}"
+        minimumSLESVersion:            "{% if bom_temp.minimumSLESVersion is defined %}{{ bom_temp.minimumSLESVersion }}{% endif %}"
 
     - name:                            "0.1 BoM Validator - Process dependent BoMs in a loop"
       when:
-        - bom.materials.dependencies is defined
-        - bom.materials.dependencies | length > 0
+        - bom_temp.materials.dependencies is defined
+        - bom_temp.materials.dependencies | length > 0
       ansible.builtin.include_tasks:   bom_validator.yaml
       vars:
         account:                       "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
         container:                     "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
-        current_bom_name:              "{{ bom_dependency.name }}"
+        current_bom_name:              "{{ db_bom_dependency.name }}"
         upload:                        false
       register:                        dependent_bom_collection
-      loop:                            "{{ bom.materials.dependencies | flatten(levels=1) }}"
+      loop:                            "{{ bom_temp.materials.dependencies | flatten(levels=1) }}"
       loop_control:
-        loop_var:                      bom_dependency
+        loop_var:                      db_bom_dependency
 
 - name:                                "0.1 BoM Validator - Kernel BOM"
   when:
@@ -296,24 +298,24 @@
 
     - name:                            "0.1 BoM Validator - Save BOM {{ kernel_bom_name }} as Dictionary"
       ansible.builtin.set_fact:
-        kernel_bom:                    "{{ bom }}"
-        kernel_version:                "{{ bom.kernel | default('Not defined') }}"
+        kernel_bom:                    "{{ bom_temp }}"
+        kernel_version:                "{{ bom_temp.kernel | default('Not defined') }}"
 
     - name:                            "0.1 BoM Validator - Append the patch information"
       when:
-        - bom.patch_information is defined
+        - bom_temp.patch_information is defined
       ansible.builtin.set_fact:
-        patch_information:             "{% if patch_information is defined %}{{ patch_information + bom.patch_information }}{% else %}{{ bom.patch_information }}{% endif %}"
+        patch_information:             "{% if patch_information is defined %}{{ patch_information | combine(bom_temp.patch_information, recursive=True) }}{% else %}{{ bom_temp.patch_information }}{% endif %}"
 
     - name:                            "0.1 BoM Validator - Show Kernel BOM details"
       ansible.builtin.debug:
         msg:
-          - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
+          - "Kernel Version:                     {{ kernel_version | default('Not defined') }}"
 
     - name:                            "0.1 BoM Validator - Process dependent BoMs in a loop"
       when:
-        - bom.materials.dependencies is defined
-        - bom.materials.dependencies | length > 0
+        - bom_temp.materials.dependencies is defined
+        - bom_temp.materials.dependencies | length > 0
       ansible.builtin.include_tasks:   bom_validator.yaml
       vars:
         account:                       "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
@@ -323,11 +325,11 @@
 
     - name:                            "0.1 BoM Validator - Save Kernel BOM as Dictionary"
       ansible.builtin.set_fact:
-        kernel_bom:                    "{{ bom }}"
-        kernel_version:                "{{ bom.kernel | default('Not defined') }}"
+        kernel_bom:                    "{{ bom_temp }}"
+        kernel_version:                "{{ bom_temp.kernel | default('Not defined') }}"
       when:
         - kernel_bom_name != ""
-        - bom is defined
+        - bom_temp is defined
 
     - name:                            "0.1 BoM Validator - Show Kernel BOM details"
       ansible.builtin.debug:
@@ -336,18 +338,18 @@
 
     - name:                            "0.1 BoM Validator - Process dependent BoMs in a loop"
       when:
-        - bom.materials.dependencies is defined
-        - bom.materials.dependencies | length > 0
+        - bom_temp.materials.dependencies is defined
+        - bom_temp.materials.dependencies | length > 0
       ansible.builtin.include_tasks:   bom_validator.yaml
       vars:
         account:                       "{{ sapbits_location_base_path.rpartition('//')[2].split('.')[0] }}"
         container:                     "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
-        current_bom_name:              "{{ bom_dependency.name }}"
+        current_bom_name:              "{{ kernel_bom_dependency.name }}"
         upload:                        false
       register:                        dependent_bom_collection
-      loop:                            "{{ bom.materials.dependencies | flatten(levels=1) }}"
+      loop:                            "{{ bom_temp.materials.dependencies | flatten(levels=1) }}"
       loop_control:
-        loop_var:                      bom_dependency
+        loop_var:                      kernel_bom_dependency
 
 - name:                                "0.1 BoM Validator - Show Application, Database, and Kernel BOMs"
   ansible.builtin.debug:

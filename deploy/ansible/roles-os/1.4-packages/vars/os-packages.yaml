@@ -710,7 +710,6 @@ packages:
     - { tier: 'os',     package: 'xorg-x11-server-Xorg',                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'xorg-x11-xauth',                               node_tier: 'all',            state: 'present' }
   oraclelinux9:
-
     - { tier: 'ha',     package: 'jq',                                           node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'os',     package: '@base',                                        node_tier: 'all',            state: 'present' }
@@ -722,10 +721,12 @@ packages:
     - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-openssl11',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'expect',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'fontconfig',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'gcc',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc-devel',                                  node_tier: 'all',            state: 'present' }
@@ -785,3 +786,4 @@ packages:
   oraclelinux9.2:
   oraclelinux9.4:
   oraclelinux9.6:
+  oraclelinux9.7:
