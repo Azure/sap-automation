@@ -678,6 +678,7 @@ fi
 
 if [ "$PLATFORM" != "cli" ]; then
     allParameters+=(-input=false)
+    export TF_IN_AUTOMATION=true
 fi
 
 allImportParameters=(-var-file "${var_file}")
@@ -688,11 +689,10 @@ if [ -f terraform.tfvars ]; then
     allImportParameters+=(-var-file ${param_dirname}/terraform.tfvars)
 fi
 
-# shellcheck disable=SC2086
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
-    return_value=${PIPESTATUS[0]}
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}"; then
+    return_value=$?
 else
-    return_value=${PIPESTATUS[0]}
+    return_value=$?
 fi
 
 if [ 0 == "$return_value" ]; then

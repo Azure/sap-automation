@@ -186,7 +186,7 @@ playbook_options=(
         --extra-vars="_workspace_directory=`pwd`"
         --extra-vars="download_directory=${download_directory}"
         --extra-vars="@${sap_params_file}"
-        --extra-vars="BOM_CATALOG={{ lookup("env", "BOM_CATALOG") }}"
+        --extra-vars="BOM_CATALOG=${BOM_CATALOG}"
         -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'
         "${@}"
 )
