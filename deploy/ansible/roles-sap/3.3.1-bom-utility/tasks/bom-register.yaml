@@ -60,7 +60,6 @@
     from_storage_account:          false
     bom_found:                     false
     bom_path:                      ""
-    local_media_list:              []
 
 # -------------------------------------+---------------------------------------8
 # Step: 03
@@ -338,13 +337,11 @@
       - "Patch information: {{ patch_information | default('No patch information') }}"
     verbosity:                          2
 
-- name:                                "{{ task_prefix }} Show BoM object"
+- name:                                "{{ task_prefix }} Set BoM object"
   when:
-    - operation | default('Download') != "SoftwareAcquisition"
     - bom_temp is defined
   ansible.builtin.set_fact:
     bom:                               "{{ bom_temp }}"
-
 
 # Step: 06 - END
 # -------------------------------------+---------------------------------------8

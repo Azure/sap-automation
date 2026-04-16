@@ -170,12 +170,12 @@
     container:                         "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
     current_bom_name:                  "{{ root_bom_name }}"
     upload:                            true
-    main_bom_type:                     true
 
 - name:                                "0.1 BoM Validator - Create the root media list"
   ansible.builtin.set_fact:
     root_media_list:                   >-
-      {% if local_media_list is defined %}{{ local_media_list }}{% else %}{{ bom.materials.media
+      {% if local_media_list is defined %}{{ local_media_list + bom.materials.media
+      | flatten(levels=1)  }}{% else %}{{ bom.materials.media
       | flatten(levels=1) }}{% endif %}
 
 # Step: 04 - END
@@ -209,7 +209,7 @@
 
 # # -------------------------------------+---------------------------------------8
 # # Step: 08
-# # Description: Dependencies processing
+# # Description: Patch and Dependencies processing
 
 - name:                                "0.1 BoM Validator - Get the patch information"
   when:                                bom.patch_information is defined
@@ -243,13 +243,13 @@
         container:                     "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}/{{ sapbits_bom_files }}/archives"
         current_bom_name:              "{{ database_bom_name }}"
         upload:                        false
-        main_bom_type:                 true
 
     - name:                            "0.1 BoM Validator - Save BOM {{ database_bom_name }} as Dictionary"
       ansible.builtin.set_fact:
         database_bom:                  "{{ bom_temp }}"
         database_platform:             "{{ bom_temp.platform | default('Not defined') }}"
         database_version:              "{{ bom_temp.version | default('Not defined') }}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + bom_temp.materials.media | flatten(levels=1) }}{% else %}{{ bom_temp.materials.media | flatten(levels=1) }}{% endif %}"
 
     - name:                            "0.1 BoM Validator - Append the patch information"
       when:
@@ -269,7 +269,7 @@
         minimumRedHatVersion:          "{% if bom_temp.minimumRedHatVersion is defined %}{{ bom_temp.minimumRedHatVersion }}{% endif %}"
         minimumSLESVersion:            "{% if bom_temp.minimumSLESVersion is defined %}{{ bom_temp.minimumSLESVersion }}{% endif %}"
 
-    - name:                            "0.1 BoM Validator - Process dependent BoMs in a loop"
+    - name:                            "0.1 BoM Validator - Process Database dependent BoMs in a loop"
       when:
         - bom_temp.materials.dependencies is defined
         - bom_temp.materials.dependencies | length > 0
@@ -300,6 +300,7 @@
       ansible.builtin.set_fact:
         kernel_bom:                    "{{ bom_temp }}"
         kernel_version:                "{{ bom_temp.kernel | default('Not defined') }}"
+        root_media_list:               "{% if root_media_list is defined %}{{ root_media_list + bom_temp.materials.media | flatten(levels=1) }}{% else %}{{ bom_temp.materials.media | flatten(levels=1) }}{% endif %}"
 
     - name:                            "0.1 BoM Validator - Append the patch information"
       when:
@@ -312,7 +313,7 @@
         msg:
           - "Kernel Version:                     {{ kernel_version | default('Not defined') }}"
 
-    - name:                            "0.1 BoM Validator - Process dependent BoMs in a loop"
+    - name:                            "0.1 BoM Validator - Process Kernel's dependent BoMs in a loop"
       when:
         - bom_temp.materials.dependencies is defined
         - bom_temp.materials.dependencies | length > 0
@@ -336,7 +337,7 @@
         msg:
           - "Kernel Version:                     {{ kernel_bom.kernel | default('Not defined') }}"
 
-    - name:                            "0.1 BoM Validator - Process dependent BoMs in a loop"
+    - name:                            "0.1 BoM Validator - Process Kernel's dependent BoMs in a loop"
       when:
         - bom_temp.materials.dependencies is defined
         - bom_temp.materials.dependencies | length > 0
@@ -390,7 +391,7 @@
 # Step: 06
 # Description:  Deduplicate entries in consolidated BOM Media list
 #
-- name:                                "0.1 BoM Validator - Filter combined BoM"
+- name:                                "0.1 BoM Validator - Filter resources"
   ansible.builtin.set_fact:
     root_media_list:                   "{{ root_media_list | flatten | unique }}"
 # Step: 07 - END
@@ -399,6 +400,7 @@
 - name:                               "0.1 BoM Validator - Show media List"
   ansible.builtin.debug:
     var:                              root_media_list
+    verbosity:                        1
 
 # -------------------------------------+---------------------------------------8
 # Step: 08
@@ -421,7 +423,7 @@
 # Description:  Aggregate BOM files - Loop through all BOM directories used and
 #               build consolidated BOM directory.
 #
-- name:                                 "0.1 BoM Validator - Informational"
+- name:                                "0.1 BoM Validator - Informational"
   ansible.builtin.debug:
     var:                                aggregated_bom_directories
     verbosity:                          1
