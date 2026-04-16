@@ -80,7 +80,7 @@ NW_getUnicode.isUnicode                                               = true
 NW_getDBInfoGeneric.dbhost                                            = {{ sap_db_hostname }}
 NW_getDBInfoGeneric.dbsid                                             = {{ db_sid | upper }}
 
-NW_ABAP_Import_Dialog.migmonJobNum                                    = 20
+NW_ABAP_Import_Dialog.migmonJobNum                                    = 3
 NW_ABAP_Import_Dialog.dbCodepage                                      = 4103
 NW_ABAP_Import_Dialog.migmonLoadArgs                                  = -stop_on_error -loadprocedure fast
 
@@ -93,11 +93,11 @@ storageBasedCopy.ora.clientVersion                                    = {{ ora_r
 ora.SysPassword                                                       = {{ main_password }}
 ora.SystemPassword                                                    = {{ main_password }}
 ora.createStatisticsCodeABAP                                          = CREATE
-ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_version }}
-ora.grid.ORACLE_HOME                                                  = /oracle/GRID/{{ ora_version }}
+ora.dbhome                                                            = /oracle/{{ db_sid | upper }}/{{ ora_release }}
+ora.grid.ORACLE_HOME                                                  = /oracle/{{ db_sid | upper }}/{{ ora_version }}
 ora.grid.ORACLE_SID                                                   = +ASM
 ora.multitenant.installMT                                             = FALSE
-ora.multitenant.pdbsid                                                = {{ db_sid|upper }}
+ora.multitenant.pdbsid                                                = {{ db_sid | upper }}
 ora.rbDatabase                                                        = CREATEDB
 ora.whatIsASM                                                         = isASM
 ora.whatIsInstance                                                    = isSingle

@@ -731,7 +731,6 @@ packages:
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc-devel',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gtk2',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'krb5-libs',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'ksh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libX11',                                       node_tier: 'all',            state: 'present' }
@@ -771,6 +770,7 @@ packages:
     - { tier: 'os',     package: 'sysstat',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'uuid',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
   oraclelinux8.1:
   oraclelinux8.2:

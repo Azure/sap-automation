@@ -14,18 +14,18 @@
 
 ---
 
-- name:                                "4.1.0 Oracle Installation - Register BoM"
+- name:                                "4.1.2 Oracle ASM Database Installation - Register BoM"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     bom_name:                          "{{ bom_base_name }}"
-    task_prefix:                       "4.1.0 Oracle Installation - "
+    task_prefix:                       "4.1.2 Oracle ASM Database Installation - "
     sa_enabled:                        true
   when:
                                        - bom is undefined
 
-- name:                                "4.1.0 Oracle Installation - Validate ORACLE parameters"
+- name:                                "4.1.2 Oracle ASM Database Installation - Validate ORACLE parameters"
   ansible.builtin.assert:
     that:
       - item_to_check.parameter is defined                    # Has the variable been defined
@@ -39,32 +39,36 @@
   loop_control:
     loop_var: item_to_check
 
-- name:                                "4.1.0 Oracle Installation - Set variables from BoM"
+- name:                                "4.1.2 Oracle ASM Database Installation - Set variables from BoM"
   ansible.builtin.set_fact:
     ora_release:                       "{{ bom.patch_information.ora_release }}"
     ora_version:                       "{{ bom.patch_information.ora_version }}"
     oracle_sbp_patch:                  "{{ bom.patch_information.oracle_sbp_patch }}"
 
-- name:                                "4.1.0 Oracle Installation - Create sap_deployment_automation folder"
+- name:                                "4.1.2 Oracle ASM Database Installation - Set DB SID"
+  ansible.builtin.debug:
+    msg:
+                                       - "DB SID: {{ sap_sid | upper }}"
+                                       - "Oracle Version: {{ ora_version }}"
+                                       - "Oracle Release: {{ ora_release }}"
+                                       - "Oracle SBP Patch: {{ oracle_sbp_patch }}"
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Load the disk configuration settings"
+  ansible.builtin.include_vars:        disks_config_asm.yml
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Create directories"
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             "{{ item.state }}"
-    recurse:                           true
+    recurse:                           "{{ item.recurse }}"
     mode:                              "{{ item.mode }}"
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
   loop:
-    - { state: 'directory', mode: '0775', path: '/oracle' }
-    - { state: 'directory', mode: '0775', path: '/etc/sap_deployment_automation' }
-    - { state: 'directory', mode: '0755', path: '/etc/sap_deployment_automation/{{ db_sid | upper }}' }
-    - { state: 'directory', mode: '0755', path: '{{ tmp_directory }}/{{ db_sid | upper }}' }
+    - { state: 'directory', mode: '0775', recurse: false, path: '/etc/sap_deployment_automation/' }
+    - { state: 'directory', mode: '0755', recurse: false, path: '/etc/sap_deployment_automation/oracle' }
+    - { state: 'directory', mode: '0755', recurse: false, path: "/etc/sap_deployment_automation/{{ sap_sid | upper }}" }
+    - { state: 'directory', mode: '0755', recurse: true,  path: "{{ tmp_directory }}/{{ db_sid | upper }}/{{ ora_version }}" }
 
-- name:                                "4.1.0 Oracle Installation - Check if installed"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sbp_installed.txt"
-  register:                            oracle_installed
-
-- name:                                "4.1.0 Oracle Installation - Find Patch ID for Database Release Update"
+- name:                                "4.1.2 Oracle ASM Database Installation - Find Patch ID for Database Release Update"
   become:                              true
   become_user:                         root
   ansible.builtin.find:
@@ -74,23 +78,23 @@
     recurse:                           true
   register:                            patch_grid_id_directory
 
-- name:                                "4.1.0 Oracle Installation - Find Patch ID for Database Release Update"
+- name:                                "4.1.2 Oracle ASM Database Installation - Find Patch ID for Database Release Update"
   ansible.builtin.fail:
     msg:                               "No Database Release Update found"
   when:                                patch_grid_id_directory.matched != 1
 
-- name:                                "4.1.0 Oracle Installation - OPatch ID"
+- name:                                "4.1.2 Oracle ASM Database Installation - OPatch ID"
   ansible.builtin.set_fact:
     patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
   when:                                patch_grid_id_directory.matched == 1
 
-- name:                                "4.1.0 Oracle Installation - set ApplyRU and OPatchPath"
+- name:                                "4.1.2 Oracle ASM Database Installation - set ApplyRU and OPatchPath facts"
   ansible.builtin.set_fact:
     OPatchPath:                        "{{ target_media_location }}/SBP/OPATCH/OPatch"
     ApplyRU:                           "{{ patch_grid_path }}"
     OracleImage:                       "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/LINUX.X64_193000_db_home.zip"
 
-- name:                                "4.1.0 Oracle Installation - OPatch ID"
+- name:                                "4.1.2 Oracle ASM Database Installation - OPatch ID"
   ansible.builtin.debug:
     msg:
 
@@ -98,36 +102,16 @@
       - "ApplyRU:      {{ ApplyRU }}"
       - "OPatchPath:   {{ OPatchPath }}"
 
-- name:                                "4.1.0 Oracle Installation - Check if installed"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt"
-  register:                            oracle_installed
-
-- name:                                "4.1.0 Oracle Installation - Check updated installation media exists"
-  ansible.builtin.stat:
-    path:                              "{{ target_media_location }}/SBP/SAP/RUNINSTALLER"
-  register:                            runinstaller_media_found
-
-- name:                                "4.1.0 Oracle Installation - Check oradism exists"
-  ansible.builtin.assert:
-    that:
-      - runinstaller_media_found.stat.exists
-    fail_msg:                          "Oracle Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SBP/SAP/RUNINSTALLER"
-
-- name:                                "4.1.0 Oracle Installation - OPatch ID"
-  ansible.builtin.set_fact:
-    this_sid:                          "{% if ansible_hostname == ora_secondary %}{{ db_sid | upper }}_STDBY{% else %}{{ db_sid | upper }}{% endif %}"
-
-- name:                                "4.1.0 Oracle Installation - environment variables to the Bash profile"
+- name:                                "4.1.2 Oracle ASM Database Installation - Persist environment variables to the Bash profile for oracle"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     path:                              /home/oracle/.bashrc
     insertafter:                       'fi '
     block: |
         # User Specific environment
         export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
-        export ORACLE_SID={{ this_sid }}
+        export ORACLE_SID={{ db_sid | upper }}
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
@@ -135,9 +119,9 @@
         PATH="$PATH:$ORACLE_HOME/bin"
         export PATH
 
-- name:                                "4.1.0 Oracle Installation - create .cshrc"
+- name:                                "4.1.2 Oracle ASM Database Installation - Persist environment variables to the C shell profile for oracle"
   become:                              true
-  become_user:                         "oracle"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.blockinfile:
     create:                            true
     path:                              /home/oracle/.cshrc
@@ -146,13 +130,68 @@
     block: |
         # User Specific environment
         setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-        setenv  ORACLE_SID  {{ this_sid }}
+        setenv  ORACLE_SID  {{ db_sid | upper }}
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
         setenv  DB_SID {{ db_sid | upper }}
         set path = ($path $ORACLE_HOME/bin)
-    mode:                              0755
+    mode:                              '0755'
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Persist environment variables to the Bash profile for grid"
+  when:                                grid_user_name != oracle_user_name
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.blockinfile:
+    path:                              /home/grid/.bashrc
+    insertafter:                       'fi '
+    block: |
+        # User Specific environment
+        export ORACLE_HOME=/oracle/GRID/{{ ora_version }}
+        export ORACLE_SID=+ASM
+        export ORACLE_BASE=/oracle
+        export LD_LIBRARY_PATH=$ORACLE_HOME/lib
+        export TNS_ADMIN=$ORACLE_HOME/network/admin
+        export DB_SID=+ASM
+        PATH="$PATH:$ORACLE_HOME/bin"
+        export PATH
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Persist environment variables to the C shell profile for grid"
+  when:                                grid_user_name != oracle_user_name
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /home/grid/.cshrc
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+        # User Specific environment
+        setenv  ORACLE_HOME /oracle/GRID/{{ ora_version }}
+        setenv  ORACLE_SID  +ASM
+        setenv  ORACLE_BASE /oracle
+        setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
+        setenv  TNS_ADMIN $ORACLE_HOME/network/admin
+        setenv  DB_SID +ASM
+        set path = ($path $ORACLE_HOME/bin)
+    mode:                              '0755'
+
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Check if installed"
+  ansible.builtin.stat:
+    path:                              "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
+  register:                            oracle_installed
+
+- name:                                "4.1.2 Oracle ASM Database Installation - check updated installation media exists"
+  ansible.builtin.stat:
+    path:                              "{{ target_media_location }}/SBP/SAP/RUNINSTALLER"
+  register:                            oracle_media_installed
+
+- name:                                "4.1.2 Oracle ASM Database Installation - check RUNINSTALLER exists"
+  ansible.builtin.assert:
+    that:
+      - oracle_media_installed.stat.exists
+    fail_msg:                          "Oracle ASM Database installation requires the updated RUNINSTALLER media to be available at {{ target_media_location }}/SBP/SAP/RUNINSTALLER"
 
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
@@ -161,193 +200,137 @@
 # |                                                                            |
 # | Step 1 run the pre-installation check                                      |
 # +------------------------------------4--------------------------------------*/
-- name:                                "4.1.0 Oracle Installation - Installation"
+- name:                                "4.1.2 Oracle ASM Database Installation - Pre-Installation Check"
   when:
     - not oracle_installed.stat.exists
   block:
 
-    - name:                            "4.1.0 Oracle Installation - Execute RUNINSTALLER command"
+# /*---------------------------------------------------------------------------8
+# | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
+# | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
+# | SAP Note 2660017 Oracle Software Installation on Unix                      |
+# |                                                                            |
+# | Step 2 run the installation check                                          |
+# +------------------------------------4--------------------------------------*/
+    - name:                            "4.1.2 Oracle ASM Database Installation - Execute RUNINSTALLER command"
       ansible.builtin.debug:
-        msg:                           "Running {{ runinstaller_media_found.stat.path }} -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
+        msg:                           "Running {{ oracle_media_installed.stat.path }} -oracle_image {{ OracleImage }} -applyRU {{ ApplyRU }} -opatchLocation {{ OPatchPath }} -silent -ignorePrereqWarnings"
 
-    - name:                            "4.1.0 Oracle Installation - Execute RUNINSTALLER"
+    - name:                            "4.1.2 Oracle ASM Database Installation - Execute RUNINSTALLER"
       become:                          true
       become_user:                     "{{ oracle_user_name }}"
       ansible.builtin.shell: |
-                                       {{ runinstaller_media_found.stat.path }} \
-                                       -oracle_image {{ OracleImage }}                           \
-                                       -applyRU {{ ApplyRU }}                                    \
-                                       -opatchLocation {{ OPatchPath }}                          \
+                                       {{ oracle_media_installed.stat.path }} \
+                                       -oracle_image {{ OracleImage }}        \
+                                       -applyRU {{ ApplyRU }}                 \
+                                       -opatchLocation {{ OPatchPath }}       \
                                        -silent -ignorePrereqWarnings
-      register:                        oracle_installer_results
-      failed_when:                     oracle_installer_results.rc >=  2
-      environment:                     "{{ oracle_env }}"
+      register:                        orainstaller_results
+      failed_when:                     orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+      environment:
+        DB_SID:                        "{{ db_sid | upper }}"
+        CV_ASSUME_DISTID:              "{{ CV_ASSUME_DISTID }}"
       args:
-        chdir:                         "{{ target_media_location }}/oraserver/LINUX_X86_64/db_home/SAP"
-        creates:                       /etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt
+        executable:                    /bin/csh
+        creates:                       "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
 
-    - name:                            "4.1.0 Oracle Installation - installer output"
-      when:                            oracle_installer_results.stdout is defined
+    - name:                            "4.1.2 Oracle ASM Database Installation - Debug: installer output"
       ansible.builtin.debug:
-        var:                           oracle_installer_results.stdout_lines
+        var:                           orainstaller_results.stdout_lines
         verbosity:                     2
 
-    - name:                            "4.1.0 Oracle Installation - installer output"
+    - name:                            "4.1.2 Oracle ASM Database Installation - Debug installer output log"
       ansible.builtin.copy:
-        dest:                          /etc/sap_deployment_automation/{{ db_sid | upper }}/{{ ansible_hostname }}_install.log
-        content:                       "{{ oracle_installer_results.stdout }}"
-        mode:                          '0655'
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-      when:                            oracle_installer_results.stdout is defined
+        dest:                          "/etc/sap_deployment_automation/oracle/oracle_install.log"
+        content:                       "{{ orainstaller_results.stdout }}"
+        mode:                          '0777'
+      when:                            orainstaller_results.stdout is defined
 
-    - name:                            "4.1.0 Oracle Installation - Create oracle_installed.txt"
-      become:                          true
-      become_user:                     "{{ oracle_user_name }}"
+    - name:                            "4.1.2 Oracle ASM Database Installation - Create oracle_installed.txt"
       ansible.builtin.file:
-        path:                          /etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt
+        path:                          "/etc/sap_deployment_automation/oracle/oracle_installed.txt"
         state:                         touch
         mode:                          '0755'
-      when:
-        - oracle_installer_results is defined
-        - oracle_installer_results.rc < 3
+      when:                            orainstaller_results.rc <= 2
 
-- name:                                "4.1.0 Oracle Installation - Find MOPatch"
-  ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/SBP/SAPSBP/"
-    patterns:                          ["MOPatch"]
-    file_type:                         directory
-    recurse:                           true
-  register:                            mopatch_directory
+# /*---------------------------------------------------------------------------8
+# | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
+# | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
+# | SAP Note 2660017 Oracle Software Installation on Unix                      |
+# |                                                                            |
+# | Step 3 Post processing                                                     |
+# +------------------------------------4--------------------------------------*/
 
-- name:                                "4.1.0 Oracle Installation - Too many MOPatches found"
-  ansible.builtin.fail:
-    msg:                               "Too many MOPatches found"
-  when:                                mopatch_directory.matched > 1
-
-- name:                                "4.1.0 Oracle Installation - No MOPatch found"
-  ansible.builtin.fail:
-    msg:                               "No MOPatches found"
-  when:                                mopatch_directory.matched == 0
-
-- name:                                "4.1.0 Oracle Installation - MOPatch path"
-  ansible.builtin.set_fact:
-    mopatch_path:                      "{{ mopatch_directory.files[0].path }}"
-  when:                                mopatch_directory.matched == 1
-
-- name:                                "4.1.0 Oracle Installation - Copy MOPatch"
-  ansible.builtin.copy:
-    src:                               "{{ mopatch_path }}"
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-    remote_src:                        true
-    mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-
-# Step 4
-
-- name:                                "4.1.1 ORACLE Installation - Check if oradism exists"
-  ansible.builtin.stat:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
-  register:                            oradism_stat
-
-- name:                                "4.1.0 Oracle Installation - pre processing reset permissions"
-  when:                                oradism_stat.stat.exists
-  ansible.builtin.file:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
-    state:                             file
-    mode:                              'u+rw'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-
-# Step 5
-- name:                                "4.1.0 Oracle Installation - DB SBP Patching - progress"
-  ansible.builtin.debug:
-    msg:                               "Running SBP Patching, env ORACLE_HOME=$IHRDBMS  $IHRDBMS /MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ oracle_sbp_patch }}, please wait"
-
-- name:                                "4.1.0 Oracle Installation - Post Processing - SBP Patching"
+- name:                                "4.1.2 Oracle ASM Database Installation - Run orainstRoot.sh"
   become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell:               "$IHRDBMS/MOPatch/mopatch.sh -v -s {{ target_media_location }}/SBP/{{ bom.patch_information.oracle_sbp_patch }} -F mopatch_patchgen"
-  environment:                         "{{ oracle_env }}"
+  become_user:                         root
+  ansible.builtin.shell:               /oracle/oraInventory/orainstRoot.sh
+  register:                            orainstRoot_results
   args:
-    chdir:                             "{{ target_media_location }}/SBP"
-    creates:                           /etc/sap_deployment_automation/{{ db_sid | upper }}/oracle_installed.txt
-  register:                            sbpscriptdb_results
-  failed_when:                         sbpscriptdb_results.rc >= 2
+    executable:                        /bin/csh
 
-- name:                                "4.1.0 Oracle Installation - Post processing installer output"
+- name:                                "4.1.2 Oracle ASM Database Installation - Debug: orainstRoot output"
   ansible.builtin.debug:
-    var:                               sbpscriptdb_results.stdout_lines
+    var:                               orainstRoot_results.stdout_lines
     verbosity:                         2
 
-- name:                                "4.1.0 Oracle Installation - Post processing installer output"
+- name:                                "4.1.2 Oracle ASM Database Installation - Debug installer output log"
   ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/mopatch_db.log"
-    content:                           "{{ sbpscriptdb_results.stdout }}"
-    mode:                              '0655'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-  when:                                sbpscriptdb_results.stdout is defined
+    dest:                              "/etc/sap_deployment_automation/oracle/orainstRoot.log"
+    content:                           "{{ orainstRoot_results.stdout }}"
+    mode:                              '0777'
+  when:                                orainstRoot_results.stdout is defined
 
-# Step 6
-- name:                                "4.1.0 Oracle Installation - pre processing reset permissions"
-  when:                                oradism_stat.stat.exists
+- name:                                "4.1.2 Oracle ASM Database Installation - Post Processing - Run root.sh"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell:               /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
+  register:                            rootscript_results
+  args:
+    executable:                        /bin/csh
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Debug: rootscript output"
+  ansible.builtin.debug:
+    var:                               rootscript_results.stdout_lines
+    verbosity:                         2
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Debug rootscript output log"
+  ansible.builtin.copy:
+    dest:                              "/etc/sap_deployment_automation/oracle/rootscript.log"
+    content:                           "{{ rootscript_results.stdout }}"
+    mode:                              '0777'
+  when:                                rootscript_results.stdout is defined
+
+- name:                                "4.1.2 Oracle ASM Database Installation - Permissions"
   ansible.builtin.file:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oradism"
+    path:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/bin/oracle
     state:                             file
-    mode:                              '4750'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
+    owner:                             oracle
+    mode:                              '6751'
 
-- name:                                "4.1.0 Oracle Installation - Check if ARM Deployment done"
-  ansible.builtin.stat:
-    path:                              "/etc/sap_deployment_automation/{{ db_sid | upper }}/sap_deployment_db_arm.txt"
-  register:                            db_arm_deployment_done
+- name:                                "4.1.2 Oracle ASM Database Installation - Set sid variable"
+  ansible.builtin.set_fact:
+    this_sid:                          "{{ db_sid | upper }}"
 
-- name:                                "4.1.0 Oracle Installation - Successful installation"
-  block:
-    - name:                            "Retrieve Subscription ID and Resource Group Name"
-      ansible.builtin.uri:
-        url:                           http://169.254.169.254/metadata/instance?api-version=2021-02-01
-        use_proxy:                     false
-        headers:
-          Metadata:                    true
-      register: azure_metadata
-
-    - name:                            "4.1.0 Oracle Installation - Extract details"
-      ansible.builtin.set_fact:
-        subscription_id:               "{{ azure_metadata.json.compute.subscriptionId }}"
-        resource_group_name:           "{{ azure_metadata.json.compute.resourceGroupName }}"
-
-    - name:                            "4.1.0 Oracle Installation - Show the subscription and resource group"
-      ansible.builtin.debug:
-        msg:
-          - "Subscription ID: {{ subscription_id }}"
-          - "Resource Group Name: {{ resource_group_name }}"
-
-    - name:                            "Include deploy/ansible/roles-misc/0.6-ARM-Deployment"
-      ansible.builtin.include_role:
-        name:                          roles-misc/0.6-ARM-Deployment
-      vars:
-        subscriptionId:                "{{ subscription_id }}"
-        resourceGroupName:             "{{ resource_group_name }}"
-
+- name:                                "4.1.2 Oracle ASM Database Installation - Set sid variable"
+  ansible.builtin.set_fact:
+    this_sid:                          "{{ db_sid | upper }}_STDBY"
   when:
-    - not db_arm_deployment_done.stat.exists
+    ansible_hostname == ora_secondary
 
-- name:                                "4.1.0 Oracle Installation - Install status"
-  block:
 
-    - name:                            "4.1.0 Oracle Installation - Install status"
-      ansible.builtin.debug:
-        msg:                           "4.1.0 Oracle Installation - is already installed"
-
-    - name:                            "ORACLE:: - return value"
-      ansible.builtin.set_fact:
-        oracle_already_installed:      true
+- name:                                "4.1.2 Oracle ASM Database Installation - Install status"
   when:
     - oracle_installed.stat.exists
+  block:
+
+    - name:                            "4.1.2 Oracle ASM Database Installation - Install status"
+      ansible.builtin.debug:
+        msg:                           "Oracle ASM: is already installed"
+
+    - name:                            "4.1.2 Oracle ASM Database Installation - return value"
+      ansible.builtin.set_fact:
+        oracle_already_installed:      true
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
