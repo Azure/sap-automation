@@ -1320,11 +1320,11 @@ variable "sapmnt_private_endpoint_id"           {
                                                   default     = ""
                                                 }
 
-variable "use_AFS_for_shared_storage"              {
-                                                     description = "If true, will use AFS for all shared storage."
-                                                     type        = bool
-                                                     default     = false
-                                                   }
+variable "use_AFS_for_shared_storage"           {
+                                                  description = "If true, will use AFS for all shared storage."
+                                                  type        = bool
+                                                  default     = false
+                                                }
 
 variable "AFS_enable_encryption_in_transit"     {
                                                   description = "Enable encryption in transit for Azure Files"

@@ -236,7 +236,7 @@ output "cloudinit_growpart_config"               {
 
 output "sapmnt_path"                             {
                                                    description = "Defines the sapmnt mount path"
-                                                   value       = var.NFS_provider == "AFS" && var.application_tier.enable_deployment ? (
+                                                   value       = var.application_tier.use_AFS_for_sapmnt && var.application_tier.enable_deployment ? (
                                                                    format("%s:/%s/%s",
                                                                      length(var.sapmnt_private_endpoint_id) == 0 ? (
                                                                        try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,
