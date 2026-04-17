@@ -400,14 +400,14 @@ Licensed under the MIT license.
 
     Write-Host -ForegroundColor green "Initializing Terraform  New-SAPWorkloadZone"
 
-    $Command = " init -upgrade=true -reconfigure -backend-config ""subscription_id=$state_subscription_id"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$envkey"" "
+    $Command = " init -upgrade -reconfigure -backend-config ""subscription_id=$state_subscription_id"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$envkey"" "
     if (Test-Path ".terraform" -PathType Container) {
         if (Test-Path ".\.terraform\terraform.tfstate" -PathType Leaf) {
 
             $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
 
             if ("azurerm" -eq $jsonData.backend.type) {
-                $Command = " init -upgrade=true"
+                $Command = " init -upgrade"
             }
         }
     } 
@@ -433,14 +433,14 @@ Licensed under the MIT license.
         }
     }
 
-    $Command = " init -upgrade=true -backend-config ""subscription_id=$state_subscription_id"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$envkey"" "
+    $Command = " init -upgrade -backend-config ""subscription_id=$state_subscription_id"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$envkey"" "
     if (Test-Path ".terraform" -PathType Container) {
         if (Test-Path ".\.terraform\terraform.tfstate" -PathType Leaf) {
 
             $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
 
             if ("azurerm" -eq $jsonData.backend.type) {
-                $Command = " init -upgrade=true"
+                $Command = " init -upgrade"
             }
         }
     } 

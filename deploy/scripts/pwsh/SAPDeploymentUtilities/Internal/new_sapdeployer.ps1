@@ -164,7 +164,7 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green "Initializing Terraform"
 
     $statefile = (Join-Path -Path $curDir -ChildPath "terraform.tfstate")
-    $Command = " init -upgrade=true  -backend-config ""path=$statefile"""
+    $Command = " init -upgrade  -backend-config ""path=$statefile"""
     if (Test-Path ".terraform" -PathType Container) {
         $jsonData = Get-Content -Path .\.terraform\terraform.tfstate | ConvertFrom-Json
 
@@ -176,7 +176,7 @@ Licensed under the MIT license.
                 return
             }
             else {
-                $Command = " init -upgrade=true -reconfigure "
+                $Command = " init -upgrade -reconfigure "
             }
         }
         else {
