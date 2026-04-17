@@ -267,7 +267,7 @@ if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
         getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${deployer_environment_file_name}"
 
         terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-        if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure \
+        if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure \
             --backend-config "subscription_id=$STATE_SUBSCRIPTION" \
             --backend-config "resource_group_name=$REMOTE_STATE_RG" \
             --backend-config "storage_account_name=$REMOTE_STATE_SA" \
@@ -299,7 +299,7 @@ if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
     else
         echo "Terraform state:                     local"
         terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
-        if terraform -chdir="${terraform_module_directory}" init -upgrade=true --backend-config "path=${deployer_dirname}/terraform.tfstate"; then
+        if terraform -chdir="${terraform_module_directory}" init -upgrade --backend-config "path=${deployer_dirname}/terraform.tfstate"; then
             keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
             if valid_kv_name "$keyvault"; then
                 DEPLOYER_KEYVAULT="${keyvault}"
@@ -553,7 +553,7 @@ if [ 0 != "$step" ]; then
                     STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
                     REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
                     REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-                    if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+                    if terraform -chdir="${terraform_module_directory}" init -upgrade \
                         --backend-config "subscription_id=$STATE_SUBSCRIPTION" \
                         --backend-config "resource_group_name=$REMOTE_STATE_RG" \
                         --backend-config "storage_account_name=$REMOTE_STATE_SA" \

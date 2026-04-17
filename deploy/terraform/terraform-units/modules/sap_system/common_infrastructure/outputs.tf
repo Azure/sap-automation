@@ -236,7 +236,7 @@ output "cloudinit_growpart_config"               {
 
 output "sapmnt_path"                             {
                                                    description = "Defines the sapmnt mount path"
-                                                   value       = var.NFS_provider == "AFS" ? (
+                                                   value       = var.application_tier.use_AFS_for_sapmnt && var.application_tier.enable_deployment ? (
                                                                    format("%s:/%s/%s",
                                                                      length(var.sapmnt_private_endpoint_id) == 0 ? (
                                                                        try(azurerm_private_endpoint.sapmnt[0].private_dns_zone_configs[0].record_sets[0].fqdn,
@@ -254,14 +254,14 @@ output "sapmnt_path"                             {
                                                                    ) : (
                                                                    var.NFS_provider == "ANF" ? (
                                                                      format("%s:/%s",
-                                                                       var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
+                                                                       try(var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
                                                                          data.azurerm_netapp_volume.sapmnt[0].mount_ip_addresses[0]) : (
                                                                          azurerm_netapp_volume.sapmnt[0].mount_ip_addresses[0]
-                                                                       ),
-                                                                       var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
+                                                                       ), ""),
+                                                                       try(var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
                                                                          data.azurerm_netapp_volume.sapmnt[0].volume_path) : (
                                                                          azurerm_netapp_volume.sapmnt[0].volume_path
-                                                                       )
+                                                                       ), "") 
                                                                      )
                                                                      ) : (
                                                                      ""
@@ -271,7 +271,7 @@ output "sapmnt_path"                             {
 
 output "sapmnt_path_secondary"                   {
                                                    description = "Defines the sapmnt mount path"
-                                                   value       = var.NFS_provider == "ANF" && var.hana_ANF_volumes.sapmnt_use_clone_in_secondary_zone ? (
+                                                   value       = var.NFS_provider == "ANF" && var.application_tier.enable_deployment && var.hana_ANF_volumes.sapmnt_use_clone_in_secondary_zone ? (
                                                                    format("%s:/%s",
                                                                      azurerm_netapp_volume.sapmnt_secondary[0].mount_ip_addresses[0],
                                                                      azurerm_netapp_volume.sapmnt_secondary[0].volume_path
@@ -283,7 +283,7 @@ output "sapmnt_path_secondary"                   {
 
 output "usrsap_path"                             {
                                                    description = "Defines the /usr/sap mount path (if used)"
-                                                   value       = var.NFS_provider == "ANF" && var.hana_ANF_volumes.use_for_usr_sap ? (
+                                                   value       = var.NFS_provider == "ANF" && var.application_tier.enable_deployment && var.hana_ANF_volumes.use_for_usr_sap ? (
                                                                    format("%s:/%s",
                                                                      var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
                                                                        data.azurerm_netapp_volume.usrsap[0].mount_ip_addresses[0]) : (
@@ -326,7 +326,7 @@ output "anchor_vm"                               {
 
 output "scale_set_id"                            {
                                                    description = "Defines the Scaleset ID"
-                                                   value       = var.use_scalesets_for_deployment ? (
+                                                   value       = var.use_scalesets_for_deployment && var.application_tier.enable_deployment ? (
                                                                    length(var.scaleset_id) > 0 ? (
                                                                      var.scaleset_id): (
                                                                      azurerm_orchestrated_virtual_machine_scale_set.scale_set[0].id)

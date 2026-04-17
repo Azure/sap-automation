@@ -250,7 +250,7 @@ function install_deployer() {
         azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
         if [ -n "$azure_backend" ]; then
             print_banner "$banner_title" "State already migrated to Azure" "warning"
-            if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state -force-copy -backend-config "path=${param_dirname}/terraform.tfstate"; then
+            if terraform -chdir="${terraform_module_directory}" init -upgrade -migrate-state -force-copy -backend-config "path=${param_dirname}/terraform.tfstate"; then
                 return_value=$?
                 print_banner "$banner_title" "Terraform init succeeded. State migrated" "success"
 
@@ -317,7 +317,7 @@ function install_deployer() {
 
         else
             print_banner "$banner_title" "State is not using Azure backend, Running terraform init" "info"
-            if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+            if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
                 return_value=$?
                 print_banner "$banner_title" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
             else
@@ -331,7 +331,7 @@ function install_deployer() {
         fi
     else
         print_banner "$banner_title" "Running terraform init" "info"
-        if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
+        if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure -backend-config "path=${param_dirname}/terraform.tfstate"; then
             return_value=$?
             print_banner "$banner_title" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
         else

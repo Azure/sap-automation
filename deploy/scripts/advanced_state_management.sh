@@ -363,7 +363,7 @@ module_dir=$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${type}
 
 export TF_DATA_DIR="${directory}"
 
-terraform -chdir="${module_dir}" init -migrate-state -upgrade=true \
+terraform -chdir="${module_dir}" init -migrate-state -upgrade \
 	-backend-config "subscription_id=${subscription_id}" \
 	-backend-config "resource_group_name=${resource_group_name}" \
 	-backend-config "storage_account_name=${storage_account_name}" \

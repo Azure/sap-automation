@@ -284,6 +284,7 @@ locals {
                                         deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                         user_assigned_identity_id       = var.user_assigned_identity_id
                                         disk_controller_type_app_tier   = var.disk_controller_type_app_tier
+                                        use_AFS_for_sapmnt              = var.NFS_provider == "AFS" && !var.ANF_sapmnt
                                       }
 
   app_tags                          = var.application_server_tags

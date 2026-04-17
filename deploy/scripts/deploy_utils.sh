@@ -143,10 +143,12 @@ function getAndStoreTerraformStateStorageAccountDetails {
 		REMOTE_STATE_RG=$(echo "${tfstate_resource_id}" | cut -d/ -f5 | tr -d \" | xargs)
 
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		TF_VAR_management_subscription_id=$STATE_SUBSCRIPTION
 		
 		export REMOTE_STATE_RG
 		export STATE_SUBSCRIPTION
 		export TF_VAR_tfstate_resource_id
+		export TF_VAR_management_subscription_id
 		export tfstate_resource_id="${tfstate_resource_id}"
 
 		if [ -f "${config_file_name}" ]; then

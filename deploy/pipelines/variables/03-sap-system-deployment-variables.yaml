@@ -1,11 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 #                                                                              |
 # Defines the parameters and variables for the SAP System                      |
 #                                                                              |
-#--------------------------------------+---------------------------------------8
+# -------------------------------------+---------------------------------------8
 
 parameters:
 
@@ -60,7 +60,7 @@ variables:
     value:                             $[variables['DEPLOYER_KEYVAULT']]
 
   - name:                              test_only
-    value:                             ${{ parameters.test }}
+    value:                             ${{ lower(parameters.test) }}
 
   - name:                              workload_zone_name
     value:                             $[upper(format('{0}-{1}-{2}', split('${{ parameters.sap_system }}', '-')[0], split('${{ parameters.sap_system }}', '-')[1], split('${{ parameters.sap_system }}', '-')[2]))]

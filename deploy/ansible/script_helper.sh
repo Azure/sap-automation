@@ -95,7 +95,6 @@ function print_banner() {
 	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
 
 	echo ""
-	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
 	echo -e "#${color}${centered_title}${reset}#"
@@ -109,6 +108,5 @@ function print_banner() {
 		echo "#                                                                               #"
 	fi
 	echo "#################################################################################"
-	echo -e "${reset}"
 	echo ""
 }

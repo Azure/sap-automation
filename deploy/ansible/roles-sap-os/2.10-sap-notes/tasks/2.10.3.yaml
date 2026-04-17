@@ -119,7 +119,7 @@
   ansible.builtin.set_fact:
     saptune_solution_to_apply: >-
                                        {%- if 'scs' in supported_tiers and 'hana' in supported_tiers and platform == 'HANA' -%}
-                                         {%- if bom.product_ids is defined -%}
+                                         {%- if bom.product_ids.scs is defined -%}
                                            {%- if bom.product_ids.scs is search(':S4HANA') -%}
                                              'S4HANA-APP+DB'
                                            {%- elif bom.product_ids.scs is search(':NW\d{3}') -%}
@@ -142,7 +142,7 @@
                                          {%- else -%}
                                            'HANA'
                                          {%- endif -%}
-                                       {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and platform == 'HANA' and bom.product_ids is defined -%}
+                                       {%- elif node_tier in ['scs', 'ers', 'pas', 'app'] and platform == 'HANA' and bom.product_ids.scs is defined -%}
                                          {%- if bom.product_ids.scs is search(':S4HANA') -%}
                                            'S4HANA-APPSERVER'
                                          {%- elif bom.product_ids.scs is search(':BW4HANA') -%}

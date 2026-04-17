@@ -197,7 +197,7 @@
 
     - name:                            "5.3 Additional Application Server Installation - progress"
       ansible.builtin.debug:
-        msg:                           "Starting App Install ({{ sid_to_be_deployed.sid | upper }})"
+        msg:                           "Starting Additional Application Server Installation ({{ sid_to_be_deployed.sid | upper }})"
 
     - name:                            "5.3 Additional Application Server Installation - Running sapinst"
       ansible.builtin.shell: |
@@ -234,7 +234,7 @@
 
     - name:                            "5.3 Additional Application Server Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ app_bom_id.replace('.', '/').replace('/ABAP', '').replace('/PD', '').split(':')[1] }}/{{ file_path }}"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ app_bom_id.replace('.', '/').replace('/ABAP', '').replace('/JAVA', '').replace('/PD', '').split(':')[1] }}/{{ file_path }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true

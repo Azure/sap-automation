@@ -60,13 +60,13 @@
 #   when:
 #     - pause|default(false)                                                      # when true; if not defined, then value is false
 
-- name:                                "Call BOM registration"
+- name:                                "0.1 Bom Validator - Call BOM registration"
   ansible.builtin.include_role:
     name:                              roles-sap/3.3.1-bom-utility
     tasks_from:                        bom-register
   vars:
     inventory_dir:                     "{{ download_directory }}/bom"
-    task_prefix:                       "Validation: "
+    task_prefix:                       "3.3.1 BoM Registration - "
     source:                            "disk"
 # Step: 02 - END
 # -------------------------------------+---------------------------------------8
@@ -76,7 +76,7 @@
 # Description:  Dynamic Processing - Iterate over BOM dictionary to find Dynamic
 #               entries.
 #
-- name:                                 "Reconcile dynamic entries of BOM"
+- name:                                 "0.1 Bom Validator - Reconcile dynamic entries of BOM"
   ansible.builtin.include_tasks:        "dynamic_bom_processing.yaml"
   loop:                                 "{{ bom.materials.media | flatten(levels=1) }}"
   loop_control:
@@ -93,7 +93,7 @@
 # Step: 04
 # Description:  Generate SAS token block
 #
-- name:                                 "Generate SAS token block"
+- name:                                 "0.1 Bom Validator - Generate SAS token block"
   when:
     - sa_enabled
     - allowSharedKeyAccess
@@ -163,7 +163,7 @@
 
 - name:                                "0.1 BoM Validator - BOM {{ this_bom_name }} Check and Download Files"
   ansible.builtin.include_tasks:       bom_download.yaml
-  loop:                                "{{ local_media_list }}"
+  loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   loop_control:
     loop_var:                           bom_media_entry
     index_var:                          bom_media_index
@@ -176,7 +176,7 @@
 
 - name:                                "0.1 BoM Validator - Append the file list"
   ansible.builtin.set_fact:
-    root_media_list:                   "{% if root_media_list is defined %}{{ root_media_list + local_media_list }}{% else %}{{ local_media_list }}{% endif %}"
+    root_media_list:                   "{% if root_media_list is defined %}{{ root_media_list + bom.materials.media | flatten(levels=1) }}{% else %}{{ bom.materials.media | flatten(levels=1) }}{% endif %}"
 
 
 # -------------------------------------+---------------------------------------8

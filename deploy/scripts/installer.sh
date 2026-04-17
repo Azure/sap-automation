@@ -705,10 +705,6 @@ elif [ 2 == "$return_value" ]; then
     return_value=0
 else
     print_banner "${banner_title}" "Terraform plan failed ($return_value)" "error"
-    if [ -f plan_output.log ]; then
-        cat plan_output.log
-        rm plan_output.log
-    fi
     unset TF_DATA_DIR
     exit "$return_value"
 fi
@@ -892,7 +888,7 @@ if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "
     fatal_errors=1
 fi
 
-if [ "${TEST_ONLY}" == "True" ]; then
+if [ "${TEST_ONLY:-false}" == "true" ]; then
     print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
     if [ $fatal_errors == 1 ]; then
@@ -901,7 +897,6 @@ if [ "${TEST_ONLY}" == "True" ]; then
     fi
     exit 0
 fi
-
 if [ $fatal_errors == 1 ]; then
     apply_needed=0
     print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
@@ -912,10 +907,6 @@ if [ $fatal_errors == 1 ]; then
             echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
         fi
         exit 1
-    fi
-
-    if [ 1 == $force ]; then
-        apply_needed=1
     else
         read -r -p "Do you want to continue with the deployment Y/N? " ans
         answer=${ans^^}
@@ -1123,25 +1114,6 @@ unset TF_DATA_DIR
 #                                                                               #
 #################################################################################
 
-az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
-    --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-
-if [ -f "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" ]; then
-    az storage blob upload --file "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" --container-name tfvars/"${state_path}"/"${key}/.terraform" --name "${parameterfile_name}" \
-        --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-fi
-
-if [ -f sap-parameters.yaml ]; then
-    if [ "${deployment_system}" == sap_system ]; then
-        echo "Uploading the yaml files from ${param_dirname} to the storage account"
-        az storage blob upload --file sap-parameters.yaml --container-name "tfvars/${state_path}/${key}" --name sap-parameters.yaml \
-            --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-
-        hosts_file=$(ls ./*_hosts.yaml)
-        az storage blob upload --file "${hosts_file}" --container-name "tfvars/${state_path}/${key}" --name "${hosts_file}" \
-            --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
-    fi
-fi
 
 if [ "${deployment_system}" == sap_landscape ]; then
     az storage blob upload --file "${system_environment_file_name}" --container-name "tfvars/.sap_deployment_automation" --name "${environment}${region_code}${network_logical_name}" \
@@ -1151,6 +1123,29 @@ fi
 if [ "${deployment_system}" == sap_library ]; then
     az storage blob upload --file "${system_environment_file_name}" --container-name "tfvars/.sap_deployment_automation" --name "${environment}${region_code}${network_logical_name}" \
         --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+
+    az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
+        --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+
+    if [ -f "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" ]; then
+        az storage blob upload --file "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" --container-name tfvars/"${state_path}"/"${key}/.terraform" --name "${parameterfile_name}" \
+            --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+    fi
+
+fi
+
+if [ "${deployment_system}" == sap_deployer ]; then
+    az storage blob upload --file "${system_environment_file_name}" --container-name "tfvars/.sap_deployment_automation" --name "${environment}${region_code}${network_logical_name}" \
+        --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+
+    az storage blob upload --file "${parameterfile}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterfile_name}" \
+        --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+
+    if [ -f "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" ]; then
+        az storage blob upload --file "$(dirname "${parameterfile}")/.terraform/terraform.tfstate" --container-name tfvars/"${state_path}"/"${key}/.terraform" --name "${parameterfile_name}" \
+            --subscription "${STATE_SUBSCRIPTION}" --account-name "${REMOTE_STATE_SA}" --no-progress --overwrite --only-show-errors --output none
+    fi
+
 fi
 
 print_banner "$banner_title" "Deployment finished with return code: $return_value" "info"

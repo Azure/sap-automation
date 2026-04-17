@@ -10,8 +10,7 @@ target:               {{ root_bom.target }}
 
 version:              {{ root_bom.version }}
 
-platform:             {% if root_bom.platform is defined %}{{ root_bom.platform }}{% endif %}
-
+platform:             {% if root_bom.platform is defined %}{{ root_bom.platform }}{% else %}{{ platform }}{% endif %}
 {% set platform_code = '.HDB.' %}
 {% if platform is defined %}
 {%   if platform == 'ORACLE' %}
@@ -19,7 +18,7 @@ platform:             {% if root_bom.platform is defined %}{{ root_bom.platform 
 {%   elif platform == 'ORACLE-ASM' %}
 {%     set platform_code = '.ORA.' %}
 {%   elif platform == 'DB2' %}
-{%     set platform_code = '.DB2.' %}
+{%     set platform_code = '.DB6.' %}
 {%   elif platform == 'SYBASE' %}
 {%     set platform_code = '.SYB.' %}
 {%   elif platform == 'SQLSERVER' %}
@@ -31,7 +30,7 @@ platform:             {% if root_bom.platform is defined %}{{ root_bom.platform 
 {%   elif root_bom.platform == 'ORACLE-ASM' %}
 {%     set platform_code = '.ORA.' %}
 {%   elif root_bom.platform == 'DB2' %}
-{%     set platform_code = '.DB2.' %}
+{%     set platform_code = '.DB6.' %}
 {%   elif root_bom.platform == 'SYBASE' %}
 {%     set platform_code = '.SYB.' %}
 {%   elif root_bom.platform == 'SQLSERVER' %}
@@ -54,20 +53,16 @@ minimumRedHatVersion: {% if minimumRedHatVersion is defined %}{{ minimumRedHatVe
 minimumSLESVersion:   {% if minimumSLESVersion is defined %}{{ minimumSLESVersion }}{% endif %}
 
 
-
 product_ids:
-
 {% if root_bom.product_ids is defined and root_bom.product_ids is mapping %}
 {%   for pKey,pValue in root_bom.product_ids.items() %}
 {{'  %-10s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim | replace('.HDB.', platform_code)) }}
 {%   endfor %}
 {% endif %}
 
-{% if patch_information is defined and patch_information is mapping %}
-
-patch_information:
-
+{% if patch_information is defined %}
 {%   if patch_information is mapping %}
+patch_information:
 {%     for pKey,pValue in patch_information.items() %}
 {{'  %-20s' | format(pKey | trim +':') }}{{' \"%s\"' | format(pValue | trim) }}
 {%     endfor %}
@@ -80,11 +75,9 @@ patch_information:
 {%   endif %}
 {% endif %}
 
-
 materials:
   media:
 {% for media in root_media_list | flatten | select('mapping') | list %}
-
 {{'    %-16s' | format('- name:' | trim) }}{{'\"%s\"' | format(media.name | trim) }}
 {%   set preferred_media_keys = ['archive', 'checksum', 'filename', 'path', 'url', 'download', 'extract', 'extractDir', 'creates', 'permissions'] %}
 {%   for key in preferred_media_keys %}
@@ -99,4 +92,5 @@ materials:
 {%   for key in media.keys() | reject('equalto', 'name') | reject('in', preferred_media_keys) | sort %}
 {{'      %-13s' | format(key + ':' | trim) }}{{' %s'     | format(media[key] | trim) }}
 {%   endfor %}
+
 {% endfor %}

@@ -254,6 +254,122 @@
           - "APPLICATION:    {{ application_type }}"
           - "PLATFORM:       {{ platform }}"
 
+
+    - name:                            "5.1 Database Load  - Remove Oracle lock files if exist to avoid installation failure due to existing locks from previous installation attempts"
+      ansible.builtin.file:
+        name:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/lk{{ db_sid | upper }}"
+        state:                         absent
+      when:
+        - platform in ["ORACLE", "ORACLE-ASM"]
+
+    - name:                            "4.1.2 Oracle ASM Database Installation "
+      when:
+        - platform in ["ORACLE-ASM"]
+      block:
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Kill stale ORA database processes only"
+          become:                      true
+          become_user:                 root
+          ansible.builtin.shell: |
+                                          pkill -9 -f "ora_pmon_{{ db_sid | upper }}" || true
+                                          pkill -9 -f "ora_smon_{{ db_sid | upper }}" || true
+                                          pkill -9 -f "ora_lgwr_{{ db_sid | upper }}" || true
+                                          pkill -9 -f "ora_dbw0_{{ db_sid | upper }}" || true
+                                          sleep 2
+          failed_when:                 false
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Clean orphaned shared memory"
+          become:                      true
+          become_user:                 root
+          ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep oracle | awk '$6==0 {print $2}'); do ipcrm -m $seg; done || true
+          failed_when:                 false
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Ensure the instance is mounted"
+          become_user:                 "{{ oracle_user_name }}"
+          become:                      true
+          ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       STARTUP NOMOUNT;
+                                       EXIT;
+                                       EOF
+          register:                    asm_mount_results
+          failed_when:                 false
+          environment:                 "{{ grid_env }}"
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Dismount all ASM diskgroups to evict stale client registrations"
+          become_user:                 "{{ grid_user_name }}"
+          become:                      true
+          ansible.builtin.shell: |
+                                        sqlplus -S / as sysasm <<EOF
+                                        ALTER DISKGROUP DATA DISMOUNT FORCE;
+                                        ALTER DISKGROUP RECO DISMOUNT FORCE;
+                                        ALTER DISKGROUP ARCH DISMOUNT FORCE;
+                                        EXIT;
+                                        EOF
+          register:                    asm_dismount_results
+          failed_when:                 false
+          environment:                 "{{ grid_env }}"
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Wait for ASM stale client deregistration"
+          ansible.builtin.pause:
+            seconds:                   10
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Mount all ASM diskgroups after stale client eviction"
+          become_user:                 "{{ grid_user_name }}"
+          become:                      true
+          ansible.builtin.shell: |
+                                        sqlplus -S / as sysasm <<EOF
+                                        ALTER DISKGROUP DATA MOUNT;
+                                        ALTER DISKGROUP RECO MOUNT;
+                                        ALTER DISKGROUP ARCH MOUNT;
+                                        EXIT;
+                                        EOF
+          register:                    asm_remount_results
+          failed_when:                 false
+          environment:                 "{{ grid_env }}"
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Verify stale ASM client count for SID"
+          become_user:                 "{{ grid_user_name }}"
+          become:                      true
+          ansible.builtin.shell: |
+                                        sqlplus -S / as sysasm <<EOF
+                                        set pages 0 feedback off verify off heading off echo off
+                                        select count(*) from v\$asm_client where db_name='{{ db_sid | upper }}';
+                                        EXIT;
+                                        EOF
+          register:                    asm_stale_client_count
+          changed_when:                false
+          failed_when:                 false
+          environment:                 "{{ grid_env }}"
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Fail if stale ASM client remains before SAPInst"
+          ansible.builtin.assert:
+            that:
+              - "(asm_stale_client_count.stdout | regex_search('[0-9]+') | int) == 0"
+            fail_msg:                  "Stale ASM client for SID {{ db_sid | upper }} still registered after dismount cycle. Manual cleanup required. Output: {{ asm_stale_client_count.stdout | trim }}"
+            success_msg:               "No stale ASM client for SID {{ db_sid | upper }}"
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Strip hardcoded control_files from initORA.ora"
+          become:                      true
+          become_user:                 "{{ oracle_user_name }}"
+          ansible.builtin.lineinfile:
+            path:                      "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/init{{ db_sid | upper }}.ora"
+            regexp:                    '^control_files\s*='
+            state:                     absent
+          failed_when:                 false
+
+        - name:                        "4.1.2 Oracle ASM Database Installation - Pre-Create Cleanup: Ensure instance is down before SAPInst starts"
+          become_user:                 "{{ oracle_user_name }}"
+          become:                      true
+          ansible.builtin.shell: |
+                                        sqlplus -S / as sysdba <<EOF
+                                        SHUTDOWN ABORT;
+                                        EXIT;
+                                        EOF
+          register:                    asm_shutdown_results
+          failed_when:                 false
+          environment:                 "{{ grid_env }}"
         # Import this task only if the tier is ora.
     - name:                            "5.1 Database Load  - Import Oracle specific tasks"
       ansible.builtin.import_tasks:    oracle.yaml

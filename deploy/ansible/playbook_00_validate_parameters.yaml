@@ -696,6 +696,15 @@
       when:
         - platform in ['ORACLE', 'ORACLE-ASM']
 
+
+    - name:                            "Validation Playbook - Validate that the correct distribution is used"
+      ansible.builtin.assert:
+        that:
+          - "distribution_id in ['oraclelinux8']"
+        fail_msg: "For Oracle ASM deployments DB, PAS and APP needs to run on OracleLinux 8 at this time"
+      when:
+        - platform in [ 'ORACLE-ASM']
+
 - hosts:                               "{{ sap_sid | upper }}_DB"
 
   name:                                "Validation Playbook - Validate SAP-Parameters for Oracle"

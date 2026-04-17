@@ -114,6 +114,11 @@ unset ANSIBLE_BECOME_EXE
 # Don't show the skipped hosts
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=false
 
+sudo mkdir -p $HOME/downloads
+sudo chown $USER:$USER $HOME/downloads
+export ANSIBLE_LOCAL_TEMP=$HOME/downloads
+download_directory=$HOME/downloads
+
 # NOTE: In the short term, keep any modifications to the above in sync with
 # ../terraform/terraform-units/modules/sap_system/output_files/ansible.cfg.tmpl
 
@@ -179,8 +184,9 @@ playbook_options=(
         --inventory-file="${sap_sid%$'\r'}_hosts.yaml"
         --private-key=${ANSIBLE_PRIVATE_KEY_FILE}
         --extra-vars="_workspace_directory=`pwd`"
+        --extra-vars="download_directory=${download_directory}"
         --extra-vars="@${sap_params_file}"
-        --extra-vars="BOM_CATALOG={{ lookup("env", "BOM_CATALOG") }}"
+        --extra-vars="BOM_CATALOG=${BOM_CATALOG}"
         -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'
         "${@}"
 )
@@ -234,21 +240,37 @@ do
                         print_banner "SAP Configuration and Installation" "Executing pre-playbook '${basename_item_pre}'" info
                         ${DEBUG:+echo} \
                                 ansible-playbook "${playbook_options[@]}" "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_pre}"
+                        return_value=$?
+                        if [[ $return_value -ne 0 ]]; then
+                                print_banner "SAP Configuration and Installation" "Pre-playbook '${basename_item_pre}' failed with return code ${return_value}" "error"
+                        fi
                 fi
 
                 echo ""
                 print_banner "SAP Configuration and Installation" "Executing playbook $(basename "$item")" info
                 ${DEBUG:+echo} \
                         ansible-playbook "${playbook_options[@]}" "$item"
+                return_value=$?
+                if [[ $return_value -ne 0 ]]; then
+                        print_banner "SAP Configuration and Installation" "Playbook '$(basename "$item")' failed with return code ${return_value}" "error"
+                        break
+                else
+                        print_banner "SAP Configuration and Installation" "Playbook '$(basename "$item")' completed successfully" "success"
+                fi
                 echo ""
 
                 if [[ -f "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_post}" ]]; then
                         print_banner "SAP Configuration and Installation" "Executing post-playbook '${basename_item_post}'" info
                         ${DEBUG:+echo} \
                                 ansible-playbook "${playbook_options[@]}" "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_post}"
+                                return_value=$?
+                                if [[ $return_value -ne 0 ]]; then
+                                        print_banner "SAP Configuration and Installation" "Post-playbook '${basename_item_post}' failed with return code ${return_value}" "error"
+                                fi
                 fi
         done
 
         break
 done
 
+exit $return_value
