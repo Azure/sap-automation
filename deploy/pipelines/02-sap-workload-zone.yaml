@@ -200,7 +200,7 @@ stages:
               FENCING_SPN_PWD:                    $(FENCING_SPN_PWD)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
-              TEST_ONLY:                          ${{ parameters.test }}
+              TEST_ONLY:                          ${{ lower(parameters.test) }}
               TF_IN_AUTOMATION:                   true
               TF_LOG:                             $(TF_LOG)
               TF_VAR_subscription_id:             $(ARM_SUBSCRIPTION_ID)

@@ -128,8 +128,8 @@ variables:
   - name:                              this_agent
     value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
 
-  - name:                              test
-    value:                             ${{ parameters.test }}
+  - name:                              test_only
+    value:                             ${{ lower(parameters.test) }}
 
   - name:                              control_plane_name
     value:                             ${{ upper(replace(parameters.deployer_environment, '-INFRASTRUCTURE', '') ) }}

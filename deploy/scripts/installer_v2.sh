@@ -921,7 +921,7 @@ function sdaf_installer() {
 
     echo "Terraform plan command: terraform -chdir=${terraform_module_directory} plan -detailed-exitcode ${allParameters[*]}"
 
-    if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
+    if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -no-color "${allParameters[@]}" | tee plan_output.log; then
         return_value=${PIPESTATUS[0]}
     else
         return_value=${PIPESTATUS[0]}

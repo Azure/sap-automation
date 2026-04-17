@@ -689,7 +689,7 @@ fi
 
 apply_needed=0
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -no-color "${allParameters[@]}" | tee plan_output.log; then
     return_value=${PIPESTATUS[0]}
 else
     return_value=${PIPESTATUS[0]}
@@ -888,7 +888,7 @@ if ! testIfResourceWouldBeRecreated "module.app_tier.azurerm_managed_disk.web" "
     fatal_errors=1
 fi
 
-if [ "${TEST_ONLY}" == "True" ]; then
+if [ "${TEST_ONLY:-false}" == "true" ]; then
     print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
     if [ $fatal_errors == 1 ]; then
@@ -897,7 +897,7 @@ if [ "${TEST_ONLY}" == "True" ]; then
     fi
     exit 0
 fi
-
+exit 10
 if [ $fatal_errors == 1 ]; then
     apply_needed=0
     print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
