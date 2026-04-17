@@ -1402,18 +1402,18 @@ function testIfResourceWouldBeRecreated {
 	resource_return_value=0
 
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
-	willResourceWouldBeRecreated=$(grep "$moduleId" "$fileName" | grep -m1 "must be replaced" || true)
+	willResourceWouldBeRecreated=$(grep "$moduleId" "$fileName" | grep -m1 "must be" | grep -m1 "replaced" || true)
 	if [ -n "${willResourceWouldBeRecreated}" ]; then
-		print_banner "Installer" "Risk for data loss" "error" "$shortName will be removed ($moduleId)"
+		print_banner "Installer - Data Loss" "$shortName will be removed" "error"  "($moduleId)"
         if [ 1 == $called_from_ado ]; then
 			echo "##vso[task.logissue type=error]Resource will be removed: $shortName"
 		fi
 		resource_return_value=1
 	fi
 
-	willResourceWouldBeDestroyed=$(grep "$moduleId" "$fileName" | grep -m1 "will be destroyed" || true)
+	willResourceWouldBeDestroyed=$(grep "$moduleId" "$fileName" | grep -m1 "will be" | grep -m1 "destroyed" || true)
 	if [ -n "${willResourceWouldBeDestroyed}" ]; then
-		print_banner "Installer" "Data loss" "error" "$shortName will be destroyed ($moduleId)"
+		print_banner "Installer - Data Loss" "$shortName will be destroyed" "error"  "($moduleId)"
         if [ 1 == $called_from_ado ]; then
 			echo "##vso[task.logissue type=error]Resource will be destroyed: $shortName"
 		fi

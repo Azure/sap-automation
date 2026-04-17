@@ -689,7 +689,7 @@ fi
 
 apply_needed=0
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -no-color "${allParameters[@]}" | tee plan_output.log; then
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
     return_value=${PIPESTATUS[0]}
 else
     return_value=${PIPESTATUS[0]}
@@ -897,7 +897,6 @@ if [ "${TEST_ONLY:-false}" == "true" ]; then
     fi
     exit 0
 fi
-exit 10
 if [ $fatal_errors == 1 ]; then
     apply_needed=0
     print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
@@ -908,10 +907,6 @@ if [ $fatal_errors == 1 ]; then
             echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
         fi
         exit 1
-    fi
-
-    if [ 1 == $force ]; then
-        apply_needed=1
     else
         read -r -p "Do you want to continue with the deployment Y/N? " ans
         answer=${ans^^}

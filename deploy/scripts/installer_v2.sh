@@ -546,41 +546,6 @@ function persist_files() {
 
 
 }
-
-############################################################################################
-# Function to test if a resource would be recreated.                                       #
-# Arguments:                                                                               #
-#   1. List of <Terraform resource names-Description> items                                #
-#   2. File name                                                                           #
-# Returns:                                                                                 #
-#   0 if the resource would be recreated, 1 if it would not be recreated                   #
-# Usage:                                                                                   #
-# resources=(
-#			"module.sap_library.azurerm_storage_account.storage_sapbits~SAP Library Storage Account"
-#			"module.sap_library.azurerm_storage_container.storagecontainer_sapbits~SAP Library Storage Account container"
-#			"module.sap_library.azurerm_storage_account.storage_tfstate~Terraform State Storage Account"
-#			"module.sap_library.azurerm_storage_container.storagecontainer_sapbits~Terraform State Storage Account container"
-#		)
-#   test_for_removal "${resources[@]}" <file_name>                                         #
-############################################################################################
-
-function test_for_removal() {
-    local local_return_code=0
-    local file_name=$2
-    if [ -f "$file_name" ]; then
-        local -a helper_scripts=("$@")
-        for resource in "${resources[@]}"; do
-            moduleId=$(echo "$resource" | cut -d'~' -f1)
-            description=$(echo "$resource" | cut -d'~' -f2)
-            if ! testIfResourceWouldBeRecreated "$moduleId" "$file_name" "$description"; then
-                fatal_errors=1
-                local_return_code=1
-            fi
-        done
-    fi
-    return $local_return_code
-}
-
 #############################################################################################
 # Function to run the installer script.                                                     #
 # Arguments:                                                                                #
@@ -921,7 +886,7 @@ function sdaf_installer() {
 
     echo "Terraform plan command: terraform -chdir=${terraform_module_directory} plan -detailed-exitcode ${allParameters[*]}"
 
-    if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -no-color "${allParameters[@]}" | tee plan_output.log; then
+    if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode "${allParameters[@]}" | tee plan_output.log; then
         return_value=${PIPESTATUS[0]}
     else
         return_value=${PIPESTATUS[0]}
@@ -947,8 +912,9 @@ function sdaf_installer() {
 
     fatal_errors=0
 
-    if [ "${deployment_system}" == sap_deployer ]; then
+    if [ "${deployment_system}" == "sap_deployer" ]; then
         state_path="DEPLOYER"
+        echo "Checking for resources that would be recreated in the deployer system. This can lead to data loss if not intended. Please review carefully."
 
         if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
             DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
@@ -956,15 +922,10 @@ function sdaf_installer() {
                 save_config_var "DEPLOYER_KEYVAULT" "${system_environment_file_name}"
             fi
         fi
-
-    fi
-
-    if [ "${deployment_system}" == sap_landscape ]; then
-        state_path="LANDSCAPE"
-    fi
-
-    if [ "${deployment_system}" == sap_library ]; then
+    elif [ "${deployment_system}" == "sap_library" ]; then
         state_path="LIBRARY"
+        echo "Checking for resources that would be recreated in the SAP Library. This can lead to data loss if not intended. Please review carefully."
+
         if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
             tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output tfstate_resource_id | tr -d \")
             save_config_vars "${system_environment_file_name}" \
@@ -980,13 +941,32 @@ function sdaf_installer() {
         )
 
         # Call the function with the array
-        if ! test_for_removal "${resources[@]}" "plan_output.log"; then
-            fatal_errors=1
-        fi
-    fi
+        for resource in "${resources[@]}"; do
+            moduleId=$(echo "$resource" | cut -d'~' -f1)
+            description=$(echo "$resource" | cut -d'~' -f2)
+            if ! testIfResourceWouldBeRecreated "$moduleId" "plan_output.log" "$description"; then
+                fatal_errors=1
+            fi
+        done
+    elif [ "${deployment_system}" == "sap_landscape" ]; then
+        echo "Checking for resources that would be recreated in the landscape. This can lead to data loss if not intended. Please review carefully."
+        state_path="LANDSCAPE"
+        # Define an array resources
+        resources=(
+            "module.sap_landscape.azurerm_key_vault.kv_user~Workload zone key vault"
+        )
 
-    if [ "${deployment_system}" == sap_system ]; then
+        # Call the function with the array
+        for resource in "${resources[@]}"; do
+            moduleId=$(echo "$resource" | cut -d'~' -f1)
+            description=$(echo "$resource" | cut -d'~' -f2)
+            if ! testIfResourceWouldBeRecreated "$moduleId" "plan_output.log" "$description"; then
+                fatal_errors=1
+            fi
+        done
+    else
         state_path="SYSTEM"
+        echo "Checking for resources that would be recreated in the system. This can lead to data loss if not intended. Please review carefully."
 
         # Define an array resources
         resources=(
@@ -1007,33 +987,23 @@ function sdaf_installer() {
         )
 
         # Call the function with the array
-        if ! test_for_removal "${resources[@]}" "plan_output.log"; then
-            fatal_errors=1
-        fi
+        for resource in "${resources[@]}"; do
+            moduleId=$(echo "$resource" | cut -d'~' -f1)
+            description=$(echo "$resource" | cut -d'~' -f2)
+            if ! testIfResourceWouldBeRecreated "$moduleId" "plan_output.log" "$description"; then
+                fatal_errors=1
+            fi
+        done
     fi
 
-    if [ "${deployment_system}" == sap_landscape ]; then
-        state_path="SYSTEM"
-
-        # Define an array resources
-        resources=(
-            "module.sap_landscape.azurerm_key_vault.kv_user~Workload zone key vault"
-        )
-
-        # Call the function with the array
-        if ! test_for_removal "${resources[@]}" "plan_output.log"; then
-            fatal_errors=1
-        fi
-    fi
-
-    if [ "${TEST_ONLY}" == "True" ]; then
+    if [ "${TEST_ONLY}" == "true" ]; then
         print_banner "$banner_title" "Running plan only. No deployment performed." "info"
 
         if [ $fatal_errors == 1 ]; then
             print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
-            exit 10
+            return 10
         fi
-        exit 0
+        return 0
     fi
 
     if [ $fatal_errors == 1 ]; then
@@ -1042,10 +1012,10 @@ function sdaf_installer() {
         if [ 1 == "$called_from_ado" ]; then
             unset TF_DATA_DIR
             echo ##vso[task.logissue type=error]Risk for data loss, Please inspect the output of Terraform plan carefully. Run manually from deployer
-            exit 1
+            return 10
         fi
 
-        if [ "$PLATFORM" != "cli" ]; then
+        if [ "$PLATFORM" == "cli" ]; then
             read -r -p "Do you want to continue with the deployment Y/N? " ans
             answer=${ans^^}
             if [ "$answer" == "Y" ]; then
@@ -1053,7 +1023,7 @@ function sdaf_installer() {
             else
                 unset TF_DATA_DIR
                 echo "Deployment cancelled by user. Please inspect the output of Terraform plan carefully."
-                exit 1
+                return 10
             fi
         fi
 
