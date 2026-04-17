@@ -599,7 +599,7 @@ function sdaf_remover() {
 		echo "Terraform state:                     remote"
 		print_banner "$banner_title - $deployment_system" "The system has already been deployed and the state file is in Azure" "info" "System name $(basename "$param_dirname")"
 
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state "${backendParameters[@]}"; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -migrate-state "${backendParameters[@]}"; then
 			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
 			return_value=$?
 		else
@@ -608,7 +608,7 @@ function sdaf_remover() {
 			return $return_value
 		fi
 	else
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state "${backendParameters[@]}"; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade -migrate-state "${backendParameters[@]}"; then
 			return_value=$?
 			print_banner "$banner_title - $deployment_system" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
 		else
@@ -644,14 +644,14 @@ function sdaf_remover() {
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
-		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
+		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade -force-copy
 
 		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allParameters[@]}"
 		terraform -chdir="${terraform_module_directory}" destroy "${allParameters[@]}"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
 		terraform_bootstrap_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}/"
-		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
+		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade -force-copy
 
 		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allParameters[@]}"
 

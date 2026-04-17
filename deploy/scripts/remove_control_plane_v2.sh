@@ -492,7 +492,7 @@ function remove_control_plane() {
 			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
 			export TF_VAR_tfstate_resource_id
 			key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
-			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+			if terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
 				--backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
 				--backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
 				--backend-config "storage_account_name=${terraform_storage_account_name}" \

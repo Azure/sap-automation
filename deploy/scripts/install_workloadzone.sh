@@ -513,7 +513,7 @@ TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
 if [ ! -f .terraform/terraform.tfstate ]; then
-    if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+    if terraform -chdir="${terraform_module_directory}" init -upgrade \
         --backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
         --backend-config "resource_group_name=${REMOTE_STATE_RG}" \
         --backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -526,7 +526,7 @@ if [ ! -f .terraform/terraform.tfstate ]; then
         print_banner "Install workload zone" "Failed to initialize Terraform with the provided backend configuration." "error" "Please check the details and your permissions to access the storage account."
     fi
 else
-    if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+    if terraform -chdir="${terraform_module_directory}" init -upgrade; then
         return_value=$?
         print_banner "Install workload zone" "Successfully initialized Terraform with the provided backend configuration." "info"
     else

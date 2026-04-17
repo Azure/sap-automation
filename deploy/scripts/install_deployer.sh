@@ -208,7 +208,7 @@ fi
 
 if [ ! -d ./.terraform/ ]; then
     print_banner "New deployment" "info"
-    terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
+    terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"
 else
     if [ -f ./.terraform/terraform.tfstate ]; then
         azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
@@ -231,7 +231,7 @@ else
 
                 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
 
-                if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state \
+                if terraform -chdir="${terraform_module_directory}" init -upgrade -migrate-state \
                     --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
                     --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
                     --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
@@ -257,7 +257,7 @@ else
                     exit 10
                 fi
             else
-                if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
+                if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
                     print_banner "${banner_title}" "Terraform init: succeeded" "success"
                     terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
                 else
@@ -266,7 +266,7 @@ else
                 fi
             fi
         else
-            if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+            if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"; then
                 print_banner "${banner_title}" "Terraform init: succeeded" "success"
             else
                 echo ""
@@ -277,7 +277,7 @@ else
 
     else
         print_banner "${banner_title}" "New deployment" "info"
-        terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"
     fi
     echo "Parameters:                          ${allParameters[*]}"
     terraform -chdir="${terraform_module_directory}" refresh "${allParameters[@]}"

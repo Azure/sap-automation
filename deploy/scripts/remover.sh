@@ -560,7 +560,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 		REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 
 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade; then
 			print_banner "$banner_title" "Terraform init succeeded" "success"
 		else
 			print_banner "$banner_title" "Terraform init failed" "error"
@@ -582,7 +582,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_environment_file_name}"
 	fi
 else
-	if terraform -chdir="${terraform_module_directory}" init -reconfigure \
+	if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure \
 		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -647,7 +647,7 @@ if [ "$resource_group_exist" ]; then
 			exit 66 #cannot open input file/folder
 		fi
 
-		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
+		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade -force-copy
 
 		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}" 
 

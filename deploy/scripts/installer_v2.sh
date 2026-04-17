@@ -504,45 +504,46 @@ function persist_files() {
         export AZURE_STORAGE_AUTH_MODE
         export ARM_USE_AZUREAD=true
     fi
-
-    container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
-    if [ "${container_exists}" == "false" ]; then
-        az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors
-    fi
-
-    if [ "${container_exists}" == "false" ]; then
-        az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors
-    fi
-
-    az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename}" \
-        --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
-
-    if [ -f .terraform/terraform.tfstate ]; then
-        az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
-            --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
-    fi
-    if [ "${deployment_system}" == sap_system ]; then
-        if [ -f sap-parameters.yaml ]; then
-            echo "Uploading the yaml files from ${param_dirname} to the storage account"
-            az storage blob upload --file sap-parameters.yaml --container-name tfvars/"${state_path}"/"${key}" --name sap-parameters.yaml \
-                --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
-        fi
-
-        hosts_file=$(ls ./*_hosts.yaml)
-        az storage blob upload --file "${hosts_file}" --container-name tfvars/"${state_path}"/"${key}" --name "${hosts_file}" \
-            --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
-
-    fi
-
-    if [ "${deployment_system}" == sap_landscape ]; then
-        az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${WORKLOAD_ZONE_NAME}" \
-            --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
-    fi
+   
+    
     if [ "${deployment_system}" == sap_library ]; then
+
+        container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
+        if [ "${container_exists}" == "false" ]; then
+            az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors
+        fi
 
         az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
             --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
+
+        az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename}" \
+            --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
+
+        if [ -f .terraform/terraform.tfstate ]; then
+            az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
+                --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
+        fi
     fi
+
+    if [ "${deployment_system}" == sap_deployer ]; then
+
+        container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
+        if [ "${container_exists}" == "false" ]; then
+            az storage container create --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors
+        fi
+
+        az storage blob upload --file "${system_environment_file_name}" --container-name tfvars/.sap_deployment_automation --name "${CONTROL_PLANE_NAME}" \
+            --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
+
+        az storage blob upload --file "${parameterFilename}" --container-name tfvars/"${state_path}"/"${key}" --name "${parameterFilename}" \
+            --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
+
+        if [ -f .terraform/terraform.tfstate ]; then
+            az storage blob upload --file .terraform/terraform.tfstate --container-name "tfvars/${state_path}/${key}/.terraform" --name terraform.tfstate \
+                --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --no-progress --overwrite --only-show-errors --output none
+        fi
+    fi
+
 
 }
 
@@ -817,7 +818,7 @@ function sdaf_installer() {
 
         save_config_vars "${system_environment_file_name}" "REMOTE_STATE_SA" "REMOTE_STATE_RG" "tfstate_resource_id"
 
-        if terraform -chdir="${terraform_module_directory}" init -upgrade=true -input=false \
+        if terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
             --backend-config "subscription_id=${ARM_SUBSCRIPTION_ID}" \
             --backend-config "resource_group_name=${terraform_storage_account_resource_group_name}" \
             --backend-config "storage_account_name=${terraform_storage_account_name}" \

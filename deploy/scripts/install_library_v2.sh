@@ -376,7 +376,7 @@ function install_library() {
 
     if [ ! -d ./.terraform/ ]; then
         print_banner "$banner_title" "New Deployment" "info"
-        terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"
         sed -i /REMOTE_STATE_RG/d "${library_environment_file_name}"
         sed -i /REMOTE_STATE_SA/d "${library_environment_file_name}"
         sed -i /tfstate_resource_id/d "${library_environment_file_name}"
@@ -426,7 +426,7 @@ function install_library() {
                     fi
                 fi
             else
-                if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+                if terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"; then
                     print_banner "$banner_title" "Terraform init succeeded" "success" "System name $(basename "$param_dirname")"
                 else
                     print_banner "$banner_title" "Terraform init failed" "error" "System name $(basename "$param_dirname")"
@@ -436,7 +436,7 @@ function install_library() {
             fi
 
         else
-            if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+            if terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"; then
                 print_banner "$banner_title" "Terraform init succeeded" "success" "System name $(basename "$param_dirname")"
             else
                 print_banner "$banner_title" "Terraform init failed" "error" "System name $(basename "$param_dirname")"

@@ -334,14 +334,14 @@ function validate_keyvault_access {
                         echo "Terraform state:                     remote"
 
                         terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-                        terraform -chdir="${terraform_module_directory}" init -upgrade=true
+                        terraform -chdir="${terraform_module_directory}" init -upgrade
 
                         keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
                         save_config_var "keyvault" "${deployer_environment_file_name}"
                     else
                         echo "Terraform state:                     local"
                         terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/bootstrap/sap_deployer/
-                        terraform -chdir="${terraform_module_directory}" init -upgrade=true
+                        terraform -chdir="${terraform_module_directory}" init -upgrade
 
                         keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
                         save_config_var "keyvault" "${deployer_environment_file_name}"
