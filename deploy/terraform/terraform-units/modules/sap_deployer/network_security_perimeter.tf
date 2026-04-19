@@ -13,11 +13,8 @@ resource "azurerm_network_security_perimeter" "perimeter" {
 
 data "azurerm_network_security_perimeter" "perimeter" {
   count               = try(var.options.network_security_perimeter.deploy, false) && try(var.options.network_security_perimeter.exists, false)  ? 1 : 0
-  name                = var.options.network_security_perimeter.name
-  resource_group_name = var.infrastructure.resource_group.exists ? (
-                                           data.azurerm_resource_group.deployer[0].name) : (
-                                           azurerm_resource_group.deployer[0].name
-                                         )
+  name                = local.security_perimeter_name
+  resource_group_name = local.security_perimeter_resource_group_name
 }
 
 
@@ -71,3 +68,10 @@ output "network_security_perimeter_id" {
                                                azurerm_network_security_perimeter.perimeter[0].id)) : (
                                              "")
 }
+
+locals {
+
+  security_perimeter_parsed_id            = var.options.network_security_perimeter.deploy ? provider::azurerm::parse_resource_id(var.options.network_security_perimeter.id) : null
+  security_perimeter_name                 = var.options.network_security_perimeter.deploy ? local.security_perimeter_parsed_id["resource_name"] : ""
+  security_perimeter_resource_group_name  = var.options.network_security_perimeter.deploy ? local.security_perimeter_parsed_id["resource_group_name"] : ""
+  }
