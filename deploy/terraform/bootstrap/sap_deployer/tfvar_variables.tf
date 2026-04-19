@@ -448,7 +448,7 @@ variable "set_secret_expiry"                         {
 
 variable "enable_rbac_authorization"                 {
                                                        description = "Enables RBAC authorization for Azure keyvault"
-                                                       default     = false
+                                                       default     = true
                                                      }
 
 #######################################4#######################################8
