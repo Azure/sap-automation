@@ -188,13 +188,15 @@ function New-SDAFADOWorkloadZone {
       }
       $JsonInputFile = "sdafMI.json"
 
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId)
+      $roleAssignment = az role assignment create --assignee $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
             tenantid                             = $TenantId
-            workloadIdentityFederationIssuerType = "EntraID"
-            serviceprincipalid                   = $ManagedIdentityClientId
-            scope                                = "/subscriptions/" + $SubscriptionId
+            serviceprincipalid                   = $AppRegistrationId
+
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -203,8 +205,7 @@ function New-SDAFADOWorkloadZone {
           scopeLevel       = "Subscription"
           subscriptionId   = $SubscriptionId
           subscriptionName = (az account show --query name -o tsv)
-          creationMode     = "Automatic"
-          identityType     = "ManagedIdentity"
+          creationMode     = "Manual"
         }
         name                             = $ConnectionName
         owner                            = "library"
@@ -219,11 +220,7 @@ function New-SDAFADOWorkloadZone {
             name = $ProjectName
           }
         }
-
       }
-
-      Write-Verbose "Creating JSON input file for service connection"
-      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
