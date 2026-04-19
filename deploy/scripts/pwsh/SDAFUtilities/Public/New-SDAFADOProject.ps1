@@ -185,7 +185,8 @@ function New-SDAFADOProject {
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secret Officer",
-      "App Configuration Data Owner"
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     $Pipelines = @(

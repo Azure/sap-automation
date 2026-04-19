@@ -154,7 +154,8 @@ function New-SDAFADOWorkloadZone {
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secret Officer",
-      "App Configuration Data Owner"
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     # Helper function for menu display
@@ -429,7 +430,8 @@ function New-SDAFADOWorkloadZone {
           "Storage Blob Data Owner",
           "Key Vault Administrator",
           "Key Vault Secret Officer",
-          "App Configuration Data Owner"
+          "App Configuration Data Owner",
+          "Network Contributor"
         )
 
         if ($ManagedIdentityId.Length -ne 0) {

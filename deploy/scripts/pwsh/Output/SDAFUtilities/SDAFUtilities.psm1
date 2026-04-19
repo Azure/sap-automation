@@ -567,7 +567,8 @@ function New-SDAFADOProject {
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secret Officer",
-      "App Configuration Data Owner"
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     $Pipelines = @(
@@ -1926,7 +1927,8 @@ function New-SDAFADOWorkloadZone {
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secret Officer",
-      "App Configuration Data Owner"
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     # Helper function for menu display
@@ -2200,7 +2202,9 @@ function New-SDAFADOWorkloadZone {
           "Role Based Access Control Administrator",
           "Storage Blob Data Owner",
           "Key Vault Administrator",
-          "App Configuration Data Owner"
+          "App Configuration Data Owner",
+          "Network Contributor"
+
         )
 
         if ($ManagedIdentityId.Length -ne 0) {
@@ -2403,7 +2407,8 @@ function New-SDAFUserAssignedIdentity {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "App Configuration Data Owner"
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     Write-Verbose "Starting creation of user-assigned identity: $ManagedIdentityName"
