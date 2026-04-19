@@ -859,10 +859,10 @@ if [ 4 -eq $step ]; then
     allParameters+=(--storageaccountname "${REMOTE_STATE_SA}")
     allParameters+=(--state_subscription "${STATE_SUBSCRIPTION}")
     allParameters+=(--deployer_tfstate_key "${deployer_tf_state}")
-    allParameters+=(--type "sap_library")
+    allParameters+=(--type sap_library)
 
     if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
-        allParameters+=(-auto-approve)
+        allParameters+=(--auto-approve)
     fi
 
     echo "Calling installer.sh with: ${allParameters[*]}"

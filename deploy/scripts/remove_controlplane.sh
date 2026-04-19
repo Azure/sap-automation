@@ -122,7 +122,7 @@ while :; do
 		shift 2
 		;;
 	-a | --ado)
-		approve_parameter="--auto-approve;ado=1"
+		ado="1"
 		approve="--auto-approve"
 		shift
 		;;
@@ -131,7 +131,6 @@ while :; do
 		shift
 		;;
 	-i | --auto-approve)
-		approve_parameter="--auto-approve"
 		approve="--auto-approve"
 		shift
 		;;
@@ -315,12 +314,8 @@ export TF_VAR_subscription_id
 
 # Reinitialize
 echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                          Running Terraform init (deployer)                            #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Remove Control Plane " "Running Terraform init (deployer - local)" "info"
+
 echo "#  subscription_id=${subscription}"
 echo "#  backend-config resource_group_name=${resource_group}"
 echo "#  storage_account_name=${storage_account}"
@@ -372,7 +367,17 @@ if [ 0 != $return_value ]; then
 	exit 10
 fi
 
-print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
+DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+if valid_kv_name "${DEPLOYER_KEYVAULT}" ; then
+	export DEPLOYER_KEYVAULT
+	az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT" --output none
+	az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled --output none
+fi
+APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
+	az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
+fi
+
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
@@ -392,6 +397,7 @@ terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootst
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 #Reinitialize
+print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
@@ -431,6 +437,7 @@ else
 	fi
 fi
 
+
 export TF_DATA_DIR="${param_dirname}/.terraform"
 export TF_use_spn=false
 
@@ -439,9 +446,9 @@ allRemovalParameters=(-var-file ${library_parameter_file})
 if [ -f terraform.tfvars ]; then
 	allRemovalParameters+=(-var-file terraform.tfvars)
 fi
-if [ -n "${deployer_statefile_foldername}" ]; then
-	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
-	allRemovalParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
+if [ -n "${deployer_dirname}" ]; then
+	echo "Deployer folder specified:           ${deployer_dirname}"
+	allRemovalParameters+=(-var "deployer_statefile_foldername=${deployer_dirname}")
 fi
 
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
