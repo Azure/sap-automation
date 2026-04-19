@@ -41,7 +41,7 @@ resource "azurerm_network_security_perimeter_association" "vault" {
   name                                   = local.keyvault_names.user_access
   access_mode                            = var.options.network_security_perimeter.network_security_access_mode
 
-  network_security_perimeter_profile_id = try(var.options.network_security_perimeter.exists, false) ? null : azurerm_network_security_perimeter_profile.profile[0].id
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.profile[0].id
   resource_id                           = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
 }
 
@@ -50,7 +50,7 @@ resource "azurerm_network_security_perimeter_association" "app_config" {
   name                                   = local.app_config_name
   access_mode                            = var.options.network_security_perimeter.network_security_access_mode
 
-  network_security_perimeter_profile_id = try(var.options.network_security_perimeter.exists, false) ? null : azurerm_network_security_perimeter_profile.profile[0].id
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.profile[0].id
   resource_id                           = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
 }
 
@@ -59,7 +59,7 @@ resource "azurerm_network_security_perimeter_association" "webapp" {
   name                                   = azurerm_windows_web_app.webapp[0].name
   access_mode                            = var.options.network_security_perimeter.network_security_access_mode
 
-  network_security_perimeter_profile_id = try(var.options.network_security_perimeter.exists, false) ? null : azurerm_network_security_perimeter_profile.profile[0].id
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.profile[0].id
   resource_id                           = azurerm_windows_web_app.webapp[0].id
 }
 
