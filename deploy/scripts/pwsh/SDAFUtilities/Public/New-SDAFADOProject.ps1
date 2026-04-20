@@ -1066,7 +1066,7 @@ resources:
 
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "TF_VAR_user_assigned_identity_id" -VariableValue $id
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
 
         $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
