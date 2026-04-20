@@ -286,7 +286,7 @@ function New-SDAFADOProject {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors) 
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
       $roleAssignment = az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
 
       $PostBody = [PSCustomObject]@{
@@ -1066,7 +1066,7 @@ resources:
 
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "TF_VAR_user_assigned_identity_id" -VariableValue $id
 
         $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
