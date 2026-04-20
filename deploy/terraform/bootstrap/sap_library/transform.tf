@@ -88,9 +88,12 @@ locals {
                                                                                      }
 
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
-                                           public_network_access_enabled             = contains(keys(data.terraform_remote_state.deployer[0].outputs), "network_security_perimeter_deployment") ? (
+                                           # If either network security perimeter or app service deployment is enabled, then public network access will be enabled regardless of the value set in var.public_network_access_enabled
+                                           public_network_access_enabled             = (contains(keys(data.terraform_remote_state.deployer[0].outputs), "network_security_perimeter_deployment") ? (
                                                                                                data.terraform_remote_state.deployer[0].outputs.network_security_perimeter_deployment) : (
-                                                                                               true ) && var.public_network_access_enabled
+                                                                                               true ) && var.public_network_access_enabled ) || (contains(keys(data.terraform_remote_state.deployer[0].outputs), "app_service_deployment") ? (
+                                                                                               data.terraform_remote_state.deployer[0].outputs.app_service_deployment) : (
+                                                                                               true )
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 
