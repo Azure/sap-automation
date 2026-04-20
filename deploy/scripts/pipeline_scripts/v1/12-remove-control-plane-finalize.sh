@@ -21,7 +21,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	set -eu
 	DEBUG=True
