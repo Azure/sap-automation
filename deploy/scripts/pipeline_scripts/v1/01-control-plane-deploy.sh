@@ -91,6 +91,12 @@ else
 	export ARM_USE_MSI
 fi
 
+if [ -v MSI_ID ]; then
+		echo "Using Managed Identity:          $MSI_ID"
+		TF_VAR_user_assigned_identity_id="$MSI_ID"
+		export TF_VAR_user_assigned_identity_id
+fi
+
 LogonToAzure $USE_MSI
 return_code=$?
 if [ 0 != $return_code ]; then

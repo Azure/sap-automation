@@ -233,7 +233,11 @@ if [ -n "$TF_VAR_spn_id" ]; then
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
 fi
-
+if [ -v MSI_ID ]; then
+		echo "Using Managed Identity:          $MSI_ID"
+		TF_VAR_user_assigned_identity_id="$MSI_ID"
+		export TF_VAR_user_assigned_identity_id
+fi
 # Reset the account if sourcing was done
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"

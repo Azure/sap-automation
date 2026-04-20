@@ -170,7 +170,11 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit $return_code
 	fi
 fi
-
+if [ -v MSI_ID ]; then
+		echo "Using Managed Identity:          $MSI_ID"
+		TF_VAR_user_assigned_identity_id="$MSI_ID"
+		export TF_VAR_user_assigned_identity_id
+fi
 cd "$CONFIG_REPO_PATH" || exit
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
