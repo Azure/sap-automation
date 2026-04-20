@@ -779,11 +779,14 @@ variable "add_Agent_IP"                              {
 #                                                                             #
 ###############################################################################
 
-variable "user_assigned_identity_id"                {
+variable "user_assigned_identity_id"                 {
                                                        description = "User assigned Identity resource Id"
-                                                       default     = ""
+                                                       default     = null
+                                                       validation {
+                                                         condition     = length(var.user_assigned_identity_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.user_assigned_identity_id))
+                                                         error_message = "If specified the 'user_assigned_identity_id' variable must be a correct Azure resource identifier."
+                                                      }
                                                      }
-
 variable "add_system_assigned_identity"              {
                                                        description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
                                                        default     = false
