@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-
+    
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-
-
+    
+        
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-
+    
         #>
     <#
     #>
@@ -668,7 +668,7 @@ function New-SDAFADOProject {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors) 
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
       $roleAssignment = az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
 
       $PostBody = [PSCustomObject]@{
@@ -1448,7 +1448,7 @@ resources:
 
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "TF_VAR_user_assigned_identity_id" -VariableValue $id
 
         $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
         SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $ManagedIdentityClientId
@@ -1768,7 +1768,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1385
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1389
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -2199,9 +2199,9 @@ function New-SDAFADOWorkloadZone {
           "Role Based Access Control Administrator",
           "Storage Blob Data Owner",
           "Key Vault Administrator",
+          "Key Vault Secret Officer",
           "App Configuration Data Owner",
           "Network Contributor"
-
         )
 
         if ($ManagedIdentityId.Length -ne 0) {
@@ -2379,7 +2379,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 579
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 609
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
@@ -2404,6 +2404,7 @@ function New-SDAFUserAssignedIdentity {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
+      "Key Vault Secret Officer",
       "App Configuration Data Owner",
       "Network Contributor"
     )
@@ -2508,7 +2509,7 @@ function New-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFUserAssignedIdentity
-#EndRegion '.\Public\New-SDAFUserAssignedIdentity.ps1' 126
+#EndRegion '.\Public\New-SDAFUserAssignedIdentity.ps1' 128
 #Region '.\Public\Remove-SDAFADOProject.ps1' -1
 
 #Requires -Version 5.1
