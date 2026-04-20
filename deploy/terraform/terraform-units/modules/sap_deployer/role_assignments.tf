@@ -152,28 +152,30 @@ resource "azurerm_role_assignment" "resource_group_user_access_admin_spn" {
   role_definition_name                 = "Role Based Access Control Administrator"
   principal_type                       = "ServicePrincipal"
   principal_id                         = data.azurerm_client_config.current.object_id
-  # condition_version                    = "2.0"
-  # condition                            = <<-EOT
-  #                                           (
-  #                                            (
-  #                                             !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})
-  #                                            )
-  #                                            OR
-  #                                            (
-  #                                             @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {ba92f5b4-2d11-453d-a403-e96b0029c9fe, 4633458b-17de-408a-b874-0445c86b69e6}
-  #                                            )
-  #                                           )
-  #                                           AND
-  #                                           (
-  #                                            (
-  #                                             !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'})
-  #                                            )
-  #                                            OR
-  #                                            (
-  #                                             @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidNotEquals {ba92f5b4-2d11-453d-a403-e96b0029c9fe}
-  #                                            )
-  #                                           )
-  #                                           EOT
+
+  condition_version    = "2.0"
+  condition            = <<-EOT
+(
+ (
+  !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'})
+ )
+ OR
+ (
+  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {'ba92f5b4-2d11-453d-a403-e96b0029c9fe', '4633458b-17de-408a-b874-0445c86b69e6'}
+ )
+)
+AND
+(
+ (
+  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'})
+ )
+ OR
+ (
+  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {'ba92f5b4-2d11-453d-a403-e96b0029c9fe', '4633458b-17de-408a-b874-0445c86b69e6'}
+ )
+)
+EOT
+
 }
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
