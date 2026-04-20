@@ -41,7 +41,10 @@ module "sap_landscape" {
   options                                      = local.options
   peer_with_control_plane_vnet                 = var.use_deployer ? var.peer_with_control_plane_vnet : false
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
-  public_network_access_enabled                = var.public_network_access_enabled
+  public_network_access_enabled                = contains(keys(data.terraform_remote_state.deployer[0].outputs), "network_security_perimeter_deployment") ? (
+                                                  data.terraform_remote_state.deployer[0].outputs.network_security_perimeter_deployment) : (
+                                                  true) && var.public_network_access_enabled
+
   storage_account_replication_type             = var.storage_account_replication_type
   tags                                         = var.tags
   terraform_template_version                   = local.version_label

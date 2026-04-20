@@ -523,8 +523,6 @@ fi
 
 
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
-	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(grep -m1 "storage_account_name" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1
 	# || true suppresses the exitcode of grep. To not trigger the strict exit on error
@@ -557,6 +555,7 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 		fi
 	else
 		echo "Library Terraform state:               remote"
+  	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(grep -m1 "storage_account_name" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
 			if [ 0 -eq "$return_code" ]; then
 				echo "Removing the library state file"
