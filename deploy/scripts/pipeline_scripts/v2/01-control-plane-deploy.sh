@@ -373,6 +373,7 @@ if deploy_control_plane "${allParameters[@]}"; then
 	fi
 	echo "Return code from deploy_control_plane_v2 $return_code."
 
+
 	if [ -v SDAF_APPLICATION_CONFIGURATION_NAME	]; then
 		if [ "$PLATFORM" == "devops" ]; then
 			saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$SDAF_APPLICATION_CONFIGURATION_NAME"
