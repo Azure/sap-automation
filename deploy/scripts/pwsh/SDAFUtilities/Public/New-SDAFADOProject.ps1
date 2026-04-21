@@ -328,6 +328,9 @@ function New-SDAFADOProject {
         throw "Service connection creation failed"
       }
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
+      if (Test-Path $JsonInputFile) {
+        Remove-Item $JsonInputFile
+      }
 
       $PostBody = [PSCustomObject]@{
         name      = "fic-for-sc"
@@ -337,13 +340,11 @@ function New-SDAFADOProject {
       }
 
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
-      az ad app federated-credential create --id $ManagedIdentityClientId --parameters $JsonInputFile
 
-      az ad app show --id $ManagedIdentityClientId --query '{appId:appId,principalId:id,Name:displayName}'
+      az ad app federated-credential create --id $AppRegistrationId --parameters $JsonInputFile
 
-      if (Test-Path $JsonInputFile) {
-        Remove-Item $JsonInputFile
-      }
+      az ad app show --id $AppRegistrationId --query '{appId:appId,principalId:id,Name:displayName}'
+
     }
 
     function UpdateAdoRepositoryReferences {
