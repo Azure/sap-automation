@@ -855,7 +855,7 @@ function sdaf_installer() {
         fi
     fi
 
-    print_banner "$banner_title" "Running Terraform Plan" "cyan"
+    print_banner "$banner_title" "Running Terraform Plan" "info" "System name $(basename "$param_dirname")"
     # Declare an array
     allParameters=(-var-file "${var_file}")
     if [ -f terraform.tfvars ]; then

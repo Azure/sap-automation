@@ -292,7 +292,7 @@ if [ 1 == $install_deployer_return_value ]; then
     exit $install_deployer_return_value
 fi
 
-print_banner "${banner_title}" "Running Terraform plan" "info"
+print_banner "${banner_title}" "Running Terraform plan" "info" "System name $(basename "$param_dirname")"
 
 # shellcheck disable=SC2086
 
@@ -322,7 +322,7 @@ if [ -f plan_output.log ]; then
     rm plan_output.log
 fi
 
-print_banner "${banner_title}" "Running Terraform apply" "info"
+print_banner "${banner_title}" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
     allParameters+=(-json)
     allParameters+=(-auto-approve)
@@ -353,7 +353,7 @@ else
 fi
 
 if [ "$install_deployer_return_value" -eq 1 ]; then
-    print_banner "${banner_title}" "Error when running terraform apply" "error"
+    print_banner "${banner_title}" "Error when running terraform apply" "error" "System name $(basename "$param_dirname")"
 else
     # return code 2 is ok
     print_banner "${banner_title}" "Terraform apply succeeded ($install_deployer_return_value)" "info"

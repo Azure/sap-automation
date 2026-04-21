@@ -342,7 +342,7 @@ function install_deployer() {
         fi
     fi
 
-    print_banner "$banner_title" "Running Terraform plan" "info"
+    print_banner "$banner_title" "Running Terraform plan" "info" "System name $(basename "$param_dirname")"
 
     #########################################################################################"
     #                                                                                       #
@@ -387,7 +387,7 @@ function install_deployer() {
     fi
 
     if [ 2 == "$return_value" ]; then
-        print_banner "$banner_title" "Running Terraform apply" "info"
+        print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 
         #########################################################################################
         #                                                                                       #
