@@ -2025,9 +2025,9 @@ function New-SDAFADOWorkloadZone {
       }
 
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
-      az ad app federated-credential create --id $ManagedIdentityClientId --parameters $JsonInputFile
+      az ad app federated-credential create --id $AppRegistrationId --parameters $JsonInputFile
 
-      az ad app show --id $ManagedIdentityClientId --query '{appId:appId,principalId:id,Name:displayName}'
+      az ad app show --id $AppRegistrationId --query '{appId:appId,principalId:id,Name:displayName}'
 
       if (Test-Path $JsonInputFile) {
         Remove-Item $JsonInputFile
