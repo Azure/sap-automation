@@ -670,6 +670,7 @@ function New-SDAFADOProject {
 
       $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
       az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "App Configuration Data Owner" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
 
 
       $PostBody = [PSCustomObject]@{
@@ -1781,7 +1782,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1402
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1403
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1

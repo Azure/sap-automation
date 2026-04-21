@@ -288,6 +288,7 @@ function New-SDAFADOProject {
 
       $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
       az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "App Configuration Data Owner" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
 
 
       $PostBody = [PSCustomObject]@{
