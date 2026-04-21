@@ -566,7 +566,7 @@ function New-SDAFADOProject {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "Key Vault Secret Officer",
+      "Key Vault Secrets Officer",
       "App Configuration Data Owner",
       "Network Contributor"
     )
@@ -1939,7 +1939,7 @@ function New-SDAFADOWorkloadZone {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "Key Vault Secret Officer",
+      "Key Vault Secrets Officer",
       "App Configuration Data Owner",
       "Network Contributor"
     )
@@ -2226,7 +2226,7 @@ function New-SDAFADOWorkloadZone {
           "Role Based Access Control Administrator",
           "Storage Blob Data Owner",
           "Key Vault Administrator",
-          "Key Vault Secret Officer",
+          "Key Vault Secrets Officer",
           "App Configuration Data Owner",
           "Network Contributor"
         )
@@ -2431,7 +2431,7 @@ function New-SDAFUserAssignedIdentity {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "Key Vault Secret Officer",
+      "Key Vault Secrets Officer",
       "App Configuration Data Owner",
       "Network Contributor"
     )
