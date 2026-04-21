@@ -180,7 +180,7 @@ EOT
 
 resource "azurerm_role_assignment" "role_assignment_spn" {
   provider                             = azurerm.main
-  count                                = var.options.assign_resource_permissions && var.key_vault.enable_rbac_authorization  && !local.run_as_msi ?  1 : 0
+  count                                = var.options.assign_resource_permissions && var.key_vault.enable_rbac_authorization ?  1 : 0
   scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
   role_definition_name                 = "Key Vault Administrator"
   principal_type                       = "ServicePrincipal"
