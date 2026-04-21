@@ -302,7 +302,12 @@ fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 print_banner "$banner_title" "Starting the deployment" "info"
-sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
+
+# 04/21/2026 - Remove this comment block on next release
+# Removed because the script is executable in the repository and should keep its permissions.
+# If there are issues with permissions, it should be fixed outside of this script as part of the repository management.
+# sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
+
 if [ "$USE_MSI" != "true" ]; then
 
 	export TF_VAR_use_spn=true
