@@ -67,6 +67,7 @@ deployer_environment_file_name=$(get_configuration_file "$automation_config_dire
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
 prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 
 LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
 
@@ -336,6 +337,12 @@ if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 	changed=1
 fi
 
+if [ -f "$deployer_environment_file_name" ]; then
+	rm "$deployer_environment_file_name"
+	changed=1
+fi
+
+
 if [ 0 == $return_code ]; then
 	changed=1
 	git rm -q --ignore-unmatch "$deployer_environment_file_name"
@@ -345,6 +352,7 @@ if [ 0 == $return_code ]; then
 	git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
 	git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
 	git rm --ignore-unmatch -q "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
+
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 	fi
@@ -360,13 +368,14 @@ if [ 0 == $return_code ]; then
 		echo "Removing the library state gpg file"
 		git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
 	fi
+
 	git rm --ignore-unmatch -q "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
 	git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+if [ -f "$deployer_tfvars_file_name" ]; then
+	sed -i /"custom_random_id"/d "$deployer_tfvars_file_name"
+	git add -f "$deployer_tfvars_file_name"
 	changed=1
 fi
 
