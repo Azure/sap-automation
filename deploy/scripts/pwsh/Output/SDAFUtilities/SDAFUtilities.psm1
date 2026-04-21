@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-    
+
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-    
-        
+
+
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-    
+
         #>
     <#
     #>
@@ -1961,7 +1961,7 @@ function New-SDAFADOWorkloadZone {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors) 
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
       $roleAssignment = az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
 
       $PostBody = [PSCustomObject]@{
