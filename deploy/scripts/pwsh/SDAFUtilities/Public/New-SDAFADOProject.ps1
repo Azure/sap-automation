@@ -286,15 +286,15 @@ function New-SDAFADOProject {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
-      $roleAssignment = az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+
 
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
             tenantid                             = $TenantId
             serviceprincipalid                   = $AppRegistrationId
-
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -322,12 +322,24 @@ function New-SDAFADOProject {
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
-      az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --output none --only-show-errors
+      $Fed=(az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create service connection '$ConnectionName'"
         throw "Service connection creation failed"
       }
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
+
+      $PostBody = [PSCustomObject]@{
+        name = "fic-for-sc"
+        issuer = $Fed.workloadIdentityFederationIssuer
+        subject = $Fed.workloadIdentityFederationSubject
+        audiences = @("api://AzureADTokenExchange")
+      }
+
+      Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
+      az ad app federated-credential create --id $AppRegistrationId --parameters $JsonInputFile
+
+      az ad app show --id $AppRegistrationId --query '{appId:appId,principalId:id,Name:displayName}'
 
       if (Test-Path $JsonInputFile) {
         Remove-Item $JsonInputFile
