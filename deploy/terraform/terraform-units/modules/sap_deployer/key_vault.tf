@@ -47,7 +47,7 @@ resource "azurerm_key_vault" "kv_user" {
 
   network_acls {
             bypass                     = "AzureServices"
-            default_action             = var.bootstrap ? "Allow" : (var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow")
+            default_action             = var.bootstrap ? "Allow" : (var.enable_firewall_for_keyvaults_and_storage ? "Allow" : "Deny")
             ip_rules                   = compact(
                                           [
                                             local.enable_deployer_public_ip ? (
@@ -63,9 +63,6 @@ resource "azurerm_key_vault" "kv_user" {
                                                 ))
   }
 
-  lifecycle                        {
-                                     ignore_changes = [network_acls]
-                                   }
   tags                                 = var.infrastructure.tags
 
 }
