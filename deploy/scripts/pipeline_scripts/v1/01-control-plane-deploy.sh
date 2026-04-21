@@ -468,6 +468,17 @@ if [ -f "${library_configuration_file}" ]; then
 	added=1
 fi
 
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+	sudo apt-get -qq install zip
+
+	echo "Compressing the library state file"
+	pass=${SYSTEM_COLLECTIONID//-/}
+	zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+	rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+	added=1
+fi
+
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	added=1
@@ -475,16 +486,6 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	local_backend=$(grep "\"type\": \"local\"" LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate || true)
 	if [ -n "$local_backend" ]; then
 		echo "Library Terraform state:               local"
-		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-			sudo apt-get -qq install zip
-
-			echo "Compressing the library state file"
-			pass=${SYSTEM_COLLECTIONID//-/}
-			zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-			git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-			rm "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-			added=1
-		fi
 	else
 		echo "Library Terraform state:               remote"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
