@@ -247,17 +247,6 @@ resource "azurerm_role_assignment" "appconfig_data_owner_spn" {
 
 }
 
-resource "azurerm_role_assignment" "appconfig_data_owner_current" {
-  provider                             = azurerm.main
-  count                                = var.options.assign_resource_permissions && var.app_config_service.deploy ? 1 : 0
-  scope                                = length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].id : data.azurerm_app_configuration.app_config[0].id
-  role_definition_name                 = "App Configuration Data Owner"
-  principal_type                       = "ServicePrincipal"
-  principal_id                         = data.azurerm_client_config.current.object_id
-
-}
-
-
 locals {
   run_as_msi                           = length(var.deployer.user_assigned_identity_id) == 0 ? (
                                            var.bootstrap || var.options.use_spn ? false : azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id ) : (
