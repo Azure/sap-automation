@@ -668,16 +668,15 @@ function New-SDAFADOProject {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+
 
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
-            tenantid                             = $TenantId
-            workloadIdentityFederationIssuerType = "EntraID"
-            serviceprincipalid                   = $ManagedIdentityClientId
-            scope                                = "/subscriptions/" + $SubscriptionId
-
+            tenantid           = $TenantId
+            serviceprincipalid = $AppRegistrationId
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -686,7 +685,7 @@ function New-SDAFADOProject {
           scopeLevel       = "Subscription"
           subscriptionId   = $SubscriptionId
           subscriptionName = (az account show --query name -o tsv)
-          identityType     = "ManagedIdentity"
+          creationMode     = "Manual"
         }
         name                             = $ConnectionName
         owner                            = "library"
@@ -705,7 +704,7 @@ function New-SDAFADOProject {
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
-      $Fed=(az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
+      $Fed = (az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create service connection '$ConnectionName'"
         throw "Service connection creation failed"
@@ -713,9 +712,9 @@ function New-SDAFADOProject {
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
 
       $PostBody = [PSCustomObject]@{
-        name = "fic-for-sc"
-        issuer = $Fed.workloadIdentityFederationIssuer
-        subject = $Fed.workloadIdentityFederationSubject
+        name      = "fic-for-sc"
+        issuer    = $Fed.workloadIdentityFederationIssuer
+        subject   = $Fed.workloadIdentityFederationSubject
         audiences = @("api://AzureADTokenExchange")
       }
 
@@ -761,10 +760,10 @@ resources:
   repositories:
     - repository: sap-automation
       type: git
-      name: $AdoProject/sap-automation
+      name: sap-automation
       ref: main
 "@
-
+      Write-Host "Generated updated resources.yml content:" -ForegroundColor Green
       Set-Content -Path $TemplateFileName -Value $ResourcesContent
 
       $FileContent = Get-Content -Path $TemplateFileName -Raw
@@ -814,7 +813,7 @@ resources:
   repositories:
     - repository: sap-automation
       type: git
-      name: $AdoProject/sap-automation
+      name: sap-automation
       ref: main
     - repository: sap-samples
       type: git
@@ -1781,7 +1780,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1402
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1401
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -1974,16 +1973,14 @@ function New-SDAFADOWorkloadZone {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
 
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
             tenantid                             = $TenantId
-            workloadIdentityFederationIssuerType = "EntraID"
-            serviceprincipalid                   = $ManagedIdentityClientId
-            scope                                = "/subscriptions/" + $SubscriptionId
-
+            serviceprincipalid                   = $AppRegistrationId
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -1992,7 +1989,7 @@ function New-SDAFADOWorkloadZone {
           scopeLevel       = "Subscription"
           subscriptionId   = $SubscriptionId
           subscriptionName = (az account show --query name -o tsv)
-          identityType     = "ManagedIdentity"
+          creationMode     = "Manual"
         }
         name                             = $ConnectionName
         owner                            = "library"
@@ -2406,7 +2403,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 623
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 621
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
