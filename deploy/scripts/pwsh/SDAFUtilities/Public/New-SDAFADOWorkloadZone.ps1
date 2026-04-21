@@ -188,14 +188,17 @@ function New-SDAFADOWorkloadZone {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
-      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "      $JsonInputFile = "sdafMI.json"
+
+      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
 
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
             tenantid                             = $TenantId
-            serviceprincipalid                   = $AppRegistrationId
+            workloadIdentityFederationIssuerType = "EntraID"
+            serviceprincipalid                   = $ManagedIdentityClientId
+            scope                                = "/subscriptions/" + $SubscriptionId
 
           }
           scheme     = "WorkloadIdentityFederation"
@@ -205,7 +208,7 @@ function New-SDAFADOWorkloadZone {
           scopeLevel       = "Subscription"
           subscriptionId   = $SubscriptionId
           subscriptionName = (az account show --query name -o tsv)
-          creationMode     = "Manual"
+          identityType     = "ManagedIdentity"
         }
         name                             = $ConnectionName
         owner                            = "library"
@@ -224,6 +227,7 @@ function New-SDAFADOWorkloadZone {
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
+
       $Fed=(az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create service connection '$ConnectionName'"
@@ -239,9 +243,9 @@ function New-SDAFADOWorkloadZone {
       }
 
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
-      az ad app federated-credential create --id $AppRegistrationId --parameters $JsonInputFile
+      az ad app federated-credential create --id $ManagedIdentityClientId --parameters $JsonInputFile
 
-      az ad app show --id $AppRegistrationId --query '{appId:appId,principalId:id,Name:displayName}'
+      az ad app show --id $ManagedIdentityClientId --query '{appId:appId,principalId:id,Name:displayName}'
 
       if (Test-Path $JsonInputFile) {
         Remove-Item $JsonInputFile
