@@ -188,8 +188,6 @@ function New-SDAFADOWorkloadZone {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "      $JsonInputFile = "sdafMI.json"
-
       $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
 
       $PostBody = [PSCustomObject]@{
