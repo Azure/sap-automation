@@ -35,9 +35,8 @@ else
       export DEBUG=False
 fi
 
-# set -o errexit
-set -e                                                                          # Exit immediately if a command exits with a non-zero status.
-set -u                                                                          # Treat unset variables as an error when substituting.
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
 #-------------------------------------------------------------------------------#
 # endregion
 

@@ -35,9 +35,8 @@ else
       export DEBUG=False
 fi
 
-# set -o errexit
-set -e                                                                          # Exit immediately if a command exits with a non-zero status.
-set -u                                                                          # Treat unset variables as an error when substituting.
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
 #-------------------------------------------------------------------------------#
 # endregion
 
@@ -54,6 +53,7 @@ full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          
 script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
 parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
 grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
+
 SCRIPT_NAME="$(basename "$0")"
 
 # External helper functions
