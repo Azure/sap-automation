@@ -6,7 +6,7 @@
 #colors for terminal
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
-reset_formatting="\e[0m"
+reset="\e[0m"
 
 # if [ -f /etc/profile.d/deploy_server.sh ]; then
 # 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -68,19 +68,19 @@ function print_banner() {
 	local color
 	case "$type" in
 	error)
-		color="$bold_red"
+		color="${bold_red}"
 		;;
 	success)
-		color="$green"
+		color="${green}"
 		;;
 	warning)
-		color="$yellow"
+		color="${yellow}"
 		;;
 	info)
-		color="$cyan"
+		color="${cyan}"
 		;;
 	*)
-		color="$cyan"
+		color="${cyan}"
 		;;
 	esac
 
@@ -129,7 +129,7 @@ function show_help_installer_v2 {
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo -e "# $cyan  This file contains the logic to deploy the different systems $reset_formatting                       #"
+	echo -e "#   ${cyan}This file contains the logic to deploy the different systems${reset}                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
 	echo "#   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                      #"
@@ -665,7 +665,7 @@ function validate_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#  $bold_red Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!! $reset_formatting                            #"
+		echo -e "#  ${bold_red} Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!! ${reset}                            #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
@@ -681,7 +681,7 @@ function validate_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#  $bold_red Missing environment variables (CONFIG_REPO_PATH)!!! $reset_formatting                            #"
+		echo -e "#  ${bold_red} Missing environment variables (CONFIG_REPO_PATH)!!! ${reset}                            #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      CONFIG_REPO_PATH (path to the repo folder (sap-automation))                      #"
@@ -696,7 +696,7 @@ function validate_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#  $bold_red Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $reset_formatting  #"
+		echo -e "#  ${bold_red} Missing environment variables (ARM_SUBSCRIPTION_ID)!!! ${reset}  #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
@@ -729,7 +729,7 @@ function validate_webapp_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#        $bold_red Missing environment variables (TF_VAR_app_registration_app_id)!!! $reset_formatting            #"
+		echo -e "#        ${bold_red} Missing environment variables (TF_VAR_app_registration_app_id)!!! ${reset}            #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables to successfully deploy the Webapp:            #"
 		echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
@@ -746,7 +746,7 @@ function validate_webapp_exports {
 			echo ""
 			echo "#########################################################################################"
 			echo "#                                                                                       #"
-			echo -e "#            $bold_red Missing environment variables (TF_VAR_webapp_client_secret)!!! $reset_formatting           #"
+			echo -e "#            ${bold_red} Missing environment variables (TF_VAR_webapp_client_secret)!!! ${reset}           #"
 			echo "#                                                                                       #"
 			echo "#   Please export the following variables to successfully deploy the Webapp:            #"
 			echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
@@ -780,18 +780,18 @@ function showhelp {
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo -e "#  $cyan This file contains the logic to deploy the different systems $reset_formatting                       #"
+	echo -e "#  ${cyan} This file contains the logic to deploy the different systems ${reset}                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
-	echo -e "#   $cyan ARM_SUBSCRIPTION_ID $reset_formatting       to specify which subscription to deploy to              #"
-	echo -e "#   $cyan SAP_AUTOMATION_REPO_PATH $reset_formatting  the path to the folder containing sap-automation clone  #"
-	echo -e "#   $cyan CONFIG_REPO_PATH $reset_formatting          (path to the configuration repo folder (sap-config)     #"
+	echo -e "#   ${cyan} ARM_SUBSCRIPTION_ID ${reset}       to specify which subscription to deploy to              #"
+	echo -e "#   ${cyan} SAP_AUTOMATION_REPO_PATH ${reset}  the path to the folder containing sap-automation clone  #"
+	echo -e "#   ${cyan} CONFIG_REPO_PATH ${reset}          (path to the configuration repo folder (sap-config)     #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
 	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo -e "#   $cyan Usage:$reset_formatting installer.sh                                                                 #"
+	echo -e "#   ${cyan} Usage:${reset} installer.sh                                                                 #"
 	echo "#    -p or --parameterfile           parameter file                                     #"
 	echo "#    -t or --type                    type of system to install                          #"
 	echo "#                                         valid options:                                #"
@@ -845,14 +845,14 @@ function showhelp_remover {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
-	echo -e "#                 $bold_red_underscore !Warning!: This script will remove deployed systems $reset_formatting                 #"
+	echo -e "#                 ${bold_red_underscore} !Warning!: This script will remove deployed systems ${reset}                 #"
 	echo "#                                                                                       #"
-	echo -e "#  $cyan This file contains the logic to deploy the different systems $reset_formatting                       #"
+	echo -e "#  ${cyan} This file contains the logic to deploy the different systems ${reset}                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
-	echo -e "#   $cyan ARM_SUBSCRIPTION_ID $reset_formatting       to specify which subscription to deploy to              #"
-	echo -e "#   $cyan SAP_AUTOMATION_REPO_PATH $reset_formatting  the path to the folder containing sap-automation clone  #"
-	echo -e "#   $cyan CONFIG_REPO_PATH $reset_formatting          (path to the configuration repo folder (sap-config)     #"
+	echo -e "#   ${cyan} ARM_SUBSCRIPTION_ID ${reset}       to specify which subscription to deploy to              #"
+	echo -e "#   ${cyan} SAP_AUTOMATION_REPO_PATH ${reset}  the path to the folder containing sap-automation clone  #"
+	echo -e "#   ${cyan} CONFIG_REPO_PATH ${reset}          (path to the configuration repo folder (sap-config)     #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
@@ -1125,7 +1125,7 @@ function ReplaceResourceInStateFile {
 			echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} $4 ${moduleID} ${azureResourceID}"
 			echo ""
 			if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" $4 "${moduleID}" "${azureResourceID}"; then
-				echo -e "$bold_red Importing storage account state object:           ${moduleID} failed $reset_formatting"
+				echo -e "${bold_red} Importing storage account state object:           ${moduleID} failed ${reset}"
 				exit 65
 			fi
 		fi
@@ -1290,8 +1290,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 					import_return_value=0
-					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
+					echo -e "${bold_red} Errors occurred during the apply phase:${reset}"
+					echo -e "${bold_red} ------------------------------------------------------------------------------------- ${reset}"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
@@ -1311,8 +1311,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 
-					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
+					echo -e "${bold_red} Errors occurred during the apply phase:${reset}"
+					echo -e "${bold_red} ------------------------------------------------------------------------------------- ${reset}"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 					error_count=${#errors[@]}
 
@@ -1448,7 +1448,7 @@ function validate_key_vault {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#                             $cyan  Retrying keyvault access $reset_formatting                               #"
+		echo -e "#                             ${cyan}  Retrying keyvault access ${reset}                               #"
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
