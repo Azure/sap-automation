@@ -741,7 +741,7 @@ function New-SDAFADOProject {
 
       Write-Host "Using a non standard DevOps project name, need to update some of the parameter files" -ForegroundColor Green
 
-      $ObjectId = (az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+      $ObjectId = az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0].objectId
 
       $TemplateFileName = "resources.yml"
       if (Test-Path $TemplateFileName) {
@@ -825,7 +825,7 @@ resources:
 
       Set-Content -Path $TemplateFileName -Value $ResourcesSamplesContent
 
-      $ObjectId = (az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+      $ObjectId = az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0].objectId
 
       Remove-Item $JsonInputFile
       $FileContent2 = Get-Content -Path $TemplateFileName -Raw
@@ -1272,11 +1272,6 @@ resources:
         az repos import create --git-url $Repositories.Samples --repository $SampleRepositoryId  --output none
         az repos update --repository $SampleRepositoryId --default-branch main  --output none
 
-        # Update resource files for non-standard project names
-        if ($AdoProject -ne "SAP Deployment Automation Framework") {
-          UpdateAdoRepositoryReferences -RepositoryId $RepositoryId -AdoProject $AdoProject
-        }
-
         $CodeRepositoryId = (az repos list --query "[?name=='sap-automation'].id | [0]"  --out tsv)
         $QueryString = "?api-version=6.0-preview"
         $PipelinePermissionUrl = "$AdoOrganization/$ProjectId/_apis/pipelines/pipelinePermissions/repository/$ProjectId.$CodeRepositoryId$QueryString"
@@ -1373,6 +1368,7 @@ resources:
         Read-Host "Please press enter when you have created the connection"
 
         $GitHubConnection = (az devops service-endpoint list --query "[?type=='github'].name | [0]"  --out tsv)
+
         UpdateGitHubRepositoryReferences -RepositoryId $RepositoryId -AdoProject $AdoProject -GitHubConnection $GitHubConnection -BranchName $BranchName -GitHubRepoName $GitHubRepoName
 
         Write-Host ""
@@ -1764,6 +1760,15 @@ resources:
       }
       if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
 
+
+      if ($ShouldImportCodeFromGitHub) {
+
+        # Update resource files for non-standard project names
+        if ($AdoProject -ne "SAP Deployment Automation Framework") {
+          UpdateAdoRepositoryReferences -RepositoryId $RepositoryId -AdoProject $AdoProject
+        }
+      }
+
       Write-Host "The script has completed" -ForegroundColor Green
       Write-Verbose "New-SDAFADOProject cmdlet completed successfully"
 
@@ -1782,7 +1787,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1403
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1408
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
