@@ -250,6 +250,28 @@ resource "azurerm_role_assignment" "appconfig_data_owner_current" {
 }
 
 
+###############################################################################
+#                                                                             #
+#                                App Service                                  #
+#                                                                             #
+###############################################################################
+
+resource "azurerm_role_assignment" "app_service_vault" {
+  count                                = var.options.assign_resource_permissions && var.app_service.use ? 1 : 0
+  scope                                = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
+  role_definition_name                 = "Key Vault Secrets Officer"
+  principal_id                         = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
+}
+
+resource "azurerm_role_assignment" "app_service_storage" {
+  count                                = var.options.assign_resource_permissions && var.app_service.use ? 1 : 0
+  scope                                = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].id : azurerm_resource_group.deployer[0].id
+  role_definition_name                 = "Storage Blob Data Contributor"
+  principal_id                         = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].identity[0].principal_id, "") :  ""
+}
+
+
+
 locals {
   run_as_msi                           = length(var.deployer.user_assigned_identity_id) == 0 ? (
                                            var.bootstrap || var.options.use_spn ? false : azurerm_user_assigned_identity.deployer[0].principal_id == data.azurerm_client_config.current.object_id ) : (

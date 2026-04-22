@@ -27,6 +27,10 @@ namespace SDAFWebApp.Services
 
             string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
             string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table").Replace(".privatelink", "");
+            if(string.IsNullOrEmpty(accountName))
+            {
+                accountName = Environment.GetEnvironmentVariable("TFSTATE_STORAGE_ACCOUNT_NAME");
+            }
 
             string tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
             string managedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID");
