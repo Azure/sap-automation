@@ -2,26 +2,70 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#error codes include those from /usr/include/sysexits.h
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Initialize colors and debug handling                                          #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# 'set' command documentation:
+#		https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
+# error codes include those from /usr/include/sysexits.h
+#---------------------------------------+---------------------------------------#
+# region
+# colors for terminal
+bold_red="\e[1;31m"
+   green="\e[1;32m"
+    cyan="\e[1;36m"
+   reset="\e[0m"
 
-#colors for terminal
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
+echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
+export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
 
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
+# SYSTEM_DEBUG is set by Azure DevOps when the "Enable system diagnostics" option is turned on for the pipeline run.
+# DEBUG is an optional environment variable that can be set to "True" to enable debug mode when running the script outside of Azure DevOps.
+if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
+    [[ ${DEBUG:-False}        = True ]]; then
+      echo -e "${cyan}--- Enabling debug mode ---${reset}"
+      set -x                                                                    # Enable debug mode
+      export DEBUG=True
+      echo "Environment variables:"
+      printenv | sort
+else
+      export DEBUG=False
+fi
 
-#call stack has full script name when using source
-source "${script_directory}/deploy_utils.sh"
+# set -o errexit
+set -e                                                                          # Exit immediately if a command exits with a non-zero status.
+set -u                                                                          # Treat unset variables as an error when substituting.
+#-------------------------------------------------------------------------------#
+# endregion
 
-#helper files
-source "${script_directory}/helpers/script_helpers.sh"
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Helpers                                                                       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Example: path_to_script/grand_parent_dir/parent_dir/script_dir/script
+#---------------------------------------+---------------------------------------#
+# region
+full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          # Get the full path of the current script
+script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
+parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
+grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
 
 SCRIPT_NAME="$(basename "$0")"
 
-echo "Entering: ${SCRIPT_NAME}"
+# External helper functions
+# call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${script_directory}/deploy_utils.sh"
+source "${script_directory}/helpers/script_helpers.sh"
+#-------------------------------------------------------------------------------#
+# endregion
+
+
 banner_title="Install Deployer"
 
 detect_platform
@@ -118,11 +162,6 @@ if [ "$param_dirname" != '.' ]; then
     exit 3
 fi
 
-if [ "${DEBUG:-false}" == true ]; then
-    echo -e "${cyan}Enabling debug mode$reset_formatting"
-    set -x
-    set -o errexit
-fi
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile"
 return_code=$?
@@ -238,7 +277,7 @@ else
                     --backend-config "container_name=tfstate" \
                     --backend-config "key=${key}.terraform.tfstate"; then
                     echo ""
-                    echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+                    echo -e "${cyan}Terraform init:                        succeeded${reset}"
                     echo ""
                     terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
                     keyvault_id=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_arm_id | tr -d \")
@@ -478,6 +517,9 @@ if [ -n "${DevOpsInfrastructureObjectId}" ]; then
 fi
 
 unset TF_DATA_DIR
-echo "Exiting: ${SCRIPT_NAME} ($install_deployer_return_value)"
 
-exit "$install_deployer_return_value"
+
+#----------------------------------- EXIT --------------------------------------#
+echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+echo -e   "${cyan}   Return code:  ${install_deployer_return_value}${reset}"
+exit $install_deployer_return_value
