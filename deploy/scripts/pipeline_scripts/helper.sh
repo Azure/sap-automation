@@ -73,7 +73,7 @@ function print_banner() {
 	centered_title=$(printf "%*s%s%*s" $padding_title "" "$title" $padding_title "")
 	centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
 
-	echo ""
+	# echo ""
 	echo -e "${color}"
 	echo "#################################################################################"
 	echo "#                                                                               #"
@@ -96,7 +96,7 @@ function print_banner() {
 	fi
 	echo "#################################################################################"
 	echo -e "${reset}"
-	echo ""
+	# echo ""
 }
 
 function getVariableFromVariableGroup() {
@@ -105,6 +105,9 @@ function getVariableFromVariableGroup() {
 	local environment_file_name="$3"
 	local environment_variable_name="$4"
 	local variable_value
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	#		so change to the repository root for this command and then change back to the original directory when done.
+	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
 	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv)
 	if [ -z "${variable_value}" ]; then
@@ -114,7 +117,7 @@ function getVariableFromVariableGroup() {
 			export sourced_from_file
 		fi
 	fi
-
+	popd > /dev/null
 	echo "$variable_value"
 }
 
@@ -123,14 +126,17 @@ function saveVariableInVariableGroup() {
 	local variable_name="$2"
 	local variable_value="$3"
 	local local_return_code=0
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	#		so change to the repository root for this command and then change back to the original directory when done.
+	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
 	if [ -n "$variable_value" ]; then
 
 		print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
 
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-		if [ "$DEBUG" = True ]; then
-			echo "Variable value: $az_var"
+		if [[ ${DEBUG:-False} = True ]]; then
+			echo "Variable value:  $az_var"
 			echo "Variable length: ${#az_var}"
 		fi
 		if [ ${#az_var} -gt 0 ]; then
@@ -142,8 +148,8 @@ function saveVariableInVariableGroup() {
 		fi
 	else
 		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-		if [ "$DEBUG" = True ]; then
-			echo "Variable value: $az_var"
+		if [[ ${DEBUG:-False} = True ]]; then
+			echo "Variable value:  $az_var"
 			echo "Variable length: ${#az_var}"
 		fi
 		if [ ${#az_var} -gt 0 ]; then
@@ -151,6 +157,7 @@ function saveVariableInVariableGroup() {
 			local_return_code=$?
 		fi
 	fi
+	popd > /dev/null
 	return $local_return_code
 }
 
@@ -306,9 +313,13 @@ function get_variable_group_id() {
 	local variable_group_name="$1"
 	local variable_group_id
 	var_name="$2"
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	#		so change to the repository root for this command and then change back to the original directory when done.
+	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
 	unset GROUP_ID
 	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
+	popd > /dev/null
 	if [ -z "$variable_group_id" ]; then
 		return 1
 	fi
