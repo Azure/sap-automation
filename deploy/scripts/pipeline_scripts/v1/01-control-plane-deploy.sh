@@ -6,21 +6,19 @@ green="\e[1;32m"
 reset="\e[0m"
 bold_red="\e[1;31m"
 
-# External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
-parent_directory="$(dirname "$script_directory")"
-grand_parent_directory="$(dirname "$parent_directory")"
+# Example: rest_of_full_script_path/grand_parent_dir/parent_dir/script_dir/script
+full_script_path="$(realpath "${BASH_SOURCE[0]}")"                              # Get the full path of the current script
+script_directory="$(dirname "${full_script_path}")"                             # Get the directory of the current script
+parent_directory="$(dirname "$script_directory")"                               # Get the parent directory of the script directory
+grand_parent_directory="$(dirname "$parent_directory")"                         # Get the grandparent directory of the script directory
 
 SCRIPT_NAME="$(basename "$0")"
 banner_title="Deploy Control Plane"
 
-#call stack has full script name when using source
+# External helper functions
+# call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
 
 echo "##vso[build.updatebuildnumber]Deploying the Control Plane defined in $DEPLOYER_FOLDERNAME"

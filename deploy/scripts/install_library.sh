@@ -6,17 +6,14 @@
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
 
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
 banner_title="Install Library"
 
-#call stack has full script name when using source
+# External helper functions
+# call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
-
-#helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
 SCRIPT_NAME="$(basename "$0")"

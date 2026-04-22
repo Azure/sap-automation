@@ -25,8 +25,6 @@
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
@@ -35,10 +33,9 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
     export PATH=$path
 fi
 
-#call stack has full script name when using source
+# External helper functions
+# call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
-
-#helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
