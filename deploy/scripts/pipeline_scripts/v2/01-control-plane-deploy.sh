@@ -171,7 +171,7 @@ if [ "$PLATFORM" == "devops" ]; then
     fi
 fi
 if [ -v MSI_ID ]; then
-    echo "Using Managed Identity:          $MSI_ID"
+    echo "Using Managed Identity:              $MSI_ID"
     TF_VAR_user_assigned_identity_id="$MSI_ID"
     export TF_VAR_user_assigned_identity_id
 fi
