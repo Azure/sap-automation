@@ -70,16 +70,14 @@ source "${parent_directory}/deploy_utils.sh"
 #---------------------------------------+---------------------------------------#
 # region
 if checkforDevOpsVar APPLICATION_CONFIGURATION_NAME; then
-    echo ""
-    echo "Running v2 script"
-    echo ""
+    echo -e "\nRunning v2 script"
+    
     export SDAFWZ_CALLER_VERSION="v2"
     "${script_directory}/v2/$SCRIPT_NAME"
     return_code=$?
 else
-    echo ""
-    echo "Running v1 script"
-    echo ""
+    echo -e "\nRunning v1 script"
+
     export SDAFWZ_CALLER_VERSION="v1"
     "${script_directory}/v1/$SCRIPT_NAME"
     return_code=$?
