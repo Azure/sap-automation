@@ -2780,6 +2780,19 @@ function Remove-SDAFADOProject {
         }
       }
 
+      $federatedIdentityName = "$AdoProject-Control_Plane_Service_Connection"
+
+      $FoundFederatedIdentity = (az ad app list --all --filter "startswith(displayName, '$federatedIdentityName')" --query  "[?displayName=='$federatedIdentityName'].id | [0]" --only-show-errors)
+      if ($FoundFederatedIdentity.Length -ne 0) {
+        $confirmation = Read-Host "Remove App registration ($federatedIdentityName) y/n?"
+        if ($confirmation -eq 'y') {
+          Write-Host "Removing the App Registration : $federatedIdentityName" -ForegroundColor Green
+          az ad app delete --id $FoundFederatedIdentity
+        }
+        else {
+          Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+        }
+      }
 
       $FoundAppRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].id | [0]" --only-show-errors)
       if ($FoundAppRegistration.Length -ne 0) {
@@ -2789,7 +2802,7 @@ function Remove-SDAFADOProject {
           az ad app delete --id $FoundAppRegistration
         }
         else {
-          Write-Host "Skipping removal of App registration" $ServicePrincipalName -ForegroundColor Yellow
+          Write-Host "Skipping removal of App registration" $ApplicationName -ForegroundColor Yellow
         }
       }
       else {
@@ -2798,7 +2811,7 @@ function Remove-SDAFADOProject {
       #endregion
 
       Write-Host "The script has completed" -ForegroundColor Green
-      Write-Verbose "New-SDAFADOProject cmdlet completed successfully"
+      Write-Verbose "Remove-SDAFADOProject cmdlet completed successfully"
 
     }
     catch {
@@ -2815,7 +2828,7 @@ function Remove-SDAFADOProject {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOProject
-#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 273
+#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 286
 #Region '.\Public\Remove-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -3043,7 +3056,25 @@ function Remove-SDAFADOWorkloadZone {
       $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ConnectionName'].id | [0]" --project $ProjectId --out tsv)
       if ($ServiceConnectionId.Length -gt 0) {
         Write-Host "Service Connection" $ServiceConnectionName "exists, removing it." -ForegroundColor Yellow
+
+        $federatedIdentityName = $ServiceConnectionName
+
+        $FoundFederatedIdentity = (az ad app list --all --filter "startswith(displayName, '$federatedIdentityName')" --query  "[?displayName=='$federatedIdentityName'].id | [0]" --only-show-errors)
+        if ($FoundFederatedIdentity.Length -ne 0) {
+          $confirmation = Read-Host "Remove App registration ($federatedIdentityName) y/n?"
+          if ($confirmation -eq 'y') {
+            Write-Host "Removing the App Registration : $federatedIdentityName" -ForegroundColor Green
+            az ad app delete --id $FoundFederatedIdentity
+          }
+          else {
+            Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+          }
+        }
+
+        az ad sp delete --id $ConnectionName --only-show-errors
+
         az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
+
       }
       else {
         Write-Host "Service Connection" $ServiceConnectionName "not found, skipping removal."
@@ -3100,7 +3131,7 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 283
+#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 301
 #Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
 
 function Remove-SDAFUserAssignedIdentity {

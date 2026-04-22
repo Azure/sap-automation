@@ -223,7 +223,25 @@ function Remove-SDAFADOWorkloadZone {
       $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ConnectionName'].id | [0]" --project $ProjectId --out tsv)
       if ($ServiceConnectionId.Length -gt 0) {
         Write-Host "Service Connection" $ServiceConnectionName "exists, removing it." -ForegroundColor Yellow
+
+        $federatedIdentityName = $ServiceConnectionName
+
+        $FoundFederatedIdentity = (az ad app list --all --filter "startswith(displayName, '$federatedIdentityName')" --query  "[?displayName=='$federatedIdentityName'].id | [0]" --only-show-errors)
+        if ($FoundFederatedIdentity.Length -ne 0) {
+          $confirmation = Read-Host "Remove App registration ($federatedIdentityName) y/n?"
+          if ($confirmation -eq 'y') {
+            Write-Host "Removing the App Registration : $federatedIdentityName" -ForegroundColor Green
+            az ad app delete --id $FoundFederatedIdentity
+          }
+          else {
+            Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+          }
+        }
+
+        az ad sp delete --id $ConnectionName --only-show-errors
+
         az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
+
       }
       else {
         Write-Host "Service Connection" $ServiceConnectionName "not found, skipping removal."
