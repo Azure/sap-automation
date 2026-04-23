@@ -191,9 +191,6 @@ locals {
                                            use                          = var.app_service_deployment
                                            app_registration_id          = var.app_registration_app_id
                                            client_secret                = var.webapp_client_secret
-                                           use                          = var.app_service_deployment
-                                           app_registration_id          = var.app_registration_app_id
-                                           client_secret                = var.webapp_client_secret
                                            tfstate_storage_account_name = local.tfstate_storage_account_name
                                          }
 

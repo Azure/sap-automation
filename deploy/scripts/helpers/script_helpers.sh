@@ -1214,7 +1214,7 @@ function ImportAndReRunApply {
 						moduleID=$(jq -c -r '.address ' <<<"$assignment_item")
   				  roleAssignmentID="${errorMessage##*The ID of the existing role assignment is }"
     				roleAssignmentID="${roleAssignmentID%.}"   # remove trailing dot if present
-						azureResourceID=$(jq -c -r '.summary' <<<"$item" | awk -F'\"' '{print $2}')
+						azureResourceID=$(jq -c -r '.summary' <<<"$assignment_item" | awk -F'\"' '{print $2}')
 						echo "Trying to import $azureResourceID into $moduleID"
 						# shellcheck disable=SC2086
 						echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
