@@ -437,7 +437,7 @@ resources:
       ref: main
     - repository: sap-samples
       type: git
-      name: $AdoProject/sap-samples
+      name: sap-samples
       ref: main
 "@
 
