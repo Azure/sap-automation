@@ -165,8 +165,8 @@ print_banner "$banner_title" "Running Terraform destroy" "info"
 parallelism=10
 
 #Provide a way to limit the number of parallel tasks for Terraform
-if [[ -n "$TF_PARALLELLISM" ]]; then
-	parallelism="$TF_PARALLELLISM"
+if [[ -n "$TFE_PARALLELISM" ]]; then
+	parallelism="$TFE_PARALLELISM"
 fi
 
 if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -refresh=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee destroy_output.json; then

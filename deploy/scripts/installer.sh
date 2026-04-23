@@ -282,8 +282,8 @@ fi
 parallelism=10
 
 #Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "$TF_PARALLELLISM" ]]; then
-    parallelism=$TF_PARALLELLISM
+if [[ -n "$TFE_PARALLELISM" ]]; then
+    parallelism=$TFE_PARALLELISM
 fi
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then

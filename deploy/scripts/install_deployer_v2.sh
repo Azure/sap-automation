@@ -397,8 +397,8 @@ function install_deployer() {
         parallelism=10
 
         #Provide a way to limit the number of parallel tasks for Terraform
-        if checkforEnvVar "TF_PARALLELLISM"; then
-            parallelism=$TF_PARALLELLISM
+        if checkforEnvVar "TFE_PARALLELISM"; then
+            parallelism=$TFE_PARALLELISM
         fi
 
         if [ -f apply_output.json ]; then

@@ -774,8 +774,8 @@ if [ 1 == $apply_needed ]; then
     parallelism=10
 
     #Provide a way to limit the number of parallell tasks for Terraform
-    if [[ -n "${TF_PARALLELLISM}" ]]; then
-        parallelism=$TF_PARALLELLISM
+    if [[ -n "${TFE_PARALLELISM}" ]]; then
+        parallelism=$TFE_PARALLELISM
     fi
 
     if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then

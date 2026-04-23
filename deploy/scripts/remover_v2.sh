@@ -491,8 +491,8 @@ function sdaf_remover() {
 	export TF_VAR_subscription_id
 
 	#Provide a way to limit the number of parallel tasks for Terraform
-	if checkforEnvVar "TF_PARALLELLISM"; then
-		parallelism=$TF_PARALLELLISM
+	if checkforEnvVar "TFE_PARALLELISM"; then
+		parallelism=$TFE_PARALLELISM
 	fi
 	echo ""
 	echo -e "${green}Deployment information:"

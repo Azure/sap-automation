@@ -348,8 +348,8 @@ function install_library() {
     parallelism=10
 
     #Provide a way to limit the number of parallel tasks for Terraform
-    if checkforEnvVar "TF_PARALLELLISM"; then
-        parallelism=$TF_PARALLELLISM
+    if checkforEnvVar "TFE_PARALLELISM"; then
+        parallelism=$TFE_PARALLELISM
     fi
     echo "Parallelism count:                   $parallelism"
     key=$(basename "${parameter_file_name}" | cut -d. -f1)
