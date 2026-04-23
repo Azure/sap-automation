@@ -136,7 +136,7 @@ resource "azurerm_key_vault_secret" "pwd" {
 
 
 resource "azurerm_key_vault_secret" "pat" {
-  count                                = local.enable_key && (length(var.infrastructure.devops.agent_pat)> 0 ) && !var.key_vault.exists  ? 0 : 0
+  count                                = local.enable_key && (length(var.infrastructure.devops.agent_pat)> 0 ) && !var.key_vault.exists  ? 1 : 0
   name                                 = "PAT"
   value                                = coalesce(var.infrastructure.devops.agent_pat, var.infrastructure.devops.app_token)
   key_vault_id                         = var.key_vault.exists ? (
