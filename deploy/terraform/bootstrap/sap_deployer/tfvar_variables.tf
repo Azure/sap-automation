@@ -472,7 +472,7 @@ variable "deployer_assign_resource_permissions"   {
 
 variable "use_private_endpoint"                       {
                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                        default     = false
+                                                        default     = true
                                                         type        = bool
                                                       }
 

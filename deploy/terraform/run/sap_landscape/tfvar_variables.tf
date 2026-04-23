@@ -159,7 +159,7 @@ variable "network_enable_route_propagation"     {
 
 variable "use_private_endpoint"                 {
                                                   description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                  default     = false
+                                                  default     = true
                                                   type        = bool
                                                 }
 
