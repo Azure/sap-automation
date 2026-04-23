@@ -1283,9 +1283,11 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         export PATH=$path
     fi
     if sdaf_installer "$@"; then
+		    return_value=$?
         echo "Script executed successfully."
-        exit $?
+        exit $return_value
     else
+		    return_value=$?
         echo "Script failed with exit code $?"
         exit $?
     fi
