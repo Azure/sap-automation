@@ -1362,12 +1362,8 @@ if ($WebApp) {
 
       Start-Process $API_URL
       Read-Host -Prompt "Once you have created and validated the scope, Press any key to continue"
-
-
     }
-
   }
-
 }
 <#-------------------------------------+---------------------------------------#>
 #endregion
