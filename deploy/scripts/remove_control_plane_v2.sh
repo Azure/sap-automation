@@ -310,7 +310,7 @@ function retrieve_parameters() {
 				TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 				export TF_VAR_spn_keyvault_id
 			fi
-	
+
 
 			TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 			export TF_VAR_management_subscription_id
@@ -490,7 +490,7 @@ function remove_control_plane() {
 			terraform_storage_account_name=$(grep -m1 "storage_account_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 			terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
 			tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
-			TF_VAR_tfstate_resource_id=$tfstate_resource_id	
+			TF_VAR_tfstate_resource_id=$tfstate_resource_id
 			export TF_VAR_tfstate_resource_id
 			key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
 			if terraform -chdir="${terraform_module_directory}" init -upgrade -input=false \
@@ -502,12 +502,12 @@ function remove_control_plane() {
 				print_banner "$banner_title" "Terraform init succeeded." "success" "System name $(basename "$deployer_dirname")"
 
 				terraform -chdir="${terraform_module_directory}" refresh -var-file="${deployer_parameter_file}" -input=false
-				
+
 				DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 				if valid_kv_name "${DEPLOYER_KEYVAULT}" ; then
 					export DEPLOYER_KEYVAULT
 				else
-					DEPLOYER_KEYVAULT=""	
+					DEPLOYER_KEYVAULT=""
 				fi
 
 				APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
@@ -517,7 +517,7 @@ function remove_control_plane() {
 					export TF_VAR_application_configuration_name
 				else
 					APPLICATION_CONFIGURATION_NAME=""
-				fi		
+				fi
 				APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_id | tr -d \")
 				if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 					export APPLICATION_CONFIGURATION_ID
@@ -525,7 +525,7 @@ function remove_control_plane() {
 					export TF_VAR_application_configuration_id
 				else
 					APPLICATION_CONFIGURATION_ID=""
-				fi		
+				fi
 				vnet_mgmt_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw vnet_mgmt_id | tr -d \")
 				if [ -n "${vnet_mgmt_id}" ]; then
 					export vnet_mgmt_id
@@ -533,7 +533,7 @@ function remove_control_plane() {
 					export TF_VAR_management_network_id
 				else
 					vnet_mgmt_id=""
-				fi		
+				fi
 			else
 				return_value=$?
 				print_banner "$banner_title" "Terraform init failed." "error"
@@ -585,17 +585,17 @@ function remove_control_plane() {
 	if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
 		TF_VAR_application_configuration_name="${APPLICATION_CONFIGURATION_NAME}"
 		export TF_VAR_application_configuration_name
-	fi		
+	fi
 	APPLICATION_CONFIGURATION_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_id | tr -d \")
 	if [ -n "${APPLICATION_CONFIGURATION_ID}" ]; then
 		TF_VAR_application_configuration_id="${APPLICATION_CONFIGURATION_ID}"
 		export TF_VAR_application_configuration_id
-	fi		
+	fi
 	vnet_mgmt_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw vnet_mgmt_id | tr -d \")
 	if [ -n "${vnet_mgmt_id}" ]; then
 		TF_VAR_management_network_id="${vnet_mgmt_id}"
 		export TF_VAR_management_network_id
-	fi		
+	fi
 
 	if valid_kv_name "${DEPLOYER_KEYVAULT}" ; then
 		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT" --output none
@@ -662,7 +662,7 @@ function remove_control_plane() {
 				print_banner "$banner_title - Library" "Terraform init succeeded (library - local)" "success" "System name $(basename "$library_dirname")"
 			else
 				return_value=$?
-				print_banner "$banner_title - Library" "Terraform init failed (library - local)" "error" "System name $(basename "$library_dirname")"	
+				print_banner "$banner_title - Library" "Terraform init failed (library - local)" "error" "System name $(basename "$library_dirname")"
 			fi
 		else
 			echo "Terraform state:                     local"
@@ -679,7 +679,7 @@ function remove_control_plane() {
 		echo "Terraform state:                     unknown"
 		if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure --backend-config "path=${library_dirname}/terraform.tfstate"; then
 			return_value=$?
-			print_banner "$banner_title - Library" "Terraform init succeeded (library - local)" "success" "System name $(basename "$library_dirname")	"
+			print_banner "$banner_title - Library" "Terraform init succeeded (library - local)" "success" "System name $(basename "$library_dirname")"
 		else
 			return_value=$?
 			print_banner "$banner_title - Library" "Terraform init failed (library - local)" "error" "System name $(basename "$library_dirname")"
@@ -755,11 +755,11 @@ function remove_control_plane() {
 	fi
 
 	cd "${current_directory}" || exit
-	
+
 	if [ 1 -eq $keep_agent ]; then
 
 		cd "${deployer_dirname}" || exit
-	
+
 		terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 		export TF_DATA_DIR="${deployer_dirname}/.terraform"
 
