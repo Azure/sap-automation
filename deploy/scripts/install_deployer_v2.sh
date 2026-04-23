@@ -406,7 +406,7 @@ function install_deployer() {
         fi
         if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
             allParameters+=(-json)
-            allParameters+=(-auto-approve)
+            allParameters+=(--auto-approve)
             allParameters+=(-no-color)
             allParameters+=(-compact-warnings)
             applyOutputfile="apply_output.json"
