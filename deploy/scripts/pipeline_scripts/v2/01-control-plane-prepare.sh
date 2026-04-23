@@ -73,6 +73,9 @@ fi
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 
+  TF_VAR_devops_platform="ADO"
+	export TF_VAR_devops_platform
+
 	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 
 	# Configure DevOps
@@ -97,6 +100,9 @@ if [ "$PLATFORM" == "devops" ]; then
 	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 
 elif [ "$PLATFORM" == "github" ]; then
+  TF_VAR_devops_platform="GITHUB"
+	export TF_VAR_devops_platform
+
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"

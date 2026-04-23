@@ -98,6 +98,7 @@ if [  0 == $library_return_code ]; then
 
 	if [ -d "LIBRARY/$LIBRARY_FOLDERNAME/.terraform" ]; then
 		git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
+		rm -rf "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
 		changed=1
 	fi
 
@@ -177,6 +178,7 @@ if [  0 == $deployer_return_code ]; then
 
 	if [ -d "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform" ]; then
 		git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
+		rm -rf "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
 		changed=1
 	fi
 
@@ -187,16 +189,13 @@ if [  0 == $deployer_return_code ]; then
 
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
-		changed=1
-	fi
-
-	if [ -f ".sap_deployment_automation/${ENVIRONMENT}-${LOCATION}-${NETWORK}" ]; then
-		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+		rm -rf ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
 		changed=1
 	fi
 
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}" ]; then
 		git rm -q --ignore-unmatch ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
+		rm -rf ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}${NETWORK}"
 		changed=1
 	fi
 

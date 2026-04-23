@@ -113,6 +113,8 @@ resource "azurerm_windows_web_app" "webapp" {
     "WHICH_ENV"                                = length(var.deployer.user_assigned_identity_id) > 0 ? "DATA" : "LOCAL"
     "AZURE_TENANT_ID"                          = data.azurerm_client_config.deployer.tenant_id
     "AUTHENTICATION_TYPE"                      = var.deployer.devops_authentication_type
+
+    "DEVOPS_PLATFORM"                          = var.infrastructure.devops.platform
     "PAT"                                      = var.use_private_endpoint ? (
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
@@ -169,10 +171,7 @@ resource "azurerm_windows_web_app" "webapp" {
   key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id
 
   identity                                   {
-    type                                        = length(var.deployer.user_assigned_identity_id) == 0 ? (
-                                                    "SystemAssigned") : (
-                                                    "SystemAssigned, UserAssigned"
-                                                  )
+    type                                        = "UserAssigned"
     identity_ids                                = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
                                              }
   connection_string                          {

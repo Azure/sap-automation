@@ -307,7 +307,7 @@ if [ "$useSAS" = "true" ]; then
 		export AZURE_STORAGE_AUTH_MODE
 		export ARM_USE_AZUREAD=true
 	fi
-	
+
 
 TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
 export TF_VAR_subscription_id

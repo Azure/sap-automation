@@ -42,12 +42,12 @@ resource "azurerm_key_vault" "kv_user" {
   soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
-  public_network_access_enabled        = var.bootstrap ? true : var.public_network_access_enabled
+  public_network_access_enabled        = var.bootstrap ? true : var.public_network_access_enabled || var.enable_firewall_for_keyvaults_and_storage
   rbac_authorization_enabled           = var.key_vault.enable_rbac_authorization
 
   network_acls {
             bypass                     = "AzureServices"
-            default_action             = var.bootstrap ? "Allow" : (var.enable_firewall_for_keyvaults_and_storage ? "Allow" : "Deny")
+            default_action             = var.bootstrap ? "Allow" : (var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow")
             ip_rules                   = compact(
                                           [
                                             local.enable_deployer_public_ip ? (

@@ -347,11 +347,11 @@ dns_settings                         = {
                                            dns_zone_names                               = var.dns_zone_names
                                            dns_server_list                              = var.dns_server_list
 
-                                           management_dns_resourcegroup_name            =  coalesce(var.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
-                                           management_dns_subscription_id               =  coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id)
+                                           management_dns_resourcegroup_name            =  coalesce(var.management_dns_resourcegroup_name, local.tfstate_storage_account_resource_group_name)
+                                           management_dns_subscription_id               =  coalesce(var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id)
 
-                                           privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
-                                           privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.SAPLibrary_subscription_id)
+                                           privatelink_dns_resourcegroup_name           = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.tfstate_storage_account_resource_group_name)
+                                           privatelink_dns_subscription_id              = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id)
 
                                            register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns

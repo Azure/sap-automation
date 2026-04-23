@@ -49,6 +49,12 @@ NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
 if [ "$PLATFORM" == "github" ]; then
     DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
     LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
+
+	  TF_VAR_devops_platform="GITHUB"
+  	export TF_VAR_devops_platform
+elif [ "$PLATFORM" == "devops" ]; then
+	  TF_VAR_devops_platform="ADO"
+  	export TF_VAR_devops_platform
 fi
 
 automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
@@ -234,6 +240,14 @@ else
     echo "Deployer Key Vault:                  undefined"
     exit 2
 fi
+
+
+if [ "$PLATFORM" == "devops" ]; then
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
+fi
+
 
 terraform_storage_account_subscription_id=$ARM_SUBSCRIPTION_ID
 
@@ -421,12 +435,6 @@ else
 fi
 
 end_group
-
-if [ "$PLATFORM" == "devops" ]; then
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_ENVIRONMENT" "$ENVIRONMENT"
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_LOCATION" "$LOCATION"
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"
-fi
 
 echo "Environment:                         $ENVIRONMENT"
 echo "Location:                            $LOCATION"

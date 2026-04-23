@@ -1284,10 +1284,10 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     fi
     if sdaf_installer "$@"; then
         echo "Script executed successfully."
-        exit 0
+        exit $?
     else
         echo "Script failed with exit code $?"
-        exit 10
+        exit $?
     fi
 
 fi
