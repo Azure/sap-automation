@@ -1212,18 +1212,17 @@ function ImportAndReRunApply {
 					errorMessage=$(jq -c -r '.summary ' <<<"$assignment_item")
 					if [[ "$errorMessage" == *"The ID of the existing role assignment is "* ]]; then
 						moduleID=$(jq -c -r '.address ' <<<"$assignment_item")
-  				  roleAssignmentID="${errorMessage##*The ID of the existing role assignment is }"
-    				roleAssignmentID="${roleAssignmentID%.}"   # remove trailing dot if present
-						azureResourceID=$(jq -c -r '.summary' <<<"$assignment_item" | awk -F'\"' '{print $2}')
-						echo "Trying to import $azureResourceID into $moduleID"
+						roleAssignmentID="${errorMessage##*The ID of the existing role assignment is }"
+						roleAssignmentID="${roleAssignmentID%.}"   # remove trailing dot if present
+						echo "Trying to import $roleAssignmentID into $moduleID"
 						# shellcheck disable=SC2086
-						echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"
+						echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${roleAssignmentID}"
 						echo ""
 						# shellcheck disable=SC2086
-						if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${azureResourceID}"; then
-							echo "Successfully imported $azureResourceID into $moduleID"
+						if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${roleAssignmentID}"; then
+							echo "Successfully imported $roleAssignmentID into $moduleID"
 						else
-							echo "Failed to import $azureResourceID into $moduleID"
+							echo "Failed to import $roleAssignmentID into $moduleID"
 						fi
 					else
 							echo "Permission error (no role-assignment ID in message): $errorMessage"
