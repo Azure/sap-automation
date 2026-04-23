@@ -452,7 +452,7 @@ if [ -n "${deployer_dirname}" ]; then
 fi
 
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
-	allRemovalParameters+=(--auto-approve)
+	allRemovalParameters+=(-auto-approve)
 fi
 if [ "$PLATFORM" != "cli" ] ; then
 	allRemovalParameters+=(-input=false)
@@ -563,7 +563,7 @@ else
 	fi
 
 	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
-		allRemovalParameters+=(--auto-approve)
+		allRemovalParameters+=(-auto-approve)
 	fi
 	if [ "$PLATFORM" != "cli" ] ; then
 		allRemovalParameters+=(-input=false)

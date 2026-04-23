@@ -700,7 +700,7 @@ function remove_control_plane() {
 	allRemovalParameters+=(-var use_deployer=false)
 
 	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
-		allRemovalParameters+=(--auto-approve)
+		allRemovalParameters+=(-auto-approve)
 	fi
 	if [ "$PLATFORM" != "cli" ] ; then
 		allRemovalParameters+=(-input=false)
@@ -803,7 +803,7 @@ function remove_control_plane() {
 		fi
 
 		if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
-			allRemovalParameters+=(--auto-approve)
+			allRemovalParameters+=(-auto-approve)
 		fi
 		if [ "$PLATFORM" != "cli" ] ; then
 			allRemovalParameters+=(-input=false)
