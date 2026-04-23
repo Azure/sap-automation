@@ -61,6 +61,7 @@ grand_parent_directory="$(dirname  ${parent_directory})"                        
 SCRIPT_NAME="$(basename "$0")"
 
 # External helper functions
+# call stack has full script name when using source
 source "${parent_directory}/deploy_utils.sh"
 #-------------------------------------------------------------------------------#
 # endregion
