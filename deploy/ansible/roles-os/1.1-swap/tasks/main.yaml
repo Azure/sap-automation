@@ -72,7 +72,7 @@
     verbosity:                         2
 
 - name:                                "1.1 Swap - Detect NVMe device count for swap helper"
-  ansible.builtin.shell:               set -o pipefail && ls -1 /dev/nvme*n1 2>/dev/null | wc -l
+  ansible.builtin.shell:               set -o pipefail && lsblk -dn -o NAME,TYPE | awk '$2 == "disk" && $1 ~ /^nvme/ {count++} END {print count + 0}'
   args:
     executable:                        /bin/bash
   register:                            nvme_device_probe
@@ -83,16 +83,24 @@
   ansible.builtin.set_fact:
     nvme_device_count:                 "{{ nvme_device_probe.stdout | trim | int }}"
 
-- name:                                "1.1 Swap - Detect Microsoft NVMe Direct disk count"
+- name:                                "1.1 Swap - Detect Microsoft NVMe Direct disk count from sysfs/udev"
   ansible.builtin.shell: |
                                        set -o pipefail
                                        direct_count=0
-                                       for device in /dev/nvme*n1; do
-                                         [ -e "$device" ] || continue
-                                         if nvme id-ctrl "$device" 2>/dev/null | grep -q "Microsoft NVMe Direct Disk"; then
+                                       while read -r device_name; do
+                                         [ -n "$device_name" ] || continue
+                                         model_file="/sys/class/block/${device_name}/device/model"
+                                         if [ -e "$model_file" ] && grep -Eq "MSFT NVMe Accelerator|Microsoft NVMe Direct Disk" "$model_file"; then
+                                           direct_count=$((direct_count + 1))
+                                           continue
+                                         fi
+
+                                         if command -v udevadm >/dev/null 2>&1 && \
+                                            udevadm info --query=property --name="/dev/${device_name}" 2>/dev/null | \
+                                            grep -Eq "^ID_MODEL=(MSFT NVMe Accelerator|Microsoft NVMe Direct Disk)"; then
                                            direct_count=$((direct_count + 1))
                                          fi
-                                       done
+                                       done < <(lsblk -dn -o NAME,TYPE | awk '$2 == "disk" && $1 ~ /^nvme/ {print $1}')
                                        echo "$direct_count"
   args:
     executable:                        /bin/bash
