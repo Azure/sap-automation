@@ -8,7 +8,8 @@ $versionLabel = "v3.14.5.0"
 #     White   Blue        Green       Cyan        Red       Magenta       Yellow      Gray
 #     Black   DarkBlue    DarkGreen   DarkCyan    DarkRed   DarkMagenta   DarkYellow  DarkGray
 
-# Write-Host "<Experimental>..............." -ForegroundColor Cyan
+# Write-Host  "<Experimental>..............." `
+#             -ForegroundColor Cyan
 
 
 
@@ -359,7 +360,8 @@ Write-Host  "Section: Create DevOps Project ..." `
 $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]" --out tsv)
 
 if ($Project_ID.Length -eq 0) {
-  Write-Host "Creating the project: " $ADO_PROJECT -ForegroundColor Green
+  Write-Host  "Creating the project: " $ADO_PROJECT `
+              -ForegroundColor Green
   $Project_ID = (az devops project create --name $ADO_PROJECT --description 'SDAF Automation Project' --organization $ADO_ORGANIZATION --visibility private --source-control git --query id --output tsv)
 
   Add-Content -Path $wikiFileName -Value ""
@@ -370,7 +372,8 @@ if ($Project_ID.Length -eq 0) {
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]"  --out tsv)
   $repo_url = (az repos list --query "[?name=='$ADO_Project'].webUrl | [0]"  --out tsv)
 
-  Write-Host "Importing the content from GitHub" -ForegroundColor Green
+  Write-Host  "Importing the content from GitHub" `
+              -ForegroundColor Green
   az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id   --output none
 
   az repos update --repository $repo_id --default-branch $branch   --output none
@@ -387,22 +390,26 @@ else {
 
   $repo_id = (az repos list --query "[?name=='$ADO_Project'].id | [0]"  --output tsv)
   if ($repo_id.Length -ne 0) {
-    Write-Host "Using repository '$ADO_Project'" -ForegroundColor Green
+    Write-Host  "Using repository '$ADO_Project'" `
+                -ForegroundColor Green
   }
   $repo_url = (az repos list --query "[?name=='$ADO_Project'].webUrl | [0]"  --out tsv)
 
   $repo_size = (az repos list --query "[?name=='$ADO_Project'].size | [0]"  --output tsv)
 
   if ($repo_size -eq 0) {
-    Write-Host "Importing the repository from GitHub" -ForegroundColor Green
+    Write-Host  "Importing the repository from GitHub" `
+                -ForegroundColor Green
 
     Add-Content -Path $wikiFileName -Value ""
     Add-Content -Path $wikiFileName -Value "Terraform and Ansible code repository stored in the DevOps project (sap-automation)"
 
     az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id   --output tsv
     if ($LastExitCode -eq 1) {
-      Write-Host "The repository already exists" -ForegroundColor Yellow
-      Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
+      Write-Host  "The repository already exists" `
+                  -ForegroundColor Yellow
+      Write-Host  "Creating repository 'SDAF Configuration'" `
+                  -ForegroundColor Green
       $repo_id = (az repos create --name "SDAF Configuration" --query id --output tsv)
       az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --output none
     }
@@ -411,7 +418,8 @@ else {
   else {
     $confirmation = Read-Host "The repository already exists, use it? y/n"
     if ($confirmation -ne 'y') {
-      Write-Host "Creating repository 'SDAF Configuration'" -ForegroundColor Green
+      Write-Host  "Creating repository 'SDAF Configuration'" `
+                  -ForegroundColor Green
       $repo_id = (az repos create --name "SDAF Configuration" --query id  --output tsv)
       az repos import create --git-url https://github.com/Azure/SAP-automation-bootstrap --repository $repo_id  --output none
     }
@@ -437,7 +445,8 @@ Write-Host  "Section: Repositories ..." `
 
 
 if ( Test-Path "temprepo") {
-  Write-Host "Removing temprepo" -ForegroundColor Green
+  Write-Host  "Removing temprepo" `
+              -ForegroundColor Green
   Remove-Item -Path (Join-Path -Path Get-Location -ChildPath "temprepo") -Recurse -Force
 }
 
@@ -466,7 +475,8 @@ if ($confirmation -ne 'y') {
 
   $import_code = $true
   $repo_name = "sap-automation"
-  Write-Host "Creating $repo_name repository" -ForegroundColor Green
+  Write-Host  "Creating $repo_name repository" `
+              -ForegroundColor Green
   az repos create --name $repo_name --query id  --output none
   $code_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation --repository $code_repo_id  --output none
@@ -474,7 +484,8 @@ if ($confirmation -ne 'y') {
 
   $import_code = $true
   $repo_name = "sap-samples"
-  Write-Host "Creating $repo_name repository" -ForegroundColor Green
+  Write-Host  "Creating $repo_name repository" `
+              -ForegroundColor Green
   az repos create --name $repo_name --query id  --output none
   $sample_repo_id = (az repos list --query "[?name=='$repo_name'].id | [0]"  --out tsv)
   az repos import create --git-url https://github.com/Azure/SAP-automation-samples --repository $sample_repo_id  --output none
@@ -482,7 +493,8 @@ if ($confirmation -ne 'y') {
 
   if ($ADO_Project -ne "SAP Deployment Automation Framework") {
 
-    Write-Host "Using a non standard DevOps project name, need to update some of the parameter files" -ForegroundColor Green
+    Write-Host  "Using a non standard DevOps project name, need to update some of the parameter files" `
+                -ForegroundColor Green
 
     $objectId = (az devops invoke --area git --resource refs --route-parameters project=$ADO_Project repositoryId=$repo_id --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
 
@@ -636,7 +648,8 @@ $repo_id   = (az repos list --query "[?name=='$ADO_Project'].id   | [0]"  --out 
 $repo_name = (az repos list --query "[?name=='$ADO_Project'].name | [0]"  --out tsv)
 
 
-Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
+Write-Host  "Creating the variable group SDAF-General" `
+            -ForegroundColor Green
 
 $groups = New-Object System.Collections.Generic.List[System.Object]
 
@@ -686,11 +699,11 @@ $pipelines = New-Object System.Collections.Generic.List[System.Object]
 # Pipeline: Create Control Plane configuration
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Create Control Plane configuration'
-Write-Host  "  Pipeline: $pipeline_name"
+Write-Host  "  Pipeline: $pipeline_name" `
             -ForegroundColor Green
 $sample_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($sample_pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name"
+  Write-Host  "    Creating pipeline: $pipeline_name" `
               -ForegroundColor Green
   az pipelines create --name $pipeline_name                                         `
                       --branch main                                                 `
@@ -703,7 +716,8 @@ if ($sample_pipeline_id.Length -eq 0) {
                       --only-show-errors
   $sample_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $sample_pipeline_id
@@ -713,10 +727,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: Deploy Control plane
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Deploy Control plane'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $control_plane_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($control_plane_pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                         `
                       --branch main                                                 `
                       --description 'Deploys the control plane'                     `
@@ -728,7 +744,8 @@ if ($control_plane_pipeline_id.Length -eq 0) {
                       --only-show-errors
   $control_plane_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($control_plane_pipeline_id)
@@ -740,10 +757,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: SAP Workload Zone deployment
 #-------------------------------------------------------------------------------
 $pipeline_name = 'SAP Workload Zone deployment'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $wz_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($wz_pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                         `
                       --branch main                                                 `
                       --description 'Deploys the workload zone'                     `
@@ -755,7 +774,8 @@ if ($wz_pipeline_id.Length -eq 0) {
                       --only-show-errors
   $wz_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($wz_pipeline_id)
@@ -767,10 +787,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: SAP SID Infrastructure deployment
 #-------------------------------------------------------------------------------
 $pipeline_name = 'SAP SID Infrastructure deployment'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $system_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($system_pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                                         `
                       --branch main                                                                 `
                       --description 'Deploys the infrastructure required for a SAP SID deployment'  `
@@ -782,7 +804,8 @@ if ($system_pipeline_id.Length -eq 0) {
                       --only-show-errors
   $system_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($system_pipeline_id)
@@ -794,10 +817,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: SAP Software acquisition
 #-------------------------------------------------------------------------------
 $pipeline_name = 'SAP Software acquisition'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                         `
                       --branch main                                                 `
                       --description 'Downloads the software from SAP'               `
@@ -809,7 +834,8 @@ if ($pipeline_id.Length -eq 0) {
                       --only-show-errors
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($pipeline_id)
@@ -821,10 +847,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: SAP Software acquisition new
 #-------------------------------------------------------------------------------
 $pipeline_name = 'SAP Software acquisition new'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                         `
                       --branch main                                                 `
                       --description 'Downloads the software from SAP'               `
@@ -836,7 +864,8 @@ if ($pipeline_id.Length -eq 0) {
                       --only-show-errors
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($pipeline_id)
@@ -848,10 +877,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: Configuration and SAP installation
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Configuration and SAP installation'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($installation_pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                                             `
                       --branch main                                                                     `
                       --description 'Configures the Operating System and installs the SAP application'  `
@@ -863,7 +894,8 @@ if ($installation_pipeline_id.Length -eq 0) {
                       --only-show-errors
   $installation_pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($installation_pipeline_id)
@@ -875,10 +907,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: Remove System or Workload Zone
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Remove System or Workload Zone'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                               `
                       --branch main                                                       `
                       --description 'Removes either the SAP system or the workload zone'  `
@@ -890,7 +924,8 @@ if ($pipeline_id.Length -eq 0) {
                       --only-show-errors
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($pipeline_id)
@@ -902,10 +937,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: Remove deployments via ARM
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Remove deployments via ARM'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                                             `
                       --branch main                                                                     `
                       --description 'Removes the resource groups via ARM. Use this only as last resort' `
@@ -917,7 +954,8 @@ if ($pipeline_id.Length -eq 0) {
                       --only-show-errors
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($pipeline_id)
@@ -929,10 +967,12 @@ Add-Content -Path $wikiFileName -Value $log
 # Pipeline: Remove control plane
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Remove control plane'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+                -ForegroundColor Green
   az pipelines create --name $pipeline_name                                         `
                       --branch main                                                 `
                       --description 'Removes the control plane'                     `
@@ -944,7 +984,8 @@ if ($pipeline_id.Length -eq 0) {
                       --only-show-errors
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($pipeline_id)
@@ -957,10 +998,12 @@ Add-Content -Path $wikiFileName -Value $log
 #-------------------------------------------------------------------------------
 if ($import_code) {
   $pipeline_name = 'Update repository'
-  Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "  Pipeline: $pipeline_name" `
+              -ForegroundColor Green
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
   if ($pipeline_id.Length -eq 0) {
-    Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+    Write-Host  "    Creating pipeline: $pipeline_name" `
+                -ForegroundColor Green
     az pipelines create --name $pipeline_name                                       `
                         --branch main                                               `
                         --description 'Updates the codebase'                        `
@@ -972,7 +1015,8 @@ if ($import_code) {
                         --only-show-errors
     $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
   } else {
-    Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+    Write-Host  "    Pipeline already exists, skipping creation" `
+                -ForegroundColor Yellow
   }
 
   $pipelines.Add($pipeline_id)
@@ -985,10 +1029,12 @@ if ($import_code) {
 # Pipeline: Update Pipelines
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Update Pipelines'
-Write-Host "  Pipeline: $pipeline_name" -ForegroundColor Green
+Write-Host  "  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
-  Write-Host  "    Creating pipeline: $pipeline_name" -ForegroundColor Green
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
   az pipelines create --name $pipeline_name                                         `
                       --branch main                                                 `
                       --description 'Updates the pipelines'                         `
@@ -1000,7 +1046,8 @@ if ($pipeline_id.Length -eq 0) {
                       --only-show-errors
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 } else {
-  Write-Host  "    Pipeline already exists, skipping creation" -ForegroundColor Yellow
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
 }
 
 $pipelines.Add($pipeline_id)
@@ -1260,12 +1307,14 @@ Write-Host  "App registration section..." `
             -ForegroundColor DarkCyan
 
 if ($WebApp) {
-  Write-Host "Creating the App registration in Azure Active Directory" -ForegroundColor Green
+  Write-Host  "Creating the App registration in Azure Active Directory" `
+              -ForegroundColor Green
 
   $found_appRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
 
   if ($found_appRegistration.Length -ne 0) {
-    Write-Host "Found an existing App Registration:" $ApplicationName
+    Write-Host  "Found an existing App Registration:" $ApplicationName `
+                -ForegroundColor Green
     $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 
     $APP_REGISTRATION_ID = $ExistingData.appId
@@ -1280,7 +1329,8 @@ if ($WebApp) {
     # }
   }
   else {
-    Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
+    Write-Host  "Creating an App Registration for" $ApplicationName `
+                -ForegroundColor Green
     if ($IsWindows) { $manifestPath = ".\manifest.json" } else { $manifestPath = "./manifest.json" }
     Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
 
@@ -1344,7 +1394,8 @@ if ($authenticationMethod -eq "Service Principal") {
 
   $scopes = "/subscriptions/" + $Control_plane_subscriptionID
 
-  Write-Host "Creating the deployment credentials for the control plane. Service Principal Name:" $spn_name -ForegroundColor Green
+  Write-Host  "Creating the deployment credentials for the control plane. Service Principal Name:" $spn_name `
+              -ForegroundColor Green
 
   $ARM_CLIENT_ID = ""
   $ARM_OBJECT_ID = ""
@@ -1373,7 +1424,8 @@ if ($authenticationMethod -eq "Service Principal") {
 
   }
   else {
-    Write-Host "Creating the Service Principal" $spn_name -ForegroundColor Green
+    Write-Host  "Creating the Service Principal" $spn_name `
+                -ForegroundColor Green
     $SPN_Created = $true
     $Control_plane_SPN_data = (az ad sp create-for-rbac --role "Contributor" --scopes $scopes --name $spn_name --only-show-errors) | ConvertFrom-Json
     $ARM_CLIENT_SECRET = $Control_plane_SPN_data.password
@@ -1392,7 +1444,8 @@ if ($authenticationMethod -eq "Service Principal") {
 
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
-    Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
+    Write-Host  "Creating the variable group" $ControlPlanePrefix `
+                -ForegroundColor Green
 
     if ($WebApp) {
       if ($authenticationMethod -eq "Managed Identity") {
@@ -1419,20 +1472,23 @@ if ($authenticationMethod -eq "Service Principal") {
     az pipelines variable-group variable update --group-id $Control_plane_groupID --name "ARM_OBJECT_ID" --value $ARM_OBJECT_ID --output none --only-show-errors
   }
 
-  Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green
+  Write-Host  "Create the Service Endpoint in Azure for the control plane" `
+              -ForegroundColor Green
 
   $Service_Connection_Name = "Control_Plane_Service_Connection"
   $Env:AZURE_DEVOPS_EXT_AZURE_RM_SERVICE_PRINCIPAL_KEY = $ARM_CLIENT_SECRET
 
   $epExists = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]")
   if ($epExists.Length -eq 0) {
-    Write-Host "Creating Service Endpoint" $Service_Connection_Name -ForegroundColor Green
+    Write-Host  "Creating Service Endpoint" $Service_Connection_Name `
+                -ForegroundColor Green
     az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
     $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
     az devops service-endpoint update --id $epId --enable-for-all true --output none --only-show-errors
   }
   else {
-    Write-Host "Service Endpoint already exists, recreating it with the updated credentials" -ForegroundColor Green
+    Write-Host  "Service Endpoint already exists, recreating it with the updated credentials" `
+                -ForegroundColor Green
     $epId = az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].id" -o tsv
     az devops service-endpoint delete --id $epId --yes
     az devops service-endpoint azurerm create --azure-rm-service-principal-id $ARM_CLIENT_ID --azure-rm-subscription-id $Control_plane_subscriptionID --azure-rm-subscription-name $ControlPlaneSubscriptionName --azure-rm-tenant-id $ARM_TENANT_ID --name $Service_Connection_Name --output none --only-show-errors
@@ -1444,7 +1500,8 @@ if ($authenticationMethod -eq "Service Principal") {
 else {
   $Control_plane_groupID = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
   if ($Control_plane_groupID.Length -eq 0) {
-    Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
+    Write-Host  "Creating the variable group" $ControlPlanePrefix `
+                -ForegroundColor Green
     if ($WebApp) {
       az pipelines variable-group create  --name $ControlPlanePrefix                                               `
                                           --variables                     AGENT='Azure Pipelines'                  `
@@ -1505,13 +1562,15 @@ Write-Host  "Section: Agent Pool ..." `
 $POOL_ID = 0
 $POOL_NAME_FOUND = (az pipelines pool list --query "[?name=='$Pool_Name'].name | [0]")
 if ($POOL_NAME_FOUND.Length -gt 0) {
-  Write-Host "Agent pool" $Pool_Name "already exists" -ForegroundColor Yellow
+  Write-Host  "Agent pool" $Pool_Name "already exists" `
+              -ForegroundColor Yellow
   $POOL_ID = (az pipelines pool list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
   $queue_id = (az pipelines queue list --query "[?name=='$Pool_Name'].id | [0]" --output tsv)
 }
 else {
 
-  Write-Host "Creating agent pool" $Pool_Name -ForegroundColor Green
+  Write-Host  "Creating agent pool" $Pool_Name `
+              -ForegroundColor Green
 
   Set-Content -Path pool.json -Value (ConvertTo-Json @{name = $Pool_Name; autoProvision = $true })
   az devops invoke --area distributedtask --resource pools --http-method POST --api-version "7.1-preview" --in-file ".${pathSeparator}pool.json" --query-parameters authorizePipelines=true --query id --output none --only-show-errors --route-parameters project=$ADO_Project
@@ -1573,12 +1632,14 @@ if ($PAT.Length -gt 0) {
   foreach ($group in $groups) {
     $bodyText.resource.id = $group
     $pipeline_permission_url = $ADO_ORGANIZATION + "/" + $Project_ID + "/_apis/pipelines/pipelinePermissions/variablegroup/" + $group.ToString() + "?api-version=5.1-preview.1"
-    Write-Host "Setting permissions for variable group:" $group.ToString() -ForegroundColor Yellow
+    Write-Host  "Setting permissions for variable group:" $group.ToString() `
+                -ForegroundColor Yellow
 
     foreach ($pipeline in $pipelines) {
       $bodyText.pipelines[0].id = $pipeline
       $body = $bodyText | ConvertTo-Json -Depth 10
-      Write-Host "  Allowing pipeline id:" $pipeline.ToString() -ForegroundColor Yellow
+      Write-Host  "  Allowing pipeline id:" $pipeline.ToString() `
+                  -ForegroundColor Yellow
       $response = Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo" } -Body $body -ContentType "application/json"
     }
   }
@@ -1662,11 +1723,13 @@ if ($PAT.Length -gt 0) {
   }
 
   $pipeline_permission_url = $ADO_ORGANIZATION + "/" + $Project_ID + "/_apis/pipelines/pipelinePermissions/queue/" + $queue_id.ToString() + "?api-version=5.1-preview.1"
-  Write-Host "Setting permissions for agent pool:" $Pool_Name "(" $queue_id ")" -ForegroundColor Yellow
+  Write-Host  "Setting permissions for agent pool:" $Pool_Name "(" $queue_id ")" `
+              -ForegroundColor Yellow
   foreach ($pipeline in $pipelines) {
     $bodyText.pipelines[0].id = $pipeline
     $body = $bodyText | ConvertTo-Json -Depth 10
-    Write-Host "  Allowing pipeline id:" $pipeline.ToString() " access to " $Pool_Name -ForegroundColor Yellow
+    Write-Host  "  Allowing pipeline id:" $pipeline.ToString() " access to " $Pool_Name `
+                -ForegroundColor Yellow
     $response = Invoke-RestMethod -Method PATCH -Uri $pipeline_permission_url -Headers @{Authorization = "Basic $base64AuthInfo" } -Body $body -ContentType "application/json"
   }
 }
@@ -1779,10 +1842,12 @@ foreach ($Item in $RealItems) {
 }
 
 if ($Descriptor -eq "") {
-  Write-Host "The Build Service user was not found in the Security Service Group" -ForegroundColor Red
+  Write-Host  "The Build Service user was not found in the Security Service Group" `
+              -ForegroundColor Red
 }
 else {
-  Write-Host "Adding the Build Service user to the Build Administrators group" -ForegroundColor Green
+  Write-Host  "Adding the Build Service user to the Build Administrators group" `
+              -ForegroundColor Green
   $response = az devops security group membership add --member-id $Descriptor               `
                                                       --group-id $ProjectBuildAdminGroupId
 }
@@ -1791,4 +1856,5 @@ else {
 
 
 
-Write-Host "The script has completed" -ForegroundColor Green
+Write-Host  "The script has completed" `
+            -ForegroundColor Green
