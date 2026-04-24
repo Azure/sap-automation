@@ -3055,7 +3055,7 @@ function Remove-SDAFADOWorkloadZone {
 
       $ServiceConnectionName = $WorkloadZoneCode + "_WorkloadZone_Service_Connection"
 
-      $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ConnectionName'].id | [0]" --project $ProjectId --out tsv)
+      $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ConnectionName'].id | [0]" --organization $AdoOrganization --project $ProjectId --out tsv)
       if ($ServiceConnectionId.Length -gt 0) {
         Write-Host "Service Connection" $ServiceConnectionName "exists, removing it." -ForegroundColor Yellow
 

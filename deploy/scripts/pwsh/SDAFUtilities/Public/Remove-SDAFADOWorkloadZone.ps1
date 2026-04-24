@@ -210,9 +210,6 @@ function Remove-SDAFADOWorkloadZone {
 
       #endregion
 
-      az devops project list --organization $AdoOrganization --query "[value[]] | [0] | [? name=='$AdoProject'].id | [0]" --out tsv
-
-
       $ProjectId = (az devops project list --organization $AdoOrganization --query "[value[]] | [0] | [? name=='$AdoProject'].id | [0]" --out tsv)
 
       if ($ProjectId.Length -eq 0) {
@@ -222,7 +219,7 @@ function Remove-SDAFADOWorkloadZone {
 
       $ServiceConnectionName = $WorkloadZoneCode + "_WorkloadZone_Service_Connection"
 
-      $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ConnectionName'].id | [0]" --project $ProjectId --out tsv)
+      $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id | [0]" --organization $AdoOrganization --project $ProjectId --out tsv)
       if ($ServiceConnectionId.Length -gt 0) {
         Write-Host "Service Connection" $ServiceConnectionName "exists, removing it." -ForegroundColor Yellow
 
@@ -240,7 +237,7 @@ function Remove-SDAFADOWorkloadZone {
           }
         }
 
-        az ad sp delete --id $ConnectionName --only-show-errors
+        az ad sp delete --id $ServiceConnectionName --only-show-errors
 
         az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
 
