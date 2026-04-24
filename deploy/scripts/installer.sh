@@ -45,6 +45,7 @@ set -o pipefail                                                                 
 #-------------------------------------------------------------------------------#
 # endregion
 
+set -x
 
 #-------------------------------------------------------------------------------#
 #                                                                               #
@@ -413,7 +414,7 @@ else
     export ARM_USE_AZUREAD=true
 fi
 
-if [[ -z $landscape_tfstate_key ]]; then
+if [[ -z ${landscape_tfstate_key:-} ]]; then
     load_config_vars "${system_environment_file_name}" "landscape_tfstate_key"
 else
     echo "Workload zone state file:            ${landscape_tfstate_key}"
