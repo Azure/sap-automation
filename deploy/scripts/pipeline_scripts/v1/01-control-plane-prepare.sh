@@ -363,7 +363,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 	# if DEPLOYER_KEYVAULT is still not set, exit with an error
 	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
 		echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
-		exit 1
+		step=0
+		save_config_var "step" "${deployer_environment_file_name}"
 	fi
 
 	echo -e "$green--- Adding variables to the variable group: $VARIABLE_GROUP ---$reset"
@@ -372,7 +373,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 			echo "Saved DEPLOYER_KEYVAULT in variable group."
 		else
 			echo "##vso[task.logissue type=error]Failed to save DEPLOYER_KEYVAULT in variable group."
-			exit 1
+			step=0
+			save_config_var "step" "${deployer_environment_file_name}"
 		fi
 	fi
 
@@ -382,7 +384,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 			echo "Saved APPLICATION_CONFIGURATION_NAME in variable group."
 		else
 			echo "##vso[task.logissue type=error]Failed to save APPLICATION_CONFIGURATION_NAME in variable group."
-			exit 1
+			step=0
+			save_config_var "step" "${deployer_environment_file_name}"
 		fi
 	fi
 
