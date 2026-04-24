@@ -216,19 +216,6 @@ while :; do
 	esac
 done
 
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
-
-
 while [ -z "${environment}" ]; do
 	read -r -p "Environment name: " environment
 done
