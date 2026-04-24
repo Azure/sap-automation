@@ -45,6 +45,7 @@ set -o pipefail                                                                 
 #-------------------------------------------------------------------------------#
 # endregion
 
+set -x
 printenv | grep TF_ | sort
 export TF_LOG=DEBUG
 export TF_LOG_CORE=DEBUG
