@@ -1204,10 +1204,31 @@ function ImportAndReRunApply {
 
 				done
 			fi
-			msi_errors_temp=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
+			msi_errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | contains("The role assignment already exists."))' "$fileName")
 			if [[ -n "${msi_errors_temp}" ]]; then
 				readarray -t msi_errors < <(echo "${msi_errors_temp}" | jq -c '.')
 				msi_error_count=${#msi_errors[@]}
+				for assignment_item in "${msi_errors[@]}"; do
+					errorMessage=$(jq -c -r '.summary ' <<<"$assignment_item")
+					if [[ "$errorMessage" == *"The ID of the existing role assignment is "* ]]; then
+						moduleID=$(jq -c -r '.address ' <<<"$assignment_item")
+						roleAssignmentID="${errorMessage##*The ID of the existing role assignment is }"
+						roleAssignmentID="${roleAssignmentID%.}"   # remove trailing dot if present
+						echo "Trying to import $roleAssignmentID into $moduleID"
+						# shellcheck disable=SC2086
+						echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${roleAssignmentID}"
+						echo ""
+						# shellcheck disable=SC2086
+						if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${roleAssignmentID}"; then
+							echo "Successfully imported $roleAssignmentID into $moduleID"
+						else
+							echo "Failed to import $roleAssignmentID into $moduleID"
+						fi
+					else
+							echo "Permission error (no role-assignment ID in message): $errorMessage"
+					fi
+				done
+
 			fi
 
 			errors_temp=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} ' "$fileName")

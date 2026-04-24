@@ -91,4 +91,5 @@ resource "azurerm_bastion_host" "bastion" {
                                          public_ip_address_id = azurerm_public_ip.bastion[0].id
                                        }
   tags                                 = var.infrastructure.tags
+  zones                                = []
 }

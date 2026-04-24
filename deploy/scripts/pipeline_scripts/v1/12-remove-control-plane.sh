@@ -21,7 +21,7 @@ banner_title="Remove Control Plane"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	set -o errexit
 	DEBUG=True

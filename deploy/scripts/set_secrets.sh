@@ -166,7 +166,7 @@ done
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=True
 	echo "Environment variables:"
@@ -303,7 +303,7 @@ else
 		echo ""
 	else
 		printf -v val %-40.40s "${subscription}"
-		print_banner "Set secrets" "The provided subscription is not valid: ${val}" "error"	
+		print_banner "Set secrets" "The provided subscription is not valid: ${val}" "error"
 		return_code=65 #/* data format error */
 		exit $return_code
 	fi

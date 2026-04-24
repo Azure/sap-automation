@@ -78,6 +78,12 @@ output "deployer_user_assigned_identity"         {
                                                    value = module.sap_deployer.deployer_user_assigned_identity
                                                  }
 
+
+output "external_user_assigned_identity"         {
+                                                   description = "Is there an external MSI assigned"
+                                                   value = module.sap_deployer.deployer_user_assigned_identity == var.user_assigned_identity_id
+                                                 }
+
 output "deployer_client_id"                      {
                                                    description = "The client id of the deployer User Assigned Identity"
                                                    value = module.sap_deployer.deployer_client_id

@@ -448,7 +448,7 @@ variable "set_secret_expiry"                         {
 
 variable "enable_rbac_authorization"                 {
                                                        description = "Enables RBAC authorization for Azure keyvault"
-                                                       default     = false
+                                                       default     = true
                                                      }
 
 #######################################4#######################################8
@@ -472,7 +472,7 @@ variable "deployer_assign_resource_permissions"   {
 
 variable "use_private_endpoint"                       {
                                                         description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                        default     = false
+                                                        default     = true
                                                         type        = bool
                                                       }
 
@@ -779,11 +779,14 @@ variable "add_Agent_IP"                              {
 #                                                                             #
 ###############################################################################
 
-variable "user_assigned_identity_id"                {
-                                                       description = "User assigned Identity resource Id"
+variable "user_assigned_identity_id"                 {
+                                                       description = "User assigned identity's resource Id"
                                                        default     = ""
+                                                       validation {
+                                                         condition     = length(var.user_assigned_identity_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.user_assigned_identity_id))
+                                                         error_message = "If specified the 'user_assigned_identity_id' variable must be a correct Azure resource identifier."
+                                                      }
                                                      }
-
 variable "add_system_assigned_identity"              {
                                                        description = "Boolean flag indicating if a system assigned identity should be added to the deployer"
                                                        default     = false

@@ -13,11 +13,11 @@ data "terraform_remote_state" "deployer" {
   count   = length(try(var.deployer_tfstate_key, "")) > 0 ? 1 : 0
 
   config = {
-    resource_group_name  = local.SAPLibrary_resource_group_name
+    resource_group_name  = local.tfstate_storage_account_resource_group_name
     storage_account_name = local.tfstate_storage_account_name
     container_name       = local.tfstate_container_name
     key                  = var.deployer_tfstate_key
-    subscription_id      = local.SAPLibrary_subscription_id
+    subscription_id      = local.tfstate_storage_account_subscription_id
   }
 }
 

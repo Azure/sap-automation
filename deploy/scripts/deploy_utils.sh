@@ -159,9 +159,9 @@ function getAndStoreTerraformStateStorageAccountDetails {
 				tfstate_resource_id \
 				STATE_SUBSCRIPTION
 		fi
-		
+		echo "Found the storage account:           ${REMOTE_STATE_SA}"	
 	fi
-	echo "Found the storage account:           ${REMOTE_STATE_SA}"
+	
 }
 
 function getAndStoreTerraformStateStorageAccountDetailsFromDisk {

@@ -21,7 +21,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	set -eu
 	DEBUG=True
@@ -167,6 +167,9 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
+TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_subscription_id
+
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
@@ -179,8 +182,8 @@ echo -e "$green--- Running the remove region script that destroys deployer VM an
 
 cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
-	--parameter_file "$DEPLOYER_TFVARS_FILENAME"; then
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh" --auto-approve \
+	--parameterfile "$DEPLOYER_TFVARS_FILENAME"; then
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
@@ -228,6 +231,13 @@ if [ 0 == $return_code ]; then
 
 	environment=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
 	region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
+	vnet_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f3)
+
+	if [ -f ".sap_deployment_automation/${environment}${region_code}${vnet_code}" ]; then
+		rm ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+		changed=1
+	fi
 
 	if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 		rm ".sap_deployment_automation/${environment}${region_code}"

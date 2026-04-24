@@ -445,7 +445,7 @@ function install_library() {
         fi
     fi
 
-    print_banner "$banner_title" "Running Terraform plan" "info"
+    print_banner "$banner_title" "Running Terraform plan" "info" "System name $(basename "$param_dirname")"
 
     allImportParameters=(-var-file "${parameter_file_name}")
     if [ -f terraform.tfvars ]; then
@@ -492,7 +492,7 @@ function install_library() {
         exit 10
     fi
     if [ 2 == "$install_library_return_value" ]; then
-        print_banner "$banner_title" "Running Terraform apply" "info"
+        print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 
         if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
             allParameters+=(-json)

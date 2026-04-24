@@ -504,8 +504,8 @@ function persist_files() {
         export AZURE_STORAGE_AUTH_MODE
         export ARM_USE_AZUREAD=true
     fi
-   
-    
+
+
     if [ "${deployment_system}" == sap_library ]; then
 
         container_exists=$(az storage container exists --subscription "${terraform_storage_account_subscription_id}" --account-name "${terraform_storage_account_name}" --name tfvars --only-show-errors --query exists)
@@ -776,7 +776,7 @@ function sdaf_installer() {
     az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
     if [ ! -f .terraform/terraform.tfstate ]; then
-        print_banner "$banner_title" "New deployment" "info"
+        print_banner "$banner_title" "New deployment" "info" "System name $(basename "$param_dirname")"
         tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
         TF_VAR_tfstate_resource_id="$tfstate_resource_id"
         export TF_VAR_tfstate_resource_id
@@ -801,7 +801,7 @@ function sdaf_installer() {
 
         if local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate); then
             if [ -n "$local_backend" ]; then
-                print_banner "$banner_title" "Migrating the state to Azure" "info"
+                print_banner "$banner_title" "Migrating the state to Azure" "info" "System name $(basename "$param_dirname")"
 
                 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/bootstrap/${deployment_system}"/
 
@@ -837,7 +837,7 @@ function sdaf_installer() {
             tfstate_resource_id=$(az storage account show --name "${terraform_storage_account_name}" --query id --subscription "${terraform_storage_account_subscription_id}" --resource-group "${terraform_storage_account_resource_group_name}" --out tsv)
             TF_VAR_tfstate_resource_id="$tfstate_resource_id"
             export TF_VAR_tfstate_resource_id
-            print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info"
+            print_banner "$banner_title" "The system has already been deployed and the state file is in Azure" "info" "System name $(basename "$param_dirname")"
 
             if terraform -chdir="${terraform_module_directory}" init -upgrade -force-copy -migrate-state \
                 --backend-config "subscription_id=${terraform_storage_account_subscription_id}" \
@@ -849,13 +849,13 @@ function sdaf_installer() {
                 print_banner "$banner_title" "Terraform init succeeded." "success" "System name $(basename "$param_dirname")"
             else
                 return_value=10
-                print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+                print_banner "$banner_title" "Terraform init failed ($return_value)" "error" "System name $(basename "$param_dirname")"
                 return $return_value
             fi
         fi
     fi
 
-    print_banner "$banner_title" "Running Terraform Plan" "cyan"
+    print_banner "$banner_title" "Running Terraform Plan" "info" "System name $(basename "$param_dirname")"
     # Declare an array
     allParameters=(-var-file "${var_file}")
     if [ -f terraform.tfvars ]; then
@@ -900,7 +900,7 @@ function sdaf_installer() {
         apply_needed=1
         return_value=0
     else
-        print_banner "${banner_title}" "Terraform plan failed ($return_value)" "error"
+        print_banner "${banner_title}" "Terraform plan failed ($return_value)" "error" "System name $(basename "$param_dirname")"
         if [ -f plan_output.log ]; then
             cat plan_output.log
             rm plan_output.log
@@ -997,7 +997,7 @@ function sdaf_installer() {
     fi
 
     if [ "${TEST_ONLY}" == "true" ]; then
-        print_banner "$banner_title" "Running plan only. No deployment performed." "info"
+        print_banner "$banner_title" "Running plan only. No deployment performed." "info" "System name $(basename "$param_dirname")"
 
         if [ $fatal_errors == 1 ]; then
             print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
@@ -1098,7 +1098,7 @@ function sdaf_installer() {
     fi
 
     if [ 0 -ne "$return_value" ]; then
-        print_banner "$banner_title" "Errors during the apply phase" "error"
+        print_banner "$banner_title" "Errors during the apply phase" "error" "System name $(basename "$param_dirname")"
         unset TF_DATA_DIR
         return "$return_value"
     fi
@@ -1244,7 +1244,7 @@ EOF
     fi
 
     unset TF_DATA_DIR
-    print_banner "$banner_title" "Deployment completed." "success" "Exiting $SCRIPT_NAME"
+    print_banner "$banner_title" "Deployment completed." "info" "Exiting $SCRIPT_NAME"
 
     return "$return_value"
 }
@@ -1283,11 +1283,13 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         export PATH=$path
     fi
     if sdaf_installer "$@"; then
+		    return_value=$?
         echo "Script executed successfully."
-        exit 0
+        exit $return_value
     else
+		    return_value=$?
         echo "Script failed with exit code $?"
-        exit 10
+        exit $?
     fi
 
 fi

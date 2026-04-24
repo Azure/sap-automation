@@ -27,5 +27,5 @@ else
     return_code=$?
 fi
 
-echo "Return code: $return_code"
+echo "Return code:                           $return_code"
 exit $return_code

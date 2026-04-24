@@ -206,9 +206,15 @@ fi
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
 	echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
-	TF_subscription_id="$ARM_SUBSCRIPTION_ID"
-	export TF_subscription_id
+	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+	export TF_VAR_subscription_id
 
+fi
+
+if [ -v MSI_ID ]; then
+		echo "Using Managed Identity:              $MSI_ID"
+		TF_VAR_user_assigned_identity_id="$MSI_ID"
+		export TF_VAR_user_assigned_identity_id
 fi
 
 # echo -e "$green--- Convert config files to UX format ---$reset"

@@ -294,7 +294,7 @@ else
     fi
 fi
 
-print_banner "$banner_title" "Running Terraform plan" "info"
+print_banner "$banner_title" "Running Terraform plan" "info" "System name $(basename "$param_dirname")"
 
 install_library_return_value=0
 
@@ -316,6 +316,7 @@ fi
 if [ -n "${deployer_statefile_foldername}" ]; then
     echo "Deployer folder specified:           ${deployer_statefile_foldername}"
     allParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
+		allImportParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
 fi
 
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false "${allParameters[@]}" | tee plan_output.log; then
@@ -353,7 +354,7 @@ fi
 
 install_library_return_value=0
 
-print_banner "$banner_title" "Running Terraform apply" "info"
+print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
     allParameters+=(-json)
     allParameters+=(-auto-approve)

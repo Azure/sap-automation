@@ -451,7 +451,7 @@ function bootstrap_library {
         cd "${deployer_dirname}" || exit
 
         echo "Calling install_library:         ${allParameters[*]}"
-        
+
         if install_library "${allParameters[@]}"; then
             step=3
             save_config_var "step" "${deployer_environment_file_name}"
@@ -1136,7 +1136,10 @@ function deploy_control_plane() {
         fi
     fi
 
-    if ! execute_deployment_steps $step; then
+    if execute_deployment_steps $step; then
+	step=3
+	save_config_var "step" "${deployer_environment_file_name}"
+	else
         return_value=$?
         print_banner "Control Plane Deployment" "Executing deployment steps failed" "error"
     fi
@@ -1188,13 +1191,11 @@ EOF
     terraform_state_storage_account="${terraform_storage_account_name}"
     export terraform_state_storage_account
 
-    step=3
-    save_config_var "step" "${deployer_environment_file_name}"
     if [ "$devops_flag" == "--devops" ]; then
         echo "##vso[task.setprogress value=100;]Progress Indicator"
     fi
     unset TF_DATA_DIR
-    print_banner "Control Plane Deployment" "Exiting $SCRIPT_NAME" "info"
+    print_banner "Control Plane Deployment" "Exiting $SCRIPT_NAME" "info" "Return code: $return_value"
 
     return $return_value
 }
@@ -1207,7 +1208,7 @@ EOF
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Only run if script is executed directly, not when sourced
     if deploy_control_plane "$@"; then
-        exit 0
+        exit $?
     else
         exit $?
     fi

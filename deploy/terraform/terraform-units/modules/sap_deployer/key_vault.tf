@@ -42,7 +42,7 @@ resource "azurerm_key_vault" "kv_user" {
   soft_delete_retention_days           = var.soft_delete_retention_days
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
-  public_network_access_enabled        = var.bootstrap ? true : var.public_network_access_enabled
+  public_network_access_enabled        = var.bootstrap ? true : var.public_network_access_enabled || var.enable_firewall_for_keyvaults_and_storage
   rbac_authorization_enabled           = var.key_vault.enable_rbac_authorization
 
   network_acls {
@@ -63,9 +63,6 @@ resource "azurerm_key_vault" "kv_user" {
                                                 ))
   }
 
-  lifecycle                        {
-                                     ignore_changes = [network_acls]
-                                   }
   tags                                 = var.infrastructure.tags
 
 }
@@ -178,23 +175,6 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
                                            "Set",
                                            "Recover"
                                          ]
-
-}
-
-resource "azurerm_key_vault_access_policy" "webapp" {
-  provider                             = azurerm.main
-  count                                = !var.key_vault.exists && !var.key_vault.enable_rbac_authorization && var.app_service.use ? 1 : 0
-
-  key_vault_id                         = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].id : azurerm_key_vault.kv_user[0].id
-
-  tenant_id                            = azurerm_windows_web_app.webapp[0].identity[0].tenant_id
-  object_id                            = azurerm_windows_web_app.webapp[0].identity[0].principal_id
-  secret_permissions                   = [
-                                            "Get",
-                                            "List",
-                                            "Set",
-                                            "Recover"
-                                          ]
 
 }
 

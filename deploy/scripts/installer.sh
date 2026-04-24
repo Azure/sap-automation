@@ -660,7 +660,7 @@ if [ 1 -eq $new_deployment ]; then
     fi
 fi
 
-print_banner "$banner_title" "Running Terraform Plan" "cyan"
+print_banner "$banner_title" "Running Terraform Plan" "info" "System name $(basename "$param_dirname")"
 # Declare an array
 allParameters=(-var-file "${var_file}")
 if [ -f terraform.tfvars ]; then
@@ -929,7 +929,7 @@ if [ 1 == $apply_needed ]; then
         rm plan_output.log
     fi
 
-    print_banner "$banner_title" "Running Terraform apply" "info"
+    print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 
     if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
         allParameters+=(-json)

@@ -15,7 +15,7 @@ resource "azurerm_resource_group_template_deployment" "sap_library" {
       "parameters" : {
         "Deployment" : {
           "type" : "String",
-          "defaultValue" : "SAP Deployer"
+          "defaultValue" : "SAP Library"
         }
       },
       "resources" : []
