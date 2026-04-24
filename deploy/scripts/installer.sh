@@ -40,8 +40,8 @@ else
 fi
 
 set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
-set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
-set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+# set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+# set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
 #-------------------------------------------------------------------------------#
 # endregion
 
@@ -524,7 +524,7 @@ if [ -n "${tfstate_resource_id}" ]; then
     export TF_VAR_tfstate_resource_id
 fi
 
-if [ -n "${landscape_tfstate_key}" ]; then
+if [ -n "${landscape_tfstate_key:-}" ]; then
     TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
     export TF_VAR_landscape_tfstate_key
 fi
