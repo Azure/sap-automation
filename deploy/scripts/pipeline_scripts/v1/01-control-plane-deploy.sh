@@ -421,7 +421,7 @@ else
 
 fi
 
-# detect_platform
+detect_platform
 
 if [ -v SDAF_APPLICATION_CONFIGURATION_NAME	]; then
 	if [ "$PLATFORM" == "devops" ]; then
