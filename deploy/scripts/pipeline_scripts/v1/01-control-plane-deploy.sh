@@ -355,15 +355,15 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
 	# shellcheck disable=SC2001
 	pass=${SYSTEM_COLLECTIONID//-/}
 
-	echo "Unzipping the library state file"
-	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
+	echo "Unzipping the library state file to ${CONFIG_REPO_PATH}/LIBRARY/${LIBRARY_FOLDERNAME}"
+	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/${LIBRARY_FOLDERNAME}"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 	pass=${SYSTEM_COLLECTIONID//-/}
 
-	echo "Unzipping the deployer state file"
-	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+	echo "Unzipping the deployer state file to ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
+	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
 fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
@@ -408,7 +408,7 @@ else
 		--auto-approve --ado --msi \
 		"${storage_account_parameter}" "${keyvault_parameter}"; then
 		return_code=$?
-		if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
+		if [ -f  "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
 			source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
 		fi
 		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
