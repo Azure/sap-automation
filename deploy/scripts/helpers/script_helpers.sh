@@ -1170,6 +1170,7 @@ function ImportAndReRunApply {
 	fi
 
 	printenv | grep TF_ | sort
+	export TF_LOG=TRACE
 	export TF_LOG_CORE=TRACE
 	unset  TF_LOG_PATH
 
