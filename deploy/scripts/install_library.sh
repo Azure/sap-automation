@@ -348,7 +348,15 @@ print_banner "$banner_title" "Running Terraform plan" "info"
 
 install_library_return_value=0
 
-# Declare an array
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Parameter Arrays                                                              #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Setup parameter arrays for terraform commands
+#---------------------------------------+---------------------------------------#
+# region
+# Setup Array of parameters for Terraform plan and apply commands
 allParameters=(-var-file "${var_file}")
 if [ -f terraform.tfvars ]; then
     allParameters+=(-var-file ${param_dirname}/terraform.tfvars)
@@ -363,6 +371,8 @@ if [ -n "${deployer_statefile_foldername}" ]; then
     allParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
 fi
 
+
+# Setup Array of parameters for Terraform import command
 allImportParameters=(-var-file "${var_file}")
 if [ -f terraform.tfvars ]; then
     allImportParameters+=(-var-file ${param_dirname}/terraform.tfvars)
@@ -372,6 +382,9 @@ if [ -n "${deployer_statefile_foldername}" ]; then
     echo "Deployer folder specified:           ${deployer_statefile_foldername}"
     allImportParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
 fi
+#-------------------------------------------------------------------------------#
+# endregion
+
 
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false "${allParameters[@]}" | tee plan_output.log; then
     install_library_return_value=${PIPESTATUS[0]}
