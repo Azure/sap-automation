@@ -40,12 +40,11 @@ else
 fi
 
 set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
-# set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
-# set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
 #-------------------------------------------------------------------------------#
 # endregion
 
-set -x
 
 #-------------------------------------------------------------------------------#
 #                                                                               #
