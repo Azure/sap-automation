@@ -210,6 +210,8 @@ function Remove-SDAFADOWorkloadZone {
 
       #endregion
 
+      az devops project list --organization $AdoOrganization --query "[value[]] | [0] | [? name=='$AdoProject'].id | [0]" --out tsv
+
 
       $ProjectId = (az devops project list --organization $AdoOrganization --query "[value[]] | [0] | [? name=='$AdoProject'].id | [0]" --out tsv)
 

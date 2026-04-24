@@ -819,7 +819,7 @@ resources:
       ref: main
     - repository: sap-samples
       type: git
-      name: $AdoProject/sap-samples
+      name: sap-samples
       ref: main
 "@
 
@@ -3043,6 +3043,8 @@ function Remove-SDAFADOWorkloadZone {
 
       #endregion
 
+      az devops project list --organization $AdoOrganization --query "[value[]] | [0] | [? name=='$AdoProject'].id | [0]" --out tsv
+
 
       $ProjectId = (az devops project list --organization $AdoOrganization --query "[value[]] | [0] | [? name=='$AdoProject'].id | [0]" --out tsv)
 
@@ -3131,7 +3133,7 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 301
+#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 303
 #Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
 
 function Remove-SDAFUserAssignedIdentity {
