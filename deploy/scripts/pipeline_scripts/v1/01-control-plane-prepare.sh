@@ -222,7 +222,7 @@ else
 fi
 echo "Step:                                $step"
 
-if [ 0 != "${step}" ]; then
+if [ "${step}" != 0 ]; then
 	echo "##vso[task.logissue type=warning]Already prepared"
 	exit 0
 fi
@@ -283,11 +283,9 @@ fi
 if [ "$FORCE_RESET" == True ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo "Running on:            $THIS_AGENT"
-	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
-	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
-	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
+	sed -i 's/step=[1-3]/step=0/' "$deployer_environment_file_name"
 
-	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+	TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME=$(       getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME"        "${deployer_environment_file_name}" "REMOTE_STATE_SA")
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME" "${deployer_environment_file_name}" "REMOTE_STATE_RG")
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
