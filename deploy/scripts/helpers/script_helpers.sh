@@ -1169,12 +1169,6 @@ function ImportAndReRunApply {
 		echo "Apply parameters: ${applyParameters[*]}"
 	fi
 
-	printenv | grep TF_ | sort
-	export TF_LOG=DEBUG
-	export TF_LOG_CORE=DEBUG
-	export TF_LOG_PROVIDER=OFF
-	unset  TF_LOG_PATH
-
 	if [ -f "$fileName" ]; then
 
 		errors_occurred=$(jq 'select(."@level" == "error") | length' "$fileName")
