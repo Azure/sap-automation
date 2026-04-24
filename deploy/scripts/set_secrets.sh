@@ -350,32 +350,32 @@ fi
 
 print_banner "Set secrets" "Setting secrets for environment ${ZONE_NAME}" "info" "in keyvault ${keyvault}"
 
-echo "Key vault:                           ${keyvault}"
-echo "Subscription:                        ${STATE_SUBSCRIPTION}"
+echo -e "Key vault:                           ${keyvault}"
+echo -e "Subscription:                        ${STATE_SUBSCRIPTION}\n"
 
 secret_name="${ZONE_NAME}"-subscription-id
 
 if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${subscription}" "configuration"; then
-	echo "Secret ${secret_name} set in keyvault ${keyvault}"
+	echo -e "${green}Secret ${secret_name} set in keyvault ${keyvault}${reset}"
 else
-	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+	echo -e "${bold_red}Failed to set secret ${secret_name} in keyvault ${keyvault}${reset}"
 	exit 20
 fi
 
 #turn off output, we do not want to show the details being uploaded to keyvault
 secret_name="${ZONE_NAME}"-client-id
 if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_id}" "configuration"; then
-	echo "Secret ${secret_name} set in keyvault ${keyvault}"
+	echo -e "${green}Secret ${secret_name} set in keyvault ${keyvault}${reset}"
 else
-	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+	echo -e "${bold_red}Failed to set secret ${secret_name} in keyvault ${keyvault}${reset}"
 	exit 20
 fi
 
 secret_name="${ZONE_NAME}"-tenant-id
 if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${tenant_id}" "configuration"; then
-	echo "Secret ${secret_name} set in keyvault ${keyvault}"
+	echo -e "${green}Secret ${secret_name} set in keyvault ${keyvault}${reset}"
 else
-	echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+	echo -e "${bold_red}Failed to set secret ${secret_name} in keyvault ${keyvault}${reset}"
 	exit 20
 fi
 
@@ -383,9 +383,9 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 
 	secret_name="${ZONE_NAME}"-client-secret
 	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret"; then
-		echo "Secret ${secret_name} set in keyvault ${keyvault}"
+		echo -e "${green}Secret ${secret_name} set in keyvault ${keyvault}${reset}"
 	else
-		echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
+		echo -e "${bold_red}Failed to set secret ${secret_name} in keyvault ${keyvault}${reset}"
 		exit 20
 	fi
 fi
