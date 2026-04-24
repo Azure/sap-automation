@@ -14,10 +14,14 @@
 #---------------------------------------+---------------------------------------#
 # region
 # colors for terminal
-bold_red="\e[1;31m"
-   green="\e[1;32m"
-    cyan="\e[1;36m"
-   reset="\e[0m"
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
 echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
 export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
@@ -371,12 +375,9 @@ else
     applyOutputfile="apply_output.log"
 fi
 
-parallelism=10
-
-#Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "${TFE_PARALLELISM}" ]]; then
-    parallelism=$TFE_PARALLELISM
-fi
+# Provide a way to limit the number of parallel tasks for Terraform
+parallelism=${TFE_PARALLELISM:-10}                                              # Default to 10 if TFE_PARALLELISM is not set
+echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
 
 if [ -f apply_output.json ]; then
     rm apply_output.json

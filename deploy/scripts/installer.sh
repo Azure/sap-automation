@@ -329,12 +329,8 @@ else
     export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
-parallelism=10
-
-#Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "$TFE_PARALLELISM" ]]; then
-    parallelism=$TFE_PARALLELISM
-fi
+# Provide a way to limit the number of parallel tasks for Terraform
+parallelism=${TFE_PARALLELISM:-10}                                              # Default to 10 if TFE_PARALLELISM is not set
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
     load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"

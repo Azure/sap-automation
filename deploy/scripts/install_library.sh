@@ -394,12 +394,9 @@ if [ -f plan_output.log ]; then
     rm plan_output.log
 fi
 
-parallelism=10
-
-#Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "$TFE_PARALLELISM" ]]; then
-    parallelism=$TFE_PARALLELISM
-fi
+# Provide a way to limit the number of parallel tasks for Terraform
+parallelism=${TFE_PARALLELISM:-10}                                              # Default to 10 if TFE_PARALLELISM is not set
+echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
 
 install_library_return_value=0
 

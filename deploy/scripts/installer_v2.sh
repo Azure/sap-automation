@@ -560,6 +560,15 @@ function sdaf_installer() {
     called_from_ado=0
     local green="\e[0;32m"
     local reset="\e[0m"
+    # colors for terminal
+    local bold_red_underscore="\e[1;4;31m"                                      #    CRIT_COLOR
+    local            bold_red="\e[1;31m"                                        #   ERROR_COLOR
+    local               green="\e[1;32m"                                        # SUCCESS_COLOR
+    local              yellow="\e[1;33m"                                        # WARNING_COLOR
+    local                blue="\e[1;34m"                                        #   DEBUG_COLOR
+    local             magenta="\e[1;35m"                                        #   TRACE_COLOR
+    local                cyan="\e[1;36m"                                        #    INFO_COLOR
+    local               reset="\e[0m"                                           #   RESET_COLOR
 
     # Define an array of helper scripts
     helper_scripts=(
@@ -611,12 +620,8 @@ function sdaf_installer() {
         return $?
     fi
 
-    parallelism=10
-
-    #Provide a way to limit the number of parallel tasks for Terraform
-    if checkforEnvVar "TFE_PARALLELISM"; then
-        parallelism=$TFE_PARALLELISM
-    fi
+    # Provide a way to limit the number of parallel tasks for Terraform
+    parallelism=${TFE_PARALLELISM:-10}                                          # Default to 10 if TFE_PARALLELISM is not set
 
     TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE=1
     export TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE
