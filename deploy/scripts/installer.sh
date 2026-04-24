@@ -180,12 +180,6 @@ while :; do
     esac
 done
 
-if [ "${DEBUG:-false}" == true ]; then
-    echo -e "${cyan}Enabling debug mode${reset}"
-    set -x
-    set -o errexit
-fi
-
 echo "Parameter file:                      $parameterfile"
 echo "Current directory:                   $(pwd)"
 echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
@@ -197,7 +191,7 @@ parameterfile_name=$(basename "${parameterfile}")
 param_dirname=$(dirname "${parameterfile}")
 
 if [ -n "${CONTROL_PLANE_NAME}" ]; then
-    if [ -z "${deployer_tfstate_key}" ]; then
+    if [ -z "${deployer_tfstate_key:+x}" ]; then
         deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
     fi
 fi
