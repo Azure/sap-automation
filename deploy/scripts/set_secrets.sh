@@ -389,4 +389,9 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 		exit 20
 	fi
 fi
+
+
+#----------------------------------- EXIT --------------------------------------#
+echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+echo -e   "${cyan}   Return code:  ${return_code}${reset}"
 exit $return_code

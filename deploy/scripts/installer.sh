@@ -483,7 +483,7 @@ fi
 # Obsolete now that Terraform handles the authentication without depending on environment variables
 #set_executing_user_environment_variables "none"
 
-if [[ -n ${subscription} ]]; then
+if [[ -n ${subscription:-} ]]; then
     if is_valid_guid "${subscription}"; then
         echo "Valid subscription format"
     else
