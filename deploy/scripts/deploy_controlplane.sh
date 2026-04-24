@@ -61,7 +61,6 @@ set -o nounset                                                                  
 #-------------------------------------------------------------------------------#
 # endregion
 
-set -x
 
 #-------------------------------------------------------------------------------#
 #                                                                               #
@@ -397,8 +396,8 @@ fi
 # relative_deployer_path=$(dirname $(realpath ${deployer_parameter_file}))
 
 relative_path="${deployer_dirname}"
-TF_DATA_DIR="${relative_path}"/.terraform
-export TF_DATA_DIR
+export TF_DATA_DIR="${relative_path}"/.terraform
+# export TF_DATA_DIR
 
 print_banner "Control Plane deployment" "Starting the control plane deployment" "info"
 
@@ -719,7 +718,7 @@ if [ 2 -eq $step ]; then
 
     relative_path="${library_dirname}"
     export TF_DATA_DIR="${relative_path}/.terraform"
-    relative_path="${deployer_dirname}"
+    # relative_path="${deployer_dirname}"
 
     cd "${library_dirname}" || exit
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
