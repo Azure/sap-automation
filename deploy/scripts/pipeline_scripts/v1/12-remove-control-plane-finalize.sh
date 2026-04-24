@@ -231,6 +231,13 @@ if [ 0 == $return_code ]; then
 
 	environment=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
 	region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
+	vnet_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f3)
+
+	if [ -f ".sap_deployment_automation/${environment}${region_code}${vnet_code}" ]; then
+		rm ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+		changed=1
+	fi
 
 	if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 		rm ".sap_deployment_automation/${environment}${region_code}"
