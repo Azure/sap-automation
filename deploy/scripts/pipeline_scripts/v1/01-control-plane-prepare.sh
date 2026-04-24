@@ -355,8 +355,6 @@ else
 
 fi
 
-set -eu
-
 if [ -f "${deployer_environment_file_name}" ]; then
 	DEPLOYER_KEYVAULT=$(grep -m1 "^DEPLOYER_KEYVAULT=" "${deployer_environment_file_name}" | awk -F'=' '{print $2}' | xargs || true)
 	# if the variable is not set, fallback to old variable name
@@ -375,7 +373,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "$DEPLOYER_KEYVAULT"; then
 			echo "Saved DEPLOYER_KEYVAULT in variable group."
 		else
-			echo "##vso[task.logissue type=warning]Failed to save DEPLOYER_KEYVAULT in variable group."
+			echo "##vso[task.logissue type=error]Failed to save DEPLOYER_KEYVAULT in variable group."
+			exit 1
 		fi
 	fi
 
@@ -384,7 +383,8 @@ if [ -f "${deployer_environment_file_name}" ]; then
 		if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$APPLICATION_CONFIGURATION_NAME"; then
 			echo "Saved APPLICATION_CONFIGURATION_NAME in variable group."
 		else
-			echo "##vso[task.logissue type=warning]Failed to save APPLICATION_CONFIGURATION_NAME in variable group."
+			echo "##vso[task.logissue type=error]Failed to save APPLICATION_CONFIGURATION_NAME in variable group."
+			exit 1
 		fi
 	fi
 
