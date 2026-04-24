@@ -291,7 +291,7 @@ fi
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}/config"
 
-if [ -n "$landscape_tfstate_key" ]; then
+if [ -n "${landscape_tfstate_key:-}" ]; then
     environment=$(basename "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
     region_code=$(basename "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
     network_logical_name=$(basename "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
