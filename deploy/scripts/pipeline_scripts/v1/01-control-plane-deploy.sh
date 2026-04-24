@@ -322,8 +322,8 @@ if [ "$USE_MSI" != "true" ]; then
     --auto-approve --ado \
     "${storage_account_parameter}" "${keyvault_parameter}"; then
         return_code=$?
-        if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
-            source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
+        if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh" ]; then
+            source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh"
         fi
 
         echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
