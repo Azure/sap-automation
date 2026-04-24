@@ -528,7 +528,20 @@ if [ 1 -eq $keep_agent ]; then
 
 	fi
 
-	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+	allParameters=(-var-file "${deployer_parameter_file}")
+	if [ -f terraform.tfvars ]; then
+		allParameters+=(-var-file terraform.tfvars)
+	fi
+
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(-auto-approve)
+	fi
+	if [ "$PLATFORM" != "cli" ] ; then
+		allParameters+=(-input=false)
+	fi
+
+
+	if terraform -chdir="${terraform_module_directory}" apply "${allParameters[@]}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
 	else
