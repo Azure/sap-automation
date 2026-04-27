@@ -308,31 +308,6 @@ if [ -z "${TF_VAR_ansible_core_version}" ]; then
     export TF_VAR_ansible_core_version=2.16.18
 fi
 
-if [ "$USE_WEBAPP" = "true" ]; then
-    echo "Deploy Web Application:               true"
-
-    if [ -z "$APP_REGISTRATION_APP_ID" ]; then
-        echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
-        exit 2
-    fi
-    echo "App Registration ID:                  $APP_REGISTRATION_APP_ID"
-    TF_VAR_app_registration_app_id=$APP_REGISTRATION_APP_ID
-    export TF_VAR_app_registration_app_id
-
-    if [ -z "$WEB_APP_CLIENT_SECRET" ]; then
-        echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
-        exit 2
-    fi
-
-    TF_VAR_webapp_client_secret=$WEB_APP_CLIENT_SECRET
-    export TF_VAR_webapp_client_secret
-
-    TF_VAR_use_webapp=true
-    export TF_VAR_use_webapp
-else
-    echo "Deploy Web Application:               false"
-fi
-
 file_REMOTE_STATE_SA=""
 file_REMOTE_STATE_RG=""
 
