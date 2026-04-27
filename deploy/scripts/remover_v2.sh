@@ -172,7 +172,7 @@ function parse_arguments() {
 			CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
 			TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
 			TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-			
+
 			export TF_VAR_deployer_tfstate_key
 			export TF_VAR_control_plane_name
 			shift 2
@@ -387,7 +387,7 @@ function retrieve_parameters() {
 			export APPLICATION_CONFIGURATION_ID
 		fi
 	fi
-	
+
 	getAndStoreTerraformStateStorageAccountDetailsFromDisk "${system_environment_file_name}"
 
 	if [ -v APPLICATION_CONFIGURATION_ID ]; then
@@ -414,7 +414,7 @@ function retrieve_parameters() {
 				TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 				export TF_VAR_spn_keyvault_id
 			fi
-	
+
 
 			TF_VAR_management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
 			export TF_VAR_management_subscription_id
@@ -632,7 +632,7 @@ function sdaf_remover() {
 
 	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 		allParameters+=(-json)
-		allParameters+=(--auto-approve)
+		allParameters+=(-auto-approve)
 		allParameters+=(-no-color)
 		allParameters+=(-compact-warnings)
 		deleteOutputfile="delete_output.json"
@@ -668,7 +668,7 @@ function sdaf_remover() {
 		fi
 
 		if [ -f delete_output.json ]; then
-			
+
 			errors_occurred=$(jq 'select(."@level" == "error") | length' delete_output.json	)
 			if [[ -n $errors_occurred ]]; then
 				return_value=10

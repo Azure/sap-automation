@@ -368,7 +368,7 @@ fi
 print_banner "${banner_title}" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
     allParameters+=(-json)
-    allParameters+=(--auto-approve)
+    allParameters+=(-auto-approve)
     allParameters+=(-no-color)
     allParameters+=(-compact-warnings)
     applyOutputfile="apply_output.json"

@@ -620,17 +620,17 @@ if [ -f terraform.tfvars ]; then
 fi
 
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
-	allRemovalParameters+=(--auto-approve)
+	allRemovalParameters+=(-auto-approve)
 fi
 
 if [ "$resource_group_exist" ]; then
 	print_banner "$banner_title" "Resource group exists, proceeding with destroy" "info"
 
 	if [ "$deployment_system" == "sap_deployer" ]; then
-		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}" 
+		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}"
 
 		print_banner "$banner_title" "Processing $deployment_system removal as defined in:" "info" "$parameterfile_name"
-		terraform -chdir="${terraform_module_directory}" destroy -refresh=false "${allRemovalParameters[@]}" 
+		terraform -chdir="${terraform_module_directory}" destroy -refresh=false "${allRemovalParameters[@]}"
 
 	elif [ "$deployment_system" == "sap_library" ]; then
 		print_banner "$banner_title" "Processing $deployment_system removal as defined in:" "info" "$parameterfile_name"
@@ -645,9 +645,9 @@ if [ "$resource_group_exist" ]; then
 
 		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade -force-copy
 
-		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}" 
+		terraform -chdir="${terraform_bootstrap_directory}" refresh "${allRemovalParameters[@]}"
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false "${allRemovalParameters[@]}" -var use_deployer=false 
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -refresh=false "${allRemovalParameters[@]}" -var use_deployer=false
 	elif [ "$deployment_system" == "sap_landscape" ]; then
 
 		print_banner "$banner_title" "Processing $deployment_system removal as defined in $parameterfile_name" "info"

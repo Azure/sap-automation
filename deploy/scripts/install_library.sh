@@ -276,7 +276,7 @@ if [ ! -d ./.terraform/ ]; then
 
     # terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"
     cmd=(terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate")
-    echo "Running command: ${cmd[*]}";  "${cmd[@]}"    
+    echo "Running command: ${cmd[*]}";  "${cmd[@]}"
 
     sed -i /REMOTE_STATE_RG/d     "${library_environment_file_name}"
     sed -i /REMOTE_STATE_SA/d     "${library_environment_file_name}"
@@ -426,7 +426,7 @@ install_library_return_value=0
 print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
     allParameters+=(-json)
-    allParameters+=(--auto-approve)
+    allParameters+=(-auto-approve)
     allParameters+=(-no-color)
     allParameters+=(-compact-warnings)
     applyOutputfile="apply_output.json"
