@@ -1158,7 +1158,8 @@ function sdaf_installer() {
             save_config_var "deployer_random_id" "${system_environment_file_name}"
             custom_random_id="${deployer_random_id}"
             sed -i -e "" -e /"custom_random_id"/d "${var_file}"
-            printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+            # printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+            printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
         fi
 
         # shellcheck disable=SC2034
