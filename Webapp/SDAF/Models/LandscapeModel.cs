@@ -5,6 +5,7 @@ using SDAFWebApp.Controllers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
 using static SDAFWebApp.Models.CustomValidators;
 
 namespace SDAFWebApp.Models
@@ -53,6 +54,82 @@ namespace SDAFWebApp.Models
 
         public string locationCode { get; set; } = "";
         public string Description { get; set; }
+
+        public string MD_Region
+        {
+            get
+            {
+                string regionDescription = string.Format("# Azure Region: {0}", location).PadRight(88);
+                regionDescription += "#";
+                return regionDescription;
+            }
+        }
+
+        public string MD_Zone
+        {
+            get
+            {
+                string zoneDescription = string.Format("# Workload Zone: {0}", workload_zone ?? environment + "-" + locationCode + "-" + network_logical_name).PadRight(88);
+                zoneDescription += "#";
+                return zoneDescription;
+            }
+        }
+
+        public string MD_VNet
+        {
+            get
+            {
+                string vnetDescription = string.Format("# Virtual Network: {0}", network_arm_id != null ? "Existing" : "New").PadRight(88);
+                vnetDescription += "#";
+                return vnetDescription;
+            }
+        }
+
+        public string MD_KeyVault
+        {
+            get
+            {
+                string keyVaultDescription = string.Format("# Key Vault: {0}", user_keyvault_id != null ? "Existing" : "New").PadRight(88);
+                keyVaultDescription += "#";
+                return keyVaultDescription;
+            }
+        }
+
+        public string MD_NAT
+        {
+            get
+            {
+                string NATDescription = string.Format("# NAT: {0}", (bool)deploy_nat_gateway ? "Will be deployed" : "No").PadRight(88);
+                NATDescription += "#";
+                return NATDescription;
+            }
+        }
+
+        
+        public string MD_ISCSIServers
+        {
+            get
+            {
+                string iSCSIDescription = string.Format("# iSCSI servers: {0} {1} {2} {3}", iscsi_count, iscsi_image.publisher, iscsi_image.offer, iscsi_image.sku).PadRight(88);
+                iSCSIDescription += "#";
+                return iSCSIDescription;
+            }
+        }
+
+
+        public string MD_NFS
+        {
+            get
+            {
+                string nfsDescription = string.Format("# NFS: Not in use").PadRight(88);
+                if (NFS_provider != null)
+                {
+                    nfsDescription = string.Format("# NFS Implementation: {0}", NFS_provider).PadRight(88);
+                }
+                nfsDescription += "#";
+                return nfsDescription;
+            }
+        }
 
         public string name_override_file { get; set; }
 
