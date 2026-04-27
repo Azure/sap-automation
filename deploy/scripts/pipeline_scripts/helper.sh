@@ -73,56 +73,62 @@ function print_banner() {
     centered_title=$(printf "%*s%s%*s" $padding_title "" "$title" $padding_title "")
     centered_message=$(printf "%*s%s%*s" $padding_message "" "$message" $padding_message "")
 
-    echo ""
-    echo -e "${color}"
-    echo "#################################################################################"
-    echo "#                                                                               #"
-    echo -e "#${color}${centered_title}${reset}#"
-    echo "#                                                                               #"
-    echo -e "#${color}${centered_message}${reset}#"
-    echo "#                                                                               #"
+	# echo ""
+	echo -e "${color}"
+	echo "#################################################################################"
+	echo "#                                                                               #"
+	echo -e "#${color}${centered_title}${reset}#"
+	echo "#                                                                               #"
+	echo -e "#${color}${centered_message}${reset}#"
+	echo "#                                                                               #"
 
-    if [ ${#secondary_message} -gt 3 ]; then
-        local centered_secondary_message
-        centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
-        echo -e "#${color}${centered_secondary_message}${reset}#"
-        echo "#                                                                               #"
-    fi
-    if [ ${#tertiary_message} -gt 3 ]; then
-        local centered_tertiary_message
-        centered_tertiary_message=$(printf "%*s%s%*s" $padding_tertiary_message "" "$tertiary_message" $padding_tertiary_message "")
-        echo -e "#${color}${centered_tertiary_message}${reset}#"
-        echo "#                                                                               #"
-    fi
-    echo "#################################################################################"
-    echo -e "${reset}"
-    echo ""
+	if [ ${#secondary_message} -gt 3 ]; then
+		local centered_secondary_message
+		centered_secondary_message=$(printf "%*s%s%*s" $padding_secondary_message "" "$secondary_message" $padding_secondary_message "")
+		echo -e "#${color}${centered_secondary_message}${reset}#"
+		echo "#                                                                               #"
+	fi
+	if [ ${#tertiary_message} -gt 3 ]; then
+		local centered_tertiary_message
+		centered_tertiary_message=$(printf "%*s%s%*s" $padding_tertiary_message "" "$tertiary_message" $padding_tertiary_message "")
+		echo -e "#${color}${centered_tertiary_message}${reset}#"
+		echo "#                                                                               #"
+	fi
+	echo "#################################################################################"
+	echo -e "${reset}"
+	# echo ""
 }
 
 function getVariableFromVariableGroup() {
-    local variable_group_id="$1"
-    local variable_name="$2"
-    local environment_file_name="$3"
-    local environment_variable_name="$4"
-    local variable_value
+	local variable_group_id="$1"
+	local variable_name="$2"
+	local environment_file_name="$3"
+	local environment_variable_name="$4"
+	local variable_value
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	#		so change to the repository root for this command and then change back to the original directory when done.
+	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
-    variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv)
-    if [ -z "${variable_value}" ]; then
-        if [ -f "${environment_file_name}" ]; then
-            variable_value=$(grep "^$environment_variable_name" "${environment_file_name}" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
-            sourced_from_file=1
-            export sourced_from_file
-        fi
-    fi
-
-    echo "$variable_value"
+	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv)
+	if [ -z "${variable_value}" ]; then
+		if [ -f "${environment_file_name}" ]; then
+			variable_value=$(grep "^$environment_variable_name" "${environment_file_name}" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
+			sourced_from_file=1
+			export sourced_from_file
+		fi
+	fi
+	popd > /dev/null
+	echo "$variable_value"
 }
 
 function saveVariableInVariableGroup() {
-    local variable_group_id="$1"
-    local variable_name="$2"
-    local variable_value="$3"
-    local local_return_code=0
+	local variable_group_id="$1"
+	local variable_name="$2"
+	local variable_value="$3"
+	local local_return_code=0
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	#		so change to the repository root for this command and then change back to the original directory when done.
+	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
     if [ -n "$variable_value" ]; then
 
@@ -130,30 +136,31 @@ function saveVariableInVariableGroup() {
             print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
         fi
 
-        az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-        if [ "$DEBUG" = True ]; then
-            echo "Variable value: $az_var"
-            echo "Variable length: ${#az_var}"
-        fi
-        if [ ${#az_var} -gt 0 ]; then
-            az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
-            local_return_code=$?
-        else
-            az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
-            local_return_code=$?
-        fi
-    else
-        az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
-        if [ "$DEBUG" = True ]; then
-            echo "Variable value: $az_var"
-            echo "Variable length: ${#az_var}"
-        fi
-        if [ ${#az_var} -gt 0 ]; then
-            az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --yes --output none --only-show-errors
-            local_return_code=$?
-        fi
-    fi
-    return $local_return_code
+		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
+		if [[ ${DEBUG:-False} = True ]]; then
+			echo "Variable value:  $az_var"
+			echo "Variable length: ${#az_var}"
+		fi
+		if [ ${#az_var} -gt 0 ]; then
+			az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+			local_return_code=$?
+		else
+			az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+			local_return_code=$?
+		fi
+	else
+		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
+		if [[ ${DEBUG:-False} = True ]]; then
+			echo "Variable value:  $az_var"
+			echo "Variable length: ${#az_var}"
+		fi
+		if [ ${#az_var} -gt 0 ]; then
+			az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --yes --output none --only-show-errors
+			local_return_code=$?
+		fi
+	fi
+	popd > /dev/null
+	return $local_return_code
 }
 
 function configureNonDeployer() {
@@ -305,15 +312,19 @@ function get_region_from_code() {
 }
 
 function get_variable_group_id() {
-    local variable_group_name="$1"
-    local variable_group_id
-    var_name="$2"
+	local variable_group_name="$1"
+	local variable_group_id
+	var_name="$2"
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	#		so change to the repository root for this command and then change back to the original directory when done.
+	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
-    unset GROUP_ID
-    variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
-    if [ -z "$variable_group_id" ]; then
-        return 1
-    fi
+	unset GROUP_ID
+	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
+	popd > /dev/null
+	if [ -z "$variable_group_id" ]; then
+		return 1
+	fi
 
     echo ""
     echo -e "${green}Variable group information:"

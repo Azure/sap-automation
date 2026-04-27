@@ -2,26 +2,74 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#error codes include those from /usr/include/sysexits.h
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Initialize colors and debug handling                                          #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# 'set' command documentation:
+#		https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
+# error codes include those from /usr/include/sysexits.h
+#---------------------------------------+---------------------------------------#
+# region
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
-#colors for terminal
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
+echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
+export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
 
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
+# SYSTEM_DEBUG is set by Azure DevOps when the "Enable system diagnostics" option is turned on for the pipeline run.
+# DEBUG is an optional environment variable that can be set to "True" to enable debug mode when running the script outside of Azure DevOps.
+if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
+    [[ ${DEBUG:-False}        = True ]]; then
+      echo -e "${cyan}--- Enabling debug mode ---${reset}"
+      set -x                                                                    # Enable debug mode
+      export DEBUG=True
+      echo "Environment variables:"
+      printenv | sort
+else
+      export DEBUG=False
+fi
 
-#call stack has full script name when using source
-source "${script_directory}/deploy_utils.sh"
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+#-------------------------------------------------------------------------------#
+# endregion
 
-#helper files
-source "${script_directory}/helpers/script_helpers.sh"
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Helpers                                                                       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Example: path_to_script/grand_parent_dir/parent_dir/script_dir/script
+#---------------------------------------+---------------------------------------#
+# region
+full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          # Get the full path of the current script
+script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
+parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
+grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
 
 SCRIPT_NAME="$(basename "$0")"
 
-echo "Entering: ${SCRIPT_NAME}"
+# External helper functions
+# call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${script_directory}/deploy_utils.sh"
+source "${script_directory}/helpers/script_helpers.sh"
+#-------------------------------------------------------------------------------#
+# endregion
+
+
 banner_title="Install Deployer"
 
 detect_platform
@@ -118,11 +166,6 @@ if [ "$param_dirname" != '.' ]; then
     exit 3
 fi
 
-if [ "${DEBUG:-false}" == true ]; then
-    echo -e "${cyan}Enabling debug mode$reset_formatting"
-    set -x
-    set -o errexit
-fi
 # Check that parameter files have environment and location defined
 validate_key_parameters "$parameterfile"
 return_code=$?
@@ -238,7 +281,7 @@ else
                     --backend-config "container_name=tfstate" \
                     --backend-config "key=${key}.terraform.tfstate"; then
                     echo ""
-                    echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+                    echo -e "${cyan}Terraform init:                        succeeded${reset}"
                     echo ""
                     terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
                     keyvault_id=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_arm_id | tr -d \")
@@ -325,7 +368,7 @@ fi
 print_banner "${banner_title}" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
 if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
     allParameters+=(-json)
-    allParameters+=(-auto-approve)
+    allParameters+=(--auto-approve)
     allParameters+=(-no-color)
     allParameters+=(-compact-warnings)
     applyOutputfile="apply_output.json"
@@ -333,12 +376,9 @@ else
     applyOutputfile="apply_output.log"
 fi
 
-parallelism=10
-
-#Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "${TF_PARALLELLISM}" ]]; then
-    parallelism=$TF_PARALLELLISM
-fi
+# Provide a way to limit the number of parallel tasks for Terraform
+parallelism=${TFE_PARALLELISM:-10}                                              # Default to 10 if TFE_PARALLELISM is not set
+echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
 
 if [ -f apply_output.json ]; then
     rm apply_output.json
@@ -478,6 +518,9 @@ if [ -n "${DevOpsInfrastructureObjectId}" ]; then
 fi
 
 unset TF_DATA_DIR
-echo "Exiting: ${SCRIPT_NAME} ($install_deployer_return_value)"
 
-exit "$install_deployer_return_value"
+
+#----------------------------------- EXIT --------------------------------------#
+echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+echo -e   "${cyan}   Return code:  ${install_deployer_return_value}${reset}"
+exit $install_deployer_return_value

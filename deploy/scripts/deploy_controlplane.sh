@@ -19,27 +19,78 @@
 #                                                                                              #
 ################################################################################################
 
-#error codes include those from /usr/include/sysexits.h
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Initialize colors and debug handling                                          #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# 'set' command documentation:
+#		https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
+# error codes include those from /usr/include/sysexits.h
+#---------------------------------------+---------------------------------------#
+# region
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
-#colors for terminal
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
+echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
+export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
 
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
+# SYSTEM_DEBUG is set by Azure DevOps when the "Enable system diagnostics" option is turned on for the pipeline run.
+# DEBUG is an optional environment variable that can be set to "True" to enable debug mode when running the script outside of Azure DevOps.
+if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
+    [[ ${DEBUG:-False}        = True ]]; then
+      echo -e "${cyan}--- Enabling debug mode ---${reset}"
+      set -x                                                                    # Enable debug mode
+      export DEBUG=True
+      echo "Environment variables:"
+      printenv | sort
+else
+      export DEBUG=False
+fi
+
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+#-------------------------------------------------------------------------------#
+# endregion
+
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Helpers                                                                       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Example: path_to_script/grand_parent_dir/parent_dir/script_dir/script
+#---------------------------------------+---------------------------------------#
+# region
+full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          # Get the full path of the current script
+script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
+parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
+grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
+
+SCRIPT_NAME="$(basename "$0")"
+
+# External helper functions
+# call stack has full script name when using source
+source "${script_directory}/deploy_utils.sh"
+source "${script_directory}/helpers/script_helpers.sh"
+#-------------------------------------------------------------------------------#
+# endregion
+
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
     path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
     export PATH=$path
 fi
 
-#call stack has full script name when using source
-source "${script_directory}/deploy_utils.sh"
-
-#helper files
-source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
 step=0
@@ -58,10 +109,6 @@ fi
 if [ -v ARM_SUBSCRIPTION_ID ]; then
     subscription="$ARM_SUBSCRIPTION_ID"
 fi
-
-SCRIPT_NAME="$(basename "$0")"
-
-echo "Entering: ${SCRIPT_NAME}"
 
 detect_platform
 
@@ -144,12 +191,6 @@ while :; do
     esac
 done
 
-if [ "$DEBUG" = True ]; then
-    # Enable debugging
-    set -x
-    # Exit on error
-    set -o errexit
-fi
 
 echo "ADO flag:                            ${ado_flag}"
 
@@ -263,15 +304,16 @@ if [ -f "${deployer_dirname}/.terraform/terraform.tfstate" ]; then
         export TF_VAR_subscription_id
 
         REMOTE_STATE_SA=$(grep -m1 "storage_account_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-        REMOTE_STATE_RG=$(grep -m1 "resource_group_name" "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+        REMOTE_STATE_RG=$(grep -m1 "resource_group_name"  "${deployer_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
         getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${deployer_environment_file_name}"
 
-        terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+        terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer/"
+
         if terraform -chdir="${terraform_module_directory}" init -upgrade -reconfigure \
-            --backend-config "subscription_id=$STATE_SUBSCRIPTION" \
-            --backend-config "resource_group_name=$REMOTE_STATE_RG" \
-            --backend-config "storage_account_name=$REMOTE_STATE_SA" \
-            --backend-config "container_name=tfstate" \
+            --backend-config "subscription_id=$STATE_SUBSCRIPTION"                     \
+            --backend-config "resource_group_name=$REMOTE_STATE_RG"                    \
+            --backend-config "storage_account_name=$REMOTE_STATE_SA"                   \
+            --backend-config "container_name=tfstate"                                  \
             --backend-config "key=${deployer_tf_state}"; then
 
             keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
@@ -355,8 +397,8 @@ fi
 # relative_deployer_path=$(dirname $(realpath ${deployer_parameter_file}))
 
 relative_path="${deployer_dirname}"
-TF_DATA_DIR="${relative_path}"/.terraform
-export TF_DATA_DIR
+export TF_DATA_DIR="${relative_path}"/.terraform
+# export TF_DATA_DIR
 
 print_banner "Control Plane deployment" "Starting the control plane deployment" "info"
 
@@ -434,7 +476,7 @@ echo "Step:                                $step"
 ##########################################################################################
 #                                                                                        #
 #                                     Step 0                                             #
-#                           Bootstrapping the deployer                                 #
+#                           Bootstrapping the deployer                                   #
 #                                                                                        #
 #                                                                                        #
 ##########################################################################################
@@ -550,14 +592,14 @@ if [ 0 != "$step" ]; then
                     echo "Terraform state:                     remote"
 
                     terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-                    STATE_SUBSCRIPTION=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
-                    REMOTE_STATE_SA=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
-                    REMOTE_STATE_RG=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+                    STATE_SUBSCRIPTION=$(grep -m1 "subscription_id"      ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+                    REMOTE_STATE_SA=$(   grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+                    REMOTE_STATE_RG=$(   grep -m1 "resource_group_name"  ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
                     if terraform -chdir="${terraform_module_directory}" init -upgrade \
-                        --backend-config "subscription_id=$STATE_SUBSCRIPTION" \
-                        --backend-config "resource_group_name=$REMOTE_STATE_RG" \
-                        --backend-config "storage_account_name=$REMOTE_STATE_SA" \
-                        --backend-config "container_name=tfstate" \
+                        --backend-config "subscription_id=$STATE_SUBSCRIPTION"        \
+                        --backend-config "resource_group_name=$REMOTE_STATE_RG"       \
+                        --backend-config "storage_account_name=$REMOTE_STATE_SA"      \
+                        --backend-config "container_name=tfstate"                     \
                         --backend-config "key=${key}.terraform.tfstate"; then
 
                         keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
@@ -591,7 +633,7 @@ if [ 0 != "$step" ]; then
             allParameters+=(--subscription "${subscription:-$ARM_SUBSCRIPTION_ID}")
             allParameters+=(--tenant_id "${tenant_id:-$ARM_TENANT_ID}")
             allParameters+=(--spn_id "${client_id:-$ARM_CLIENT_ID}")
-            ss
+            # ss
             if [ "$deploy_using_msi_only" -eq 0 ]; then
                 allParameters+=(--spn_secret "${client_secret:-$ARM_CLIENT_SECRET}")
             else
@@ -677,7 +719,7 @@ if [ 2 -eq $step ]; then
 
     relative_path="${library_dirname}"
     export TF_DATA_DIR="${relative_path}/.terraform"
-    relative_path="${deployer_dirname}"
+    # relative_path="${deployer_dirname}"
 
     cd "${library_dirname}" || exit
     terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_library/
@@ -887,12 +929,12 @@ if [ 4 -eq $step ]; then
 fi
 
 printf -v kvname '%-40s' "${keyvault}"
-printf -v dep_ip '%-40s' "${deployer_public_ip_address}"
+printf -v dep_ip '%-40s' "${deployer_public_ip_address:-NO_PUBLIC_IP}"
 printf -v storage_account '%-40s' "${REMOTE_STATE_SA}"
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "# $cyan Please save these values: $reset_formatting                                                           #"
+echo -e "# ${cyan}Please save these values:${reset}                                                           #"
 echo "#     - Key Vault:       ${kvname}                       #"
 echo "#     - Deployer IP:     ${dep_ip}                       #"
 echo "#     - Storage Account: ${storage_account}                       #"
@@ -928,7 +970,7 @@ export terraform_state_storage_account
 load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address" "DEPLOYER_SSHKEY_SECRET_NAME" "DEPLOYER_USERNAME"
 
 if [ 5 -eq $step ]; then
-    if [ -n "${deployer_public_ip_address}" ] && [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
+    if [ -n "${deployer_public_ip_address:-}" ] && [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
 
         cd "${current_directory}" || exit
 
@@ -954,12 +996,12 @@ if [ 5 -eq $step ]; then
         scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/.terraform/terraform.tfstate
         scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$deployer_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_deployer_dir}"/terraform.tfstate
 
-        ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}/.terraform"
+        ssh -i "${temp_file}"    -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" " mkdir -p ${remote_library_dir}/.terraform"
         scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$library_parameter_file" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/$(basename "$library_parameter_file")"
         scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$library_parameter_file")"/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/terraform.tfstate"
         scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "$(dirname "$library_parameter_file")"/.terraform/terraform.tfstate "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_library_dir}/.terraform/terraform.tfstate"
 
-        ssh -i "${temp_file}" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
+        ssh -i "${temp_file}"    -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}" "mkdir -p ${remote_config_dir}"
         scp -i "${temp_file}" -q -o StrictHostKeyChecking=no -o ConnectTimeout=120 -p "${deployer_environment_file_name}" "${DEPLOYER_USERNAME:-azureadm}"@"${deployer_public_ip_address}":"${remote_config_dir}/$(basename "$deployer_environment_file_name")"
         rm "${temp_file}"
     fi
@@ -973,4 +1015,7 @@ fi
 
 unset TF_DATA_DIR
 
+#----------------------------------- EXIT --------------------------------------#
+echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+echo -e   "${cyan}   Return code:  ${return_code}${reset}"
 exit $return_code

@@ -90,6 +90,18 @@ resource "azurerm_bastion_host" "bastion" {
                                                                  )
                                          public_ip_address_id = azurerm_public_ip.bastion[0].id
                                        }
+  lifecycle                            {
+                                         ignore_changes = [
+                                                            sku,
+                                                            file_copy_enabled,
+                                                            ip_connect_enabled,
+                                                            kerberos_enabled,
+                                                            scale_units,
+                                                            shareable_link_enabled,
+                                                            tunneling_enabled,
+                                                            session_recording_enabled
+                                                          ]
+                                       }
   tags                                 = var.infrastructure.tags
   zones                                = []
 }

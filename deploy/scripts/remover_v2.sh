@@ -2,10 +2,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-
-bold_red_underscore="\e[1;4;31m"
-reset_formatting="\e[0m"
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -482,21 +487,18 @@ function sdaf_remover() {
 		return $?
 	fi
 
-	parallelism=10
-
 	param_dirname=$(pwd)
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
 	TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 	export TF_VAR_subscription_id
 
-	#Provide a way to limit the number of parallel tasks for Terraform
-	if checkforEnvVar "TF_PARALLELLISM"; then
-		parallelism=$TF_PARALLELLISM
-	fi
+	# Provide a way to limit the number of parallel tasks for Terraform
+	parallelism=${TFE_PARALLELISM:-10}                                              # Default to 10 if TFE_PARALLELISM is not set
+
 	echo ""
 	echo -e "${green}Deployment information:"
-	echo -e "-------------------------------------------------------------------------------$reset_formatting"
+	echo -e "-------------------------------------------------------------------------------${reset}"
 
 	echo "Parameter file:                      $parameterFilename"
 	echo "Current directory:                   $(pwd)"
@@ -548,7 +550,7 @@ function sdaf_remover() {
 
 	echo ""
 	echo -e "${green}Terraform details:"
-	echo -e "-------------------------------------------------------------------------------$reset_formatting"
+	echo -e "-------------------------------------------------------------------------------${reset}"
 	echo "Subscription:                        ${terraform_storage_account_subscription_id}"
 	echo "Storage Account:                     ${terraform_storage_account_name}"
 	echo "Resource Group:                      ${terraform_storage_account_resource_group_name}"
@@ -630,7 +632,7 @@ function sdaf_remover() {
 
 	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 		allParameters+=(-json)
-		allParameters+=(-auto-approve)
+		allParameters+=(--auto-approve)
 		allParameters+=(-no-color)
 		allParameters+=(-compact-warnings)
 		deleteOutputfile="delete_output.json"
@@ -685,12 +687,12 @@ function sdaf_remover() {
 
 						report=$(echo "$string_to_report" | grep -m1 "Message=" "${var_file}" | cut -d'=' -f2- | tr -d ' ' | tr -d '"')
 						if [[ -n ${report} ]]; then
-							echo -e "#                          $bold_red_underscore  $report $reset_formatting"
+							echo -e "#                          ${bold_red_underscore}${report}${reset}"
 							if [ "$PLATFORM" == "devops" ]; then
 								echo "##vso[task.logissue type=error]${report}"
 							fi
 						else
-							echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+							echo -e "#                          ${bold_red_underscore}${string_to_report}${reset}"
 							if [ "$PLATFORM" == "devops" ]; then
 								echo "##vso[task.logissue type=error]${string_to_report}"
 							fi

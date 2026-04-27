@@ -8,11 +8,15 @@ set -o pipefail
 
 # set -x
 
-#colors for terminal
-
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -472,7 +476,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
     printf -v val %-40.40s "$deployment_system"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
+    echo -e "#  $bold_red Incorrect system deployment type specified: ${val}${reset}              #"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_landscape                                                                   #"
@@ -566,7 +570,7 @@ if [ 1 == $check_output ]; then
             echo ""
             echo "#########################################################################################"
             echo "#                                                                                       #"
-            echo -e "#   $bold_red The environment was deployed using an older version of the Terraform templates $reset_formatting    #"
+            echo -e "#   ${bold_red}The environment was deployed using an older version of the Terraform templates${reset}   #"
             echo "#                                                                                       #"
             echo "#                               !!! Risk for Data loss !!!                              #"
             echo "#                                                                                       #"
@@ -771,16 +775,13 @@ fi
 if [ 1 == $apply_needed ]; then
     print_banner "Install workload zone" "Applying Terraform changes" "info"
 
-    parallelism=10
-
-    #Provide a way to limit the number of parallell tasks for Terraform
-    if [[ -n "${TF_PARALLELLISM}" ]]; then
-        parallelism=$TF_PARALLELLISM
-    fi
+    # Provide a way to limit the number of parallel tasks for Terraform
+    parallelism=${TFE_PARALLELISM:-10}                                          # Default to 10 if TFE_PARALLELISM is not set
+    echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
 
     if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
         allParameters+=(-json)
-        allParameters+=(-auto-approve)
+        allParameters+=(--auto-approve)
         allParameters+=(-no-color)
         allParameters+=(-compact-warnings)
         applyOutputfile="apply_output.json"
@@ -908,7 +909,7 @@ printf -v kvname '%-40s' "${workloadkeyvault}"
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "# $cyan Please save these values: $reset_formatting                                                           #"
+echo -e "# ${cyan}Please save these values: ${reset}                                                           #"
 echo "#     - Key Vault: ${kvname}                             #"
 echo "#                                                                                       #"
 echo "#########################################################################################"

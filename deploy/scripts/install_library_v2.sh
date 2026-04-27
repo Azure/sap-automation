@@ -249,8 +249,16 @@ function install_library_retrieve_parameters() {
 ############################################################################################
 
 function install_library() {
-    local green="\033[0;32m"
-    local reset="\033[0m"
+    # colors for terminal
+    local bold_red_underscore="\e[1;4;31m"                                      #    CRIT_COLOR
+    local            bold_red="\e[1;31m"                                        #   ERROR_COLOR
+    local               green="\e[1;32m"                                        # SUCCESS_COLOR
+    local              yellow="\e[1;33m"                                        # WARNING_COLOR
+    local                blue="\e[1;34m"                                        #   DEBUG_COLOR
+    local             magenta="\e[1;35m"                                        #   TRACE_COLOR
+    local                cyan="\e[1;36m"                                        #    INFO_COLOR
+    local               reset="\e[0m"                                           #   RESET_COLOR
+
     deployment_system=sap_library
     use_deployer=true
 
@@ -338,20 +346,18 @@ function install_library() {
 
     echo ""
     echo -e "${green}Deployment information:"
-    echo -e "-------------------------------------------------------------------------------$reset"
+    echo -e "-------------------------------------------------------------------------------${reset}"
 
     echo "Configuration file:                  $parameter_file_name"
     echo "Control Plane name:                  $CONTROL_PLANE_NAME"
 
     TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
     export TF_VAR_subscription_id
-    parallelism=10
 
-    #Provide a way to limit the number of parallel tasks for Terraform
-    if checkforEnvVar "TF_PARALLELLISM"; then
-        parallelism=$TF_PARALLELLISM
-    fi
-    echo "Parallelism count:                   $parallelism"
+    # Provide a way to limit the number of parallel tasks for Terraform
+    parallelism=${TFE_PARALLELISM:-10}                                          # Default to 10 if TFE_PARALLELISM is not set
+    echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
+
     key=$(basename "${parameter_file_name}" | cut -d. -f1)
 
     if [ -n "${DEPLOYER_KEYVAULT:-}" ]; then
@@ -496,7 +502,7 @@ function install_library() {
 
         if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
             allParameters+=(-json)
-            allParameters+=(-auto-approve)
+            allParameters+=(--auto-approve)
             allParameters+=(-no-color)
             allParameters+=(-compact-warnings)
             applyOutputfile="apply_output.json"
