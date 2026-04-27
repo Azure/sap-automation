@@ -970,8 +970,7 @@ export terraform_state_storage_account
 load_config_vars "${deployer_environment_file_name}" "deployer_public_ip_address" "DEPLOYER_SSHKEY_SECRET_NAME" "DEPLOYER_USERNAME"
 
 if [ 5 -eq $step ]; then
-    # if [ -n "${deployer_public_ip_address}" ] && [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
-    if [ -v deployer_public_ip_address ] && [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
+    if [ -n "${deployer_public_ip_address:-}" ] && [ -n "${DEPLOYER_SSHKEY_SECRET_NAME}" ]; then
 
         cd "${current_directory}" || exit
 
