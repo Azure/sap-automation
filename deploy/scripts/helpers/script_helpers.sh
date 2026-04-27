@@ -6,30 +6,30 @@
 #colors for terminal
 bold_red="\e[1;31m"
 cyan="\e[1;36m"
-reset_formatting="\e[0m"
+reset="\e[0m"
 
 # if [ -f /etc/profile.d/deploy_server.sh ]; then
 # 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 # 	export PATH=$PATH:$path
 # fi
 
-########################################################################################
-#                                                                                      #
-# Function to Print a Banner                                                           #
-# Arguments:                                                                           #
-#   $1 - Title of the banner                                                           #
-#   $2 - Message to display                                                            #
-#   $3 - Type of message (error, success, warning, info)                               #
-#   $4 - Secondary message (optional)                                                  #
-# Returns:                                                                             #
-#   None                                                                               #
-########################################################################################
-# Example usage:		                                                                   #
-#   print_banner "Title" "This is a message" "info" "Secondary message"                #
-#   print_banner "Title" "This is a message" "error"                                   #
-#   print_banner "Title" "This is a message" "success" "Secondary message"             #
-#                                                                                      #
-########################################################################################
+#########################################################################################
+#                                                                                       #
+# Function to Print a Banner                                                            #
+# Arguments:                                                                            #
+#   $1 - Title of the banner                                                            #
+#   $2 - Message to display                                                             #
+#   $3 - Type of message (error, success, warning, info)                                #
+#   $4 - Secondary message (optional)                                                   #
+# Returns:                                                                              #
+#   None                                                                                #
+#########################################################################################
+# Example usage:		                                                                    #
+#   print_banner "Title" "This is a message" "info" "Secondary message"                 #
+#   print_banner "Title" "This is a message" "error"                                    #
+#   print_banner "Title" "This is a message" "success" "Secondary message"              #
+#                                                                                       #
+#########################################################################################
 
 function print_banner() {
 	local title="$1"
@@ -68,19 +68,19 @@ function print_banner() {
 	local color
 	case "$type" in
 	error)
-		color="$bold_red"
+		color="${bold_red}"
 		;;
 	success)
-		color="$green"
+		color="${green}"
 		;;
 	warning)
-		color="$yellow"
+		color="${yellow}"
 		;;
 	info)
-		color="$cyan"
+		color="${cyan}"
 		;;
 	*)
-		color="$cyan"
+		color="${cyan}"
 		;;
 	esac
 
@@ -129,7 +129,7 @@ function show_help_installer_v2 {
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo -e "# $cyan  This file contains the logic to deploy the different systems $reset_formatting                       #"
+	echo -e "#   ${cyan}This file contains the logic to deploy the different systems${reset}                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
 	echo "#   ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                      #"
@@ -247,6 +247,7 @@ function show_help_remover_v2 {
 #   control_plane_showhelp                                                              #
 #                                                                                       #
 #########################################################################################
+
 function control_plane_showhelp {
 	echo ""
 	echo "#################################################################################################################"
@@ -312,6 +313,7 @@ function control_plane_showhelp {
 #   control_plane_show_help_v2                                                          #
 #                                                                                       #
 #########################################################################################
+
 function control_plane_show_help_v2 {
 	echo ""
 	echo "###################################################################################################################"
@@ -665,7 +667,7 @@ function validate_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#  $bold_red Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!! $reset_formatting                            #"
+		echo -e "#  ${bold_red} Missing environment variables (SAP_AUTOMATION_REPO_PATH)!!! ${reset}                            #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      SAP_AUTOMATION_REPO_PATH (path to the automation repo folder (sap-automation))   #"
@@ -681,7 +683,7 @@ function validate_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#  $bold_red Missing environment variables (CONFIG_REPO_PATH)!!! $reset_formatting                            #"
+		echo -e "#  ${bold_red} Missing environment variables (CONFIG_REPO_PATH)!!! ${reset}                            #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      CONFIG_REPO_PATH (path to the repo folder (sap-automation))                      #"
@@ -696,7 +698,7 @@ function validate_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#  $bold_red Missing environment variables (ARM_SUBSCRIPTION_ID)!!! $reset_formatting  #"
+		echo -e "#  ${bold_red} Missing environment variables (ARM_SUBSCRIPTION_ID)!!! ${reset}  #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables:                                              #"
 		echo "#      SAP_AUTOMATION_REPO_PATH (path to the repo folder (sap-automation))              #"
@@ -712,7 +714,7 @@ function validate_exports {
 
 #########################################################################################
 #                                                                                       #
-# Function to validate the App Service exports needed for the script                        #
+# Function to validate the App Service exports needed for the script                    #
 # Arguments:                                                                            #
 #   None                                                                                #
 # Returns:                                                                              #
@@ -729,7 +731,7 @@ function validate_webapp_exports {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#        $bold_red Missing environment variables (TF_VAR_app_registration_app_id)!!! $reset_formatting            #"
+		echo -e "#        ${bold_red} Missing environment variables (TF_VAR_app_registration_app_id)!!! ${reset}            #"
 		echo "#                                                                                       #"
 		echo "#   Please export the following variables to successfully deploy the Webapp:            #"
 		echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
@@ -746,7 +748,7 @@ function validate_webapp_exports {
 			echo ""
 			echo "#########################################################################################"
 			echo "#                                                                                       #"
-			echo -e "#            $bold_red Missing environment variables (TF_VAR_webapp_client_secret)!!! $reset_formatting           #"
+			echo -e "#            ${bold_red} Missing environment variables (TF_VAR_webapp_client_secret)!!! ${reset}           #"
 			echo "#                                                                                       #"
 			echo "#   Please export the following variables to successfully deploy the Webapp:            #"
 			echo "#      TF_VAR_app_registration_app_id (webapp registration application id)              #"
@@ -780,18 +782,18 @@ function showhelp {
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo -e "#  $cyan This file contains the logic to deploy the different systems $reset_formatting                       #"
+	echo -e "#  ${cyan} This file contains the logic to deploy the different systems ${reset}                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
-	echo -e "#   $cyan ARM_SUBSCRIPTION_ID $reset_formatting       to specify which subscription to deploy to              #"
-	echo -e "#   $cyan SAP_AUTOMATION_REPO_PATH $reset_formatting  the path to the folder containing sap-automation clone  #"
-	echo -e "#   $cyan CONFIG_REPO_PATH $reset_formatting          (path to the configuration repo folder (sap-config)     #"
+	echo -e "#   ${cyan} ARM_SUBSCRIPTION_ID ${reset}       to specify which subscription to deploy to              #"
+	echo -e "#   ${cyan} SAP_AUTOMATION_REPO_PATH ${reset}  the path to the folder containing sap-automation clone  #"
+	echo -e "#   ${cyan} CONFIG_REPO_PATH ${reset}          (path to the configuration repo folder (sap-config)     #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
 	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
-	echo -e "#   $cyan Usage:$reset_formatting installer.sh                                                                 #"
+	echo -e "#   ${cyan} Usage:${reset} installer.sh                                                                 #"
 	echo "#    -p or --parameterfile           parameter file                                     #"
 	echo "#    -t or --type                    type of system to install                          #"
 	echo "#                                         valid options:                                #"
@@ -845,14 +847,14 @@ function showhelp_remover {
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
-	echo -e "#                 $bold_red_underscore !Warning!: This script will remove deployed systems $reset_formatting                 #"
+	echo -e "#                 ${bold_red_underscore} !Warning!: This script will remove deployed systems ${reset}                 #"
 	echo "#                                                                                       #"
-	echo -e "#  $cyan This file contains the logic to deploy the different systems $reset_formatting                       #"
+	echo -e "#  ${cyan} This file contains the logic to deploy the different systems ${reset}                       #"
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
-	echo -e "#   $cyan ARM_SUBSCRIPTION_ID $reset_formatting       to specify which subscription to deploy to              #"
-	echo -e "#   $cyan SAP_AUTOMATION_REPO_PATH $reset_formatting  the path to the folder containing sap-automation clone  #"
-	echo -e "#   $cyan CONFIG_REPO_PATH $reset_formatting          (path to the configuration repo folder (sap-config)     #"
+	echo -e "#   ${cyan} ARM_SUBSCRIPTION_ID ${reset}       to specify which subscription to deploy to              #"
+	echo -e "#   ${cyan} SAP_AUTOMATION_REPO_PATH ${reset}  the path to the folder containing sap-automation clone  #"
+	echo -e "#   ${cyan} CONFIG_REPO_PATH ${reset}          (path to the configuration repo folder (sap-config)     #"
 	echo "#                                                                                       #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
@@ -998,16 +1000,16 @@ function validate_dependencies {
 	return 0
 }
 
-################################################################################
-#                                                                              #
-# Function to validate the key parameters needed for the script                #
-# Arguments:                                                                   #
-#   $1 - The name of the parameter file to validate                            #
-# Returns:                                                                     #
-#   0 - Success                                                                #
-#   64 - Incorrect parameter file                                              #
-#                                                                              #
-################################################################################
+#########################################################################################
+#                                                                                       #
+# Function to validate the key parameters needed for the script                         #
+# Arguments:                                                                            #
+#   $1 - The name of the parameter file to validate                                     #
+# Returns:                                                                              #
+#   0 - Success                                                                         #
+#   64 - Incorrect parameter file                                                       #
+#                                                                                       #
+#########################################################################################
 
 function validate_key_parameters {
 	echo "Validating:                          $1"
@@ -1040,22 +1042,22 @@ function validate_key_parameters {
 	return 0
 }
 
-#####################################################################################
-#                                                                                   #
-# Function to compare two version numbers                                           #
-# Arguments:                                                                        #
-#   $1 - The first version number to compare                                        #
-#   $2 - The second version number to compare                                       #
-# Returns:                                                                          #
-#   0 - The first version is equal to the second version                            #
-#   1 - The first version is greater than the second version                        #
-#   2 - The first version is less than the second version                           #
-#                                                                                   #
-# Example usage:                                                                    #
-#   version_compare "1.0.0" "1.0.1"                                                 #
-#   version_compare "1.0.1" "1.0.0"                                                 #
-#                                                                                   #
-#####################################################################################
+#########################################################################################
+#                                                                                       #
+# Function to compare two version numbers                                               #
+# Arguments:                                                                            #
+#   $1 - The first version number to compare                                            #
+#   $2 - The second version number to compare                                           #
+# Returns:                                                                              #
+#   0 - The first version is equal to the second version                                #
+#   1 - The first version is greater than the second version                            #
+#   2 - The first version is less than the second version                               #
+#                                                                                       #
+# Example usage:                                                                        #
+#   version_compare "1.0.0" "1.0.1"                                                     #
+#   version_compare "1.0.1" "1.0.0"                                                     #
+#                                                                                       #
+#########################################################################################
 
 function version_compare {
 	echo "Comparison:                          $1 <= $2"
@@ -1084,19 +1086,19 @@ function version_compare {
 	return 0
 }
 
-#####################################################################################
-#                                                                                   #
-# Function to replace the resource ID in the state file                             #
-# Arguments:                                                                        #
-#   $1 - The module ID of the resource to replace                                   #
-#   $2 - The directory of the Terraform module                                      #
-#   $3 - The resource type to replace                                               #
-#   $4 - The import parameters to use for the import command                        #
-# Returns:                                                                          #
-#   0 - Success                                                                     #
-#   1 - Failure                                                                     #
-#                                                                                   #
-#####################################################################################
+#########################################################################################
+#                                                                                       #
+# Function to replace the resource ID in the state file                                 #
+# Arguments:                                                                            #
+#   $1 - The module ID of the resource to replace                                       #
+#   $2 - The directory of the Terraform module                                          #
+#   $3 - The resource type to replace                                                   #
+#   $4 - The import parameters to use for the import command                            #
+# Returns:                                                                              #
+#   0 - Success                                                                         #
+#   1 - Failure                                                                         #
+#                                                                                       #
+#########################################################################################
 
 function ReplaceResourceInStateFile {
 
@@ -1125,7 +1127,7 @@ function ReplaceResourceInStateFile {
 			echo "terraform -chdir=${terraform_module_directory} import -var-file=${var_file} -var deployer_tfstate_key=${deployer_tfstate_key} -var tfstate_resource_id=${tfstate_resource_id} $4 ${moduleID} ${azureResourceID}"
 			echo ""
 			if ! terraform -chdir="${terraform_module_directory}" import -var-file="${var_file}" -var "deployer_tfstate_key=${deployer_tfstate_key}" -var "tfstate_resource_id=${tfstate_resource_id}" $4 "${moduleID}" "${azureResourceID}"; then
-				echo -e "$bold_red Importing storage account state object:           ${moduleID} failed $reset_formatting"
+				echo -e "${bold_red} Importing storage account state object:           ${moduleID} failed ${reset}"
 				exit 65
 			fi
 		fi
@@ -1134,23 +1136,23 @@ function ReplaceResourceInStateFile {
 	return $?
 }
 
-####################################################################################
-# Function to import resources and re-run apply                                    #
-# This function is used to import resources that already exist in Azure            #
-# and re-run the apply command to ensure that the state file is updated            #
-# with the correct resource IDs.                                                   #
-# It checks for errors in the Terraform plan and apply output                      #
-# and handles them accordingly.                                                    #
-# It also checks for resources that can be imported and attempts to import them.	 #
-# Arguments:                                                                       #
-#   $1 - The name of the file to check for errors in the Terraform output.         #
-#   $2 - The directory of the Terraform module.                                    #
-#   $3 - The import parameters to use for the import command.                      #
-#   $4 - The apply parameters to use for the apply command.                        #
-# Returns:                                                                         #
-#   0 - Success, no errors found.                                                  #
-#   1 - Errors found during the apply phase.                                       #
-####################################################################################
+#########################################################################################
+# Function to import resources and re-run apply                                         #
+# This function is used to import resources that already exist in Azure                 #
+# and re-run the apply command to ensure that the state file is updated                 #
+# with the correct resource IDs.                                                        #
+# It checks for errors in the Terraform plan and apply output                           #
+# and handles them accordingly.                                                         #
+# It also checks for resources that can be imported and attempts to import them.        #
+# Arguments:                                                                            #
+#   $1 - The name of the file to check for errors in the Terraform output.              #
+#   $2 - The directory of the Terraform module.                                         #
+#   $3 - The import parameters to use for the import command.                           #
+#   $4 - The apply parameters to use for the apply command.                             #
+# Returns:                                                                              #
+#   0 - Success, no errors found.                                                       #
+#   1 - Errors found during the apply phase.                                            #
+#########################################################################################
 
 function ImportAndReRunApply {
 	local fileName=$1
@@ -1311,8 +1313,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 					import_return_value=0
-					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
+					echo -e "${bold_red} Errors occurred during the apply phase:${reset}"
+					echo -e "${bold_red} ------------------------------------------------------------------------------------- ${reset}"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 
 					for item in "${errors[@]}"; do
@@ -1332,8 +1334,8 @@ function ImportAndReRunApply {
 
 				if [[ -n $current_errors ]]; then
 
-					echo -e "$bold_red Errors occurred during the apply phase:$reset_formatting"
-					echo -e "$bold_red ------------------------------------------------------------------------------------- $reset_formatting"
+					echo -e "${bold_red} Errors occurred during the apply phase:${reset}"
+					echo -e "${bold_red} ------------------------------------------------------------------------------------- ${reset}"
 					readarray -t errors < <(echo "${current_errors}" | jq -c '.')
 					error_count=${#errors[@]}
 
@@ -1400,22 +1402,21 @@ function ImportAndReRunApply {
 	return $import_return_value
 }
 
-########################################################################################
-# Function to check if a resource would be recreated in the Terraform plan output.     #
-# This function is used to check if a resource would be recreated in the Terraform     #
-# plan output. It checks for the presence of the string "must be replaced" in the      #
-# Terraform plan output. If the string is found, it indicates that the resource would  #
-# be recreated. The function returns 0 if the resource would be recreated, and 1 if it #
-# would not.                                                                           #
-# Arguments:                                                                           #
-#   $1 - The module ID of the resource to check.                                       #
-#   $2 - The name of the file to check for the presence of the string.                 #
-#   $3 - The short name of the resource.                                               #
-# Returns:                                                                             #
-#   0 - The resource would be recreated.                                               #
-#   1 - The resource would not be recreated.                                           #
-########################################################################################
-
+#########################################################################################
+# Function to check if a resource would be recreated in the Terraform plan output.      #
+# This function is used to check if a resource would be recreated in the Terraform      #
+# plan output. It checks for the presence of the string "must be replaced" in the       #
+# Terraform plan output. If the string is found, it indicates that the resource would   #
+# be recreated. The function returns 0 if the resource would be recreated, and 1 if it  #
+# would not.                                                                            #
+# Arguments:                                                                            #
+#   $1 - The module ID of the resource to check.                                        #
+#   $2 - The name of the file to check for the presence of the string.                  #
+#   $3 - The short name of the resource.                                                #
+# Returns:                                                                              #
+#   0 - The resource would be recreated.                                                #
+#   1 - The resource would not be recreated.                                            #
+#########################################################################################
 function testIfResourceWouldBeRecreated {
 	local moduleId="$1"
 	local fileName="$2"
@@ -1443,20 +1444,20 @@ function testIfResourceWouldBeRecreated {
 	return $resource_return_value
 }
 
-###########################################################################################
-# Function to validate the key vault access.                                              #
-# This function checks if the key vault exists and if the user has access to it.          #
-# It uses the Azure CLI to check for the key vault and its access policies.               #
-# If the key vault does not exist or the user does not have access, it will retry         #
-# after 60 seconds. If the key vault is still not accessible, it will exit with an error  #
-# code. If the user has access, it will return 0.                                         #
-# Arguments:                                                                              #
-#   $1 - The name of the key vault to check.                                              #
-#   $2 - The subscription ID to check the key vault in.                                   #
-# Returns:                                                                                #
-#   0 - The key vault exists and the user has access.                                     #
-#   10 - The key vault does not exist or the user does not have access.                   #
-###########################################################################################
+#########################################################################################
+# Function to validate the key vault access.                                            #
+# This function checks if the key vault exists and if the user has access to it.        #
+# It uses the Azure CLI to check for the key vault and its access policies.             #
+# If the key vault does not exist or the user does not have access, it will retry       #
+# after 60 seconds. If the key vault is still not accessible, it will exit with an      #
+# error code. If the user has access, it will return 0.                                 #
+# Arguments:                                                                            #
+#   $1 - The name of the key vault to check.                                            #
+#   $2 - The subscription ID to check the key vault in.                                 #
+# Returns:                                                                              #
+#   0 - The key vault exists and the user has access.                                   #
+#   10 - The key vault does not exist or the user does not have access.                 #
+#########################################################################################
 
 function validate_key_vault {
 	local keyvault_to_check=$1
@@ -1469,7 +1470,7 @@ function validate_key_vault {
 		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
-		echo -e "#                             $cyan  Retrying keyvault access $reset_formatting                               #"
+		echo -e "#                             ${cyan}  Retrying keyvault access ${reset}                               #"
 		echo "#                                                                                       #"
 		echo "#########################################################################################"
 		echo ""
@@ -1494,22 +1495,24 @@ function validate_key_vault {
 	return $return_value
 
 }
-############################################################################################
-#                                                                                          #
-# Function to log on to Azure using either a service principal or managed service identity #
-# This function checks if the ARM_USE_MSI environment variable is set to true. If it is,   #
-# it uses managed service identity to log on to Azure. If it is not, it uses a service     #
-# principal to log on to Azure. It also sets the TF_VAR_use_spn variable to true or false  #
-# depending on the authentication method used. It also checks if the ARM_SUBSCRIPTION_ID   #
-# environment variable is set to the correct subscription ID. If it is not, it updates     #
-# the ARM_SUBSCRIPTION_ID environment variable to the correct subscription ID.             #
-# Arguments:                                                                               #
-#   $1 - The value of the ARM_USE_MSI environment variable.                                #
-# Returns:                                                                                 #
-#   0 - Success, logged on to Azure.                                                       #
-#   1 - Failure, unable to log on to Azure.                                                #
-#                                                                                          #
-#############################################################################################
+#########################################################################################
+#                                                                                       #
+# Function to log on to Azure using either a service principal or managed service       #
+#  identity.                                                                            #
+# This function checks if the ARM_USE_MSI environment variable is set to true. If it    #
+# is, it uses managed service identity to log on to Azure. If it is not, it uses a      #
+# service principal to log on to Azure. It also sets the TF_VAR_use_spn variable to     #
+# true or false depending on the authentication method used. It also checks if the      #
+# ARM_SUBSCRIPTION_ID environment variable is set to the correct subscription ID. If it #
+# is not, it updates the ARM_SUBSCRIPTION_ID environment variable to the correct        #
+# subscription ID.                                                                      #
+# Arguments:                                                                            #
+#   $1 - The value of the ARM_USE_MSI environment variable.                             #
+# Returns:                                                                              #
+#   0 - Success, logged on to Azure.                                                    #
+#   1 - Failure, unable to log on to Azure.                                             #
+#                                                                                       #
+#########################################################################################
 
 function LogonToAzure() {
 	local useMSI=$1
@@ -1519,11 +1522,11 @@ function LogonToAzure() {
 		echo "Deployment credentials:              Service Principal"
 		echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
 		unset ARM_USE_MSI
-# <BEGIN> MKD 20260217
-# AZ CLI 2.83 - syntax for --service-principal user --username NOT --client-id
+		# <BEGIN> MKD 20260217
+		# AZ CLI 2.83 - syntax for --service-principal user --username NOT --client-id
 		# az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
 		az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
-# <END>   MKD 20260217
+		# <END>   MKD 20260217
 		echo "Logged on as:"
 		az account show --query user --output table
 		TF_VAR_use_spn=true
@@ -1553,23 +1556,24 @@ function LogonToAzure() {
 	fi
 }
 
-################################################################################
-# Function to get the Terraform output value for a given output name           #
-#                                                                              #
-# This function retrieves the value of a Terraform output variable by its name.#
-# If the output variable is not found, it returns a default value if provided. #
-# If no default value is provided, it returns an empty string.                 #
-# It suppresses warnings by redirecting stderr to /dev/null.                   #
-# Arguments:                                                                   #
-#   $1 - The name of the Terraform output variable to retrieve                 #
-#   $2 - Optional default value to return if the output variable is not found	 #
-# Returns:                                                                     #
-#   The value of the Terraform output variable, or a default value if not found#
-################################################################################
-# Example usage:                                                               #
-#   my_var=$(get_terraform_output "my_output_name" "default_value")            #
-#   echo "Variable value: $my_var"                                             #
-################################################################################
+#########################################################################################
+# Function to get the Terraform output value for a given output name                    #
+#                                                                                       #
+# This function retrieves the value of a Terraform output variable by its name.         #
+# If the output variable is not found, it returns a default value if provided.          #
+# If no default value is provided, it returns an empty string.                          #
+# It suppresses warnings by redirecting stderr to /dev/null.                            #
+# Arguments:                                                                            #
+#   $1 - The name of the Terraform output variable to retrieve                          #
+#   $2 - Optional default value to return if the output variable is not found	          #
+# Returns:                                                                              #
+#   The value of the Terraform output variable, or a default value if not found         #
+#########################################################################################
+# Example usage:                                                                        #
+#   my_var=$(get_terraform_output "my_output_name" "default_value")                     #
+#   echo "Variable value: $my_var"                                                      #
+#########################################################################################
+
 function get_terraform_output() {
 	local output_name="$1"
 	local terraform_module_directory="${2:-.}" # Default to current directory if not provided

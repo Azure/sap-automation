@@ -560,6 +560,15 @@ function sdaf_installer() {
     called_from_ado=0
     local green="\e[0;32m"
     local reset="\e[0m"
+    # colors for terminal
+    local bold_red_underscore="\e[1;4;31m"                                      #    CRIT_COLOR
+    local            bold_red="\e[1;31m"                                        #   ERROR_COLOR
+    local               green="\e[1;32m"                                        # SUCCESS_COLOR
+    local              yellow="\e[1;33m"                                        # WARNING_COLOR
+    local                blue="\e[1;34m"                                        #   DEBUG_COLOR
+    local             magenta="\e[1;35m"                                        #   TRACE_COLOR
+    local                cyan="\e[1;36m"                                        #    INFO_COLOR
+    local               reset="\e[0m"                                           #   RESET_COLOR
 
     # Define an array of helper scripts
     helper_scripts=(
@@ -611,12 +620,8 @@ function sdaf_installer() {
         return $?
     fi
 
-    parallelism=10
-
-    #Provide a way to limit the number of parallel tasks for Terraform
-    if checkforEnvVar "TF_PARALLELLISM"; then
-        parallelism=$TF_PARALLELLISM
-    fi
+    # Provide a way to limit the number of parallel tasks for Terraform
+    parallelism=${TFE_PARALLELISM:-10}                                          # Default to 10 if TFE_PARALLELISM is not set
 
     TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE=1
     export TF_PLUGIN_CACHE_MAY_BREAK_DEPENDENCY_LOCK_FILE
@@ -1033,7 +1038,7 @@ function sdaf_installer() {
         print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
         if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
             allParameters+=(-json)
-            allParameters+=(-auto-approve)
+            allParameters+=(--auto-approve)
             allParameters+=(-no-color)
             allParameters+=(-compact-warnings)
             applyOutputfile="apply_output.json"
@@ -1153,7 +1158,8 @@ function sdaf_installer() {
             save_config_var "deployer_random_id" "${system_environment_file_name}"
             custom_random_id="${deployer_random_id}"
             sed -i -e "" -e /"custom_random_id"/d "${var_file}"
-            printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+            # printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+            printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
         fi
 
         # shellcheck disable=SC2034

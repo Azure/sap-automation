@@ -2,41 +2,108 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Initialize colors and debug handling                                          #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# 'set' command documentation:
+#		https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
+# error codes include those from /usr/include/sysexits.h
+#---------------------------------------+---------------------------------------#
+# region
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
-# External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
-parent_directory="$(dirname "$script_directory")"
-grand_parent_directory="$(dirname "$parent_directory")"
+echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
+export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
+
+# SYSTEM_DEBUG is set by Azure DevOps when the "Enable system diagnostics" option is turned on for the pipeline run.
+# DEBUG is an optional environment variable that can be set to "True" to enable debug mode when running the script outside of Azure DevOps.
+if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
+    [[ ${DEBUG:-False}        = True ]]; then
+      echo -e "${cyan}--- Enabling debug mode ---${reset}"
+      set -x                                                                    # Enable debug mode
+      export DEBUG=True
+      echo "Environment variables:"
+      printenv | sort
+else
+      export DEBUG=False
+fi
+
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+#-------------------------------------------------------------------------------#
+# endregion
+
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Cleanup DevOps Artifacts                                                      #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Environment variables that equal a pattern $(...) can cause issues when used in
+# scripts, as they may be unintentionally executed. To prevent this, we can check
+# for such patterns and handle them appropriately. In this case, we will check if
+# any of the critical environment variables contain the pattern $(...) and log a
+# warning if they do. This is a safety measure to avoid potential command
+# injection or unintended behavior in the scripts.
+#		
+# Unset exported env vars whose VALUE contains a $(...) pattern
+#---------------------------------------+---------------------------------------#
+while IFS= read -r name; do
+  echo -e "${cyan}No value provided ... unsetting environment variable: ${name}${reset}"
+  unset "$name"
+done < <(
+  env | awk -F= '
+		index($0,"="){
+    	name=$1
+    	val=substr($0, length(name)+2)
+
+      # VALUE is exactly $(...) (single token, starts with $)
+      if (val ~ /^\$\([^[:space:]]+\)$/) print name
+  	}'
+)
+#-------------------------------------------------------------------------------#
+
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Helpers                                                                       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Example: path_to_script/grand_parent_dir/parent_dir/script_dir/script
+#---------------------------------------+---------------------------------------#
+# region
+full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          # Get the full path of the current script
+script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
+parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
+grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
 
 SCRIPT_NAME="$(basename "$0")"
-banner_title="Deploy Control Plane"
 
-#call stack has full script name when using source
+# External helper functions
+# call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
+#-------------------------------------------------------------------------------#
+# endregion
+
+
+banner_title="Deploy Control Plane"
 
 echo "##vso[build.updatebuildnumber]Deploying the Control Plane defined in $DEPLOYER_FOLDERNAME"
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
-
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-    set -x
-    DEBUG=True
-    echo "Environment variables:"
-    printenv | sort
-
-fi
-export DEBUG
-set -eu
 
 # Print the execution environment details
 print_header
@@ -295,20 +362,25 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
     # shellcheck disable=SC2001
     pass=${SYSTEM_COLLECTIONID//-/}
 
-    echo "Unzipping the library state file"
+	echo "Unzipping the library state file to ${CONFIG_REPO_PATH}/LIBRARY/${LIBRARY_FOLDERNAME}"
     unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
     pass=${SYSTEM_COLLECTIONID//-/}
 
-    echo "Unzipping the deployer state file"
+	echo "Unzipping the deployer state file to ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
     unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
 export TF_LOG_PATH=${CONFIG_REPO_PATH}/.sap_deployment_automation/terraform.log
 print_banner "$banner_title" "Starting the deployment" "info"
-sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
+
+# 04/21/2026 - Remove this comment block on next release
+# Removed because the script is executable in the repository and should keep its permissions.
+# If there are issues with permissions, it should be fixed outside of this script as part of the repository management.
+# sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
+
 if [ "$USE_MSI" != "true" ]; then
 
     export TF_VAR_use_spn=true
@@ -336,25 +408,27 @@ if [ "$USE_MSI" != "true" ]; then
 else
     export TF_VAR_use_spn=false
 
-    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configuration_file}" \
-    --library_parameter_file "${library_configuration_file}" \
-    --subscription "$ARM_SUBSCRIPTION_ID" \
-    --auto-approve --ado --msi \
-    "${storage_account_parameter}" "${keyvault_parameter}"; then
-        return_code=$?
-        if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
-            source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
-        fi
-        echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
-        echo "Return code from deploy_controlplane $return_code."
-    else
-        return_code=$?
-        echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
-        echo "Return code from deploy_controlplane $return_code."
-    fi
+	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
+		--deployer_parameter_file "${deployer_configuration_file}" \
+		--library_parameter_file "${library_configuration_file}" \
+		--subscription "$ARM_SUBSCRIPTION_ID" \
+		--auto-approve --ado --msi \
+		"${storage_account_parameter}" "${keyvault_parameter}"; then
+		return_code=$?
+		if [ -f  "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
+			source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
+		fi
+		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+		echo "Return code from deploy_controlplane $return_code."
+	else
+		return_code=$?
+		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+		echo "Return code from deploy_controlplane $return_code."
+	fi
 
 fi
+
+detect_platform
 
 if [ -v SDAF_APPLICATION_CONFIGURATION_NAME	]; then
     saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPLICATION_CONFIGURATION_NAME" "$SDAF_APPLICATION_CONFIGURATION_NAME"
@@ -578,4 +652,9 @@ else
     echo "##vso[task.logissue type=error]Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
     echo "Variable WEBAPP_ID was not added to the $VARIABLE_GROUP variable group."
 fi
+
+
+#----------------------------------- EXIT --------------------------------------#
+echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+echo -e   "${cyan}   Return code:  ${return_code}${reset}"
 exit $return_code

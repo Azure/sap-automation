@@ -5,11 +5,15 @@
 
 #error codes include those from /usr/include/sysexits.h
 
-#colors for terminal
-bold_red="\e[1;31m"
-green="\e[1;32m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
@@ -118,7 +122,7 @@ done
 
 
 if [ "${DEBUG:-false}" == true ]; then
-    echo -e "${cyan}Enabling debug mode$reset_formatting"
+    echo -e "${cyan}Enabling debug mode${reset}"
     set -x
     set -o errexit
 fi
@@ -153,7 +157,7 @@ if [ -z "${deployment_system}" ]; then
 
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
+    echo -e "#  ${bold_red}Incorrect system deployment type specified: ${val}${reset}             #"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_deployer                                                                    #"
@@ -264,12 +268,8 @@ else
     export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
-parallelism=10
-
-#Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "$TF_PARALLELLISM" ]]; then
-    parallelism=$TF_PARALLELLISM
-fi
+# Provide a way to limit the number of parallel tasks for Terraform
+parallelism=${TFE_PARALLELISM:-10}                                              # Default to 10 if TFE_PARALLELISM is not set
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
     load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
@@ -483,7 +483,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
     printf -v val %-40.40s "$deployment_system"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#   $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
+    echo -e "#   ${bold_red}Incorrect system deployment type specified: ${val}${reset}            #"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_deployer                                                                    #"
@@ -500,8 +500,8 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 
 terraform --version
 echo ""
-echo -e "${green}Terraform details:"
-echo -e "-------------------------------------------------------------------------${reset_formatting}"
+echo -e "${green}Terraform details:${reset}"
+echo -e "-------------------------------------------------------------------------${reset}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"
@@ -534,19 +534,15 @@ if [ "${DEBUG:-false}" == true ]; then
     printenv | grep TF_VAR
 fi
 
-#Provide a way to limit the number of parallel tasks for Terraform
-if [[ -n "$TF_PARALLELLISM" ]]; then
-	parallelism="$TF_PARALLELLISM"
-else
-	parallelism=3
-fi
+# Provide a way to limit the number of parallel tasks for Terraform
+parallelism=${TFE_PARALLELISM:-3}                                              # Default to 3 if TFE_PARALLELISM is not set
 
 
 pwd
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
-echo -e "#                            $cyan Running Terraform init $reset_formatting                                   #"
+echo -e "#                            ${cyan}Running Terraform init${reset}                                   #"
 echo "#                                                                                       #"
 echo "#########################################################################################"
 echo ""
@@ -688,7 +684,7 @@ if [ "$resource_group_exist" ]; then
 
 	else
 
-		echo -e "#$cyan processing $deployment_system removal as defined in $parameterfile_name $reset_formatting"
+		echo -e "# ${cyan}processing ${deployment_system} removal as defined in ${parameterfile_name}${reset}"
 		echo "Calling destroy with:           ${allRemovalParameters[*]}"
 
 		if [ -n "${approve}" ]; then

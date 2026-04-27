@@ -2,9 +2,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#colors for terminal
-reset_formatting="\e[0m"
-bold_red_underscore="\e[1;4;31m"
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -254,13 +260,9 @@ function sdaf_remove_deployer() {
 
 	print_banner "Remove deployer" "Running Terraform destroy" "info"
 
-	parallelism=10
-
-	#Provide a way to limit the number of parallel tasks for Terraform
-	#Provide a way to limit the number of parallel tasks for Terraform
-	if checkforEnvVar "TF_PARALLELLISM"; then
-		parallelism=$TF_PARALLELLISM
-	fi
+	# Provide a way to limit the number of parallel tasks for Terraform
+	parallelism=${TFE_PARALLELISM:-10}                                            # Default to 10 if TFE_PARALLELISM is not set
+  echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
 
 	if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee destroy_output.json; then
 		return_value=${PIPESTATUS[0]}
@@ -286,7 +288,7 @@ function sdaf_remove_deployer() {
 						string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
 					fi
 
-					echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+					echo -e "#                          ${bold_red_underscore}${string_to_report}${reset}"
 					echo "##vso[task.logissue type=error]${string_to_report}"
 
 				done

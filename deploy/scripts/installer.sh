@@ -2,28 +2,75 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# Ensure that the exit status of a pipeline command is non-zero if any
-# stage of the pipefile has a non-zero exit status.
-set -o pipefail
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Initialize colors and debug handling                                          #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# 'set' command documentation:
+#		https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
+# error codes include those from /usr/include/sysexits.h
+#---------------------------------------+---------------------------------------#
+# region
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
-#colors for terminal
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-green="\e[1;32m"
-reset_formatting="\e[0m"
+echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
+export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
 
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
+# SYSTEM_DEBUG is set by Azure DevOps when the "Enable system diagnostics" option is turned on for the pipeline run.
+# DEBUG is an optional environment variable that can be set to "True" to enable debug mode when running the script outside of Azure DevOps.
+if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
+    [[ ${DEBUG:-False}        = True ]]; then
+      echo -e "${cyan}--- Enabling debug mode ---${reset}"
+      set -x                                                                    # Enable debug mode
+      export DEBUG=True
+      echo "Environment variables:"
+      printenv | sort
+else
+      export DEBUG=False
+fi
+
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+#-------------------------------------------------------------------------------#
+# endregion
+
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Helpers                                                                       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Example: path_to_script/grand_parent_dir/parent_dir/script_dir/script
+#---------------------------------------+---------------------------------------#
+# region
+full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          # Get the full path of the current script
+script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
+parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
+grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
+
+SCRIPT_NAME="$(basename "$0")"
+
+# External helper functions
+# call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${script_directory}/deploy_utils.sh"
+source "${script_directory}/helpers/script_helpers.sh"
+#-------------------------------------------------------------------------------#
+# endregion
+
 
 banner_title="Installer"
-
-#call stack has full script name when using source
-source "${script_directory}/deploy_utils.sh"
-
-#helper files
-source "${script_directory}/helpers/script_helpers.sh"
 
 detect_platform
 
@@ -133,12 +180,6 @@ while :; do
     esac
 done
 
-if [ "${DEBUG:-false}" == true ]; then
-    echo -e "${cyan}Enabling debug mode$reset_formatting"
-    set -x
-    set -o errexit
-fi
-
 echo "Parameter file:                      $parameterfile"
 echo "Current directory:                   $(pwd)"
 echo "Terraform state subscription_id:     ${STATE_SUBSCRIPTION}"
@@ -150,7 +191,7 @@ parameterfile_name=$(basename "${parameterfile}")
 param_dirname=$(dirname "${parameterfile}")
 
 if [ -n "${CONTROL_PLANE_NAME}" ]; then
-    if [ -z "${deployer_tfstate_key}" ]; then
+    if [ -z "${deployer_tfstate_key:+x}" ]; then
         deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
     fi
 fi
@@ -171,7 +212,7 @@ if [ -z "${deployment_system}" ]; then
 
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#  $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
+    echo -e "#  $bold_red Incorrect system deployment type specified: ${val}${reset}              #"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_deployer                                                                    #"
@@ -250,7 +291,7 @@ fi
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}/config"
 
-if [ -n "$landscape_tfstate_key" ]; then
+if [ -n "${landscape_tfstate_key:-}" ]; then
     environment=$(basename "$landscape_tfstate_key" | awk -F'-' '{print $1}' | xargs)
     region_code=$(basename "$landscape_tfstate_key" | awk -F'-' '{print $2}' | xargs)
     network_logical_name=$(basename "$landscape_tfstate_key" | awk -F'-' '{print $3}' | xargs)
@@ -282,12 +323,8 @@ else
     export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
 fi
 
-parallelism=10
-
-#Provide a way to limit the number of parallell tasks for Terraform
-if [[ -n "$TF_PARALLELLISM" ]]; then
-    parallelism=$TF_PARALLELLISM
-fi
+# Provide a way to limit the number of parallel tasks for Terraform
+parallelism=${TFE_PARALLELISM:-10}                                              # Default to 10 if TFE_PARALLELISM is not set
 
 if [[ -z $STATE_SUBSCRIPTION ]]; then
     load_config_vars "${system_environment_file_name}" "STATE_SUBSCRIPTION"
@@ -376,7 +413,7 @@ else
     export ARM_USE_AZUREAD=true
 fi
 
-if [[ -z $landscape_tfstate_key ]]; then
+if [[ -z ${landscape_tfstate_key:-} ]]; then
     load_config_vars "${system_environment_file_name}" "landscape_tfstate_key"
 else
     echo "Workload zone state file:            ${landscape_tfstate_key}"
@@ -445,7 +482,7 @@ fi
 # Obsolete now that Terraform handles the authentication without depending on environment variables
 #set_executing_user_environment_variables "none"
 
-if [[ -n ${subscription} ]]; then
+if [[ -n ${subscription:-} ]]; then
     if is_valid_guid "${subscription}"; then
         echo "Valid subscription format"
     else
@@ -486,7 +523,7 @@ if [ -n "${tfstate_resource_id}" ]; then
     export TF_VAR_tfstate_resource_id
 fi
 
-if [ -n "${landscape_tfstate_key}" ]; then
+if [ -n "${landscape_tfstate_key:-}" ]; then
     TF_VAR_landscape_tfstate_key="${landscape_tfstate_key}"
     export TF_VAR_landscape_tfstate_key
 fi
@@ -498,7 +535,7 @@ if [ ! -d "${terraform_module_directory}" ]; then
     printf -v val %-40.40s "$deployment_system"
     echo "#########################################################################################"
     echo "#                                                                                       #"
-    echo -e "#   $bold_red Incorrect system deployment type specified: ${val}$reset_formatting#"
+    echo -e "#   $bold_red Incorrect system deployment type specified: ${val}${reset}             #"
     echo "#                                                                                       #"
     echo "#     Valid options are:                                                                #"
     echo "#       sap_deployer                                                                    #"
@@ -516,14 +553,14 @@ export TF_DATA_DIR="${param_dirname}/.terraform"
 terraform --version
 echo ""
 echo -e "${green}Terraform details:"
-echo -e "-------------------------------------------------------------------------${reset_formatting}"
+echo -e "-------------------------------------------------------------------------${reset}"
 echo "Subscription:                        ${STATE_SUBSCRIPTION}"
 echo "Storage Account:                     ${REMOTE_STATE_SA}"
 echo "Resource Group:                      ${REMOTE_STATE_RG}"
 echo "State file:                          ${key}.terraform.tfstate"
 echo "Target subscription:                 ${ARM_SUBSCRIPTION_ID}"
 echo "Deployer state file:                 ${deployer_tfstate_key}"
-echo "Workload zone state file:            ${landscape_tfstate_key}"
+echo "Workload zone state file:            ${landscape_tfstate_key:-UNDEFINED}"
 echo "Terraform state resource id:         ${tfstate_resource_id}"
 echo "Current directory:                   $(pwd)"
 echo ""
@@ -897,6 +934,7 @@ if [ "${TEST_ONLY:-false}" == "true" ]; then
     fi
     exit 0
 fi
+
 if [ $fatal_errors == 1 ]; then
     apply_needed=0
     print_banner "$banner_title" "!!! Risk for Data loss !!!" "error" "Please inspect the output of Terraform plan carefully"
@@ -933,7 +971,7 @@ if [ 1 == $apply_needed ]; then
 
     if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
         allParameters+=(-json)
-        allParameters+=(-auto-approve)
+        allParameters+=(--auto-approve)
         allParameters+=(-no-color)
         allParameters+=(-compact-warnings)
         applyOutputfile="apply_output.json"
@@ -1049,7 +1087,8 @@ if [ "${deployment_system}" == sap_deployer ]; then
         save_config_var "deployer_random_id" "${system_environment_file_name}"
         custom_random_id="${deployer_random_id}"
         sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
-        printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+        # printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+        printf "\n# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id = \"%s\"\n" "${custom_random_id}" >>"${var_file}"
     fi
 
     # shellcheck disable=SC2034
@@ -1150,4 +1189,8 @@ fi
 
 print_banner "$banner_title" "Deployment finished with return code: $return_value" "info"
 
-exit "$return_value"
+
+#----------------------------------- EXIT --------------------------------------#
+echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+echo -e   "${cyan}   Return code:  ${return_value}${reset}"
+exit $return_value

@@ -216,7 +216,7 @@ function install_deployer() {
 
     echo ""
     echo -e "${green}Deployment information:"
-    echo -e "-------------------------------------------------------------------------------$reset_formatting"
+    echo -e "-------------------------------------------------------------------------------${reset}"
 
     echo "Configuration file:                  $parameter_file_name"
     echo "Control Plane name:                  $CONTROL_PLANE_NAME"
@@ -394,19 +394,16 @@ function install_deployer() {
         #                             Running Terraform apply                                   #
         #                                                                                       #
         #########################################################################################
-        parallelism=10
-
-        #Provide a way to limit the number of parallel tasks for Terraform
-        if checkforEnvVar "TF_PARALLELLISM"; then
-            parallelism=$TF_PARALLELLISM
-        fi
+        # Provide a way to limit the number of parallel tasks for Terraform
+        parallelism=${TFE_PARALLELISM:-10}                                      # Default to 10 if TFE_PARALLELISM is not set
+        echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
 
         if [ -f apply_output.json ]; then
             rm apply_output.json
         fi
         if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
             allParameters+=(-json)
-            allParameters+=(-auto-approve)
+            allParameters+=(--auto-approve)
             allParameters+=(-no-color)
             allParameters+=(-compact-warnings)
             applyOutputfile="apply_output.json"
@@ -521,8 +518,15 @@ function install_deployer() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Only run if script is executed directly, not when sourced
     set -o pipefail
-    #colors for terminal
-    reset_formatting="\e[0m"
+    # colors for terminal
+    bold_red_underscore="\e[1;4;31m"                                            #    CRIT_COLOR
+               bold_red="\e[1;31m"                                              #   ERROR_COLOR
+                  green="\e[1;32m"                                              # SUCCESS_COLOR
+                 yellow="\e[1;33m"                                              # WARNING_COLOR
+                  blue="\e[1;34m"                                               #   DEBUG_COLOR
+               magenta="\e[1;35m"                                               #   TRACE_COLOR
+                  cyan="\e[1;36m"                                               #    INFO_COLOR
+                 reset="\e[0m"                                                  #   RESET_COLOR
 
     #External helper functions
     #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
