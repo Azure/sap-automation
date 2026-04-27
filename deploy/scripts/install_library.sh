@@ -380,7 +380,6 @@ fi
 
 if [ -n "${deployer_statefile_foldername}" ]; then
     echo "Deployer folder specified:           ${deployer_statefile_foldername}"
-    allParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
 	allImportParameters+=(-var "deployer_statefile_foldername=${deployer_statefile_foldername}")
 fi
 #-------------------------------------------------------------------------------#
