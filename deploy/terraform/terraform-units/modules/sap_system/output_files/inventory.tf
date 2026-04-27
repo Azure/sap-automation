@@ -329,6 +329,7 @@ resource "local_file" "sap_inventory_md" {
 
               application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
               database_high_availability  = var.database_high_availability ? "Yes" : "No"
+              database_scale_out          = var.scale_out ? "Yes" : "No"
               db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
               db_sid                      = var.db_sid
               key_vault_name              = local.key_vault_name,
