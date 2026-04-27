@@ -654,12 +654,12 @@ function set_all_secrets() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Only run if script is executed directly, not when sourced
 	set_all_secrets "$@"
-	# exit $?
+
+	return_code=$?
+
+	#----------------------------------- EXIT --------------------------------------#
+	echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+	echo -e   "${cyan}   Return code:  ${return_code}${reset}"
+	exit $return_code
+
 fi
-
-return_code=$?
-
-#----------------------------------- EXIT --------------------------------------#
-echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
-echo -e   "${cyan}   Return code:  ${return_code}${reset}"
-exit $return_code
