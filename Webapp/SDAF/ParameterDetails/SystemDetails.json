@@ -615,7 +615,7 @@
         "Display": 3
       },
       {
-        "Name": "database_dual_nics",
+        "Name": "db_dual_nics",
         "Required": false,
         "Description": "Defines if the database servers will have two network interfaces.",
         "Type": "checkbox",

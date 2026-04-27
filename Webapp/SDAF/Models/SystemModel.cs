@@ -62,7 +62,7 @@ namespace SDAFWebApp.Models
                     systemType = "High Availability";
                 }
 
-                string description = string.Format("# Type of system: {0}", systemType).PadRight(88);
+                string description = string.Format("# Type of system:        {0}", systemType).PadRight(88);
                 description += "#";
                 return description;
             }
@@ -72,7 +72,7 @@ namespace SDAFWebApp.Models
             get
             {
 
-                string description = string.Format("# Database: {0}", database_platform).PadRight(88);
+                string description = string.Format("# Database:              {0}", database_platform).PadRight(88);
                 description += "#";
                 return description;
             }
@@ -83,7 +83,7 @@ namespace SDAFWebApp.Models
             get
             {
 
-                string thisSid = string.Format("# System Identifier: {0}", sid).PadRight(88);
+                string thisSid = string.Format("# System Identifier:     {0}", sid).PadRight(88);
                 thisSid += "#";
                 return thisSid;
             }
@@ -93,7 +93,7 @@ namespace SDAFWebApp.Models
                     {
             get
             {
-                string regionDescription = string.Format("# Azure Region: {0}", location).PadRight(88);
+                string regionDescription = string.Format("# Azure Region:          {0}", location).PadRight(88);
                 regionDescription += "#";
                 return regionDescription;
             }
@@ -103,7 +103,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string zoneDescription = string.Format("# Workload Zone: {0}", workload_zone ?? environment + "-" + locationCode + "-" + network_logical_name).PadRight(88);
+                string zoneDescription = string.Format("# Workload Zone:         {0}", workload_zone ?? environment + "-" + locationCode + "-" + network_logical_name).PadRight(88);
                 zoneDescription += "#";
                 return zoneDescription;
             }
@@ -113,10 +113,10 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string storageDescription = string.Format("# Storage: Premium Disks").PadRight(88);
+                string storageDescription = string.Format("# Storage:               Premium Disks").PadRight(88);
                 if ((bool)database_use_premium_v2_storage)
                 {
-                    storageDescription = string.Format("# Storage: Premium Disks v2").PadRight(88);
+                    storageDescription = string.Format("# Storage:               Premium Disks v2").PadRight(88);
                 }
 
                 storageDescription += "#";
@@ -128,10 +128,10 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string vmssDescription = string.Format("# No scalesets in use").PadRight(88);
+                string vmssDescription = string.Format("# VMSS_Flex:             No scalesets in use").PadRight(88);
                 if ((bool)use_scalesets_for_deployment)
                 {
-                    vmssDescription = string.Format("# VMSS Flex in use").PadRight(88);
+                    vmssDescription = string.Format("# VMSS_Flex:             In use").PadRight(88);
                 }
 
                 vmssDescription += "#";
@@ -143,10 +143,10 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string nfsDescription = string.Format("# NFS: Not in use").PadRight(88);
+                string nfsDescription = string.Format("# NFS:                   Not in use").PadRight(88);
                 if (NFS_provider != null)
                 {
-                    nfsDescription = string.Format("# NFS Implementation: {0}", NFS_provider).PadRight(88);
+                    nfsDescription = string.Format("# NFS Implementation:    {0}", NFS_provider).PadRight(88);
                 }
                 nfsDescription += "#";
                 return nfsDescription;
@@ -162,7 +162,7 @@ namespace SDAFWebApp.Models
                 {
                     dbserverCount = (int)database_server_count * 2;
                 }
-                string dbServerDescription = string.Format("# Database servers: {0} {1} {2} {3}", dbserverCount, database_vm_image.publisher, database_vm_image.offer, database_vm_image.sku).PadRight(88);
+                string dbServerDescription = string.Format("# Database servers:      {0} x {1} {2} {3}", dbserverCount, database_vm_image.publisher, database_vm_image.offer, database_vm_image.sku).PadRight(88);
                 dbServerDescription += "#";
                 return dbServerDescription;
             }
@@ -177,7 +177,7 @@ namespace SDAFWebApp.Models
                     scsServerCount = (int)scs_server_count * 2;
                 }
 
-                string scsServerDescription = string.Format("# SCS servers: {0} {1} {2} {3}", scsServerCount, scs_server_image.publisher, scs_server_image.offer, scs_server_image.sku).PadRight(88);
+                string scsServerDescription = string.Format("# SCS servers:           {0} x {1} {2} {3}", scsServerCount, scs_server_image.publisher, scs_server_image.offer, scs_server_image.sku).PadRight(88);
                 scsServerDescription += "#";
                 return scsServerDescription;
             }
@@ -187,7 +187,8 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string appServerDescription = string.Format("# Application servers: {0} {1} {2} {3}", application_server_count, application_server_image.publisher, application_server_image.offer, application_server_image.sku).PadRight(88);
+                string appServerDescription = string.Format("# Application servers:   {0} x {1} {2} {3}", application_server_count, application_server_image.publisher, application_server_image.offer, application_server_image.sku).PadRight(88);
+
                 appServerDescription += "#";
                 return appServerDescription;
             }
@@ -207,7 +208,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string clusterScsDescription = string.Format("# SCS cluster type: {0}", scs_cluster_type).PadRight(88);
+                string clusterScsDescription = string.Format("# SCS cluster type:      {0}", scs_cluster_type).PadRight(88);
                 clusterScsDescription += "#";
                 return clusterScsDescription;
             }
@@ -217,7 +218,17 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string scaleoutDescription= string.Format("# Scale-out: {0}, Standby: {1}", (bool)database_HANA_use_scaleout_scenario ? "Yes" : "No", (bool)database_HANA_no_standby_role ? "No" : "Yes").PadRight(88);
+                string scaleoutDescription= string.Format("# HANA Scale-out:        {0}", (bool)database_HANA_use_scaleout_scenario ? "Yes" : "No").PadRight(88);
+                                            
+                scaleoutDescription += "#";
+                return scaleoutDescription;
+            }
+        }
+        public string MD_ScaleOut2
+        {
+            get
+            {
+                string scaleoutDescription = string.Format("# Standby Server:        {0}", (bool)database_HANA_no_standby_role ? "No" : "Yes").PadRight(88);
                 scaleoutDescription += "#";
                 return scaleoutDescription;
             }
@@ -488,7 +499,31 @@ namespace SDAFWebApp.Models
 
         public int? database_server_count { get; set; } = 1;
 
-        public bool? database_dual_nics { get; set; }
+        public bool? db_dual_nics { get; set; } = false;
+
+        public bool? database_dual_nics {
+            get
+            {
+                if((bool)database_HANA_use_scaleout_scenario)
+                {
+                    return true;
+                }
+                else
+                    return db_dual_nics;
+            }
+            set
+            {
+                if ((bool)database_HANA_use_scaleout_scenario)
+                {
+                    db_dual_nics = true;
+                }
+                else
+                {
+                    db_dual_nics = value;
+                }
+            }
+
+        }
 
         public string database_size { get; set; }
 

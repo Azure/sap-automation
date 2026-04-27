@@ -14,6 +14,7 @@ $$MD_SCSServers$$
 $$MD_AppServers$$
 #                                                                                       #
 $$MD_ScaleOut$$
+$$MD_ScaleOut2$$
 #                                                                                       #
 $$MD_Cluster_DB$$
 $$MD_Cluster_SCS$$
