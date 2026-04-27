@@ -173,8 +173,8 @@ locals {
   options                              = {
                                             enable_deployer_public_ip       = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                             use_spn                         = var.use_spn
-                                            assign_resource_permissions     = var.deployer_assign_resource_permissions
-                                            assign_subscription_permissions = var.deployer_assign_subscription_permissions
+                                            assign_resource_permissions     = var.deployer_assign_resource_permissions && length(var.user_assigned_identity_id) == 0
+                                            assign_subscription_permissions = var.deployer_assign_subscription_permissions && length(var.user_assigned_identity_id) == 0
                                             network_security_perimeter      = local.network_security_perimeter
                                          }
 
@@ -188,12 +188,10 @@ locals {
 
 
   app_service                          = {
-                                           use                 = var.app_service_deployment
-                                           app_registration_id = var.app_registration_app_id
-                                           client_secret       = var.webapp_client_secret
-                                           use                 = var.app_service_deployment
-                                           app_registration_id = var.app_registration_app_id
-                                           client_secret       = var.webapp_client_secret
+                                           use                          = var.app_service_deployment
+                                           app_registration_id          = var.app_registration_app_id
+                                           client_secret                = var.webapp_client_secret
+                                           tfstate_storage_account_name = local.tfstate_storage_account_name
                                          }
 
   dns_settings                         = {
@@ -204,9 +202,9 @@ locals {
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
                                            dns_zone_names                               = var.dns_zone_names
 
-                                           local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
+                                           local_dns_resourcegroup_name                 = local.tfstate_storage_account_resource_group_name
 
-                                           local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
+                                           local_dns_resourcegroup_name                 = local.tfstate_storage_account_resource_group_name
 
                                            management_dns_resourcegroup_name            = trimspace(var.management_dns_resourcegroup_name)
                                            management_dns_subscription_id               = var.management_dns_subscription_id

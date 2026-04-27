@@ -929,7 +929,6 @@ if ($pipeline_id.Length -eq 0) {
 }
 
 $pipelines.Add($pipeline_id)
-
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $wikiFileName -Value $log
@@ -1514,7 +1513,8 @@ if ($authenticationMethod -eq "Service Principal") {
              "Storage Blob Data Contributor",  `
              "Storage Table Data Contributor", `
              "App Configuration Data Owner",   `
-             "Private DNS Zone Contributor")
+             "Private DNS Zone Contributor",   `
+             "Network Contributor")
   foreach ($role in $roles) {
     Write-Host  "    Adding role assignment for $role ..." `
                 -ForegroundColor DarkCyan

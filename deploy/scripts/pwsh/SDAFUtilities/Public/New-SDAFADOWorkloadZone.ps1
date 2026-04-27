@@ -153,8 +153,9 @@ function New-SDAFADOWorkloadZone {
       "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "Key Vault Secret Officer",
-      "App Configuration Data Owner"
+      "Key Vault Secrets Officer",
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     # Helper function for menu display
@@ -187,13 +188,14 @@ function New-SDAFADOWorkloadZone {
       }
       $JsonInputFile = "sdafMI.json"
 
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
+
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
             tenantid                             = $TenantId
-            workloadIdentityFederationIssuerType = "EntraID"
-            serviceprincipalid                   = $ManagedIdentityClientId
-            scope                                = "/subscriptions/" + $SubscriptionId
+            serviceprincipalid                   = $AppRegistrationId
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -202,8 +204,7 @@ function New-SDAFADOWorkloadZone {
           scopeLevel       = "Subscription"
           subscriptionId   = $SubscriptionId
           subscriptionName = (az account show --query name -o tsv)
-          creationMode     = "Automatic"
-          identityType     = "ManagedIdentity"
+          creationMode     = "Manual"
         }
         name                             = $ConnectionName
         owner                            = "library"
@@ -218,20 +219,29 @@ function New-SDAFADOWorkloadZone {
             name = $ProjectName
           }
         }
-
       }
-
-      Write-Verbose "Creating JSON input file for service connection"
-      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
-      az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --output none --only-show-errors
+
+      $Fed=(az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create service connection '$ConnectionName'"
         throw "Service connection creation failed"
       }
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
+
+      $PostBody = [PSCustomObject]@{
+        name = "fic-for-sc"
+        issuer = $Fed.workloadIdentityFederationIssuer
+        subject = $Fed.workloadIdentityFederationSubject
+        audiences = @("api://AzureADTokenExchange")
+      }
+
+      Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
+      az ad app federated-credential create --id $AppRegistrationId --parameters $JsonInputFile
+
+      az ad app show --id $AppRegistrationId --query '{appId:appId,principalId:id,Name:displayName}'
 
       if (Test-Path $JsonInputFile) {
         Remove-Item $JsonInputFile
@@ -428,8 +438,9 @@ function New-SDAFADOWorkloadZone {
           "Role Based Access Control Administrator",
           "Storage Blob Data Owner",
           "Key Vault Administrator",
-          "Key Vault Secret Officer",
-          "App Configuration Data Owner"
+          "Key Vault Secrets Officer",
+          "App Configuration Data Owner",
+          "Network Contributor"
         )
 
         if ($ManagedIdentityId.Length -ne 0) {

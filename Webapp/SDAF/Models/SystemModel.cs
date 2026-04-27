@@ -71,7 +71,7 @@ namespace SDAFWebApp.Models
 
         public string subscription_id { get; set; }
 
-        public string? suse_subscription_id { get; set; }
+        public string suse_subscription_id { get; set; }
 
         public bool? AFS_enable_encryption_in_transit { get; set; } = false;
 

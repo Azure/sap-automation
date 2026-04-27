@@ -30,7 +30,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
-  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
+  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled || var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage
 
   https_traffic_only_enabled            = true
 
@@ -70,7 +70,7 @@ resource "azurerm_storage_account_network_rules" "storage_tfstate" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage  && !var.storage_account_tfstate.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_tfstate[0].id
-  default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+  default_action                       = var.bootstrap ? "Allow" : var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
 
   ip_rules                             = local.deployer_public_ip_address_used ? (
                                          [
@@ -288,7 +288,7 @@ resource "azurerm_storage_account_network_rules" "storage_sapbits" {
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage && !var.storage_account_tfstate.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_sapbits[0].id
-  default_action                       = var.bootstrap ? "Allow" : local.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+  default_action                       = var.bootstrap ? "Allow" : var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
   ip_rules                             = local.deployer_public_ip_address_used ? (
                                            [
                                              local.deployer_public_ip_address

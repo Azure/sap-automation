@@ -352,12 +352,12 @@ resource "local_file" "deployer_exports" {
               control_plane_name          = var.naming.prefix.DEPLOYER
               keyvault_name               = var.key_vault.exists ? (
                                             data.azurerm_key_vault.kv_user[0].name) : (
-                                            azurerm_key_vault.kv_user[0].name)  
+                                            azurerm_key_vault.kv_user[0].name)
               app_service_name            = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
 
               }
             )
-  filename             = format("%s/export.sh", path.cwd)
+  filename             = format("%s/exports.sh", path.cwd)
   file_permission      = "0660"
   directory_permission = "0770"
 }

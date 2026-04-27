@@ -55,9 +55,17 @@ fi
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+if [ ! -v CONTROL_PLANE_NAME ]; then
+	ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
+	CONTROL_PLANE_NAME="$ENVIRONMENT-$LOCATION-$NETWORK"
+else
+	ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+fi
+
 CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
 automation_config_directory="${CONFIG_DIR}"
@@ -67,6 +75,7 @@ deployer_environment_file_name=$(get_configuration_file "$automation_config_dire
 DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
 DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
 prefix=$(echo "$CONTROL_PLANE_NAME" | cut -d '-' -f1-2)
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 
 LIBRARY_FOLDERNAME="$prefix-SAP_LIBRARY"
 
@@ -330,11 +339,24 @@ fi
 changed=0
 environment=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
 region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
+vnet_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f3)
 
 if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 	rm ".sap_deployment_automation/${environment}${region_code}"
 	changed=1
 fi
+
+if [ -f ".sap_deployment_automation/${environment}${region_code}${vnet_code}" ]; then
+	rm ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+	git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+	changed=1
+fi
+
+if [ -f "$deployer_environment_file_name" ]; then
+	rm "$deployer_environment_file_name"
+	changed=1
+fi
+
 
 if [ 0 == $return_code ]; then
 	changed=1
@@ -345,6 +367,7 @@ if [ 0 == $return_code ]; then
 	git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
 	git rm -q -r --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform"
 	git rm --ignore-unmatch -q "DEPLOYER/$DEPLOYER_FOLDERNAME/readme.md"
+
 	if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
 		git rm -q -f --ignore-unmatch "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
 	fi
@@ -360,13 +383,14 @@ if [ 0 == $return_code ]; then
 		echo "Removing the library state gpg file"
 		git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
 	fi
+
 	git rm --ignore-unmatch -q "LIBRARY/$LIBRARY_FOLDERNAME/readme.md"
 	git rm -q -r --ignore-unmatch "LIBRARY/$LIBRARY_FOLDERNAME/.terraform"
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
-	sed -i /"custom_random_id"/d "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+if [ -f "$deployer_tfvars_file_name" ]; then
+	sed -i /"custom_random_id"/d "$deployer_tfvars_file_name"
+	git add -f "$deployer_tfvars_file_name"
 	changed=1
 fi
 

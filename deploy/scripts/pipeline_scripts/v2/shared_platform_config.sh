@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # Enable debug mode if DEBUG is set to 'true'
-if [[ "${SYSTEM_DEBUG:-false}" == 'true' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
+if [[ "${SYSTEM_DEBUG:-False}" == 'True' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
 	# Enable debugging
 	set -x
 	# Exit on error

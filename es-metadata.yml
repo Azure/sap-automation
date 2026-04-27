@@ -1,0 +1,12 @@
+schemaVersion: 1.0.0
+providers:
+- provider: InventoryAsCode
+  version: 1.0.0
+  metadata:
+    isProduction: false
+    accountableOwners:
+      service: 92a421fe-9780-4c8d-97d1-d5e9c4122bc5
+    routing:
+      defaultAreaPath:
+        org: msazure
+        path: One\SAP on Azure\Engineering

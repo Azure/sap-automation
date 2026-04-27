@@ -15,12 +15,11 @@ source "${script_directory}/set-colors.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
 source "${parent_directory}/helper.sh"
-
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 	DEBUG=false
-	if [ "${SYSTEM_DEBUG:-false}" == "true" ]; then
+	if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
@@ -198,14 +197,18 @@ fi
 
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh"
 
-if set_all_secrets "${allParameters[@]}"; then
-	return_code=$?
-else
-	return_code=$?
-	print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
-	exit $return_code
-fi
+if [ "$USE_MSI" != "true" ]; then
 
+	if set_all_secrets "${allParameters[@]}"; then
+		return_code=$?
+	else
+		return_code=$?
+		print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
+		exit $return_code
+	fi
+else
+	return_code=0
+fi
 # Disable case-insensitive matching to restore default behavior
 shopt -u nocasematch
 

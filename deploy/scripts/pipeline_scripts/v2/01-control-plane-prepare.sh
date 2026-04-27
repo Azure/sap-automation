@@ -18,7 +18,7 @@ source "${parent_directory}/helper.sh"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "${SYSTEM_DEBUG:-false}" == "true" ]; then
+	if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
@@ -73,6 +73,9 @@ fi
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
 
+  TF_VAR_devops_platform="ADO"
+	export TF_VAR_devops_platform
+
 	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 
 	# Configure DevOps
@@ -97,6 +100,9 @@ if [ "$PLATFORM" == "devops" ]; then
 	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 
 elif [ "$PLATFORM" == "github" ]; then
+  TF_VAR_devops_platform="GITHUB"
+	export TF_VAR_devops_platform
+
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
@@ -233,7 +239,11 @@ if [ -n "$TF_VAR_spn_id" ]; then
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
 fi
-
+if [ -v MSI_ID ]; then
+		echo "Using Managed Identity:              $MSI_ID"
+		TF_VAR_user_assigned_identity_id="$MSI_ID"
+		export TF_VAR_user_assigned_identity_id
+fi
 # Reset the account if sourcing was done
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -284,11 +294,11 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:     ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:     ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${tfstate_resource_id}" ]; then
@@ -333,7 +343,7 @@ elif [ "$PLATFORM" == "github" ]; then
 		echo "Generating PGP key"
 		echo "${pass}" | "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh"
 		gpg --output "${CONFIG_REPO_PATH}/private.pgp" --armor --export-secret-key sap-azure-deployer@example.com
-		git add "${CONFIG_REPO_PATH}/private.pgp"	
+		git add "${CONFIG_REPO_PATH}/private.pgp"
 		commit_changes "Adding PGP key for encryption of state file" true
 	fi
 else
@@ -364,7 +374,7 @@ if [ "$PLATFORM" == "github" ]; then
 	# Set required environment variables for GitHub
 	export USER=${GITHUB_ACTOR:-githubuser}
 	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
-	
+
 	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
 	export TF_VAR_github_server_url
 

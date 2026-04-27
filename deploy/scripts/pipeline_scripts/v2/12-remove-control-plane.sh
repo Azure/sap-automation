@@ -269,6 +269,31 @@ if [ -f "$library_tfvars_file_name" ]; then
 	changed=1
 fi
 
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+	echo "Compressing the deployer state file"
+	if [ "$PLATFORM" == "devops" ]; then
+		sudo apt-get install zip -y
+		pass=${SYSTEM_COLLECTIONID//-/}
+		zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	elif [ "$PLATFORM" == "github" ]; then
+		rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+
+		echo "Encrypting state file"
+		gpg --batch \
+			--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
+			--encrypt \
+			--disable-dirmngr --recipient sap-azure-deployer@example.com \
+			--trust-model always \
+			DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
+		git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
+	else
+		pass="localpassword"
+	fi
+
+	changed=1
+fi
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
 	changed=1
@@ -278,31 +303,6 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 
 	if [ -n "$local_backend" ]; then
 		echo "Deployer Terraform state:              local"
-
-		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-			echo "Compressing the deployer state file"
-			if [ "$PLATFORM" == "devops" ]; then
-				sudo apt-get install zip -y
-				pass=${SYSTEM_COLLECTIONID//-/}
-				zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-				git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-			elif [ "$PLATFORM" == "github" ]; then
-				rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
-
-				echo "Encrypting state file"
-				gpg --batch \
-					--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
-					--encrypt \
-					--disable-dirmngr --recipient sap-azure-deployer@example.com \
-					--trust-model always \
-					DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
-				git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
-			else
-				pass="localpassword"
-			fi
-
-			changed=1
-		fi
 	else
 		echo "Deployer Terraform state:              remote"
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
@@ -327,6 +327,30 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+	echo "Compressing the library state file"
+	if [ "$PLATFORM" == "devops" ]; then
+		sudo apt-get install zip -y
+		pass=${SYSTEM_COLLECTIONID//-/}
+		zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+	elif [ "$PLATFORM" == "github" ]; then
+		rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+
+		echo "Encrypting state file"
+		gpg --batch \
+			--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
+			--encrypt \
+			--disable-dirmngr --recipient sap-azure-deployer@example.com \
+			--trust-model always \
+			LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
+		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+	else
+		pass="localpassword"
+	fi
+	changed=1
+fi
+
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	changed=1
@@ -335,30 +359,22 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
 
 	if [ -n "$local_backend" ]; then
-		echo "Deployer Terraform state:              local"
-
+		echo "Library Terraform state:               local"
+	else
+		echo "Library Terraform state:               remote"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-			echo "Compressing the library state file"
-			if [ "$PLATFORM" == "devops" ]; then
-				sudo apt-get install zip -y
-				pass=${SYSTEM_COLLECTIONID//-/}
-				zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-			elif [ "$PLATFORM" == "github" ]; then
-				rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
-
-				echo "Encrypting state file"
-				gpg --batch \
-					--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
-					--encrypt \
-					--disable-dirmngr --recipient sap-azure-deployer@example.com \
-					--trust-model always \
-					LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
-				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
-			else
-				pass="localpassword"
-			fi
-
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+			echo "Removed the local library state file"
+			changed=1
+		fi
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+			echo "Removed the local library state zip file"
+			changed=1
+		fi
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+			echo "Removed the local library state gpg file"
 			changed=1
 		fi
 	fi

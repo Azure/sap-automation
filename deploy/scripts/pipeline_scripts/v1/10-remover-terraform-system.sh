@@ -28,7 +28,7 @@ echo "##vso[build.updatebuildnumber]Removing the SAP System defined in $SAP_SYST
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=True
 	echo "Environment variables:"

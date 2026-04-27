@@ -103,4 +103,5 @@ resource "azurerm_bastion_host" "bastion" {
                                                           ]
                                        }
   tags                                 = var.infrastructure.tags
+  zones                                = []
 }
