@@ -343,8 +343,8 @@ else
     --auto-approve --ado --msi \
     "${storage_account_parameter}" "${keyvault_parameter}"; then
         return_code=$?
-        if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
-            source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
+        if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh" ]; then
+            source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh"
         fi
         echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
         echo "Return code from deploy_controlplane $return_code."
@@ -364,7 +364,7 @@ else
 fi
 
 if [ -v SDAF_APPSERVICE_NAME	]; then
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_NAME" "$SDAF_APPSERVICE_NAME"
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$SDAF_APPSERVICE_NAME"
     saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "true"
 else
     saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "false"
