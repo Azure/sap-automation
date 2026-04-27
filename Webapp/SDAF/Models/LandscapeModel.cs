@@ -110,11 +110,22 @@ namespace SDAFWebApp.Models
         public string MD_ISCSIServers
         {
             get
-            {
-                string iSCSIDescription = string.Format("# iSCSI servers:      {0} x {1} {2} {3}", iscsi_count, iscsi_image.publisher, iscsi_image.offer, iscsi_image.sku).PadRight(88);
 
-                iSCSIDescription += "#";
-                return iSCSIDescription;
+            {
+                if (iscsi_count == 0)
+                {
+                    string noISCSIDescription = string.Format("# iSCSI servers:      Not in use").PadRight(88);
+                    noISCSIDescription += "#";
+                    return noISCSIDescription;
+                }
+                else
+                {
+                    string iSCSIDescription = string.Format("# iSCSI servers:      {0} x {1} {2} {3}", iscsi_count, iscsi_image.publisher, iscsi_image.offer, iscsi_image.sku).PadRight(88);
+
+                    iSCSIDescription += "#";
+                    return iSCSIDescription;
+                }
+                
             }
         }
 
