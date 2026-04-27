@@ -199,6 +199,11 @@ if [ -z "${region}" ]; then
 fi
 
 if [ true == "$use_deployer" ]; then
+    if [ -z "${deployer_statefile_foldername:-}" ]; then
+        print_banner "$banner_title" "Missing required argument: -d|--deployer_statefile_foldername" "error"
+        exit 64
+    fi
+
     if [ ! -d "${deployer_statefile_foldername}" ]; then
         print_banner "$banner_title" "Directory does not exist: ${deployer_statefile_foldername}" "error"
         exit 3
