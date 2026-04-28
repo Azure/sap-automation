@@ -57,7 +57,7 @@ namespace SDAFWebApp.Models
             get
             {
                 string systemType = "Distributed";
-                if ((bool)database_high_availability || (bool)scs_high_availability)
+                if (database_high_availability == true || scs_high_availability == true)
                 {
                     systemType = "High Availability";
                 }
