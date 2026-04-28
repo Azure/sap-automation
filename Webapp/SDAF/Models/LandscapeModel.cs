@@ -119,7 +119,10 @@ namespace SDAFWebApp.Models
                 }
                 else
                 {
-                    string iSCSIDescription = string.Format("# iSCSI servers:      {0} x {1} {2} {3}", iscsi_count, iscsi_image.publisher, iscsi_image.offer, iscsi_image.sku).PadRight(88);
+                    string publisher = iscsi_image?.publisher ?? "Unknown";
+                    string offer = iscsi_image?.offer ?? "Unknown";
+                    string sku = iscsi_image?.sku ?? "Unknown";
+                    string iSCSIDescription = string.Format("# iSCSI servers:      {0} x {1} {2} {3}", iscsi_count, publisher, offer, sku).PadRight(88);
 
                     iSCSIDescription += "#";
                     return iSCSIDescription;
