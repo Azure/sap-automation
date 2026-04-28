@@ -5,7 +5,6 @@ using SDAFWebApp.Controllers;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
 using static SDAFWebApp.Models.CustomValidators;
 
 namespace SDAFWebApp.Models
