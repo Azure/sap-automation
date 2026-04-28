@@ -404,7 +404,7 @@
           ansible.builtin.async_status:
             jid:                       "{{ dbload_results.ansible_job_id }}"
           register:                    job_result
-          until:                       job_result.finished
+          until:                       job_result.finished | bool
           retries:                     "{% if dbload_retry_count is defined %}{{ dbload_retry_count | int }}{% else %}120{% endif %}"
           delay:                       60
           when:                        dbload_results.ansible_job_id is defined

@@ -124,6 +124,9 @@
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure the STONITH Azure fence agent is created when SBD not used"
   become:                              true
   become_user:                         root
+  when:
+                                        - database_cluster_type == "AFA"
+                                        - inventory_hostname  == ansible_play_hosts_all[0]
   block:
 # <TODO> templatize the pcmk_host_map from all entries in ansible_play_hosts_all and mm_hosts
     - name:                            "1.18.2.0 Generic Pacemaker - Create Azure Fencing Agent"
@@ -171,9 +174,6 @@
       become:                          true
       ansible.builtin.shell:         crm configure property stonith-timeout=900
 
-  when:
-                                        - database_cluster_type == "AFA"
-                                        - inventory_hostname  == ansible_play_hosts_all[0]
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # | Fencing - END                                                              |
@@ -242,6 +242,7 @@
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure Azure scheduled events is configured"
   become:                              true
   become_user:                         root
+  when:                                inventory_hostname == primary_instance_name
   block:
 
 
@@ -265,7 +266,6 @@
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure maintenance mode is disabled"
       ansible.builtin.shell:           crm configure property maintenance-mode=false
-  when:                                inventory_hostname == primary_instance_name
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
