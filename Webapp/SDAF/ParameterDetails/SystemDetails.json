@@ -833,7 +833,7 @@
         "Display": 3
       },
       {
-        "Name": "observer_nic_ips ",
+        "Name": "observer_nic_ips",
         "Required": false,
         "Description": "If provided, the observer virtual machines will be configured with the specified IP addresses.",
         "Type": "list",
