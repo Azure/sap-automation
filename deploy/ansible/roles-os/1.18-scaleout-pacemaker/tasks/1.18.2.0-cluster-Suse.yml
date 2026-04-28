@@ -79,6 +79,7 @@
                                        - node_tier == 'hana'
                                        - not database_cluster_type == "AFA"
 
+
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure additional nodes joins the Cluster"
   become:                              true
   become_user:                         root
@@ -93,7 +94,7 @@
     - name:                            "1.18.2.0 Generic Pacemaker - Wait for 60 seconds before retrying to join the cluster"
       ansible.builtin.wait_for:
         timeout:                       60
-    - name:                            "1.18.2.0 Generic Pacemaker - Ensure Secondary nodes joins the Cluster"
+    - name:                            "1.18.2.0 Generic Pacemaker - Ensure Secondary nodes joins the Cluster (Rescue)"
       # ha-cluster-join is not supported in SUSE 15 SP4 anymore, crm syntax required
       ansible.builtin.shell:           "sudo crm cluster join -y -c {{ primary_instance_name }} --interface eth0"
 

@@ -167,8 +167,8 @@
         chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
       register:                        saphanasr
       until:                           saphanasr.stdout is search("SOK")
-      retries:                         10
-      delay:                           30
+      retries:                         "{{ hsr_replication_retry_count }}"
+      delay:                           "{{ hsr_replication_retry_delay }}"
   rescue:
     - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out - Pause to give HANA replication time to stabilize"
       ansible.builtin.wait_for:
@@ -185,8 +185,8 @@
         chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
       register:                        saphanasr
       until:                           saphanasr.stdout is search("SOK")
-      retries:                         10
-      delay:                           30
+      retries:                         "{{ hsr_replication_retry_count }}"
+      delay:                           "{{ hsr_replication_retry_delay }}"
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - flag"
   ansible.builtin.file:

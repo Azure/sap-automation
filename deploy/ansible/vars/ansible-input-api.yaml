@@ -67,6 +67,9 @@ lss_uid:                               2040
 lss_gid:                               2050
 drop_schema:                           false
 
+hsr_replication_retry_count:           40
+hsr_replication_retry_delay:           15
+
 sap_trans_permissions:                 775
 use_msi_for_clusters:                  false
 hana_components:                       "all"
