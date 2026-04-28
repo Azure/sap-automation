@@ -159,6 +159,7 @@ namespace SDAFWebApp.Models
             get
             {
                 string dbSubnetDescription = string.Format("# DB Subnet:          {0}", db_subnet_address_prefix != null ? "Defined" : db_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                dbSubnetDescription += "#";
                 return dbSubnetDescription;
             }
         }
