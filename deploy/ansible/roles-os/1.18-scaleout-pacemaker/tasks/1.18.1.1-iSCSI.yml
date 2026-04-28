@@ -93,8 +93,6 @@
   ansible.builtin.set_fact:
     db_all_hosts:                      "{{ groups[sap_sid | upper + '_DB'] | default([]) +
                                            groups[sap_sid | upper + '_OBSERVER_DB'] | default([]) }}"
-    primary_site_hosts:                "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE1') | map(attribute='key') }}"
-    secondary_site_hosts:              "{{ hostvars | dict2items | selectattr('value.site', 'defined') | selectattr('value.site', 'eq', 'SITE2') | map(attribute='key') }}"
 
 - name:                                "1.18.1 iSCSI packages - Set this node's IQN based on group position"
   when:
