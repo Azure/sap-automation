@@ -298,7 +298,7 @@ $$storage_subnet_nsg_arm_id$$
 # storage_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$storage_subnet_nsg_name$$
 
-# use_separate_storage_subnet defines if a separate subnet is used (HANA Scale Out scenario))
+# use_separate_storage_subnet defines if a separate subnet is used (HANA Scale Out scenario)
 $$use_separate_storage_subnet$$
 
 #########################################################################################

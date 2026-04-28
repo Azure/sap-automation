@@ -177,7 +177,7 @@ namespace SDAFWebApp.Models
                     scsServerCount = (int)scs_server_count * 2;
                 }
 
-                string scsServerDescription = string.Format("# SCS servers:           {0} x {1} {2} {3}", scsServerCount, scs_server_image.publisher == null ? "N/A" : scs_server_image.publisher == null ? "N/A" : scs_server_image.publisher, scs_server_image.offer == null ? "N/A" : scs_server_image.offer, scs_server_image.sku == null ? "N/A" : scs_server_image.sku).PadRight(88);
+                string scsServerDescription = string.Format("# SCS servers:           {0} x {1} {2} {3}", scsServerCount, scs_server_image.publisher == null ? "N/A" : scs_server_image.publisher, scs_server_image.offer == null ? "N/A" : scs_server_image.offer, scs_server_image.sku == null ? "N/A" : scs_server_image.sku).PadRight(88);
                 scsServerDescription += "#";
                 return scsServerDescription;
             }
