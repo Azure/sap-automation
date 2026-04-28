@@ -948,7 +948,7 @@
       {
         "Name": "dns_label",
         "Required": false,
-        "Description": "Provides the DNS information to use for the Virtual Network.",
+        "Description": "Provides the DNS label to use for the Virtual Network.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
