@@ -11,7 +11,7 @@ source "${SCRIPT_DIR}/set-colors.sh"
 banner_title="Control Plane Removal"
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-    echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME "
+    echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLOYER_FOLDERNAME "
 fi
 
 #External helper functions
