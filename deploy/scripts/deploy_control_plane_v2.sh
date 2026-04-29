@@ -881,7 +881,7 @@ function retrieve_parameters() {
                 tfstate_resource_id DEPLOYER_KEYVAULT
 
 			if [ -n "${tfstate_resource_id:-}" ]; then
-			
+
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
 				export TF_VAR_tfstate_resource_id
 
