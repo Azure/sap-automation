@@ -220,15 +220,15 @@
                                                   - cluster_stonith_type in ['ASD', 'ISCSI']
   ansible.builtin.set_fact:
     os_version_supported_for_sbd: >-
-                                                  {{ {'value':
-                                                      (true if ansible_os_family | upper == "REDHAT" and
-                                                            (ansible_distribution_version is version('8.8', '>=') or ansible_distribution_version is version('9.0', '>='))
-                                                      else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ASD" and
-                                                            ansible_distribution_version is version('15.1', '>=')
-                                                      else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ISCSI" and
-                                                            ansible_distribution_version is version('12.5', '>=')
-                                                      else false)
-                                                  }.value | trim }}
+                                                  {{
+                                                    true if ansible_os_family | upper == "REDHAT" and
+                                                      (ansible_distribution_version is version('8.8', '>=') or ansible_distribution_version is version('9.0', '>='))
+                                                    else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ASD" and
+                                                      ansible_distribution_version is version('15.1', '>=')
+                                                    else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ISCSI" and
+                                                      ansible_distribution_version is version('12.5', '>=')
+                                                    else false
+                                                  }}
 
 # Debug: Display the OS version support for SBD STONITH
 - name:                                           "1.18.0 Generic Pacemaker - Show OS version support for SBD STONITH"
