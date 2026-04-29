@@ -199,22 +199,39 @@ export TF_VAR_subscription_id
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-export ENVIRONMENT
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-export LOCATION
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-export NETWORK
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
+
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars was not found."
+	exit 2
+fi
+
+if [ ! -f "$library_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---${reset}"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars was not found."
+	exit 2
+fi
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+else
+	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
+	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
+	exit 2
+fi
+
+CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+export TF_VAR_control_plane_name
+export CONTROL_PLANE_NAME
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
-
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
 SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
 export SYSTEM_CONFIGURATION_FILE
 
-deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
-library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 
 if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"; then
@@ -243,18 +260,6 @@ if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 echo -e "$green--- File Validations ---$reset"
-
-if [ ! -f "${deployer_configuration_file}" ]; then
-    print_banner "$banner_title" "File ${deployer_configuration_file} was not found" "error"
-    echo "##vso[task.logissue type=error]File ${deployer_configuration_file} was not found."
-    exit 2
-fi
-
-if [ ! -f "${library_configuration_file}" ]; then
-    print_banner "$banner_title" "File ${library_configuration_file} was not found" "error"
-    echo "##vso[task.logissue type=error]File ${library_configuration_file} was not found."
-    exit 2
-fi
 
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 

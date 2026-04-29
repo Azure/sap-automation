@@ -201,13 +201,24 @@
       failed_when:                     false
       changed_when:                    false
 
-    - name:                            "1.18.2.0 Generic Pacemaker - Stop Stonith SBD if it is already configured in cluster"
+    - name:                            "1.18.2.0 Generic Pacemaker - Stonith SBD is already configured in cluster"
       when:                            stonith_sbd_configured.rc == 0
-      ansible.builtin.shell:           crm resource stop stonith-sbd
+      block:
+        - name:                        "1.18.2.0 Generic Pacemaker -  Debug show Stonith SBD"
+          ansible.builtin.debug:
+            msg:                       "Stonith SBD is already configured in cluster"
 
-    - name:                            "1.18.2.0 Generic Pacemaker - Delete Stonith SBD if it is already configured in cluster"
-      when:                            stonith_sbd_configured.rc == 0
-      ansible.builtin.shell:           crm configure delete stonith-sbd
+        - name:                        "1.18.2.0 Generic Pacemaker - Stop Stonith SBD"
+          ansible.builtin.shell:       crm resource stop stonith-sbd
+
+        - name:                        "1.18.2.0 Generic Pacemaker - Delete Stonith SBD"
+          ansible.builtin.shell:       crm configure delete stonith-sbd
+
+        - name:                        "1.18.2.0 Generic Pacemaker - Recreate Stonith SBD in cluster"
+          ansible.builtin.shell: |
+                                       crm configure primitive stonith-sbd fence_sbd \
+                                         params pcmk_delay_max="15" \
+                                         op monitor interval="600" timeout="15"
 
     - name:                            "1.18.2.0 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
       when:                            stonith_sbd_configured.rc != 0
@@ -222,6 +233,17 @@
     - name:                            "1.18.2.0 Generic Pacemaker - Enable Stonith"
       ansible.builtin.shell:           crm configure property stonith-enabled=true
 
+    - name:                            "1.18.2.0 Generic Pacemaker - wait for 30 seconds before resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
+
+    - name:                            "1.18.2.0 Generic Pacemaker - SBD resource cleanup"
+      when:                            inventory_hostname == primary_instance_name
+      ansible.builtin.shell:           crm resource cleanup stonith-sbd
+
+    - name:                            "1.18.2.0 Generic Pacemaker - wait for 30 seconds after resource cleanup"
+      ansible.builtin.wait_for:
+        timeout:                       30
   always:
     - name:                            "1.18.2.0 Generic Pacemaker - SBD device configuration"
       when:                            inventory_hostname == primary_instance_name
