@@ -108,9 +108,6 @@ if [ "$PLATFORM" == "devops" ]; then
 fi
 
 
-automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"

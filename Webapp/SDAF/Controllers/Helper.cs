@@ -189,7 +189,13 @@ namespace SDAFWebApp.Controllers
                 if (property.Name == "network_address_space")
                 {
                     string networkValue = value.ToString();
-                    str.Append(property.Name + " = " + $"[\"{networkValue.Replace('-', ',')}\"]");
+                    string[] cidrValues = networkValue
+                        .Split(new[] { '-', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(v => v.Trim())
+                        .Where(v => !string.IsNullOrWhiteSpace(v))
+                        .ToArray();
+
+                    str.Append(property.Name + " = " + $"[{string.Join(",", cidrValues.Select(v => $"\"{v}\""))}]");
                 }
                 else if (property.PropertyType == typeof(string))
                 {

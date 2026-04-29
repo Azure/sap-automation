@@ -739,18 +739,29 @@ function get_name_components
 	deployment_type="${2}"
 	local return_value=0
 
-	ENVIRONMENT=$(grep -m1 "^environment=" "${fname}" | awk -F'=' '{print $2}' | xargs || true)
 
 	if [ "control_plane" == "${deployment_type}" ]; then
-		NETWORK=$(grep -m1 "^control_plane_network_logical_name=" "${fname}" | awk -F'=' '{print $2}' | xargs || true)
+		load_config_vars "${fname}" \
+			environment \
+			management_network_logical_name \
+			location
+			NETWORK="${management_network_logical_name}"
 	else
-		NETWORK=$(grep -m1 "^network_logical_name=" "${fname}" | awk -F'=' '{print $2}' | xargs || true)
+		load_config_vars "${fname}" \
+			environment \
+			network_logical_name \
+			location
+			NETWORK="${network_logical_name}"
 	fi
-	region=$(grep -m1 "^location=" "${fname}" | awk -F'=' '{print $2}' | xargs || true)
+	region="${location}"
 	get_region_code "$region"
 	LOCATION="$region_code"
+	ENVIRONMENT="${environment}"
+
 	if [[ -z "${ENVIRONMENT}" || -z "${NETWORK}" || -z "${LOCATION}" ]]; then
 		echo "Failed to retrieve name components from configuration file: ${fname}"
+		cat "${fname}"
+
 		return_value=1
 	else
 		echo "Retrieved name components from configuration file: ${fname}"

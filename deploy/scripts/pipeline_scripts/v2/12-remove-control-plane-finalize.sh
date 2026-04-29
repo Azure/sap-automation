@@ -28,7 +28,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 print_header
 echo ""
 
-deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
     echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
@@ -63,7 +63,7 @@ if [ "$PLATFORM" == "devops" ]; then
     if get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
         export VARIABLE_GROUP_ID
     else
-        echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+        echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
         echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
         exit 2
     fi
@@ -84,16 +84,6 @@ fi
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-if [ ! -v CONTROL_PLANE_NAME ]; then
-    ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-    LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-    NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-    CONTROL_PLANE_NAME="$ENVIRONMENT-$LOCATION-$NETWORK"
-else
-    ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
-    LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
-    NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
-fi
 
 CONFIG_DIR="${CONFIG_REPO_PATH}/.sap_deployment_automation"
 
@@ -475,7 +465,6 @@ if [ "$PLATFORM" == "devops" ]; then
         remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_DEPLOYMENT"
         remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_ID"
         remove_variable "$VARIABLE_GROUP_ID" "APPLICATION_CONFIGURATION_NAME"
-        remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
         remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_DEPLOYMENT"
         remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_NAME"
         remove_variable "$VARIABLE_GROUP_ID" "CONTROL_PLANE_ENVIRONMENT"

@@ -242,7 +242,7 @@ function bootstrap_deployer() {
     #                                                                                        #
     ##########################################################################################
 
-    
+
 
     local local_return_code=0
     load_config_vars "${deployer_environment_file_name}" "step"

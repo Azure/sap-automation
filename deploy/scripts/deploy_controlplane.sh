@@ -199,7 +199,11 @@ if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 fi
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
-deployer_tf_state="${key}.terraform.tfstate"
+if [ -v TF_VAR_deployer_tfstate_key ]; then
+		deployer_tf_state="$TF_VAR_deployer_tfstate_key"
+else
+	deployer_tf_state="${key}.terraform.tfstate"
+fi
 
 echo "Deployer State File:                 ${deployer_tf_state}"
 echo "Deployer Subscription:               ${subscription}"

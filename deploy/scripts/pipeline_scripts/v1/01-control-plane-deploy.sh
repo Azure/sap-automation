@@ -224,15 +224,18 @@ fi
 
 CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
 TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+
 export TF_VAR_control_plane_name
 export CONTROL_PLANE_NAME
+export TF_VAR_deployer_tfstate_key
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
 SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
 export SYSTEM_CONFIGURATION_FILE
 
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+deployer_tfstate_key="$CONTROL_PLANE_NAME-INFRASTRUCTURE.terraform.tfstate"
 
 if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"; then
     echo "Variable DEPLOYER_STATE_FILENAME was added to the $VARIABLE_GROUP variable group."
@@ -246,7 +249,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
     echo "Step:                                $step"
 fi
 
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+file_deployer_tfstate_key=""
 file_key_vault=""
 file_REMOTE_STATE_SA=""
 file_REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
@@ -264,15 +267,15 @@ echo -e "$green--- File Validations ---$reset"
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # echo -e "$green--- Convert config files to UX format ---$reset"
-# dos2unix -q "${deployer_configuration_file}"
-# dos2unix -q "${library_configuration_file}"
+# dos2unix -q "${deployer_tfvars_file_name}"
+# dos2unix -q "${library_tfvars_file_name}"
 
 echo -e "$green--- Read Variables from Variable group ---$reset"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ "$sourced_from_file" == 1 ]; then
     az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors
 fi
-echo "Deployer TFvars:                      $deployer_configuration_file"
+echo "Deployer TFvars:                      $deployer_tfvars_file_name"
 
 if [ -n "${key_vault}" ]; then
     echo "Deployer Key Vault:                   ${key_vault}"
@@ -366,8 +369,8 @@ if [ "$USE_MSI" != "true" ]; then
     export TF_VAR_use_spn=true
 
     if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configuration_file}" \
-    --library_parameter_file "${library_configuration_file}" \
+    --deployer_parameter_file "${deployer_tfvars_file_name}" \
+    --library_parameter_file "${library_tfvars_file_name}" \
     --subscription "$ARM_SUBSCRIPTION_ID" \
     --spn_secret "$ARM_CLIENT_SECRET" \
     --tenant_id "$ARM_TENANT_ID" \
@@ -389,8 +392,8 @@ else
     export TF_VAR_use_spn=false
 
     if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configuration_file}" \
-    --library_parameter_file "${library_configuration_file}" \
+    --deployer_parameter_file "${deployer_tfvars_file_name}" \
+    --library_parameter_file "${library_tfvars_file_name}" \
     --subscription "$ARM_SUBSCRIPTION_ID" \
     --auto-approve --ado --msi \
     "${storage_account_parameter}" "${keyvault_parameter}"; then
@@ -456,8 +459,8 @@ if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
     added=1
 fi
 
-if [ -f "${deployer_configuration_file}" ]; then
-    git add -f "${deployer_configuration_file}"
+if [ -f "${deployer_tfvars_file_name}" ]; then
+    git add -f "${deployer_tfvars_file_name}"
     added=1
 fi
 
@@ -504,8 +507,8 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
     fi
 fi
 
-if [ -f "${library_configuration_file}" ]; then
-    git add -f "${library_configuration_file}"
+if [ -f "${library_tfvars_file_name}" ]; then
+    git add -f "${library_tfvars_file_name}"
     added=1
 fi
 

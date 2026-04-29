@@ -75,10 +75,13 @@ fi
 
 if [ -z "$CONTROL_PLANE_NAME" ]; then
     CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
-    TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
-    export TF_VAR_control_plane_name
-    export CONTROL_PLANE_NAME
 fi
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+
+export TF_VAR_control_plane_name
+export CONTROL_PLANE_NAME
+export TF_VAR_deployer_tfstate_key
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
@@ -92,30 +95,6 @@ if [ "$PLATFORM" == "github" ]; then
     elif [ "$PLATFORM" == "devops" ]; then
     TF_VAR_devops_platform="ADO"
     export TF_VAR_devops_platform
-fi
-
-automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
-deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
-
-if [ ! -f "$deployer_tfvars_file_name" ]; then
-    echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
-    if [ "$PLATFORM" == "devops" ]; then
-        echo "##vso[task.logissue type=error]File {$deployer_tfvars_file_name} was not found."
-    fi
-    exit 2
-
-fi
-
-if [ ! -f "$library_tfvars_file_name" ]; then
-    echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
-    if [ "$PLATFORM" == "devops" ]; then
-        echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-    fi
-    exit 2
-
 fi
 
 if [ -z "$CONTROL_PLANE_NAME" ]; then
@@ -410,6 +389,8 @@ start_group "Deploying control plane"
 source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh"
 
 allParameters=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters=(--deployer_parameter_file "${deployer_tfvars_file_name}")
+allParameters+=(--library_parameter_file "${library_tfvars_file_name}")
 allParameters+=(--auto-approve)
 allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")
 if [ "$PLATFORM" == "devops" ]; then

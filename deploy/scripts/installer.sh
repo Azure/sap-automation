@@ -115,9 +115,6 @@ while :; do
         CONTROL_PLANE_NAME="$2"
         CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
         TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
-        TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-
-        export TF_VAR_deployer_tfstate_key
         export TF_VAR_control_plane_name
         shift 2
         ;;
@@ -971,7 +968,7 @@ if [ 1 == $apply_needed ]; then
 
     if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
         allParameters+=(-json)
-        allParameters+=(--auto-approve)
+        allParameters+=(-auto-approve)
         allParameters+=(-no-color)
         allParameters+=(-compact-warnings)
         applyOutputfile="apply_output.json"
