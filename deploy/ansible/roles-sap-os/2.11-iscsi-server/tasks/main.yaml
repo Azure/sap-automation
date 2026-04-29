@@ -147,8 +147,7 @@
 
 - name:                                "2.11 iSCSI Server - Compute DB node count for ACL generation"
   ansible.builtin.set_fact:
-    db_acl_host_count:                 "{{ (groups[sap_sid | upper + '_DB'] | default([]) | length) +
-                                           (groups[sap_sid | upper + '_OBSERVER_DB'] | default([]) | length) }}"
+    db_acl_host_count:                 "{{ (groups[sap_sid | upper + '_DB'] | default([]) | length)"
 
 - name:                                "2.11 iSCSI Server - SBD create iscsi/iqn DB ACLs for all scale-out nodes"
   become_user:                         root
@@ -165,6 +164,27 @@
   with_nested:
                                        - "{{ iscsi_servers }}"
                                        - "{{ range(0, db_acl_host_count | int) | list }}"
+
+
+- name:                                "2.11 iSCSI Server - Compute OBSERVER node count for ACL generation"
+  ansible.builtin.set_fact:
+    observer_acl_host_count:                 "{{ (groups[sap_sid | upper + '_OBSERVER_DB'] | default([]) | length) }}"
+
+- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn OBSERVER ACLs for all scale-out nodes"
+  become_user:                         root
+  become:                              true
+  when:
+                                       - iscsi_servers is defined
+                                       - item.0.host == ansible_hostname
+                                       - item.0.type == 'observer'
+  ansible.builtin.command: >
+                                       targetcli iscsi/{{ item.0.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid | lower }}-xobserver-{{ item.1 }}.local:{{ sap_sid | lower }}-xobserver-{{ item.1 }}
+  register:                            iscsi_create_observer_acls
+  failed_when:                         iscsi_create_observer_acls.rc not in [0,1]
+  changed_when:                        iscsi_create_observer_acls.rc == 0
+  with_nested:
+                                       - "{{ iscsi_servers }}"
+                                       - "{{ range(0, observer_acl_host_count | int) | list }}"
 
 
 - name:                                "2.11 iSCSI Server - Save CLI"
