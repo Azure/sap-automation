@@ -199,10 +199,10 @@ if [ -f "$deployer_environment_file_name" ]; then
 	changed=1
 fi
 
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$library_tfvars_file_name" ]; then
+if [ -f "$library_tfvars_file_name" ]; then
 	echo "Resetting library TFvars file: $library_tfvars_file_name"
-	sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$library_tfvars_file_name"
-	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$library_tfvars_file_name"
+	sed -i /"custom_random_id"/d "$library_tfvars_file_name"
+	git add -f "$library_tfvars_file_name"
 	changed=1
 fi
 

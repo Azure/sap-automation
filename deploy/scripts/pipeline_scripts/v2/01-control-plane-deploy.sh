@@ -389,7 +389,7 @@ start_group "Deploying control plane"
 source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh"
 
 allParameters=(--control_plane_name "${CONTROL_PLANE_NAME}")
-allParameters=(--deployer_parameter_file "${deployer_tfvars_file_name}")
+allParameters+=(--deployer_parameter_file "${deployer_tfvars_file_name}")
 allParameters+=(--library_parameter_file "${library_tfvars_file_name}")
 allParameters+=(--auto-approve)
 allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")

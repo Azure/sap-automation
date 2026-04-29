@@ -131,7 +131,7 @@ deployer_environment_file_name=$(get_configuration_file "${automation_config_dir
 SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
 export SYSTEM_CONFIGURATION_FILE
 
-if [ -z $LIBRARY_FOLDERNAME ]; then
+if [ -z "$LIBRARY_FOLDERNAME" ]; then
 	LIBRARY_FOLDERNAME="$ENVIRONMENT-$LOCATION-SAP_LIBRARY"
 fi
 

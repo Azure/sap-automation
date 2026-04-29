@@ -196,8 +196,6 @@
 
 # @TODO: Use this variable to determine the cluster stonith type
 # 'sybase' databases do not have the code to cluster them. It can be added in the future.
-# @TODO: Use this variable to determine the cluster stonith type
-# 'sybase' databases do not have the code to cluster them. It can be added in the future.
 - name:                                           "1.18.0 Generic Pacemaker - Determine STONITH type for pacemaker cluster initialization"
   ansible.builtin.set_fact:
     cluster_stonith_type: >-
