@@ -184,6 +184,7 @@ namespace SDAFWebApp.Models
                 string scsServerDescription = string.Format("# SCS servers:           N/A").PadRight(88);
                 if (scs_server_image != null)
                 {
+                    scsServerDescription = string.Format("# SCS servers:           {0} x {1} {2} {3}", scsServerCount, scs_server_image.publisher == null ? "N/A" : scs_server_image.publisher, scs_server_image.offer == null ? "N/A" : scs_server_image.offer, scs_server_image.sku == null ? "N/A" : scs_server_image.sku).PadRight(88);
                 }
                 scsServerDescription += "#";
                 return scsServerDescription;
