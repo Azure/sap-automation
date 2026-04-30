@@ -759,8 +759,13 @@ function get_name_components
 	ENVIRONMENT="${environment}"
 
 	if [[ -z "${ENVIRONMENT}" || -z "${NETWORK}" || -z "${LOCATION}" ]]; then
+		local missing_components=""
+		[[ -z "${ENVIRONMENT}" ]] && missing_components="${missing_components} environment"
+		[[ -z "${NETWORK}" ]] && missing_components="${missing_components} network"
+		[[ -z "${LOCATION}" ]] && missing_components="${missing_components} location"
+
 		echo "Failed to retrieve name components from configuration file: ${fname}"
-		cat "${fname}"
+		echo "Missing required configuration values:${missing_components}"
 
 		return_value=1
 	else
