@@ -385,7 +385,7 @@ $extension_name = (az devops extension list --organization $ADO_Organization --q
 
 if ($extension_name.Length -eq 0) {
   Write-Host  "  Installing the Post Build Cleanup extension from the marketplace" `
-              -ForegroundColor Green 
+              -ForegroundColor Green
   az devops extension install --organization $ADO_Organization --extension PostBuildCleanup --publisher-id mspremier --output none
 }
 else {
@@ -719,7 +719,7 @@ if ($general_group_id.Length -eq 0) {
                                       --variables ANSIBLE_HOST_KEY_CHECKING=false          `
                                                   Deployment_Configuration_Path=WORKSPACES `
                                                   Branch=main                              `
-                                                  tf_version="1.14.8"                      `
+                                                  tf_version="1.14.9"                      `
                                                   ansible_core_version="2.16.18"           `
                                                   S-Username=$SUserName                    `
                                                   S-Password=$SPassword                    `
@@ -1203,7 +1203,7 @@ if ($true -eq $CreateConnection ) {
                                         changes   = @(@{
                                             changetype        = "edit"
                                             item        = @{
-                                                path          = "/pipelines/resources.yml" 
+                                                path          = "/pipelines/resources.yml"
                                               }
                                             newContent  = @{
                                                 content       = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($content))
@@ -1274,7 +1274,7 @@ if ($true -eq $CreateConnection ) {
                                         changes   = @(@{
                                             changetype        = "edit"
                                             item        = @{
-                                                path          = "/pipelines/resources_including_samples.yml" 
+                                                path          = "/pipelines/resources_including_samples.yml"
                                               }
                                             newContent  = @{
                                                 content       = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($content))
@@ -1313,7 +1313,7 @@ Write-Host  "Section: Create ARM Service Connection ..." `
             -ForegroundColor DarkCyan
 
 if ($true -eq $CreateConnection ) {
-  
+
   $Service_Connection_Name = "Control_Plane_Service_Connection"
   $epExists                = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]" )
 
