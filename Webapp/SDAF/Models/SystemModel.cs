@@ -162,7 +162,11 @@ namespace SDAFWebApp.Models
                 {
                     dbserverCount = (int)database_server_count * 2;
                 }
-                string dbServerDescription = string.Format("# Database servers:      {0} x {1} {2} {3}", dbserverCount, database_vm_image.publisher == null ? "N/A" : database_vm_image.publisher, database_vm_image.offer == null ? "N/A" : database_vm_image.offer, database_vm_image.sku == null ? "N/A" : database_vm_image.sku).PadRight(88);
+                string dbServerDescription = string.Format("# Database servers:      N/A").PadRight(88);
+                if (database_vm_image != null)
+                {
+                    dbServerDescription = string.Format("# Database servers:      {0} x {1} {2} {3}", dbserverCount, database_vm_image.publisher == null ? "N/A" : database_vm_image.publisher, database_vm_image.offer == null ? "N/A" : database_vm_image.offer, database_vm_image.sku == null ? "N/A" : database_vm_image.sku).PadRight(88);
+                }
                 dbServerDescription += "#";
                 return dbServerDescription;
             }
@@ -177,7 +181,10 @@ namespace SDAFWebApp.Models
                     scsServerCount = (int)scs_server_count * 2;
                 }
 
-                string scsServerDescription = string.Format("# SCS servers:           {0} x {1} {2} {3}", scsServerCount, scs_server_image.publisher == null ? "N/A" : scs_server_image.publisher, scs_server_image.offer == null ? "N/A" : scs_server_image.offer, scs_server_image.sku == null ? "N/A" : scs_server_image.sku).PadRight(88);
+                string scsServerDescription = string.Format("# SCS servers:           N/A").PadRight(88);
+                if (scs_server_image != null)
+                {
+                }
                 scsServerDescription += "#";
                 return scsServerDescription;
             }
@@ -187,8 +194,11 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string appServerDescription = string.Format("# Application servers:   {0} x {1} {2} {3}", application_server_count, application_server_image.publisher == null ? "N/A" : application_server_image.publisher, application_server_image.offer == null ? "N/A" : application_server_image.offer, application_server_image.sku == null ? "N/A" : application_server_image.sku).PadRight(88);
-
+                string appServerDescription = string.Format("# Application servers:   N/A").PadRight(88);
+                if (application_server_image != null)
+                {
+                    appServerDescription = string.Format("# Application servers:   {0} x {1} {2} {3}", application_server_count, application_server_image.publisher == null ? "N/A" : application_server_image.publisher, application_server_image.offer == null ? "N/A" : application_server_image.offer, application_server_image.sku == null ? "N/A" : application_server_image.sku).PadRight(88);
+                }
                 appServerDescription += "#";
                 return appServerDescription;
             }
@@ -198,7 +208,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string clusterDbDescription = string.Format("# Database cluster type: {0}", database_cluster_type).PadRight(88);
+                string clusterDbDescription = string.Format("# Database cluster type: {0}", database_cluster_type == null ? "N/A" : database_cluster_type).PadRight(88);
                 clusterDbDescription += "#";
                 return clusterDbDescription;
             }
@@ -208,7 +218,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string clusterScsDescription = string.Format("# SCS cluster type:      {0}", scs_cluster_type).PadRight(88);
+                string clusterScsDescription = string.Format("# SCS cluster type:      {0}", scs_cluster_type == null ? "N/A" : scs_cluster_type).PadRight(88);
                 clusterScsDescription += "#";
                 return clusterScsDescription;
             }
