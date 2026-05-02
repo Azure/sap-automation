@@ -128,9 +128,6 @@ else
 fi
 export VARIABLE_GROUP_ID
 
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
-
-
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
 set -o pipefail
@@ -141,19 +138,19 @@ echo ""
 echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
 echo ""
 
-if [ ! -f "$deployerTFvarsFile" ]; then
-	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File $deployer_tfvars_file_name was not found."
 	exit 2
 fi
 
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
 export TF_VAR_deployer_tfstate_key
 
 CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
