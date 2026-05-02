@@ -130,6 +130,7 @@ else
 fi
 export VARIABLE_GROUP_ID
 
+deployer_tfstate_key="${ENVIRONMENT}-${LOCATION}-${NETWORK}-INFRASTRUCTURE.tfstate"
 TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
 export TF_VAR_deployer_tfstate_key
 
