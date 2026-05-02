@@ -271,7 +271,7 @@ if [ -n "$DEPLOYER_KEYVAULT" ]; then
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 	echo "Key Vault ID:                       ${key_vault_id}"
 
-	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+	if [ -z "${key_vault_id}" ]; then
 		echo "##vso[task.logissue type=error]Key Vault $DEPLOYER_KEYVAULT could not be found, trying to recover"
 		DEPLOYER_KEYVAULT=$(az keyvault list-deleted --query "[?name=='${DEPLOYER_KEYVAULT}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 		if [ -n "$DEPLOYER_KEYVAULT" ]; then
