@@ -204,22 +204,22 @@ library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRA
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars was not found."
+	echo "##vso[task.logissue type=error]File $deployer_tfvars_file_name was not found."
 	exit 2
 fi
 
 if [ ! -f "$library_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---${reset}"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars was not found."
+	echo "##vso[task.logissue type=error]File $library_tfvars_file_name was not found."
 	exit 2
 fi
 
 if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
-	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+    echo -e "${green}--- Extracted name components from $DEPLOYER_FOLDERNAME.tfvars ---${reset}"
 else
-	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
-	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
-	exit 2
+    echo -e "${bold_red}--- Failed to extract name components from $DEPLOYER_FOLDERNAME.tfvars ---${reset}"
+    echo "##vso[task.logissue type=error]Failed to extract name components from $DEPLOYER_FOLDERNAME.tfvars."
+    exit 2
 fi
 
 CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
@@ -345,14 +345,14 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
     # shellcheck disable=SC2001
     pass=${SYSTEM_COLLECTIONID//-/}
 
-	echo "Unzipping the library state file to ${CONFIG_REPO_PATH}/LIBRARY/${LIBRARY_FOLDERNAME}"
+    echo "Unzipping the library state file to ${CONFIG_REPO_PATH}/LIBRARY/${LIBRARY_FOLDERNAME}"
     unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
     pass=${SYSTEM_COLLECTIONID//-/}
 
-	echo "Unzipping the deployer state file to ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
+    echo "Unzipping the deployer state file to ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
     unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
