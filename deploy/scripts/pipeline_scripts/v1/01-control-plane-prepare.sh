@@ -269,6 +269,7 @@ DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYE
 if [ -n "$DEPLOYER_KEYVAULT" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+	echo "Key Vault ID:                       ${key_vault_id}"
 
 	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
 		echo "##vso[task.logissue type=error]Key Vault $DEPLOYER_KEYVAULT could not be found, trying to recover"

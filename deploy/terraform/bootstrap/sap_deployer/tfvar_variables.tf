@@ -478,7 +478,7 @@ variable "use_private_endpoint"                       {
 
 variable "use_service_endpoint"                       {
                                                         description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                        default     = false
+                                                        default     = true
                                                         type        = bool
                                                       }
 
