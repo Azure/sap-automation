@@ -714,7 +714,13 @@ set -o errexit
 # Install Ansible
 case "$(get_distro_name)" in
 ubuntu)
-  sudo add-apt-repository --yes --update ppa:ansible/ansible
+  # Ansible is installed from pip in a dedicated venv below, so this PPA is optional.
+  # Keep it best-effort to avoid hard failures in restricted networks.
+  set +o errexit
+  if ! sudo add-apt-repository --yes --update ppa:ansible/ansible; then
+    echo "Warning: unable to reach ppa:ansible/ansible, continuing with pip-based Ansible install"
+  fi
+  set -o errexit
   ;;
 esac
 
