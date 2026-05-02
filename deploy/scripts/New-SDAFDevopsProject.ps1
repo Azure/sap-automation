@@ -1509,7 +1509,6 @@ if ($authenticationMethod -eq "Service Principal") {
   # az role assignment create --assignee $ARM_CLIENT_ID --role "App Configuration Data Owner"   --subscription $Control_plane_subscriptionID --scope $my_scope --output none
   # az role assignment create --assignee $ARM_CLIENT_ID --role "Private DNS Zone Contributor"   --subscription $Control_plane_subscriptionID --scope $my_scope --output none
   $roles = @("Contributor",                    `
-             "User Access Administrator",      `
              "Storage Blob Data Contributor",  `
              "Storage Table Data Contributor", `
              "App Configuration Data Owner",   `
@@ -1524,6 +1523,19 @@ if ($authenticationMethod -eq "Service Principal") {
                               --scope        $my_scope                     `
                               --output       none
   }
+
+  $RoleName = "User Access Administrator"
+  $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, f58310d9-a9f6-439a-9e8d-f62e7b41a168, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, f58310d9-a9f6-439a-9e8d-f62e7b41a168, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+  $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+  if ($roleAssignment) {
+    Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+    Write-Verbose "Role assignment ID: $roleAssignment"
+  }
+  else {
+    Write-Warning "Identity created but conditional role assignment may have failed"
+  }
+
 }
 <#-------------------------------------+---------------------------------------#>
 #endregion

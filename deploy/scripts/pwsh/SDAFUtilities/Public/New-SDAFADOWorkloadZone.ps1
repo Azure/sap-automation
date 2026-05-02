@@ -150,7 +150,6 @@ function New-SDAFADOWorkloadZone {
 
     $Roles = @(
       "Contributor",
-      "User Access Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secrets Officer",
@@ -194,8 +193,8 @@ function New-SDAFADOWorkloadZone {
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
-            tenantid                             = $TenantId
-            serviceprincipalid                   = $AppRegistrationId
+            tenantid           = $TenantId
+            serviceprincipalid = $AppRegistrationId
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -224,7 +223,7 @@ function New-SDAFADOWorkloadZone {
 
       Write-Verbose "Creating service connection: $ConnectionName"
 
-      $Fed=(az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
+      $Fed = (az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create service connection '$ConnectionName'"
         throw "Service connection creation failed"
@@ -232,9 +231,9 @@ function New-SDAFADOWorkloadZone {
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
 
       $PostBody = [PSCustomObject]@{
-        name = "fic-for-sc"
-        issuer = $Fed.workloadIdentityFederationIssuer
-        subject = $Fed.workloadIdentityFederationSubject
+        name      = "fic-for-sc"
+        issuer    = $Fed.workloadIdentityFederationIssuer
+        subject   = $Fed.workloadIdentityFederationSubject
         audiences = @("api://AzureADTokenExchange")
       }
 
@@ -435,7 +434,6 @@ function New-SDAFADOWorkloadZone {
       if ($AuthenticationMethod -eq "Managed Identity") {
         $Roles = @(
           "Contributor",
-          "User Access Administrator",
           "Storage Blob Data Owner",
           "Key Vault Administrator",
           "Key Vault Secrets Officer",
@@ -468,6 +466,17 @@ function New-SDAFADOWorkloadZone {
           }
         }
 
+        $RoleName = "User Access Administrator"
+        $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, f58310d9-a9f6-439a-9e8d-f62e7b41a168, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, f58310d9-a9f6-439a-9e8d-f62e7b41a168, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+        $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+        if ($roleAssignment) {
+          Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+          Write-Verbose "Role assignment ID: $roleAssignment"
+        }
+        else {
+          Write-Warning "Identity created but conditional role assignment may have failed"
+        }
 
         $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
@@ -548,6 +557,17 @@ function New-SDAFADOWorkloadZone {
 
           Write-Host "Assigning role" $RoleName "to the workload zone Service Principal" -ForegroundColor Green
           az role assignment create --assignee $WorkloadZoneClientId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --output none --only-show-errors
+        }
+        $RoleName = "User Access Administrator"
+        $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, f58310d9-a9f6-439a-9e8d-f62e7b41a168, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, f58310d9-a9f6-439a-9e8d-f62e7b41a168, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+        $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+        if ($roleAssignment) {
+          Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+          Write-Verbose "Role assignment ID: $roleAssignment"
+        }
+        else {
+          Write-Warning "Identity created but conditional role assignment may have failed"
         }
 
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $WorkloadZoneClientClientId
