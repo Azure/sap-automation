@@ -563,7 +563,7 @@ function New-SDAFADOProject {
 
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
+      "User Access Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secrets Officer",
@@ -1942,7 +1942,7 @@ function New-SDAFADOWorkloadZone {
 
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
+      "User Access Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secrets Officer",
@@ -2227,7 +2227,7 @@ function New-SDAFADOWorkloadZone {
       if ($AuthenticationMethod -eq "Managed Identity") {
         $Roles = @(
           "Contributor",
-          "Role Based Access Control Administrator",
+          "User Access Administrator",
           "Storage Blob Data Owner",
           "Key Vault Administrator",
           "Key Vault Secrets Officer",
@@ -2432,7 +2432,7 @@ function New-SDAFUserAssignedIdentity {
   begin {
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
+      "User Access Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secrets Officer",

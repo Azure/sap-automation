@@ -17,7 +17,7 @@ function New-SDAFUserAssignedIdentity {
   begin {
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
+      "User Access Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secrets Officer",
