@@ -173,8 +173,8 @@ locals {
   options                              = {
                                             enable_deployer_public_ip       = var.deployer_enable_public_ip || try(var.options.enable_deployer_public_ip, false)
                                             use_spn                         = var.use_spn
-                                            assign_resource_permissions     = var.deployer_assign_resource_permissions && length(var.user_assigned_identity_id) == 0
-                                            assign_subscription_permissions = var.deployer_assign_subscription_permissions && length(var.user_assigned_identity_id) == 0
+                                            assign_resource_permissions     = var.deployer_assign_resource_permissions
+                                            assign_subscription_permissions = var.deployer_assign_subscription_permissions
                                             network_security_perimeter      = local.network_security_perimeter
                                          }
 
