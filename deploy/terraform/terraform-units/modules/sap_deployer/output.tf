@@ -77,7 +77,7 @@ output "deployer_private_ip_address" {
 
 output "deployer_system_assigned_identity" {
   description                          = "Deployer System Assigned Identity"
-  value                                = azurerm_linux_virtual_machine.deployer[*].identity[0].principal_id
+  value                                = try(azurerm_linux_virtual_machine.deployer[*].identity[0].principal_id, null)
 }
 
 output "deployer_user_assigned_identity" {
