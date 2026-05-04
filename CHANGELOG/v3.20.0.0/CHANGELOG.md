@@ -21,13 +21,19 @@
 - `/etc/hosts` handling improved using a custom Ansible filter plugin:
 	- `deploy/ansible/roles-sap-os/2.4-hosts-file/filter_plugins/sap_hosts_filters.py`
 
-### 4. Terraform and Infrastructure Changes
-- Terraform version references updated from 1.14.6 to 1.14.8 in `tfvar_variables.tf` files.
+### 4. HANA scaleout improvements
+- HANA scaleout installation and configuration tasks were refactored for better reliability and maintainability
+- Support for iSCSI based fencing on RedHat
+- Pacemaker finetuning to handle potential fencing issues in scaleout environments
+- Improved handling of HANA scaleout node registration and cluster configuration in Ansible playbooks
+
+### 5. Terraform and Infrastructure Changes
+- Terraform version references updated from 1.14.6 to 1.15.1 in `tfvar_variables.tf` files.
 - Terraform init command cleanup in scripts (removed redundant `true` flags).
 - AFS/storage and inventory generation behavior improved in Terraform modules.
 - Network Security Perimeter support added
 
-### 5. Pipeline, Tooling, and Dependency Updates
+### 6. Pipeline, Tooling, and Dependency Updates
 - Authentication and deployment pipeline scripts were updated across v1 and v2 flow scripts.
 - .NET and action dependencies bumped (for example `Azure.Identity`, `dotnet-ef`, container/action workflow pins).
 - Python dependency updates include requests pinning update to `2.32.5`.
