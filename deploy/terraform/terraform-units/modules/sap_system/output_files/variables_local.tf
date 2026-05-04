@@ -60,7 +60,7 @@ locals {
 
   scs_iqn                              = format("iqn.2006-04.ascs%s.local:ascs%s", lower(var.sap_sid), lower(var.sap_sid))
   db_iqn                               = format("iqn.2006-04.db%s.local:db%s", lower(var.sap_sid), lower(var.sap_sid))
-  observer_iqn                         = format("iqn.2006-04.db%s.local:observer%s", lower(var.sap_sid), lower(var.sap_sid))
+  observer_iqn                         = format("iqn.2006-04.db%s.local:db%s", lower(var.sap_sid), lower(var.sap_sid))
 
   iscsi_scs_servers                    = var.scs_cluster_type == "ISCSI" ? (
                                           distinct(flatten([for idx, vm in var.iSCSI_server_names : [
