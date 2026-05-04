@@ -152,7 +152,7 @@
         db_virtualhost_temp:  >-
                                        {%- set _host_name = hostvars[db_server | first]['virtual_host'] -%}
                                        {%- if database_scale_out and not database_high_availability -%}
-                                       {%-  set _host_name = sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so' -%}
+                                       {#  set _host_name = sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so' #}
                                        {%- endif -%}
                                        {{- _host_name -}}
 
@@ -404,7 +404,7 @@
           ansible.builtin.async_status:
             jid:                       "{{ dbload_results.ansible_job_id }}"
           register:                    job_result
-          until:                       job_result.finished
+          until:                       job_result.finished | bool
           retries:                     "{% if dbload_retry_count is defined %}{{ dbload_retry_count | int }}{% else %}120{% endif %}"
           delay:                       60
           when:                        dbload_results.ansible_job_id is defined

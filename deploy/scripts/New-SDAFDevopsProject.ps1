@@ -385,7 +385,7 @@ $extension_name = (az devops extension list --organization $ADO_Organization --q
 
 if ($extension_name.Length -eq 0) {
   Write-Host  "  Installing the Post Build Cleanup extension from the marketplace" `
-              -ForegroundColor Green 
+              -ForegroundColor Green
   az devops extension install --organization $ADO_Organization --extension PostBuildCleanup --publisher-id mspremier --output none
 }
 else {
@@ -719,7 +719,7 @@ if ($general_group_id.Length -eq 0) {
                                       --variables ANSIBLE_HOST_KEY_CHECKING=false          `
                                                   Deployment_Configuration_Path=WORKSPACES `
                                                   Branch=main                              `
-                                                  tf_version="1.14.8"                      `
+                                                  tf_version="1.15.1"                      `
                                                   ansible_core_version="2.16.18"           `
                                                   S-Username=$SUserName                    `
                                                   S-Password=$SPassword                    `
@@ -1203,7 +1203,7 @@ if ($true -eq $CreateConnection ) {
                                         changes   = @(@{
                                             changetype        = "edit"
                                             item        = @{
-                                                path          = "/pipelines/resources.yml" 
+                                                path          = "/pipelines/resources.yml"
                                               }
                                             newContent  = @{
                                                 content       = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($content))
@@ -1274,7 +1274,7 @@ if ($true -eq $CreateConnection ) {
                                         changes   = @(@{
                                             changetype        = "edit"
                                             item        = @{
-                                                path          = "/pipelines/resources_including_samples.yml" 
+                                                path          = "/pipelines/resources_including_samples.yml"
                                               }
                                             newContent  = @{
                                                 content       = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($content))
@@ -1313,7 +1313,7 @@ Write-Host  "Section: Create ARM Service Connection ..." `
             -ForegroundColor DarkCyan
 
 if ($true -eq $CreateConnection ) {
-  
+
   $Service_Connection_Name = "Control_Plane_Service_Connection"
   $epExists                = (az devops service-endpoint list --query "[?name=='$Service_Connection_Name'].name | [0]" )
 
@@ -1509,7 +1509,6 @@ if ($authenticationMethod -eq "Service Principal") {
   # az role assignment create --assignee $ARM_CLIENT_ID --role "App Configuration Data Owner"   --subscription $Control_plane_subscriptionID --scope $my_scope --output none
   # az role assignment create --assignee $ARM_CLIENT_ID --role "Private DNS Zone Contributor"   --subscription $Control_plane_subscriptionID --scope $my_scope --output none
   $roles = @("Contributor",                    `
-             "User Access Administrator",      `
              "Storage Blob Data Contributor",  `
              "Storage Table Data Contributor", `
              "App Configuration Data Owner",   `
@@ -1524,6 +1523,19 @@ if ($authenticationMethod -eq "Service Principal") {
                               --scope        $my_scope                     `
                               --output       none
   }
+
+  $RoleName = "User Access Administrator"
+  $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+  $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+  if ($roleAssignment) {
+    Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+    Write-Verbose "Role assignment ID: $roleAssignment"
+  }
+  else {
+    Write-Warning "Identity created but conditional role assignment may have failed"
+  }
+
 }
 <#-------------------------------------+---------------------------------------#>
 #endregion

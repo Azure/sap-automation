@@ -57,7 +57,7 @@ set -o pipefail                                                                 
 # any of the critical environment variables contain the pattern $(...) and log a
 # warning if they do. This is a safety measure to avoid potential command
 # injection or unintended behavior in the scripts.
-#		
+#
 # Unset exported env vars whose VALUE contains a $(...) pattern
 #---------------------------------------+---------------------------------------#
 while IFS= read -r name; do
@@ -199,23 +199,43 @@ export TF_VAR_subscription_id
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-export ENVIRONMENT
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-export LOCATION
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-export NETWORK
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
+
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File $deployer_tfvars_file_name was not found."
+	exit 2
+fi
+
+if [ ! -f "$library_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---${reset}"
+	echo "##vso[task.logissue type=error]File $library_tfvars_file_name was not found."
+	exit 2
+fi
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+    echo -e "${green}--- Extracted name components from $DEPLOYER_FOLDERNAME.tfvars ---${reset}"
+else
+    echo -e "${bold_red}--- Failed to extract name components from $DEPLOYER_FOLDERNAME.tfvars ---${reset}"
+    echo "##vso[task.logissue type=error]Failed to extract name components from $DEPLOYER_FOLDERNAME.tfvars."
+    exit 2
+fi
+
+CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
+
+export TF_VAR_control_plane_name
+export CONTROL_PLANE_NAME
+export TF_VAR_deployer_tfstate_key
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
-
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
 SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
 export SYSTEM_CONFIGURATION_FILE
 
-deployer_configuration_file="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
-library_configuration_file="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+deployer_tfstate_key="$CONTROL_PLANE_NAME-INFRASTRUCTURE.terraform.tfstate"
 
 if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_STATE_FILENAME" "$deployer_tfstate_key"; then
     echo "Variable DEPLOYER_STATE_FILENAME was added to the $VARIABLE_GROUP variable group."
@@ -229,7 +249,7 @@ if [ -f "${deployer_environment_file_name}" ]; then
     echo "Step:                                $step"
 fi
 
-file_deployer_tfstate_key=$DEPLOYER_FOLDERNAME.tfstate
+file_deployer_tfstate_key=""
 file_key_vault=""
 file_REMOTE_STATE_SA=""
 file_REMOTE_STATE_RG=$DEPLOYER_FOLDERNAME
@@ -244,30 +264,18 @@ fi
 
 echo -e "$green--- File Validations ---$reset"
 
-if [ ! -f "${deployer_configuration_file}" ]; then
-    print_banner "$banner_title" "File ${deployer_configuration_file} was not found" "error"
-    echo "##vso[task.logissue type=error]File ${deployer_configuration_file} was not found."
-    exit 2
-fi
-
-if [ ! -f "${library_configuration_file}" ]; then
-    print_banner "$banner_title" "File ${library_configuration_file} was not found" "error"
-    echo "##vso[task.logissue type=error]File ${library_configuration_file} was not found."
-    exit 2
-fi
-
 echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # echo -e "$green--- Convert config files to UX format ---$reset"
-# dos2unix -q "${deployer_configuration_file}"
-# dos2unix -q "${library_configuration_file}"
+# dos2unix -q "${deployer_tfvars_file_name}"
+# dos2unix -q "${library_tfvars_file_name}"
 
 echo -e "$green--- Read Variables from Variable group ---$reset"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ "$sourced_from_file" == 1 ]; then
     az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors
 fi
-echo "Deployer TFvars:                      $deployer_configuration_file"
+echo "Deployer TFvars:                      $deployer_tfvars_file_name"
 
 if [ -n "${key_vault}" ]; then
     echo "Deployer Key Vault:                   ${key_vault}"
@@ -308,31 +316,6 @@ if [ -z "${TF_VAR_ansible_core_version}" ]; then
     export TF_VAR_ansible_core_version=2.16.18
 fi
 
-if [ "$USE_WEBAPP" = "true" ]; then
-    echo "Deploy Web Application:               true"
-
-    if [ -z "$APP_REGISTRATION_APP_ID" ]; then
-        echo "##vso[task.logissue type=error]Variable APP_REGISTRATION_APP_ID was not defined."
-        exit 2
-    fi
-    echo "App Registration ID:                  $APP_REGISTRATION_APP_ID"
-    TF_VAR_app_registration_app_id=$APP_REGISTRATION_APP_ID
-    export TF_VAR_app_registration_app_id
-
-    if [ -z "$WEB_APP_CLIENT_SECRET" ]; then
-        echo "##vso[task.logissue type=error]Variable WEB_APP_CLIENT_SECRET was not defined."
-        exit 2
-    fi
-
-    TF_VAR_webapp_client_secret=$WEB_APP_CLIENT_SECRET
-    export TF_VAR_webapp_client_secret
-
-    TF_VAR_use_webapp=true
-    export TF_VAR_use_webapp
-else
-    echo "Deploy Web Application:               false"
-fi
-
 file_REMOTE_STATE_SA=""
 file_REMOTE_STATE_RG=""
 
@@ -362,14 +345,14 @@ if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
     # shellcheck disable=SC2001
     pass=${SYSTEM_COLLECTIONID//-/}
 
-	echo "Unzipping the library state file to ${CONFIG_REPO_PATH}/LIBRARY/${LIBRARY_FOLDERNAME}"
+    echo "Unzipping the library state file to ${CONFIG_REPO_PATH}/LIBRARY/${LIBRARY_FOLDERNAME}"
     unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME"
 fi
 
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
     pass=${SYSTEM_COLLECTIONID//-/}
 
-	echo "Unzipping the deployer state file to ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
+    echo "Unzipping the deployer state file to ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
     unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
 fi
 
@@ -386,8 +369,8 @@ if [ "$USE_MSI" != "true" ]; then
     export TF_VAR_use_spn=true
 
     if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_configuration_file}" \
-    --library_parameter_file "${library_configuration_file}" \
+    --deployer_parameter_file "${deployer_tfvars_file_name}" \
+    --library_parameter_file "${library_tfvars_file_name}" \
     --subscription "$ARM_SUBSCRIPTION_ID" \
     --spn_secret "$ARM_CLIENT_SECRET" \
     --tenant_id "$ARM_TENANT_ID" \
@@ -408,23 +391,23 @@ if [ "$USE_MSI" != "true" ]; then
 else
     export TF_VAR_use_spn=false
 
-	if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
-		--deployer_parameter_file "${deployer_configuration_file}" \
-		--library_parameter_file "${library_configuration_file}" \
-		--subscription "$ARM_SUBSCRIPTION_ID" \
-		--auto-approve --ado --msi \
-		"${storage_account_parameter}" "${keyvault_parameter}"; then
-		return_code=$?
-		if [ -f  "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh" ]; then
-			source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/export.sh"
-		fi
-		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
-		echo "Return code from deploy_controlplane $return_code."
-	else
-		return_code=$?
-		echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
-		echo "Return code from deploy_controlplane $return_code."
-	fi
+    if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_controlplane.sh" \
+    --deployer_parameter_file "${deployer_tfvars_file_name}" \
+    --library_parameter_file "${library_tfvars_file_name}" \
+    --subscription "$ARM_SUBSCRIPTION_ID" \
+    --auto-approve --ado --msi \
+    "${storage_account_parameter}" "${keyvault_parameter}"; then
+        return_code=$?
+        if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh" ]; then
+            source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh"
+        fi
+        echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+        echo "Return code from deploy_controlplane $return_code."
+    else
+        return_code=$?
+        echo "##vso[task.logissue type=warning]Return code from deploy_controlplane $return_code."
+        echo "Return code from deploy_controlplane $return_code."
+    fi
 
 fi
 
@@ -438,7 +421,7 @@ else
 fi
 
 if [ -v SDAF_APPSERVICE_NAME	]; then
-    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_NAME" "$SDAF_APPSERVICE_NAME"
+    saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APP_SERVICE_NAME" "$SDAF_APPSERVICE_NAME"
     saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "true"
 else
     saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "APPSERVICE_DEPLOYMENT" "false"
@@ -476,8 +459,8 @@ if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
     added=1
 fi
 
-if [ -f "${deployer_configuration_file}" ]; then
-    git add -f "${deployer_configuration_file}"
+if [ -f "${deployer_tfvars_file_name}" ]; then
+    git add -f "${deployer_tfvars_file_name}"
     added=1
 fi
 
@@ -524,8 +507,8 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
     fi
 fi
 
-if [ -f "${library_configuration_file}" ]; then
-    git add -f "${library_configuration_file}"
+if [ -f "${library_tfvars_file_name}" ]; then
+    git add -f "${library_tfvars_file_name}"
     added=1
 fi
 

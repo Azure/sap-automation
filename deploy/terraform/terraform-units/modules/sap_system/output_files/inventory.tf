@@ -246,7 +246,7 @@ resource "local_file" "sap-parameters_yml" {
               is_use_simple_mount         = var.use_simple_mount
               is_use_fence_kdump          = var.is_use_fence_kdump
               is_use_sles_hanasr_angi     = var.database.database_hana_use_saphanasr_angi
-              iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
+              iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers, local.iscsi_observer_servers)
               kv_name                     = lower(local.key_vault_name),
               NFS_provider                = var.NFS_provider
               pas_instance_number         = var.pas_instance_number
@@ -329,6 +329,7 @@ resource "local_file" "sap_inventory_md" {
 
               application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
               database_high_availability  = var.database_high_availability ? "Yes" : "No"
+              database_scale_out          = var.scale_out ? "Yes" : "No"
               db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
               db_sid                      = var.db_sid
               key_vault_name              = local.key_vault_name,

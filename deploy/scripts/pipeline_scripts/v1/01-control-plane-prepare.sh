@@ -171,16 +171,6 @@ fi
 cd "$CONFIG_REPO_PATH" || exit
 mkdir -p .sap_deployment_automation
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-CONTROL_PLANE_NAME=$(basename "${DEPLOYER_FOLDERNAME}" | cut -d'-' -f1-3)
-
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
-deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
-SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
-export SYSTEM_CONFIGURATION_FILE
-
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
@@ -191,10 +181,29 @@ if [ ! -f "$deployer_tfvars_file_name" ]; then
 fi
 
 if [ ! -f "$library_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---${reset}"
 	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars was not found."
 	exit 2
 fi
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+else
+	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
+	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
+	exit 2
+fi
+
+CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+export TF_VAR_control_plane_name
+export CONTROL_PLANE_NAME
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
 
 if [ ! -f "${deployer_environment_file_name}" ]; then
 	if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
@@ -207,9 +216,6 @@ echo -e "-----------------------------------------------------------------------
 
 echo "Control Plane Name:                  $CONTROL_PLANE_NAME"
 echo "Configuration file:                  $deployer_environment_file_name"
-echo "Environment:                         $ENVIRONMENT"
-echo "Location:                            $LOCATION"
-
 if [ "$FORCE_RESET" == "True" ]; then
 	echo "##vso[task.logissue type=warning]Forcing a re-install"
 	echo -e "$bold_red--- Resetting the environment file ---$reset"
@@ -263,8 +269,9 @@ DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYE
 if [ -n "$DEPLOYER_KEYVAULT" ]; then
 	echo "Deployer Key Vault:                  ${DEPLOYER_KEYVAULT}"
 	key_vault_id=$(az resource list --name "${DEPLOYER_KEYVAULT}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
+	echo "Key Vault ID:                       ${key_vault_id}"
 
-	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
+	if [ -z "${key_vault_id}" ]; then
 		echo "##vso[task.logissue type=error]Key Vault $DEPLOYER_KEYVAULT could not be found, trying to recover"
 		DEPLOYER_KEYVAULT=$(az keyvault list-deleted --query "[?name=='${DEPLOYER_KEYVAULT}'].name | [0]" --subscription "$ARM_SUBSCRIPTION_ID" --output tsv)
 		if [ -n "$DEPLOYER_KEYVAULT" ]; then

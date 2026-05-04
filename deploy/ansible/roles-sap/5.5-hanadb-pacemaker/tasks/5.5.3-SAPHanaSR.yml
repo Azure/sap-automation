@@ -221,8 +221,8 @@
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr_verification
           until:                       saphanasr_verification.stdout is search("SOK")
-          retries:                     10
-          delay:                       30
+          retries:                     "{{ hsr_replication_retry_count }}"
+          delay:                       "{{ hsr_replication_retry_delay }}"
 
       rescue:
 
@@ -251,8 +251,8 @@
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr_verification
           until:                       saphanasr_verification.stdout is search("SOK")
-          retries:                     10
-          delay:                       30
+          retries:                     "{{ hsr_replication_retry_count }}"
+          delay:                       "{{ hsr_replication_retry_delay }}"
 
     - name:                            "5.5.3 HANA Pacemaker - Log that the hook script is working as expected"
       when:                            inventory_hostname == primary_instance_name
@@ -287,6 +287,7 @@
 - name:                                "5.5.3 HANA Pacemaker - Implement the SAPHanaSR-angi Python system replication hook on SUSE 15 SP4 and greater"
   when:
                                        - hana_version_ok
+                                       - use_hanasr_angi | default(false)
                                        - basic_hook_check is success
                                        - suschk_hook_check is success
                                        - angi_hook_check is success

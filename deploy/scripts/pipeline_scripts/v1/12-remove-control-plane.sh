@@ -85,21 +85,38 @@ print_header
 # Configure DevOps
 configure_devops
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
-SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
-export SYSTEM_CONFIGURATION_FILE
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars was not found."
+	exit 2
+fi
+
+if [ ! -f "$library_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---${reset}"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars was not found."
+	exit 2
+fi
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+else
+	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
+	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
+	exit 2
+fi
 
 CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+export TF_VAR_control_plane_name
 export CONTROL_PLANE_NAME
 
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
@@ -113,20 +130,9 @@ else
 fi
 export VARIABLE_GROUP_ID
 
+deployer_tfstate_key="${ENVIRONMENT}-${LOCATION}-${NETWORK}-INFRASTRUCTURE.tfstate"
 TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
 export TF_VAR_deployer_tfstate_key
-
-if [ ! -f "$deployerTFvarsFile" ]; then
-	print_banner "$banner_title" "$deployerTFvarsFile was not found" "error"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
-	exit 2
-fi
-
-if [ ! -f "${libraryTFvarsFile}" ]; then
-	print_banner "$banner_title" "$libraryTFvarsFile was not found" "error"
-	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	exit 2
-fi
 
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
 	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
@@ -167,8 +173,8 @@ echo "Deployer Key Vault:                  ${key_vault}"
 echo -e "$green--- Running the remove remove_controlplane that destroys SAP library ---$reset"
 
 if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
-	--deployer_parameter_file "$deployerTFvarsFile" \
-	--library_parameter_file "$libraryTFvarsFile" \
+	--deployer_parameter_file "$deployer_tfvars_file_name" \
+	--library_parameter_file "$library_tfvars_file_name" \
 	--storage_account "$REMOTE_STATE_SA" \
 	--subscription "${STATE_SUBSCRIPTION}" \
 	--resource_group "$REMOTE_STATE_RG" \
@@ -194,10 +200,10 @@ if [ -f "$deployer_environment_file_name" ]; then
 	changed=1
 fi
 
-if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile" ]; then
-	echo "Resetting library TFvars file: $libraryTFvarsFile"
-	sed -i /"custom_random_id"/d "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
-	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/$libraryTFvarsFile"
+if [ -f "$library_tfvars_file_name" ]; then
+	echo "Resetting library TFvars file: $library_tfvars_file_name"
+	sed -i /"custom_random_id"/d "$library_tfvars_file_name"
+	git add -f "$library_tfvars_file_name"
 	changed=1
 fi
 

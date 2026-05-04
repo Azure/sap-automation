@@ -194,6 +194,46 @@
   loop_control:
     loop_var:                                     packages_list
 
+# @TODO: Use this variable to determine the cluster stonith type
+# 'sybase' databases do not have the code to cluster them. It can be added in the future.
+- name:                                           "1.18.0 Generic Pacemaker - Determine STONITH type for pacemaker cluster initialization"
+  ansible.builtin.set_fact:
+    cluster_stonith_type: >-
+                                                  {{ {'value':
+                                                      (database_cluster_type if (node_tier in ['hana', 'db2'] or ['hana', 'db2'] | intersect(supported_tiers)) and database_cluster_type is defined
+                                                      else scs_cluster_type if (node_tier in ['scs', 'ers'] or ['scs', 'ers'] | intersect(supported_tiers)) and scs_cluster_type is defined
+                                                      else "UNDEFINED")
+                                                  }.value | trim }}
+
+# Debug: Display the cluster stonith type
+- name:                                           "1.18.0 Generic Pacemaker - Show cluster stonith type"
+  ansible.builtin.debug:
+    msg:                                          # Best method for formatting output with Azure Devops Logs
+                                                  - "Cluster STONITH Type:            '{{ cluster_stonith_type }}'"
+    verbosity:                                    2
+
+- name:                                           "1.18.0 Generic Pacemaker - Determine if OS version is supported for SBD STONITH"
+  when:
+                                                  - ansible_os_family | upper == "REDHAT" or ansible_os_family | upper == "SUSE"
+                                                  - cluster_stonith_type in ['ASD', 'ISCSI']
+  ansible.builtin.set_fact:
+    os_version_supported_for_sbd: >-
+                                                  {{
+                                                    true if ansible_os_family | upper == "REDHAT" and
+                                                      (ansible_distribution_version is version('8.8', '>=') or ansible_distribution_version is version('9.0', '>='))
+                                                    else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ASD" and
+                                                      ansible_distribution_version is version('15.1', '>=')
+                                                    else true if ansible_os_family | upper == "SUSE" and cluster_stonith_type == "ISCSI" and
+                                                      ansible_distribution_version is version('12.5', '>=')
+                                                    else false
+                                                  }}
+
+# Debug: Display the OS version support for SBD STONITH
+- name:                                           "1.18.0 Generic Pacemaker - Show OS version support for SBD STONITH"
+  ansible.builtin.debug:
+    msg:                                          # Best method for formatting output with Azure Devops Logs
+                                                  - "OS Version Supported for SBD STONITH: '{{ os_version_supported_for_sbd | default('false') }}'"
+    verbosity:                                    2
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |

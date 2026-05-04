@@ -478,7 +478,7 @@ variable "use_private_endpoint"                       {
 
 variable "use_service_endpoint"                       {
                                                         description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                        default     = false
+                                                        default     = true
                                                         type        = bool
                                                       }
 
@@ -495,7 +495,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.14.8"
+                                                        default     = "1.15.1"
                                                       }
 
 variable "name_override_file"                         {

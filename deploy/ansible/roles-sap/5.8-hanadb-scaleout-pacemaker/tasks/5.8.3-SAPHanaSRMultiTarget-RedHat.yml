@@ -204,8 +204,8 @@
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
-          retries:                     20
-          delay:                       30
+          retries:                     "{{ hsr_replication_retry_count }}"
+          delay:                       "{{ hsr_replication_retry_delay }}"
       rescue:
         - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out - Reload HA Provides"
           become_user:                 "{{ db_sid | lower }}adm"
@@ -231,8 +231,8 @@
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
           register:                    saphanasr
           until:                       saphanasr.stdout is search("SOK")
-          retries:                     10
-          delay:                       30
+          retries:                     "{{ hsr_replication_retry_count }}"
+          delay:                       "{{ hsr_replication_retry_delay }}"
       always:
         - name:                        "5.8 HANA Pacemaker Scale-out - Clear the failed state of hosts (REDHAT)"
           ansible.builtin.meta:        clear_host_errors

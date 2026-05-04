@@ -115,9 +115,6 @@ while :; do
         CONTROL_PLANE_NAME="$2"
         CONTROL_PLANE_NAME=$(echo "${CONTROL_PLANE_NAME}" | tr "[:lower:]" "[:upper:]")
         TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
-        TF_VAR_deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
-
-        export TF_VAR_deployer_tfstate_key
         export TF_VAR_control_plane_name
         shift 2
         ;;
@@ -567,9 +564,11 @@ echo ""
 TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
 export TF_VAR_subscription_id
 
-terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9 | tr -d '\r')
-terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3 | tr -d '\r')
-terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5 | tr -d '\r')
+if [ -n "$tfstate_resource_id" ]; then
+	terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 9 | tr -d '\r')
+	terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3 | tr -d '\r')
+	terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5 | tr -d '\r')
+fi
 
 if [ "${terraform_storage_account_name}" != "${REMOTE_STATE_SA}" ]; then
     tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
@@ -577,6 +576,8 @@ if [ "${terraform_storage_account_name}" != "${REMOTE_STATE_SA}" ]; then
     terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d '/' -f 3 | tr -d '\r')
     terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d '/' -f 5 | tr -d '\r')
 fi
+TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
+export TF_VAR_tfstate_resource_id
 
 terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/${deployment_system}"/
 export TF_DATA_DIR="${param_dirname}/.terraform"
@@ -971,7 +972,7 @@ if [ 1 == $apply_needed ]; then
 
     if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
         allParameters+=(-json)
-        allParameters+=(--auto-approve)
+        allParameters+=(-auto-approve)
         allParameters+=(-no-color)
         allParameters+=(-compact-warnings)
         applyOutputfile="apply_output.json"

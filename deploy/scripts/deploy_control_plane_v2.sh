@@ -242,7 +242,7 @@ function bootstrap_deployer() {
     #                                                                                        #
     ##########################################################################################
 
-    
+
 
     local local_return_code=0
     load_config_vars "${deployer_environment_file_name}" "step"
@@ -881,7 +881,7 @@ function retrieve_parameters() {
                 tfstate_resource_id DEPLOYER_KEYVAULT
 
 			if [ -n "${tfstate_resource_id:-}" ]; then
-			
+
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
 				export TF_VAR_tfstate_resource_id
 

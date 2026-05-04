@@ -199,7 +199,11 @@ if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
 fi
 
 key=$(basename "${deployer_parameter_file}" | cut -d. -f1)
-deployer_tf_state="${key}.terraform.tfstate"
+if [ -v TF_VAR_deployer_tfstate_key ]; then
+		deployer_tf_state="$TF_VAR_deployer_tfstate_key"
+else
+	deployer_tf_state="${key}.terraform.tfstate"
+fi
 
 echo "Deployer State File:                 ${deployer_tf_state}"
 echo "Deployer Subscription:               ${subscription}"
@@ -747,7 +751,6 @@ if [ 2 -eq $step ]; then
     REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
     STATE_SUBSCRIPTION=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_subscription_id | tr -d \")
     tfstate_resource_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw tfstate_resource_id | tr -d \")
-    save_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
 
     if [ "${ado_flag}" != "--ado" ]; then
         az storage account network-rule add -g "${REMOTE_STATE_RG}" --account-name "${REMOTE_STATE_SA}" --ip-address "${this_ip}" --output none
@@ -755,14 +758,15 @@ if [ 2 -eq $step ]; then
 
     TF_VAR_sa_connection_string=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sa_connection_string | tr -d \")
     export TF_VAR_sa_connection_string
+
     if [ -n "${tfstate_resource_id}" ]; then
         TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
-        export TF_VAR_tfstate_resource_id
     else
         tfstate_resource_id=$(az resource list --name "$REMOTE_STATE_SA" --subscription "$STATE_SUBSCRIPTION" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" -o tsv)
         TF_VAR_tfstate_resource_id=$tfstate_resource_id
     fi
     export TF_VAR_tfstate_resource_id
+		save_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA" "STATE_SUBSCRIPTION" "REMOTE_STATE_RG" "tfstate_resource_id"
 
     cd "${current_directory}" || exit
     save_config_var "step" "${deployer_environment_file_name}"

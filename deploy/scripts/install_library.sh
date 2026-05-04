@@ -276,7 +276,7 @@ if [ ! -d ./.terraform/ ]; then
 
     # terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate"
     cmd=(terraform -chdir="${terraform_module_directory}" init -upgrade -backend-config "path=${param_dirname}/terraform.tfstate")
-    echo "Running command: ${cmd[*]}";  "${cmd[@]}"    
+    echo "Running command: ${cmd[*]}";  "${cmd[@]}"
 
     sed -i /REMOTE_STATE_RG/d     "${library_environment_file_name}"
     sed -i /REMOTE_STATE_SA/d     "${library_environment_file_name}"

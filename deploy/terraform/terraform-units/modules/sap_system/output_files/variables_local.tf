@@ -60,6 +60,7 @@ locals {
 
   scs_iqn                              = format("iqn.2006-04.ascs%s.local:ascs%s", lower(var.sap_sid), lower(var.sap_sid))
   db_iqn                               = format("iqn.2006-04.db%s.local:db%s", lower(var.sap_sid), lower(var.sap_sid))
+  observer_iqn                         = format("iqn.2006-04.db%s.local:observer%s", lower(var.sap_sid), lower(var.sap_sid))
 
   iscsi_scs_servers                    = var.scs_cluster_type == "ISCSI" ? (
                                           distinct(flatten([for idx, vm in var.iSCSI_server_names : [
@@ -68,6 +69,11 @@ locals {
   iscsi_db_servers                     = var.database_cluster_type == "ISCSI" ? (
                                            distinct(flatten([for idx, vm in var.iSCSI_server_names : [
                                               format("{ host: '%s', ip : %s, iqn: %s, type: 'db' }", vm, var.iSCSI_server_ips[idx], local.db_iqn)]]))) : (
+                                          [])
+
+  iscsi_observer_servers               = var.database_cluster_type == "ISCSI" ? (
+                                           distinct(flatten([for idx, vm in var.iSCSI_server_names : [
+                                              format("{ host: '%s', ip : %s, iqn: %s, type: 'observer' }", vm, var.iSCSI_server_ips[idx], local.observer_iqn)]]))) : (
                                           [])
 
   use_local_credentials                = length(var.authentication) > 0

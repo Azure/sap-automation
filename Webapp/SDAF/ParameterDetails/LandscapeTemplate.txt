@@ -1,3 +1,27 @@
+#########################################################################################
+#                                                                                       #
+# Workload zone description                                                             #
+#                                                                                       #
+$$MD_Region$$
+$$MD_Zone$$
+#                                                                                       #
+$$MD_VNet$$
+$$MD_AppSubnet$$
+$$MD_DbSubnet$$
+$$MD_WebSubnet$$
+$$MD_AdminSubnet$$
+$$MD_ANFSubnet$$
+$$MD_StorageSubnet$$
+$$MD_ISCSISubnet$$
+#                                                                                       #
+$$MD_KeyVault$$
+$$MD_NAT$$
+#                                                                                       #
+$$MD_ISCSIServers$$
+$$MD_NFS$$
+#                                                                                       #
+#########################################################################################
+
 
 #########################################################################################
 #                                                                                       #
@@ -273,6 +297,9 @@ $$storage_subnet_nsg_arm_id$$
 
 # storage_subnet_nsg_name is an optional parameter and should only be used if the default naming is not acceptable for the network security group name
 $$storage_subnet_nsg_name$$
+
+# use_separate_storage_subnet defines if a separate subnet is used (HANA Scale Out scenario)
+$$use_separate_storage_subnet$$
 
 #########################################################################################
 #                                                                                       #

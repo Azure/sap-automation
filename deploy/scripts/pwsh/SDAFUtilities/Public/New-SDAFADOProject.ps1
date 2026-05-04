@@ -181,7 +181,6 @@ function New-SDAFADOProject {
 
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
       "Key Vault Secrets Officer",
@@ -287,9 +286,8 @@ function New-SDAFADOProject {
       $JsonInputFile = "sdafMI.json"
 
       $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
-      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "User Access Administrator" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
-      az role assignment create --assignee-object-id  $AppRegistrationId --assignee-principal-type ServicePrincipal --role "App Configuration Data Owner" --scope /subscriptions/$SubscriptionId --query id --output tsv --only-show-errors
-
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role "User Access Administrator" --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role "App Configuration Data Owner" --scopes /subscriptions/$SubscriptionId  --only-show-errors)
 
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
@@ -652,7 +650,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.19.0.0"
+      $VersionLabel = "v3.20.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -933,7 +931,7 @@ resources:
 
       $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
       if ($GeneralGroupId.Length -eq 0) {
-        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.14.8" ansible_core_version="2.16.18" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.15.1" ansible_core_version="2.16.18" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
         $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
         az pipelines variable-group variable update --group-id $GeneralGroupId --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
       }
@@ -1173,6 +1171,18 @@ resources:
 
             Write-Host "Assigning role" $RoleName "to the control plane Service Principal" -ForegroundColor Green
             az role assignment create --assignee $ControlPlaneClientId --role $RoleName --scope /subscriptions/$Control_plane_subscriptionID --output none --only-show-errors
+          }
+
+          $RoleName = "User Access Administrator"
+          $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+          $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+          if ($roleAssignment) {
+            Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+            Write-Verbose "Role assignment ID: $roleAssignment"
+          }
+          else {
+            Write-Warning "Identity created but conditional role assignment may have failed"
           }
 
           Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green

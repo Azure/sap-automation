@@ -615,7 +615,7 @@
         "Display": 3
       },
       {
-        "Name": "database_dual_nics",
+        "Name": "db_dual_nics",
         "Required": false,
         "Description": "Defines if the database servers will have two network interfaces.",
         "Type": "checkbox",
@@ -771,6 +771,78 @@
         "Description": "If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA.",
         "Type": "checkbox",
         "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_observer",
+        "Required": false,
+        "Description": "Defines that the observer virtual machines will be deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "observer_vm_size",
+        "Required": false,
+        "Description": "If provided overrides the Virtual Machine SKU used for the observer virtual machines.",
+        "Type": "field",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "observer_vm_zones",
+        "Required": false,
+        "Description": "Defines the availability zones in which the observer virtual machines are deployed.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "observer_vm_tags",
+        "Required": false,
+        "Description": "Defines a list of tags to be applied to the observer virtual machine(s)",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "observer_nic_ips",
+        "Required": false,
+        "Description": "If provided, the observer virtual machines will be configured with the specified IP addresses.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
         "Overrules": "",
         "Display": 3
       }

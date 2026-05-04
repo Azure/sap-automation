@@ -18,7 +18,7 @@ fi
 
 function save_config_var() {
 	local var_name=$1 var_file=$2
-	
+
 	if [ -f "${var_file}" ]; then
 		sed -i -e "" -e /$var_name/d "${var_file}"
 	else
@@ -26,7 +26,7 @@ function save_config_var() {
 	fi
 	echo "${var_name}=${!var_name}" >>"${var_file}"
 
-	
+
 }
 
 function save_config_vars() {
@@ -144,7 +144,7 @@ function getAndStoreTerraformStateStorageAccountDetails {
 
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		TF_VAR_management_subscription_id=$STATE_SUBSCRIPTION
-		
+
 		export REMOTE_STATE_RG
 		export STATE_SUBSCRIPTION
 		export TF_VAR_tfstate_resource_id
@@ -159,9 +159,9 @@ function getAndStoreTerraformStateStorageAccountDetails {
 				tfstate_resource_id \
 				STATE_SUBSCRIPTION
 		fi
-		echo "Found the storage account:           ${REMOTE_STATE_SA}"	
+		echo "Found the storage account:           ${REMOTE_STATE_SA}"
 	fi
-	
+
 }
 
 function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
@@ -191,9 +191,9 @@ function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
 			if [ -z "${tfstate_resource_id}" ]; then
 				error_msg "Unable to find the storage account: ${REMOTE_STATE_SA}"
 			else
-				
+
 				TF_VAR_tfstate_resource_id=$tfstate_resource_id
-				
+
 				export REMOTE_STATE_RG
 				export STATE_SUBSCRIPTION
 				export TF_VAR_tfstate_resource_id
@@ -206,7 +206,7 @@ function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
 						tfstate_resource_id \
 						STATE_SUBSCRIPTION
 				fi
-	
+
 			fi
 		fi
 	fi
@@ -693,7 +693,7 @@ function get_configuration_file {
 
 	local defaultConfigFile="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation/${environment}${region_code}${logical_network_name}"
 	local configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
-	
+
 	if [ ! -f "${configurationFile}" ]; then
 		configurationFile="${directory}/${environment}${region_code}"
 		if [ ! -f "${configurationFile}" ]; then
@@ -723,11 +723,62 @@ function detect_platform() {
 		PLATFORM="devops"
 	else
 		# Default to CLI for interactive use
-		if [[ -z "${PLATFORM:-}" ]]; then 
+		if [[ -z "${PLATFORM:-}" ]]; then
 			PLATFORM="cli"
 		fi
 	fi
 	export PLATFORM
 	echo "Using platform:                      ${PLATFORM}"
+
+}
+
+
+function get_name_components
+{
+	fname="${1}"
+	deployment_type="${2}"
+	local return_value=0
+
+
+	if [ "control_plane" == "${deployment_type}" ]; then
+		load_config_vars "${fname}" \
+			environment \
+			management_network_logical_name \
+			location
+			NETWORK="${management_network_logical_name}"
+	else
+		load_config_vars "${fname}" \
+			environment \
+			network_logical_name \
+			location
+			NETWORK="${network_logical_name}"
+	fi
+	region="${location}"
+	get_region_code "$region"
+	LOCATION="$region_code"
+	ENVIRONMENT="${environment}"
+
+	if [[ -z "${ENVIRONMENT}" || -z "${NETWORK}" || -z "${LOCATION}" ]]; then
+		local missing_components=""
+		[[ -z "${ENVIRONMENT}" ]] && missing_components="${missing_components} environment"
+		[[ -z "${NETWORK}" ]] && missing_components="${missing_components} network"
+		[[ -z "${LOCATION}" ]] && missing_components="${missing_components} location"
+
+		echo "Failed to retrieve name components from configuration file: ${fname}"
+		echo "Missing required configuration values:${missing_components}"
+
+		return_value=1
+	else
+		echo "Retrieved name components from configuration file: ${fname}"
+		echo "Environment:                           ${ENVIRONMENT}"
+		echo "Network:                               ${NETWORK}"
+		echo "Location:                              ${LOCATION}"
+		return_value=0
+	fi
+
+	export ENVIRONMENT
+	export NETWORK
+	export LOCATION
+	return $return_value
 
 }

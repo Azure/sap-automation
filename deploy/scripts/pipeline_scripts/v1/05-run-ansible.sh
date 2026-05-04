@@ -14,7 +14,11 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-echo "##vso[build.updatebuildnumber]SAP Configuration and Installation"
+echo "##vso[build.updatebuildnumber]SAP Configuration and Installation of $SAP_SYSTEM_CONFIGURATION_NAME using BoM $BOM_BASE_NAME"
+system="system-$SAP_SYSTEM_CONFIGURATION_NAME"
+echo "##vso[build.addbuildtag]$system"
+BoM="BoM-$BOM_BASE_NAME"
+echo "##vso[build.addbuildtag]$BoM"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091

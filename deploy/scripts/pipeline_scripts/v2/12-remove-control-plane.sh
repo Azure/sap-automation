@@ -107,18 +107,8 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
-DEPLOYER_FOLDERNAME="$CONTROL_PLANE_NAME-INFRASTRUCTURE"
-ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
-LIBRARY_FOLDERNAME="$ENVIRONMENT-$LOCATION-SAP_LIBRARY"
 
-automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
-
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
 	if [ "$PLATFORM" == "devops" ]; then
@@ -127,6 +117,25 @@ if [ ! -f "$deployer_tfvars_file_name" ]; then
 	exit 2
 
 fi
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+else
+	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
+	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
+	exit 2
+fi
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
+if [ -z "$LIBRARY_FOLDERNAME" ]; then
+	LIBRARY_FOLDERNAME="$ENVIRONMENT-$LOCATION-SAP_LIBRARY"
+fi
+
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
 if [ ! -f "$library_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
