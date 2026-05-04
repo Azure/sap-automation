@@ -46,7 +46,6 @@
   loop:
                                        - { path: '/sbd' }
 
-# --SCS--
 - name:                                "2.11 iSCSI Server - SBD create sbdnfs SCS"
   become_user:                         root
   become:                              true
@@ -68,7 +67,6 @@
   changed_when:                        iscsi_create_scs.rc == 0
   loop:                                "{{ iscsi_servers }}"
 
-
 - name:                                "2.11 iSCSI Server - SBD create iscsi/iqn SCS"
   become_user:                         root
   become:                              true
@@ -81,7 +79,6 @@
   failed_when:                         iscsi_create2_scs.rc not in [0,1]
   changed_when:                        iscsi_create2_scs.rc == 0
   loop:                                "{{ iscsi_servers }}"
-
 
 - name:                                "2.11 iSCSI Server - SBD create iscsi/iqn SCS"
   become_user:                         root
@@ -110,7 +107,7 @@
   changed_when:                        iscsi_create4_scs.rc == 0
   loop:                                "{{ iscsi_servers }}"
 
-# --DB--
+
 - name:                                "2.11 iSCSI Server - SBD create sbdnfs DB"
   become_user:                         root
   become:                              true
@@ -132,7 +129,6 @@
   changed_when:                        iscsi_create_db.rc == 0
   loop:                                "{{ iscsi_servers }}"
 
-
 - name:                                "2.11 iSCSI Server - SBD create iscsi/iqn DB"
   become_user:                         root
   become:                              true
@@ -148,7 +144,8 @@
 
 - name:                                "2.11 iSCSI Server - Compute DB node count for ACL generation"
   ansible.builtin.set_fact:
-    db_acl_host_count:                 "{{ (groups[sap_sid | upper + '_DB'] | default([]) | length) }}"
+    db_acl_host_count:                 "{{ (groups[sap_sid | upper + '_DB'] | default([]) | length) +
+                                           (groups[sap_sid | upper + '_OBSERVER_DB'] | default([]) | length) }}"
 
 - name:                                "2.11 iSCSI Server - SBD create iscsi/iqn DB ACLs for all scale-out nodes"
   become_user:                         root
@@ -166,63 +163,6 @@
                                        - "{{ iscsi_servers }}"
                                        - "{{ range(0, db_acl_host_count | int) | list }}"
 
-# --observer--
-- name:                                "2.11 iSCSI Server - SBD create sbdnfs OBSERVER"
-  become_user:                         root
-  become:                              true
-  ansible.builtin.command:             "targetcli backstores/fileio create sbdmm{{ sap_sid }} /sbd/sbdmm{{ sap_sid }} 50M write_back=false"
-  register:                            sbd_create_observer
-  failed_when:                         sbd_create_observer.rc not in [0,1]
-  changed_when:                        sbd_create_observer.rc == 0
-
-- name:                                "2.11 iSCSI Server - SBD create iscsi OBSERVER"
-  become_user:                         root
-  become:                              true
-  when:
-                                       - iscsi_servers is defined
-                                       - item.host == ansible_hostname
-                                       - item.type == 'observer'
-  ansible.builtin.command:             "targetcli iscsi/ create {{ item.iqn }}"
-  register:                            iscsi_create_observer
-  failed_when:                         iscsi_create_observer.rc not in [0,1]
-  changed_when:                        iscsi_create_observer.rc == 0
-  loop:                                "{{ iscsi_servers }}"
-
-
-- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn OBSERVER"
-  become_user:                         root
-  become:                              true
-  when:
-                                       - iscsi_servers is defined
-                                       - item.host == ansible_hostname
-                                       - item.type == 'observer'
-  ansible.builtin.command:             "targetcli iscsi/{{ item.iqn }}/tpg1/luns/ create /backstores/fileio/sbdmm{{ sap_sid }}"
-  register:                            iscsi_create2_observer
-  failed_when:                         iscsi_create2_observer.rc not in [0,1]
-  changed_when:                        iscsi_create2_observer.rc == 0
-  loop:                                "{{ iscsi_servers }}"
-
-- name:                                "2.11 iSCSI Server - Compute OBSERVER node count for ACL generation"
-  ansible.builtin.set_fact:
-    observer_acl_host_count:           "{{ (groups[sap_sid | upper + '_OBSERVER_DB'] | default([]) | length) }}"
-
-- name:                                "2.11 iSCSI Server - SBD create iscsi/iqn OBSERVER ACLs for all scale-out nodes"
-  become_user:                         root
-  become:                              true
-  when:
-                                       - iscsi_servers is defined
-                                       - item.0.host == ansible_hostname
-                                       - item.0.type == 'observer'
-  ansible.builtin.command: >
-                                       targetcli iscsi/{{ item.0.iqn }}/tpg1/acls/ create iqn.2006-04.{{ sap_sid | lower }}-xobserver-{{ item.1 }}.local:{{ sap_sid | lower }}-xobserver-{{ item.1 }}
-  register:                            iscsi_create_observer_acls
-  failed_when:                         iscsi_create_observer_acls.rc not in [0,1]
-  changed_when:                        iscsi_create_observer_acls.rc == 0
-  with_nested:
-                                       - "{{ iscsi_servers }}"
-                                       - "{{ range(0, observer_acl_host_count | int) | list }}"
-
-
 - name:                                "2.11 iSCSI Server - Save CLI"
   become_user:                         root
   become:                              true
@@ -236,7 +176,7 @@
   register:                            cli_ls
 
 - name:                                "2.11 iSCSI Server - Show CLI results"
+  when:
+                                       - cli_ls is defined
   ansible.builtin.debug:
     msg:                               "{{ cli_ls.stdout_lines }}"
-  when:
-    - cli_ls is defined
