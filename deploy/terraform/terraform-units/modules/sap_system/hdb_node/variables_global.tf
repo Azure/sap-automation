@@ -43,6 +43,7 @@ variable "database_vm_db_nic_secondary_ips"             { description = "If prov
 variable "database_vm_storage_nic_ips"                  { description = "If provided, the database tier will be configured with the specified IPs (srorage subnet)" }
 variable "db_asg_id"                                    { description = "Database Application Security Group" }
 variable "db_subnet"                                    { description = "Information about SAP db subnet" }
+variable "deployer_tfstate"                             { description = "Deployer remote tfstate file" }
 variable "deploy_application_security_groups"           { description = "Defines if application security groups should be deployed" }
 variable "deployment"                                   { description = "The type of deployment" }
 variable "fencing_role_name"                            { description = "If specified the role name to use for the fencing" }

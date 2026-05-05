@@ -125,7 +125,17 @@
     - name:                            "5.8 HANA Pacemaker Scale-out - Stop HANA on both nodes"
       when:
                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
-      ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      ansible.builtin.include_tasks:
+        file:                          ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+        apply:
+          environment:
+            PATH:                      /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            HOME:                      /usr/sap/{{ db_sid | upper }}/home
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+      vars:
+        allow_world_readable_tmpfiles: true
 
     # We are going to use the default path of the hook script installed by the package.
     - name:                            "5.8 HANA Pacemaker Scale-out - Change ownership of the directory"
@@ -147,6 +157,10 @@
       with_items:
         - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set SAPHanaSR provider path"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR-ScaleOut
+
     - name:                            "5.8 HANA Pacemaker Scale-out - Adjust global.ini on each cluster node ( with susChkSrv )"
       when:
                                        - configure_susChkSrv
@@ -157,12 +171,12 @@
         block: |
                                        [ha_dr_provider_saphanasrmultitarget]
                                        provider = SAPHanaSrMultiTarget
-                                       path = /usr/share/SAPHanaSR-ScaleOut/
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /usr/share/SAPHanaSR-ScaleOut
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = kill
 
@@ -191,7 +205,17 @@
     - name:                            "5.8 HANA Pacemaker Scale-out - Start HANA on both nodes"
       when:
                                         - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
-      ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      ansible.builtin.include_tasks:
+        file:                          ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+        apply:
+          environment:
+            PATH:                      /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            HOME:                      /usr/sap/{{ db_sid | upper }}/home
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+      vars:
+        allow_world_readable_tmpfiles: true
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Verify SAPHanaSrMultiTarget hook is working as expected (SUSE)"
       when:                            inventory_hostname == primary_instance_name
@@ -373,7 +397,17 @@
     - name:                            "5.8 HANA Pacemaker Scale-out - Stop HANA on both nodes"
       when:
                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
-      ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+      ansible.builtin.include_tasks:
+        file:                          ../../../roles-misc/0.4-helpers/tasks/04.02-stop_hana.yml
+        apply:
+          environment:
+            PATH:                      /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            HOME:                      /usr/sap/{{ db_sid | upper }}/home
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+      vars:
+        allow_world_readable_tmpfiles: true
 
     - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Change ownership of the myHooks directory"
       ansible.builtin.file:
@@ -394,6 +428,10 @@
       with_items:
         - "{{ groups[(sap_sid | upper)~'_DB' ] }}"
 
+    - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Set SAPHanaSR provider path"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR-angi
+
     - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Adjust global.ini on each cluster node ( with susHanaSR and susChkSrv )"
       when:
                                        - configure_susChkSrv
@@ -404,12 +442,12 @@
         block: |
                                        [ha_dr_provider_sushanasr]
                                        provider = susHanaSR
-                                       path = /usr/share/SAPHanaSR-angi
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /usr/share/SAPHanaSR-angi
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = kill
 
@@ -436,7 +474,17 @@
     - name:                            "5.8 HANA Pacemaker Scale-out - Start HANA on both nodes"
       when:
                                        - ansible_hostname in [ primary_instance_name , secondary_instance_name ]
-      ansible.builtin.include_tasks:    ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+      ansible.builtin.include_tasks:
+        file:                          ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+        apply:
+          environment:
+            PATH:                      /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            HOME:                      /usr/sap/{{ db_sid | upper }}/home
+            DIR_LIBRARY:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            LD_LIBRARY_PATH:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+            SAPSYSTEMNAME:             "{{ db_sid | upper }}"
+      vars:
+        allow_world_readable_tmpfiles: true
 
     - name:                            "5.8 HANA Pacemaker Scale-out [angi] - Verify hook configuration"
       when:                            inventory_hostname == primary_instance_name
@@ -447,7 +495,17 @@
       when:                            inventory_hostname == primary_instance_name
       block:
         - name:                        "5.8 HANA Pacemaker Scale-out [angi] - Run shared hook verification"
-          ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
+          ansible.builtin.include_tasks:
+            file:                      ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
+            apply:
+              environment:
+                PATH:                  /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                HOME:                  /usr/sap/{{ db_sid | upper }}/home
+                DIR_LIBRARY:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                LD_LIBRARY_PATH:       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                SAPSYSTEMNAME:         "{{ db_sid | upper }}"
+          vars:
+            allow_world_readable_tmpfiles: true
       rescue:
         - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out - Reload HA Provides"
           become_user:                 "{{ db_sid | lower }}adm"
@@ -463,12 +521,14 @@
             timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
 
         - name:                        "[Rescue] 5.8 HANA Pacemaker Scale-out [angi] - Retry shared hook verification"
-          ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
-  vars:
-    allow_world_readable_tmpfiles: true
-  environment:
-    PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    HOME:                          /usr/sap/{{ db_sid | upper }}/home
-    DIR_LIBRARY:                   /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    LD_LIBRARY_PATH:               /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
-    SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
+          ansible.builtin.include_tasks:
+            file:                      ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
+            apply:
+              environment:
+                PATH:                  /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                HOME:                  /usr/sap/{{ db_sid | upper }}/home
+                DIR_LIBRARY:           /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                LD_LIBRARY_PATH:       /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
+                SAPSYSTEMNAME:         "{{ db_sid | upper }}"
+          vars:
+            allow_world_readable_tmpfiles: true

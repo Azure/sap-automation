@@ -7,6 +7,7 @@ export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
 
 cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 
+source "${cmd_dir}/script_helper.sh"
 
 #         # /*---------------------------------------------------------------------------8
 #         # |                                                                            |
@@ -40,11 +41,20 @@ cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 sap_params_file=sap-parameters.yaml
 
 if [[ ! -e "${sap_params_file}" ]]; then
-        echo "Error: '${sap_params_file}' file not found!"
+        print_banner "Software download" "SAP parameters file '${sap_params_file}' not found!" "error" "Current directory '$(basename "$(pwd)")'"
         exit 1
 fi
 
-#
+application_bom_name="$(awk '$1 == "application_bom_name:" {print $2}' ${sap_params_file})"
+database_bom_name="$(awk '$1 == "database_bom_name:" {print $2}' ${sap_params_file})"
+sap_kernel_bom_name="$(awk '$1 == "sap_kernel_bom_name:" {print $2}' ${sap_params_file})"
+save_bom_as="$(awk '$1 == "save_bom_as:" {print $2}' ${sap_params_file})"
+
+bom_base_name="${application_bom_name}-${database_bom_name}-${sap_kernel_bom_name}-${save_bom_as}"
+
+print_banner "Software download" "Creating BOM named: ${save_bom_as}" "info" "App: ${application_bom_name} DB: ${database_bom_name} Kernel: ${sap_kernel_bom_name}" 
+
+
 # Ansible configuration settings.
 #
 # For more details please run `ansible-config list` and search for the
@@ -70,6 +80,15 @@ export           ANSIBLE_PYTHON_INTERPRETER=auto_silent
 #export          PROFILE_TASKS_TASK_OUTPUT_LIMIT=20
 #export          PROFILE_TASKS_SORT_ORDER=descending
 
+if [ ! -v BOM_CATALOG ]; then
+  print_banner "Software download" "Error: BOM_CATALOG variable is not set!" "error" "It should point to the folder with the BOM files."
+  exit 10
+fi
+
+if [ ! -d "$BOM_CATALOG" ]; then
+  print_banner "Software download" "Error: BOM_CATALOG variable points to a non-existing directory!" "error" "BOM_CATALOG='$BOM_CATALOG'"
+  exit 11
+fi
 
 # Don't show the skipped hosts
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=false
@@ -102,6 +121,8 @@ playbook_options=(
         --extra-vars="_workspace_directory=`pwd`"
         --extra-vars="@${sap_params_file}"
         --extra-vars="bom_processing=true"
+        --extra-vars="bom_base_name=${bom_base_name}"
+        --extra-vars="BOM_directory=${BOM_CATALOG:-}"
         "${@}"
 )
 
@@ -127,8 +148,16 @@ do
         # NOTE: If you set DEBUG to a non-empty value in your environment
         # the following line will cause the ansible-playbook command to be
         # echoed rather than executed.
-        ${DEBUG:+echo} \
-        ansible-playbook "${playbook_options[@]}" "${playbooks[@]}"
+
+        for item in "${playbooks[@]}"
+        do
+                echo ""
+                print_banner "SAP Configuration and Installation" "Executing playbook $(basename "$item")" info
+                ${DEBUG:+echo} \
+                        ansible-playbook "${playbook_options[@]}" "$item"
+                echo ""
+        done
+
 
         break
 done

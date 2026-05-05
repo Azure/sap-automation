@@ -100,7 +100,8 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
         "User Access Administrator",
         "Storage Blob Data Owner",
         "Key Vault Administrator",
-        "App Configuration Data Owner"
+        "App Configuration Data Owner",
+        "Network Contributor"
     ]
 
     # Verify Azure login
@@ -241,7 +242,8 @@ def create_azure_service_principal(user_data):
             "Contributor",
             "Storage Blob Data Owner",
             "Key Vault Administrator",
-            "App Configuration Data Owner"
+            "App Configuration Data Owner",
+            "Network Contributor"
         ]
 
         # Track which roles were successfully assigned or already exist
@@ -387,7 +389,8 @@ def create_azure_service_principal(user_data):
             "Contributor",
             "Storage Blob Data Owner",
             "Key Vault Administrator",
-            "App Configuration Data Owner"
+            "App Configuration Data Owner",
+            "Network Contributor"
         ]
 
         # Try to assign roles

@@ -99,6 +99,11 @@
         owner:                         "{{ db_sid | lower }}adm"
         group:                         sapsys
 
+    - name:                            "5.5.3 HANA Pacemaker - Set SAPHanaSR provider path for SUSE"
+      when:                            ansible_os_family | upper == "SUSE"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR
+
     - name:                            "5.5.3 HANA Pacemaker - Adjust global.ini on each cluster node (RHEL)"
       when:
         - ansible_os_family | upper == "REDHAT"
@@ -129,12 +134,12 @@
         block: |
                                        [ha_dr_provider_SAPHanaSR]
                                        provider = SAPHanaSR
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = fence
 
@@ -216,8 +221,8 @@
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr_verification
           until:                       saphanasr_verification.stdout is search("SOK")
-          retries:                     10
-          delay:                       30
+          retries:                     "{{ hsr_replication_retry_count }}"
+          delay:                       "{{ hsr_replication_retry_delay }}"
 
       rescue:
 
@@ -246,8 +251,8 @@
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr_verification
           until:                       saphanasr_verification.stdout is search("SOK")
-          retries:                     10
-          delay:                       30
+          retries:                     "{{ hsr_replication_retry_count }}"
+          delay:                       "{{ hsr_replication_retry_delay }}"
 
     - name:                            "5.5.3 HANA Pacemaker - Log that the hook script is working as expected"
       when:                            inventory_hostname == primary_instance_name
@@ -282,6 +287,7 @@
 - name:                                "5.5.3 HANA Pacemaker - Implement the SAPHanaSR-angi Python system replication hook on SUSE 15 SP4 and greater"
   when:
                                        - hana_version_ok
+                                       - use_hanasr_angi | default(false)
                                        - basic_hook_check is success
                                        - suschk_hook_check is success
                                        - angi_hook_check is success
@@ -350,18 +356,22 @@
         group:                         sapsys      # TODO - check the correct group once the python hook package is installed
         mode:                          '0755'
 
+    - name:                            "5.5.3 HANA Pacemaker - Set SAPHanaSR-angi provider path"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR-angi
+
     - name:                            "5.5.3 HANA Pacemaker - Adjust global.ini on each cluster node"
       ansible.builtin.blockinfile:
         path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
         block: |
                                        [ha_dr_provider_sushanasr]
                                        provider = susHanaSR
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_suschksrv]
                                        provider = susChkSrv
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 3
                                        action_on_lost = fence
 

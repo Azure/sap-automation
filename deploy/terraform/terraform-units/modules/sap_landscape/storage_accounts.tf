@@ -11,9 +11,10 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   provider                             = azurerm.main
   count                                = length(var.diagnostics_storage_account.id) > 0 ? 0 : 1
   depends_on                           = [
-                                           azurerm_subnet.app,
-                                           azurerm_subnet.db,
-                                           azurerm_subnet.web,
+                                           azurerm_virtual_network_peering.peering_management_sap,
+                                           azurerm_virtual_network_peering.peering_sap_management,
+                                           azurerm_virtual_network_peering.peering_additional_network_sap,
+                                           azurerm_virtual_network_peering.peering_sap_additional_network,
                                          ]
   name                                 = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_storageaccount_name
 
@@ -148,8 +149,10 @@ resource "azurerm_storage_account" "witness_storage" {
   provider                             = azurerm.main
   count                                = length(var.witness_storage_account.id) > 0 ? 0 : 1
   depends_on                           = [
-                                           azurerm_subnet.app,
-                                           azurerm_subnet.db
+                                           azurerm_virtual_network_peering.peering_management_sap,
+                                           azurerm_virtual_network_peering.peering_sap_management,
+                                           azurerm_virtual_network_peering.peering_additional_network_sap,
+                                           azurerm_virtual_network_peering.peering_sap_additional_network,
                                          ]
   name                                 = var.naming.storageaccount_names.WORKLOAD_ZONE.witness_storageaccount_name
   resource_group_name                  = local.resource_group_exists ? (
@@ -281,7 +284,10 @@ resource "azurerm_storage_account" "transport" {
   provider                             = azurerm.main
   count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
-                                           azurerm_subnet.app
+                                           azurerm_virtual_network_peering.peering_management_sap,
+                                           azurerm_virtual_network_peering.peering_sap_management,
+                                           azurerm_virtual_network_peering.peering_additional_network_sap,
+                                           azurerm_virtual_network_peering.peering_sap_additional_network,
                                          ]
   name                                 = replace(
                                           lower(
@@ -477,11 +483,10 @@ resource "azurerm_storage_account" "install" {
   provider                             = azurerm.main
   count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
-                                           azurerm_subnet.app,
-                                           azurerm_subnet.db,
-                                           azurerm_subnet.web,
+                                           azurerm_virtual_network_peering.peering_management_sap,
+                                           azurerm_virtual_network_peering.peering_sap_management,
                                            azurerm_virtual_network_peering.peering_additional_network_sap,
-                                           azurerm_virtual_network_peering.peering_sap_additional_network
+                                           azurerm_virtual_network_peering.peering_sap_additional_network,
                                          ]
   name                                 = replace(
                                            lower(

@@ -160,6 +160,7 @@ packages:
     - { tier: 'os',     package: 'pam',                                          node_tier: 'db2',            state: 'latest'  }
     - { tier: 'os',     package: 'libpam.so.0',                                  node_tier: 'db2',            state: 'present' }
     - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',            state: 'present' }
+    - { tier: 'db2',    package: 'systemd-libs',                                 node_tier: 'db2',            state: 'present' }
     # --------------------------- End - Packages required for DB2 -------------------------------------------8
     # 2371942 - Error Executing isql or dscp on SAP ASE or SAP HANA Accelerator for SAP ASE
     - { tier: 'os',     package: 'glibc.i686',                                   node_tier: 'sybase',         state: 'present' }
@@ -208,17 +209,21 @@ packages:
   redhat8.2:
   redhat8.4:
   redhat8.6:
-    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.8:
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.9:
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
   redhat8.10:
+    - { tier: 'os',     package: 'systemd-libs',                                 node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'ha',     package: 'NetworkManager-cloud-setup',                   node_tier: 'all',            state: 'absent'  }
@@ -705,7 +710,6 @@ packages:
     - { tier: 'os',     package: 'xorg-x11-server-Xorg',                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'xorg-x11-xauth',                               node_tier: 'all',            state: 'present' }
   oraclelinux9:
-
     - { tier: 'ha',     package: 'jq',                                           node_tier: 'all',            state: 'present' }
     - { tier: 'iscsi',  package: 'targetcli',                                    node_tier: 'iscsi',          state: 'present' }
     - { tier: 'os',     package: '@base',                                        node_tier: 'all',            state: 'present' }
@@ -717,15 +721,16 @@ packages:
     - { tier: 'os',     package: 'cifs-utils',                                   node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-openssl11',                             node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'compat-sap-c++-*',                             node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'elfutils-libelf',                              node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'expect',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'fontconfig',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'gcc',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gdisk',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'glibc-devel',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'gtk2',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'os',     package: 'kmod-redhat-oracleasm',                        node_tier: 'oracle-asm',     state: 'present' }
     - { tier: 'os',     package: 'krb5-libs',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'ksh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'libX11',                                       node_tier: 'all',            state: 'present' }
@@ -765,6 +770,7 @@ packages:
     - { tier: 'os',     package: 'sysstat',                                      node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tcsh',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'uuid',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'xfsprogs',                                     node_tier: 'all',            state: 'present' }
   oraclelinux8.1:
   oraclelinux8.2:
@@ -780,3 +786,4 @@ packages:
   oraclelinux9.2:
   oraclelinux9.4:
   oraclelinux9.6:
+  oraclelinux9.7:

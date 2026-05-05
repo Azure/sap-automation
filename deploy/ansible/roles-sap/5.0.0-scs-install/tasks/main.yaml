@@ -77,9 +77,18 @@
   ansible.builtin.set_fact:
     application_type:                  "{% if instance_type == 'SCS' %}JAVA{% else %}ABAP{% endif %}"
 
+- name:                                "5.0.0 SAP Central Services Installation - Register variables"
+  ansible.builtin.set_fact:
+    scs_bom_id:                        "{{ bom.product_ids.scs }}"
+    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType | upper }}{% else %}ABAP{% endif %}"
+
+- name:                                "5.0.0 SAP Central Services Installation - Register additional variables"
+  ansible.builtin.set_fact:
+    installGateway:                    "{% if scs_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
+
 - name:                                "5.0.0 SAP Central Services Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
   ansible.builtin.find:
-    paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/{{ application_type }}"
+    paths:                             "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').replace('/PD', '').replace('/JAVA', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}"
     file_type:                         file
     patterns:                          'installationSuccesfullyFinished.dat'
     recurse:                           false
@@ -103,21 +112,15 @@
   when:                                reinstall
 
 - name:                                "5.0.0 SAP Central Services Installation - Check if {{ sid_to_be_deployed.sid | upper }} is installed"
+  when:                                "'scs' in supported_tiers"
   ansible.builtin.stat:
     path:                              "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_scs.txt"
   register:                            scs_installed
-  when:                                "'scs' in supported_tiers"
-
-- name:                                "5.0.0 SAP Central Services Installation - Register variables"
-  ansible.builtin.set_fact:
-    scs_bom_id:                        "{{ bom.product_ids.scs }}"
-    scs_bom_instance_type:             "{% if bom.InstanceType is defined %}{{ bom.InstanceType | upper }}{% else %}ABAP{% endif %}"
-
-- name:                                "5.0.0 SAP Central Services Installation - Register additional variables"
-  ansible.builtin.set_fact:
-    installGateway:                    "{% if scs_bom_instance_type == 'ABAP' %}true{% else %}false{% endif %}"
 
 - name:                                "5.0.0 SAP Central Services Installation"
+  when:
+    - "'scs' in supported_tiers"
+    - not scs_installed.stat.exists
   block:
 
 # *====================================4=======================================8
@@ -178,7 +181,7 @@
       ansible.builtin.import_tasks:    ../../../roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
       when:
         - ansible_os_family == 'RedHat'
-        - "distribution_id != 'oraclelinux8'"
+        - "distribution_id not in ['oraclelinux8', 'oraclelinux9']"
 
     - name:                            "5.0.0 SAP Central Services Installation - Assign ownership"
       ansible.builtin.file:
@@ -233,7 +236,7 @@
 
     - name:                            "5.0.0 SAP Central Services Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
-        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ instance_type }}/{{ application_type }}"
+        paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').replace('/PD', '').replace('/JAVA', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}"
         file_type:                     file
         patterns:                      'installationSuccesfullyFinished.dat'
         recurse:                       true
@@ -254,11 +257,10 @@
         - scs_installed_according_to_sapinst is defined
         - scs_installed_according_to_sapinst | length > 0
 
-  when:
-    - "'scs' in supported_tiers"
-    - not scs_installed.stat.exists
 
 - name:                                "5.0.0 SAP Central Services Installation - SAP Central Services is already installed"
+  when:
+    - scs_installed.stat.exists
   block:
 
     - name:                            "5.0.0 SAP Central Services Installation - SAP Central Services Install status"
@@ -268,8 +270,6 @@
     - name:                            "5.0.0 SAP Central Services Installation - SAP Central Services: - return value"
       ansible.builtin.set_fact:
         scs_already_installed:         true
-  when:
-    - scs_installed.stat.exists
 
 ...
 # /*---------------------------------------------------------------------------8

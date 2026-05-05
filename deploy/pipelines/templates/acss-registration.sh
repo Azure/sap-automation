@@ -72,7 +72,7 @@ TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(az resource show --id "${tfstate_
 # Init Terraform
 __output=$( \
 terraform -chdir="${__moduleDir}"                                                       \
-init -upgrade=true                                                                      \
+init -upgrade                                                                      \
 --backend-config "subscription_id=${TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION}"             \
 --backend-config "resource_group_name=${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"  \
 --backend-config "storage_account_name=${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"        \

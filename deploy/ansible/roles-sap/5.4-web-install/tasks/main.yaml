@@ -130,7 +130,7 @@
 
     - name:                            "5.4 SAP Web Dispatcher Install - Information"
       ansible.builtin.debug:
-        msg:                           "Starting Web Install ({{ sid_to_be_deployed.web_sid | upper }})"
+        msg:                           "Starting SAP Web Dispatcher installation ({{ sid_to_be_deployed.web_sid | upper }})"
 
     - name:                            "5.4 SAP Web Dispatcher Install"
       ansible.builtin.shell: |

@@ -24,9 +24,16 @@ namespace SDAFWebApp.Services
 
         public async Task<TableClient> GetTableClient(string table)
         {
-
             string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
-            string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table").Replace(".privatelink", "");
+            string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey);
+            
+            if(string.IsNullOrEmpty(accountName))
+            {
+                accountName = Environment.GetEnvironmentVariable("TFSTATE_STORAGE_ACCOUNT_NAME");
+            }
+            
+            // Transform blob URL to table URL AFTER determining the source
+            accountName = accountName?.Replace("blob", "table").Replace(".privatelink", "") ?? string.Empty;
 
             string tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
             string managedIdentityClientId = Environment.GetEnvironmentVariable("OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID");

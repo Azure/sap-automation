@@ -148,15 +148,6 @@
         "Display": 2
       },
       {
-        "Name": "AFS_enable_encryption_in_transit",
-        "Required": false,
-        "Description": "Defines if encryption in transit is enabled for AFS",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
         "Name": "shared_access_key_enabled_nfs",
         "Required": false,
         "Description": "Storage account authorization using Shared Access Key (NFS shares).",
@@ -626,17 +617,12 @@
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#iscsi-parameters",
     "Parameters": [
       {
-        "Name": "iscsi_subnet_arm_id",
+        "Name": "iscsi_subnet_name",
         "Required": false,
-        "Description": "Specifies Azure resource identifier for the existing subnet for the iSCSI subnet",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "",
-            "Value": ""
-          }
-        ],
-        "Overrules": "iscsi_subnet_address_prefix",
+        "Description": "Defines the subnet name for the iSCSI subnet. Should only be used if the default naming is not acceptable",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
         "Display": 3
       },
       {
@@ -649,12 +635,17 @@
         "Display": 3
       },
       {
-        "Name": "iscsi_subnet_name",
+        "Name": "iscsi_subnet_arm_id",
         "Required": false,
-        "Description": "Should only be used if the default naming is not acceptable.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
+        "Description": "Specifies Azure resource identifier for the existing subnet for the iSCSI subnet",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "iscsi_subnet_address_prefix",
         "Display": 3
       },
       {
@@ -687,6 +678,24 @@
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
     "Parameters": [
       {
+        "Name": "ams_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ams_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the ams subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "ams_subnet_arm_id",
         "Required": false,
         "Description": "Specifies Azure resource identifier for the existing subnet for the ams subnet",
@@ -701,18 +710,9 @@
         "Display": 2
       },
       {
-        "Name": "ams_subnet_address_prefix",
+        "Name": "ams_subnet_nsg_name",
         "Required": false,
-        "Description": "Defines the subnet address range for the ams subnet.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "ams_subnet_name",
-        "Required": false,
-        "Description": "Should only be used if the default naming is not acceptable.",
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -731,15 +731,6 @@
         ],
         "Overrules": "ams_subnet_nsg_name",
         "Display": 2
-      },
-      {
-        "Name": "ams_subnet_nsg_name",
-        "Required": false,
-        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
       }
     ]
   },
@@ -747,6 +738,15 @@
     "Section": "ANF subnet",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#network-parameters",
     "Parameters": [
+      {
+        "Name": "anf_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
       {
         "Name": "anf_subnet_address_prefix",
         "Required": false,
@@ -771,9 +771,9 @@
         "Display": 3
       },
       {
-        "Name": "anf_subnet_name",
+        "Name": "anf_subnet_nsg_name",
         "Required": false,
-        "Description": "Should only be used if the default naming is not acceptable.",
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -792,15 +792,6 @@
         ],
         "Overrules": "anf_subnet_nsg_name",
         "Display": 3
-      },
-      {
-        "Name": "anf_subnet_nsg_name",
-        "Required": false,
-        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
       }
     ]
   },
@@ -808,6 +799,24 @@
     "Section": "Storage subnet",
     "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
     "Parameters": [
+      {
+        "Name": "storage_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "storage_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the storage subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
       {
         "Name": "storage_subnet_arm_id",
         "Required": false,
@@ -820,21 +829,12 @@
           }
         ],
         "Overrules": "storage_subnet_address_prefix",
-        "Display": 2
+        "Display": 3
       },
       {
-        "Name": "storage_subnet_address_prefix",
+        "Name": "storage_subnet_nsg_name",
         "Required": false,
-        "Description": "Defines the subnet address range for the storage subnet.",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
-        "Display": 2
-      },
-      {
-        "Name": "storage_subnet_name",
-        "Required": false,
-        "Description": "Should only be used if the default naming is not acceptable.",
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -852,15 +852,6 @@
           }
         ],
         "Overrules": "storage_subnet_nsg_name",
-        "Display": 2
-      },
-      {
-        "Name": "storage_subnet_nsg_name",
-        "Required": false,
-        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
-        "Type": "field",
-        "Options": [],
-        "Overrules": "",
         "Display": 2
       }
     ]

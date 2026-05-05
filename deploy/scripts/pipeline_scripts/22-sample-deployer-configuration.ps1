@@ -236,6 +236,16 @@ git add -f $filePath
 git commit -m "Update $pipeLineName[skip ci]"
 
 
+$pipeLineName = "04-sap-software-download_v2.yml"
+$filePath = Join-Path -path $Env:CONFIG_REPO_PATH -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
+
+(Get-Content $filePath).Replace("WEEU", "$Env:DEPLOYER_REGION") | Set-Content $filePath
+(Get-Content $filePath).Replace("MGMT", "$Env:DEPLOYER_ENVIRONMENT") | Set-Content $filePath
+
+git add -f $filePath
+git commit -m "Update $pipeLineName[skip ci]"
+
+
 $pipeLineName = "10-remover-terraform.yml"
 $filePath = Join-Path -path $Env:CONFIG_REPO_PATH -ChildPath (Join-Path -path $FolderName -ChildPath $pipeLineName)
 

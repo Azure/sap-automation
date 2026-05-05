@@ -505,6 +505,9 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                           create = "5m"
                                           delete = "5m"
                                         }
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  } 
 }
 
 data "azurerm_key_vault_secret" "sid_ppk" {
@@ -544,7 +547,7 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                           delete = "5m"
                                         }
 }
-
+  
 data "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
   depends_on                           = [
@@ -586,6 +589,9 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                           create = "5m"
                                           delete = "5m"
                                         }
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 
 data "azurerm_key_vault_secret" "sid_username" {
@@ -627,6 +633,9 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                           create = "5m"
                                           delete = "5m"
                                         }
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
@@ -652,6 +661,9 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
                                           create = "5m"
                                           delete = "5m"
                                         }
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }
 
 data "azurerm_key_vault_secret" "sid_password" {
@@ -705,9 +717,65 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            null
                                          )
 
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
+
   timeouts                              {
                                           read   = "1m"
                                           create = "5m"
                                           delete = "5m"
                                         }
+}
+
+resource "azurerm_key_vault_secret" "subscription" {
+  provider                             = azurerm.deployer
+  count                                = length(try(var.deployer_tfstate.deployer_kv_user_arm_id,"")) > 0 ? (
+                                            1) : (
+                                            0
+                                          )
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  content_type                         = "secret"
+  name                                 = format("%s-subscription-id", upper(var.naming.prefix.WORKLOAD_ZONE))
+  value                                = data.azurerm_client_config.current.subscription_id
+  key_vault_id                         = var.deployer_tfstate.deployer_kv_user_arm_id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+  tags                                 = var.infrastructure.tags
+
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
+}
+
+resource "azurerm_key_vault_secret" "tenant" {
+  provider                             = azurerm.deployer
+  count                                = length(try(var.deployer_tfstate.deployer_kv_user_arm_id,"")) > 0 ? (
+                                            1) : (
+                                            0
+                                          )
+  depends_on                           = [
+                                           time_sleep.wait_for_role_assignment,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                         ]
+  content_type                         = "secret"
+  name                                 = format("%s-tenant-id", upper(var.naming.prefix.WORKLOAD_ZONE))
+  value                                = data.azurerm_client_config.current.tenant_id
+  key_vault_id                         = var.deployer_tfstate.deployer_kv_user_arm_id
+  expiration_date                       = var.key_vault.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+  tags                                 = var.infrastructure.tags
+
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
 }

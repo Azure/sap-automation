@@ -202,6 +202,8 @@ variable "region_mapping" {
     "centralindia"       = "cein"
     "centralus"          = "ceus"
     "centraluseuap"      = "ceua"
+    "chilecentral"       = "chce"
+    "denmarkeast"        = "deea"
     "eastasia"           = "eaas"
     "eastus"             = "eaus"
     "eastus2"            = "eus2"
@@ -220,6 +222,8 @@ variable "region_mapping" {
     "jioindiawest"       = "jinw"
     "koreacentral"       = "koce"
     "koreasouth"         = "koso"
+    "malaysiawest"       = "mawe"
+    "mexicocentral"      = "mece"
     "northcentralus"     = "ncus"
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
@@ -233,6 +237,7 @@ variable "region_mapping" {
     "southcentralusstg"  = "scug"
     "southeastasia"      = "soea"
     "southindia"         = "soin"
+    "spaincentral"       = "spce"
     "swedencentral"      = "sece"
     "swedensouth"        = "seso"
     "switzerlandnorth"   = "swno"
@@ -589,3 +594,4 @@ variable "scale_out" {
   type    = bool
   default = false
 }
+

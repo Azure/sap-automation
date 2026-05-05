@@ -46,7 +46,7 @@ output "sapbits_sa_resource_group_name"          {
 output "saplibrary_subscription_id"              {
                                                    description = "Subscription Id for SAP Binaries"
                                                    sensitive   = true
-                                                   value       = local.SAPLibrary_subscription_id
+                                                   value       = local.tfstate_storage_account_subscription_id
                                                  }
 
 output "tfstate_resource_id"                     {

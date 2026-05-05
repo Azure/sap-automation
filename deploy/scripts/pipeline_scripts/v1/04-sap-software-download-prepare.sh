@@ -28,7 +28,7 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=True
 	echo "Environment variables:"

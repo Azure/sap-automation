@@ -11,7 +11,7 @@ parent_directory="$(dirname "$script_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	debug=true
 	export debug

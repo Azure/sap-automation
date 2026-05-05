@@ -22,7 +22,7 @@
   when:
                                        - tier == 'os'
                                        - ansible_distribution_version is version('8.6', '<=')
-                                       - ansible_distribution != "OracleLinux"
+                                       - upgrade_packages
   become:                              true
   ansible.builtin.dnf:
     name:                              '*'
@@ -35,7 +35,7 @@
   when:
                                        - tier == 'os'
                                        - ansible_distribution_version is version('8.8', '>=')
-                                       - ansible_distribution != "OracleLinux"
+                                       - upgrade_packages
   become:                              true
   ansible.builtin.dnf:
     name:                              '*'

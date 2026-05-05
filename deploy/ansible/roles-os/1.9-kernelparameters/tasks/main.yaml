@@ -141,16 +141,20 @@
 
     - name:                            "1.9 Kernel parameters - Set limits"
       ansible.builtin.blockinfile:
-        path:                          /etc/security/limits.conf
+        path:                          /etc/security/limits.d/99-sap.conf
         insertafter:                   '#@student        -       maxlogins       4'
+        create:                        true
+        mode:                          '0644'
         state:                         present
         block: |
-                oracle     soft memlock unlimited
-                oracle     hard memlock unlimited
+                @oinstall  soft    nproc    unlimited
+                oracle     soft  memlock    unlimited
+                oracle     hard  memlock    unlimited
                 @sapsys    hard    nproc    unlimited
                 @sapsys    soft    nproc    unlimited
                 @dba       hard    nproc    unlimited
                 @dba       soft    nproc    unlimited
+
   when:
     - node_tier in ["oracle","oracle-asm","oracle-multi-sid"]
 

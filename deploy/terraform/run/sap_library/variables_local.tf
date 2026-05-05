@@ -22,10 +22,10 @@ locals {
   // Locate the tfstate storage account
   parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
 
-  SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
-  SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
-  tfstate_storage_account_name        = local.parsed_id["resource_name"]
-  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
+  tfstate_storage_account_subscription_id       = local.parsed_id["subscription_id"]
+  tfstate_storage_account_resource_group_name   = local.parsed_id["resource_group_name"]
+  tfstate_storage_account_name                  = local.parsed_id["resource_name"]
+  tfstate_container_name                        = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
 
   // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate

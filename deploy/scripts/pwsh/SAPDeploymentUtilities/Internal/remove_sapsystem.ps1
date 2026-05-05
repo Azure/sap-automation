@@ -250,7 +250,7 @@ Licensed under the MIT license.
     }
 
     Write-Host -ForegroundColor green "Running refresh"
-    $Command = " init -upgrade=true -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"""
+    $Command = " init -upgrade -backend-config ""subscription_id=$sub"" -backend-config ""resource_group_name=$rgName"" -backend-config ""storage_account_name=$saName"" -backend-config ""container_name=tfstate"" -backend-config ""key=$key"""
     $Cmd = "terraform -chdir=$terraform_module_directory $Command"
     Add-Content -Path "deployment.log" -Value $Cmd
     & ([ScriptBlock]::Create($Cmd))  

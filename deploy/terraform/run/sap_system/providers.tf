@@ -16,25 +16,33 @@
   */
 
   provider "azurerm"                     {
-                                          features {}
                                           subscription_id            = coalesce(var.management_subscription_id,var.subscription_id, local.deployer_subscription_id)
                                           storage_use_azuread        = true
                                           use_msi                    = true
+                                          features {}
                                         }
 
   provider "azurerm"                     {
-                                          features {}
+                                          alias                      = "deployer"
                                           subscription_id            = coalesce(var.management_subscription_id,var.subscription_id, local.deployer_subscription_id)
                                           storage_use_azuread        = true
                                           client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
                                           client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
                                           tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
                                           use_msi                    = !var.use_spn
-                                          alias                      = "deployer"
+                                          features {}
                                         }
 
 
   provider "azurerm"                     {
+                                          alias                      = "system"
+                                          subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
+                                          client_id                  = var.use_spn ? data.azurerm_key_vault_secret.client_id[0].value : null
+                                          client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.client_secret[0].value : null
+                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.tenant_id[0].value : null
+                                          use_msi                    = var.use_spn ? false : true
+                                          partner_id                 = "3179cd51-f54b-4c73-ac10-8e99417efce7"
+                                          storage_use_azuread        = true
                                           features {
                                                       resource_group {
                                                                       prevent_deletion_if_contains_resources      = var.prevent_deletion_if_contains_resources
@@ -49,38 +57,28 @@
                                                                           data_plane_available                     = var.data_plane_available
                                                                     }
                                                     }
-                                          subscription_id            = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
-                                          client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
-                                          client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
-                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
-                                          use_msi                    = var.use_spn ? false : true
-
-                                          partner_id                 = "3179cd51-f54b-4c73-ac10-8e99417efce7"
-                                          storage_use_azuread        = true
-                                          alias                      = "system"
-
                                         }
 
   provider "azurerm"                     {
-                                          features {}
                                           alias                      = "dnsmanagement"
-                                          subscription_id            = coalesce(var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                          subscription_id            = coalesce(var.management_dns_subscription_id, var.management_subscription_id, local.deployer_subscription_id, local.tfstate_storage_account_subscription_id)
                                           client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
                                           client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
                                           tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
                                           use_msi                    = var.use_spn ? false : true
                                           storage_use_azuread        = true
+                                          features {}
                                         }
 
   provider "azurerm"                     {
-                                          features {}
                                           alias                      = "privatelinkdnsmanagement"
-                                          subscription_id            = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                          subscription_id            = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, var.management_subscription_id, local.deployer_subscription_id, local.tfstate_storage_account_subscription_id)
                                           client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
                                           client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
                                           tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
                                           use_msi                    = var.use_spn ? false : true
                                           storage_use_azuread        = true
+                                          features {}
                                         }
 
 
@@ -114,7 +112,7 @@
                                                                             }
                                                                 azurerm =  {
                                                                               source  = "hashicorp/azurerm"
-                                                                              version = "4.63.0"
+                                                                              version = "4.70.0"
                                                                             }
                                                               }
                                         }

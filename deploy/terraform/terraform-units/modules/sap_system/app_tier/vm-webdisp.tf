@@ -454,47 +454,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "web" {
   lun                                  = local.web_data_disks[count.index].lun
 }
 
-resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
-  provider                             = azurerm.main
-  count                                = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
-                                           local.webdispatcher_count) : (
-                                           0
-                                         )
-  name                                 = "MonitorX64Linux"
-  virtual_machine_id                   = azurerm_linux_virtual_machine.web[count.index].id
-  publisher                            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
-  type                                 = "MonitorX64Linux"
-  type_handler_version                 = "1.0"
-  settings                             = jsonencode(
-                                           {
-                                             "system": "SAP",
-
-                                           }
-                                         )
-  tags                                 = var.tags
-}
-
-
-resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
-  provider                             = azurerm.main
-  count                                = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
-                                           local.webdispatcher_count) : (
-                                           0
-                                         )
-  name                                 = "MonitorX64Windows"
-  virtual_machine_id                   = azurerm_windows_virtual_machine.web[count.index].id
-  publisher                            = "Microsoft.AzureCAT.AzureEnhancedMonitoring"
-  type                                 = "MonitorX64Windows"
-  type_handler_version                 = "1.0"
-  settings                             = jsonencode(
-                                           {
-                                             "system": "SAP",
-
-                                           }
-                                         )
-  tags                                 = var.tags
-}
-
 resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
 
   provider                             = azurerm.main

@@ -365,6 +365,6 @@ resource "azurerm_network_security_rule" "nsr_controlplane_anf" {
                                              flatten(data.azurerm_virtual_network.vnet_sap[0].address_space)) : (
                                              flatten(azurerm_virtual_network.vnet_sap[0].address_space)
                                            )))
-  destination_address_prefixes         = concat(var.infrastructure.virtual_networks.sap.subnet_storage.exists ? data.azurerm_subnet.storage[0].address_prefixes : azurerm_subnet.storage[0].address_prefixes,
-                                             var.infrastructure.virtual_networks.sap.subnet_anf.exists ? data.azurerm_subnet.anf[0].address_prefixes : azurerm_subnet.anf[0].address_prefixes)
+  destination_address_prefixes         = compact(concat(try(var.infrastructure.virtual_networks.sap.subnet_storage.exists ? data.azurerm_subnet.storage[0].address_prefixes : azurerm_subnet.storage[0].address_prefixes, []),
+                                             try(var.infrastructure.virtual_networks.sap.subnet_anf.exists ? data.azurerm_subnet.anf[0].address_prefixes : azurerm_subnet.anf[0].address_prefixes, [])))
 }

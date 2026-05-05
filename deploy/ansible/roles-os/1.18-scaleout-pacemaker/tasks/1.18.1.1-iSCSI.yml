@@ -65,6 +65,9 @@
                                        {%- if ('db2' in supported_tiers) -%}
                                        {%-   set _clusterType = 'db' -%}
                                        {%- endif -%}
+                                       {%- if ('observer' in supported_tiers) -%}
+                                       {%-   set _clusterType = 'observer' -%}
+                                       {%- endif -%}
                                        {{- _clusterType -}}
 
 - name:                                "1.18.1 Generic Pacemaker - Scale Out - iSCSI packages - Get initiator name"
@@ -79,16 +82,28 @@
     msg:                               "iSCSI node type: {{ iscsi_node_type }}, initiator name: {{ iscsi_initiator_name }}"
     verbosity:                         2
 
-- name:                                "1.18.1 Generic Pacemaker - Scale Out - iSCSI packages - Set the acl names"
+- name:                                "1.18.1 iSCSI packages - Set the acl names (SCS)"
   ansible.builtin.set_fact:
-    acl_name_scs_1:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0"
-    acl_name_scs_2:                    "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1"
-    acl_name_db_1:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-0"
-    acl_name_db_2:                     "iqn.2006-04.{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1.local:{{ sap_sid | lower }}-x{{ iscsi_node_type }}-1"
+    acl_name_scs_1:                    "iqn.2006-04.{{ sap_sid | lower }}-xscs-0.local:{{ sap_sid | lower }}-xscs-0"
+    acl_name_scs_2:                    "iqn.2006-04.{{ sap_sid | lower }}-xscs-1.local:{{ sap_sid | lower }}-xscs-1"
+
+- name:                                "1.18.1 iSCSI packages - Compute DB node index for scale-out IQN assignment"
+  when:
+                                       - iscsi_node_type in ['db', 'observer']
+  ansible.builtin.set_fact:
+    db_all_hosts:                      "{{ groups[sap_sid | upper + '_DB'] | default([]) +
+                                           groups[sap_sid | upper + '_OBSERVER_DB'] | default([]) }}"
+
+- name:                                "1.18.1 iSCSI packages - Set this node's IQN based on group position"
+  when:
+                                       - iscsi_node_type in ['db', 'observer']
+  ansible.builtin.set_fact:
+    node_iscsi_index:                  "{{ db_all_hosts.index(inventory_hostname) }}"
+    acl_name_db_node:                  "iqn.2006-04.{{ sap_sid | lower }}-xdb-{{ db_all_hosts.index(inventory_hostname) }}.local:{{ sap_sid | lower }}-xdb-{{ db_all_hosts.index(inventory_hostname) }}"
 
 - name:                                "1.18.1 Generic Pacemaker - Scale Out - iSCSI packages - print acl names"
   ansible.builtin.debug:
-    msg:                               "acl_name_scs_1: {{ acl_name_scs_1 }}, acl_name_scs_2: {{ acl_name_scs_2 }}, acl_name_db_1: {{ acl_name_db_1 }}, acl_name_db_2: {{ acl_name_db_2 }}"
+    msg:                               "node_iscsi_index: {{ node_iscsi_index | default('N/A') }}, acl_name_db_node: {{ acl_name_db_node | default('N/A') }}, acl_name_scs_1: {{ acl_name_scs_1 }}, acl_name_scs_2: {{ acl_name_scs_2 }}"
     verbosity:                         2
 
 # some versions of RHEL 9 do not seem to create the /etc/iscsi/initiatorname.iscsi file
@@ -151,25 +166,13 @@
 
 - name:                                "1.18.1 Generic Pacemaker - Scale Out - iSCSI configuration - replace InitiatorName - DB"
   when:
-    - iscsi_node_type == 'db'
-  block:
-    - name:                            "1.18.1 Generic Pacemaker - Scale Out - iSCSI configuration - replace InitiatorName for {{ iscsi_node_type }} - {{ primary_instance_name }}"
-      ansible.builtin.replace:
-        path:                          /etc/iscsi/initiatorname.iscsi
-        regexp:                        '^InitiatorName=.*$'
-        replace:                       'InitiatorName={{ acl_name_db_1 }}'
-        backup:                        true
-      when:
-        - inventory_hostname == primary_instance_name
-
-    - name:                            "1.18.1 Generic Pacemaker - Scale Out - iSCSI configuration - replace InitiatorName for {{ iscsi_node_type }} - {{ secondary_instance_name }}"
-      ansible.builtin.replace:
-        path:                          /etc/iscsi/initiatorname.iscsi
-        regexp:                        '^InitiatorName=.*$'
-        replace:                       'InitiatorName={{ acl_name_db_2 }}'
-        backup:                        true
-      when:
-        - inventory_hostname == secondary_instance_name
+                                       - iscsi_node_type in ['db', 'observer']
+                                       - acl_name_db_node is defined
+  ansible.builtin.replace:
+    path:                              /etc/iscsi/initiatorname.iscsi
+    regexp:                            '^InitiatorName=.*$'
+    replace:                           "InitiatorName={{ acl_name_db_node }}"
+    backup:                            true
 
 - name:                                "1.18.1 Generic Pacemaker - Scale Out - iSCSI configuration - restart iSCSI services"
   become:                              true
@@ -206,7 +209,7 @@
         discover:                      true
       loop:                            "{{ iscsi_servers }}"
       when:
-                                       - iscsi_node_type in ['scs', 'db']
+                                       - iscsi_node_type in ['scs', 'db', 'observer']
                                        - iscsi_initiator_name == item.iqn
       register:                        discovery_result
 
@@ -223,7 +226,7 @@
         login:                         true
       loop:                            "{{ iscsi_servers }}"
       when:
-                                       - iscsi_node_type in ['scs', 'db']
+                                       - iscsi_node_type in ['scs', 'db', 'observer']
                                        - iscsi_initiator_name == item.iqn
       register:                        login_result
       failed_when:
@@ -244,7 +247,7 @@
         auto_node_startup:             true
       loop:                            "{{ iscsi_servers }}"
       when:
-                                       - iscsi_node_type in ['scs', 'db']
+                                       - iscsi_node_type in ['scs', 'db', 'observer']
                                        - iscsi_initiator_name == item.iqn
       register:                        startup_result
 
@@ -316,6 +319,5 @@
                                        - iscsi_device_map == []
   ansible.builtin.fail:
     msg:                               "iSCSI configuration failed"
-
 
 ...

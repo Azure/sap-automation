@@ -18,11 +18,15 @@ fi
 
 function save_config_var() {
 	local var_name=$1 var_file=$2
+
 	if [ -f "${var_file}" ]; then
 		sed -i -e "" -e /$var_name/d "${var_file}"
+	else
+		echo "File ${var_file} does not exist."
 	fi
-
 	echo "${var_name}=${!var_name}" >>"${var_file}"
+
+
 }
 
 function save_config_vars() {
@@ -129,26 +133,85 @@ function getAndStoreTerraformStateStorageAccountDetails {
 
 	echo "Trying to find the storage account:  ${REMOTE_STATE_SA}"
 
-	save_config_vars "${config_file_name}" REMOTE_STATE_SA
-	if [ -z "$STATE_SUBSCRIPTION" ]; then
-		tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].id | [0]" --output tsv)
-		REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --query "[].resourceGroup | [0]" --output tsv)
-	else
-		tf_resource_id=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription "$STATE_SUBSCRIPTION" --query "[].id | [0]" --output tsv)
-		REMOTE_STATE_RGNAME=$(az resource list --name "${REMOTE_STATE_SA}" --resource-type Microsoft.Storage/storageAccounts --subscription "$STATE_SUBSCRIPTION" --query "[].resourceGroup | [0]" --output tsv)
+	tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
 
-	fi
 	fail_if_null tfstate_resource_id
+	if [ -z "${tfstate_resource_id}" ]; then
+		error_msg "Unable to find the storage account: ${REMOTE_STATE_SA}"
+	else
+		STATE_SUBSCRIPTION=$(echo "${tfstate_resource_id}" | cut -d/ -f3 | tr -d \" | xargs)
+		REMOTE_STATE_RG=$(echo "${tfstate_resource_id}" | cut -d/ -f5 | tr -d \" | xargs)
 
-	export REMOTE_STATE_RG=$REMOTE_STATE_RGNAME
-	export tfstate_resource_id=$tf_resource_id
+		TF_VAR_tfstate_resource_id=$tfstate_resource_id
+		TF_VAR_management_subscription_id=$STATE_SUBSCRIPTION
 
-	save_config_vars "${config_file_name}" \
-		REMOTE_STATE_RG \
-		tfstate_resource_id \
-		STATE_SUBSCRIPTION
-	echo "Found the storage account:           ${REMOTE_STATE_SA}"
+		export REMOTE_STATE_RG
+		export STATE_SUBSCRIPTION
+		export TF_VAR_tfstate_resource_id
+		export TF_VAR_management_subscription_id
+		export tfstate_resource_id="${tfstate_resource_id}"
+
+		if [ -f "${config_file_name}" ]; then
+
+			save_config_vars "${config_file_name}" \
+				REMOTE_STATE_SA \
+				REMOTE_STATE_RG \
+				tfstate_resource_id \
+				STATE_SUBSCRIPTION
+		fi
+		echo "Found the storage account:           ${REMOTE_STATE_SA}"
+	fi
+
 }
+
+function getAndStoreTerraformStateStorageAccountDetailsFromDisk {
+	local config_file_name="${1}"
+	if [ -f ".terraform/terraform.tfstate" ]; then
+
+		terraform_storage_account_subscription_id=$(grep -m1 "subscription_id" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
+		terraform_storage_account_name=$(grep -m1 "storage_account_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+		terraform_storage_account_resource_group_name=$(grep -m1 "resource_group_name" ".terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
+
+		echo "Using the Terraform configuration file to find the storage account details:  ${terraform_storage_account_name}"
+
+		if [[ -n "${terraform_storage_account_name}" ]]; then
+			export terraform_storage_account_subscription_id
+			export terraform_storage_account_name
+			export terraform_storage_account_resource_group_name
+
+			REMOTE_STATE_SA="${terraform_storage_account_name}"
+			REMOTE_STATE_RG="${terraform_storage_account_resource_group_name}"
+			STATE_SUBSCRIPTION="${terraform_storage_account_subscription_id}"
+			TF_VAR_management_subscription_id="${terraform_storage_account_subscription_id}"
+			export TF_VAR_management_subscription_id
+
+			tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$REMOTE_STATE_SA' | project id, name, subscription" --query data[0].id --output tsv)
+
+			fail_if_null tfstate_resource_id
+			if [ -z "${tfstate_resource_id}" ]; then
+				error_msg "Unable to find the storage account: ${REMOTE_STATE_SA}"
+			else
+
+				TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
+				export REMOTE_STATE_RG
+				export STATE_SUBSCRIPTION
+				export TF_VAR_tfstate_resource_id
+
+				if [ -f "${config_file_name}" ]; then
+
+					save_config_vars "${config_file_name}" \
+						REMOTE_STATE_SA \
+						REMOTE_STATE_RG \
+						tfstate_resource_id \
+						STATE_SUBSCRIPTION
+				fi
+
+			fi
+		fi
+	fi
+}
+
 
 ##############################################################################
 # Function to get the value of a variable from the Azure App Configuration
@@ -494,64 +557,63 @@ function print_script_name_and_function() {
 function get_region_code() {
 	region_lower=$(echo "${region}" | tr [:upper:] [:lower:] | xargs | tr -d '\r')
 	case "${region_lower}" in
-	"australiacentral") export region_code="AUCE" ;;
-	"australiacentral2") export region_code="AUC2" ;;
-	"australiaeast") export region_code="AUEA" ;;
-	"australiasoutheast") export region_code="AUSE" ;;
-	"brazilsouth") export region_code="BRSO" ;;
-	"brazilsoutheast") export region_code="BRSE" ;;
-	"brazilus") export region_code="BRUS" ;;
-	"canadacentral") export region_code="CACE" ;;
-	"canadaeast") export region_code="CAEA" ;;
-	"centralindia") export region_code="CEIN" ;;
-	"centralus") export region_code="CEUS" ;;
-	"centraluseuap") export region_code="CEUA" ;;
-	"eastasia") export region_code="EAAS" ;;
-	"eastus") export region_code="EAUS" ;;
-	"eastus2") export region_code="EUS2" ;;
-	"eastus2euap") export region_code="EUSA" ;;
-	"eastusstg") export region_code="EUSG" ;;
-	"francecentral") export region_code="FRCE" ;;
-	"francesouth") export region_code="FRSO" ;;
-	"germanynorth") export region_code="GENO" ;;
-	"germanywestcentral") export region_code="GEWC" ;;
-	"indonesiacentral") export region_code="INCE" ;;
-	"israelcentral") export region_code="ISCE" ;;
-	"italynorth") export region_code="ITNO" ;;
-	"japaneast") export region_code="JAEA" ;;
-	"japanwest") export region_code="JAWE" ;;
-	"jioindiacentral") export region_code="JINC" ;;
-	"jioindiawest") export region_code="JINW" ;;
-	"koreacentral") export region_code="KOCE" ;;
-	"koreasouth") export region_code="KOSO" ;;
-	"northcentralus") export region_code="NCUS" ;;
-	"northeurope") export region_code="NOEU" ;;
-	"norwayeast") export region_code="NOEA" ;;
-	"norwaywest") export region_code="NOWE" ;;
-	"polandcentral") export region_code="PLCE" ;;
-	"qatarcentral") export region_code="QACE" ;;
-	"southafricanorth") export region_code="SANO" ;;
-	"southafricawest") export region_code="SAWE" ;;
-	"southcentralus") export region_code="SCUS" ;;
-	"southcentralusstg") export region_code="SCUG" ;;
-	"southeastasia") export region_code="SOEA" ;;
-	"southindia") export region_code="SOIN" ;;
-	"swedencentral") export region_code="SECE" ;;
-	"switzerlandnorth") export region_code="SWNO" ;;
-	"switzerlandwest") export region_code="SWWE" ;;
-	"uaecentral") export region_code="UACE" ;;
-	"uaenorth") export region_code="UANO" ;;
-	"uksouth") export region_code="UKSO" ;;
-	"ukwest") export region_code="UKWE" ;;
-	"westcentralus") export region_code="WCUS" ;;
-	"westeurope") export region_code="WEEU" ;;
-	"westindia") export region_code="WEIN" ;;
-	"westus") export region_code="WEUS" ;;
-	"westus2") export region_code="WUS2" ;;
-	"westus3") export region_code="WUS3" ;;
-	"newzealandnorth") export region_code="NZNO" ;;
-	*) export region_code="UNKN" ;;
-
+		"australiacentral")     export region_code="AUCE" ;;
+		"australiacentral2")    export region_code="AUC2" ;;
+		"australiaeast")        export region_code="AUEA" ;;
+		"australiasoutheast")   export region_code="AUSE" ;;
+		"brazilsouth")          export region_code="BRSO" ;;
+		"brazilsoutheast")      export region_code="BRSE" ;;
+		"brazilus")             export region_code="BRUS" ;;
+		"canadacentral")        export region_code="CACE" ;;
+		"canadaeast")           export region_code="CAEA" ;;
+		"centralindia")         export region_code="CEIN" ;;
+		"centralus")            export region_code="CEUS" ;;
+		"centraluseuap")        export region_code="CEUA" ;;
+		"eastasia")             export region_code="EAAS" ;;
+		"eastus")               export region_code="EAUS" ;;
+		"eastus2")              export region_code="EUS2" ;;
+		"eastus2euap")          export region_code="EUSA" ;;
+		"eastusstg")            export region_code="EUSG" ;;
+		"francecentral")        export region_code="FRCE" ;;
+		"francesouth")          export region_code="FRSO" ;;
+		"germanynorth")         export region_code="GENO" ;;
+		"germanywestcentral")   export region_code="GEWC" ;;
+		"indonesiacentral")     export region_code="INCE" ;;
+		"israelcentral")        export region_code="ISCE" ;;
+		"italynorth")           export region_code="ITNO" ;;
+		"japaneast")            export region_code="JAEA" ;;
+		"japanwest")            export region_code="JAWE" ;;
+		"jioindiacentral")      export region_code="JINC" ;;
+		"jioindiawest")         export region_code="JINW" ;;
+		"koreacentral")         export region_code="KOCE" ;;
+		"koreasouth")           export region_code="KOSO" ;;
+		"northcentralus")       export region_code="NCUS" ;;
+		"northeurope")          export region_code="NOEU" ;;
+		"norwayeast")           export region_code="NOEA" ;;
+		"norwaywest")           export region_code="NOWE" ;;
+		"polandcentral")        export region_code="PLCE" ;;
+		"qatarcentral")         export region_code="QACE" ;;
+		"southafricanorth")     export region_code="SANO" ;;
+		"southafricawest")      export region_code="SAWE" ;;
+		"southcentralus")       export region_code="SCUS" ;;
+		"southcentralusstg")    export region_code="SCUG" ;;
+		"southeastasia")        export region_code="SOEA" ;;
+		"southindia")           export region_code="SOIN" ;;
+		"swedencentral")        export region_code="SECE" ;;
+		"switzerlandnorth")     export region_code="SWNO" ;;
+		"switzerlandwest")      export region_code="SWWE" ;;
+		"uaecentral")           export region_code="UACE" ;;
+		"uaenorth")             export region_code="UANO" ;;
+		"uksouth")              export region_code="UKSO" ;;
+		"ukwest")               export region_code="UKWE" ;;
+		"westcentralus")        export region_code="WCUS" ;;
+		"westeurope")           export region_code="WEEU" ;;
+		"westindia")            export region_code="WEIN" ;;
+		"westus")               export region_code="WEUS" ;;
+		"westus2")              export region_code="WUS2" ;;
+		"westus3")              export region_code="WUS3" ;;
+		"newzealandnorth")      export region_code="NZNO" ;;
+		*)                      export region_code="UNKN" ;;
 	esac
 }
 
@@ -597,7 +659,7 @@ function valid_region_code() {
 # An Keyvault name value must be made up of letters and numbers
 # an uppercase letter.
 function valid_kv_name() {
-	if [[ "${keyvault}" =~ "^[A-Za-z0-9]{1,10}$" ]]; then
+	if [[ "${keyvault:-}" =~ "^[A-Za-z0-9]{1,10}$" ]]; then
 		return 1
 	else
 		return 0
@@ -624,11 +686,12 @@ function valid_kv_name() {
 ################################################################################
 
 function get_configuration_file {
-	local directory=$1
+	local directory=${1%/}                                                                            # Remove trailing slash if present to prevent // in file path
 	local environment=$2
 	local region_code=$3
 	local logical_network_name=$4
 
+	local defaultConfigFile="/home/${DEPLOYER_USERNAME:-azureadm}/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation/${environment}${region_code}${logical_network_name}"
 	local configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 
 	if [ ! -f "${configurationFile}" ]; then
@@ -637,9 +700,85 @@ function get_configuration_file {
 			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		else
 			sudo mv "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			if [ -f "${defaultConfigFile}" ]; then
+				configurationFile="${defaultConfigFile}"
+				echo "Found configuration file in default location: ${configurationFile}"
+				echo "Copying configuration file to expected location: ${directory}/${environment}${region_code}${logical_network_name}"
+				sudo cp -ap "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			else
+			  sudo mv "${configurationFile}" "${directory}/${environment}${region_code}${logical_network_name}" 2>/dev/null || true
+			fi
 			configurationFile="${directory}/${environment}${region_code}${logical_network_name}"
 		fi
 	fi
 
 	echo "${configurationFile}"
+}
+
+
+function detect_platform() {
+	if [ -n "${GITHUB_ACTIONS+x}" ]; then
+		PLATFORM="github"
+	elif [ -n "${TF_BUILD+x}" ]; then
+		PLATFORM="devops"
+	else
+		# Default to CLI for interactive use
+		if [[ -z "${PLATFORM:-}" ]]; then
+			PLATFORM="cli"
+		fi
+	fi
+	export PLATFORM
+	echo "Using platform:                      ${PLATFORM}"
+
+}
+
+
+function get_name_components
+{
+	fname="${1}"
+	deployment_type="${2}"
+	local return_value=0
+
+
+	if [ "control_plane" == "${deployment_type}" ]; then
+		load_config_vars "${fname}" \
+			environment \
+			management_network_logical_name \
+			location
+			NETWORK="${management_network_logical_name}"
+	else
+		load_config_vars "${fname}" \
+			environment \
+			network_logical_name \
+			location
+			NETWORK="${network_logical_name}"
+	fi
+	region="${location}"
+	get_region_code "$region"
+	LOCATION="$region_code"
+	ENVIRONMENT="${environment}"
+
+	if [[ -z "${ENVIRONMENT}" || -z "${NETWORK}" || -z "${LOCATION}" ]]; then
+		local missing_components=""
+		[[ -z "${ENVIRONMENT}" ]] && missing_components="${missing_components} environment"
+		[[ -z "${NETWORK}" ]] && missing_components="${missing_components} network"
+		[[ -z "${LOCATION}" ]] && missing_components="${missing_components} location"
+
+		echo "Failed to retrieve name components from configuration file: ${fname}"
+		echo "Missing required configuration values:${missing_components}"
+
+		return_value=1
+	else
+		echo "Retrieved name components from configuration file: ${fname}"
+		echo "Environment:                           ${ENVIRONMENT}"
+		echo "Network:                               ${NETWORK}"
+		echo "Location:                              ${LOCATION}"
+		return_value=0
+	fi
+
+	export ENVIRONMENT
+	export NETWORK
+	export LOCATION
+	return $return_value
+
 }

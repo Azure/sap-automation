@@ -1,0 +1,21 @@
+#!/bin/bash
+export                 ARM_SUBSCRIPTION_ID="${subscription_id}"
+
+unset SDAF_APPLICATION_CONFIGURATION_NAME
+%{~ if length(app_configuration_name) != 0 }
+# This is the name of the application configuration to be used for deployments using this control plane. 
+export SDAF_APPLICATION_CONFIGURATION_NAME="${app_configuration_name}"
+%{~ endif }
+
+unset SDAF_APPSERVICE_NAME
+%{~ if length(app_service_name) != 0 }
+# This is the name of the appservice to be used for deployments using this control plane. 
+export SDAF_APPSERVICE_NAME="${app_service_name}"
+%{~ endif }
+
+export SDAF_TERRAFORM_STORAGE_ACCOUNT_NAME="${terraform_storage_account_name}"
+
+export             SDAF_CONTROL_PLANE_NAME="${control_plane_name}"
+
+# This is the name of the key vault to be used for deployment credentials. 
+export                  SDAF_KEYVAULT_NAME="${keyvault_name}"

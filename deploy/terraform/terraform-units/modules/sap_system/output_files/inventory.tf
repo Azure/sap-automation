@@ -178,14 +178,36 @@ resource "local_file" "ansible_inventory_new_yml" {
   directory_permission = "0770"
 }
 
-# resource "azurerm_storage_blob" "hosts_yaml" {
-#   provider               = azurerm.deployer
-#   name                   = format("%s_hosts.yml", trimspace(var.sap_sid))
-#   storage_account_name   = local.tfstate_storage_account_name
-#   storage_container_name = lower(format("tfvars/SYSTEM/%s", var.naming.prefix.SDU))
-#   type                   = "Block"
-#   source                 = local_file.ansible_inventory_new_yml.filename
-# }
+resource "azurerm_storage_blob" "ansible_inventory_yaml" {
+  provider               = azurerm.deployer
+  depends_on             = [local_file.ansible_inventory_new_yml]
+  name                   = format("SYSTEM/%s/%s_hosts.yaml", trimspace(var.naming.prefix.SDU), trimspace(var.sap_sid))
+  storage_account_name   = local.tfstate_storage_account_name
+  storage_container_name = "tfvars"
+  type                   = "Block"
+  source                 = local_file.ansible_inventory_new_yml.filename
+}
+
+resource "azurerm_storage_blob" "tfvarsfile" {
+  provider               = azurerm.deployer
+  depends_on             = [local_file.ansible_inventory_new_yml]
+  name                   = format("SYSTEM/%s/%s.tfvars", trimspace(var.naming.prefix.SDU), trimspace(var.naming.prefix.SDU))
+  storage_account_name   = local.tfstate_storage_account_name
+  storage_container_name = "tfvars"
+  type                   = "Block"
+  source                 = format("%s/%s.tfvars", path.cwd, trimspace(var.naming.prefix.SDU))
+}
+
+resource "azurerm_storage_blob" "tfvars_state" {
+  provider               = azurerm.deployer
+  count                  = fileexists(format("%s/.terraform/terraform.tfstate", path.cwd)) ? 1 : 0
+  depends_on             = [local_file.ansible_inventory_new_yml]
+  name                   = format("SYSTEM/%s/.terraform/terraform.tfstate", trimspace(var.naming.prefix.SDU))
+  storage_account_name   = local.tfstate_storage_account_name
+  storage_container_name = "tfvars"
+  type                   = "Block"
+  source                 = format("%s/.terraform/terraform.tfstate", path.cwd)
+}
 
 resource "local_file" "sap-parameters_yml" {
   content = templatefile(format("%s/sap-parameters.tmpl", path.module), {
@@ -199,6 +221,7 @@ resource "local_file" "sap-parameters_yml" {
               db_instance_number          = try(var.database.instance.number, "00")
               database_loadbalancer_ip    = var.database_loadbalancer_ip
               db_sid                      = var.db_sid
+              deploy_monitoring_extension = var.deploy_monitoring_extension
               disks                       = var.disks
               dns                         = local.dns_label
               dns                         = var.dns
@@ -223,7 +246,7 @@ resource "local_file" "sap-parameters_yml" {
               is_use_simple_mount         = var.use_simple_mount
               is_use_fence_kdump          = var.is_use_fence_kdump
               is_use_sles_hanasr_angi     = var.database.database_hana_use_saphanasr_angi
-              iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers)
+              iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers, local.iscsi_observer_servers)
               kv_name                     = lower(local.key_vault_name),
               NFS_provider                = var.NFS_provider
               pas_instance_number         = var.pas_instance_number
@@ -256,6 +279,7 @@ resource "local_file" "sap-parameters_yml" {
               subnet_cidr_db              = trimspace(coalesce(var.subnet_cidr_db," ")),
               subnet_cidr_storage         = trimspace(coalesce(var.subnet_cidr_storage," ")),
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
+              user_assigned_identity_id   = var.user_assigned_identity_id
               suse_subscription_id        = var.suse_subscription_id
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (
@@ -280,6 +304,16 @@ resource "local_file" "sap-parameters_yml" {
   directory_permission = "0770"
 }
 
+resource "azurerm_storage_blob" "sap_parameters_yaml" {
+  provider               = azurerm.deployer
+  depends_on            = [local_file.sap-parameters_yml]
+  name                   = format("SYSTEM/%s/sap-parameters.yaml", trimspace(var.naming.prefix.SDU))
+  storage_account_name   = local.tfstate_storage_account_name
+  storage_container_name = "tfvars"
+  type                   = "Block"
+  source                 = local_file.sap-parameters_yml.filename
+}
+
 # resource "azurerm_storage_blob" "params_yaml" {
 #   provider               = azurerm.deployer
 #   name                   = "sap-parameters.yaml"
@@ -295,6 +329,7 @@ resource "local_file" "sap_inventory_md" {
 
               application_servers         = join(",", var.naming.virtualmachine_names.APP_COMPUTERNAME)
               database_high_availability  = var.database_high_availability ? "Yes" : "No"
+              database_scale_out          = var.scale_out ? "Yes" : "No"
               db_servers                  = var.platform == "HANA" ? join(",", var.naming.virtualmachine_names.HANA_COMPUTERNAME) : join(",", var.naming.virtualmachine_names.ANYDB_COMPUTERNAME)
               db_sid                      = var.db_sid
               key_vault_name              = local.key_vault_name,
@@ -338,6 +373,16 @@ resource "local_file" "sap_inventory_md" {
   filename             = format("%s/readme.md", path.cwd)
   file_permission      = "0660"
   directory_permission = "0770"
+}
+
+resource "azurerm_storage_blob" "readme" {
+  provider               = azurerm.deployer
+  depends_on            = [local_file.sap_inventory_md]
+  name                   = format("SYSTEM/%s/readme.md", trimspace(var.naming.prefix.SDU))
+  storage_account_name   = local.tfstate_storage_account_name
+  storage_container_name = "tfvars"
+  type                   = "Block"
+  source                 = local_file.sap_inventory_md.filename
 }
 
 # locals {
@@ -403,7 +448,6 @@ resource "local_file" "sap_inventory_for_wiki_md" {
   file_permission      = "0660"
   directory_permission = "0770"
 }
-
 
 resource "local_file" "sap_vms_resource_id" {
   content = templatefile(format("%s/sap-vm-resources.tmpl", path.module), {

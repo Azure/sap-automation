@@ -59,8 +59,8 @@
 
 - name:                                "4.1.3 Oracle Data Guard - Set status on Primary"
   ansible.builtin.set_fact:
-    primary_open:                      "{{ ((dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:READ WRITE')) | bool }}"
-    primary_mounted:                   "{{ ((dg_status.stdout | default('UNKNOWN')) is search('PRIMARY:MOUNTED')) | bool }}"
+    primary_open:                      "{{ (dg_status.stdout is search('PRIMARY:READ WRITE')) | bool }}"
+    primary_mounted:                   "{{ (dg_status.stdout is search('PRIMARY:MOUNTED')) | bool }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Show status on Primary"
   ansible.builtin.debug:
@@ -68,31 +68,10 @@
       - "Database instance:            {{ ansible_hostname }}"
       - "Primary instance open:        {{ primary_open }}"
       - "Primary instance mounted:     {{ primary_mounted }}"
-      - "Database role and open mode:  {{ dg_status.stdout }}"
-
-- name:                                "4.1.3 Oracle Data Guard - Open Primary"
-  when:
-    - not primary_open
-    - primary_mounted
-  become_user:                         "{{ oracle_user_name }}"
-  become:                              true
-  ansible.builtin.shell: |
-                                       sqlplus -S / as sysdba <<EOF
-                                       ALTER DATABASE OPEN;
-                                       EXIT;
-                                       EOF
-
-  register:                            db_opened
-  changed_when:                        false
-  failed_when:                         false
-  environment:                         "{{ oracle_env }}"
-  args:
-    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
 - name:                                "4.1.3 Oracle Data Guard - Restart Primary instance"
   when:
     - not primary_mounted
-    - not primary_open
   block:
     - name:                            "4.1.3 Oracle Data Guard - Restart Primary instance"
       become_user:                     "{{ oracle_user_name }}"
@@ -178,6 +157,50 @@
       environment:                     "{{ oracle_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+
+
+- name:                                "4.1.3 Oracle Data Guard - Verify Status on Primary"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
+                                       SELECT database_role || ':' || open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+
+  register:                            dg_status
+  changed_when:                        false
+  failed_when:                         false
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+  environment:                         "{{ oracle_env }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Set status on Primary"
+  ansible.builtin.set_fact:
+    primary_open:                      "{{ (dg_status.stdout is search('PRIMARY:READ WRITE')) | bool }}"
+    primary_mounted:                   "{{ (dg_status.stdout is search('PRIMARY:MOUNTED')) | bool }}"
+
+
+- name:                                "4.1.3 Oracle Data Guard - Open Primary"
+  when:
+    - not primary_open
+    - primary_mounted
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       ALTER DATABASE OPEN;
+                                       EXIT;
+                                       EOF
+
+  register:                            db_opened
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ oracle_env }}"
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+
 
 - name:                                "4.1.3 Oracle Data Guard - Verify Data Guard configuration on Primary"
   when:                                not primary_open

@@ -2,23 +2,24 @@
 # Licensed under the MIT License.
 
 # Tasks:
-#   OS - hosts file, Entries - /etc/hosts
+#   OS: hosts file, Entries - /etc/hosts
+#   Filter-based implementation
 #
-# TODO:
 
 ---
-
 
 # -------------------------------------+---------------------------------------8
 #
 # Description:  Validation for Prerequisites
 #
-- name:                                "2.4 Hosts - import pre_checks"
+- name:                                "2.4 Hosts: - import pre_checks"
   ansible.builtin.import_tasks:        pre_checks.yaml
-# -------------------------------------+---------------------------------------8
 
-#   OS - hosts file, Entries - /etc/hosts
-- name:                                "2.4 Hosts - OS - Common, Entries - /etc/hosts"
+# -------------------------------------+---------------------------------------8
+#
+# Description: Common hosts entries (non-SAP specific)
+#
+- name:                                "2.4 Hosts: - OS: Common, Entries - /etc/hosts"
   ansible.builtin.blockinfile:
     path:                              /etc/hosts
     mode:                              0644
@@ -28,192 +29,164 @@
     block:                             "{{ lookup('file', 'hosts.block') }}"
     marker:                            "# {mark} ANSIBLE MANAGED BLOCK - COMMON"
 
-
-- name:                                "2.4 Hosts - OS - SID, Entries - /etc/hosts"
-  ansible.builtin.blockinfile:
-    path:                              /etc/hosts
-    mode:                              0644
-    create:                            true
-    state:                             present
-    block:                             "{{ lookup('template', 'hosts.j2') }}"
-    marker:                            "# {mark} ANSIBLE MANAGED BLOCK - {{ sap_sid | upper }}"
-
-
-- name:                                "2.4 Hosts - Set the SCS Virtual Instance hostname"
+# -------------------------------------+---------------------------------------8
+#
+# Description: Backwards compatibility - normalize variable names
+#
+- name:                                "2.4 Hosts: - Backward Compatibility - Check required Database HA variables"
   ansible.builtin.set_fact:
-    scs_virtual_hostname:              "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
-  when:
-    - scs_high_availability
-
-- name:                                "2.4 Hosts - Set the ERS Virtual Instance hostname"
-  ansible.builtin.set_fact:
-    ers_virtual_hostname:              "{{ custom_ers_virtual_hostname | default(sap_sid | lower ~ 'ers' ~ ers_instance_number ~ 'cl2', true) }}"
-  when:
-    - scs_high_availability
-
-- name:                            "Backward Compatibility - Check required Database HA variables"
-  ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
+    database_high_availability:       "{{ db_high_availability | default(false) }}"
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
 
-- name:                                "2.4 Hosts - Set the DB Virtual Instance hostname"
+- name:                                "2.4 Hosts: - Backward Compatibility - Database loadbalancer IP"
   ansible.builtin.set_fact:
-    db_virtual_hostname:               "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'cl', true) }}"
+    database_loadbalancer_ip:          "{{ db_lb_ip }}"
   when:
-    - database_high_availability
+    - db_lb_ip is defined
+    - database_loadbalancer_ip is not defined
 
-- name:                                "2.4 Hosts - Get the Server name list"
+# -------------------------------------+---------------------------------------8
+#
+# Description: Generate all SAP hosts entries using Python filter
+# This replaces the complex Jinja template and multiple blockinfile tasks
+#
+- name:                                "2.4 Hosts: - Generate SAP hosts entries using Python filter"
   ansible.builtin.set_fact:
-    scs_server_list:                   "{{ scs_server_list | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
+    sap_hosts_content:                 "{{ vars | sdaf_generate_sap_hosts }}"
 
-- name:                                "2.4 Hosts - Setup Virtual host name resolution - SCS & ERS"
-  ansible.builtin.blockinfile:
+- name:                                "2.4 Hosts: - Show generated hosts content for troubleshooting"
+  ansible.builtin.debug:
+    var:                               sap_hosts_content
+
+- name:                                "2.4 Hosts: - Read existing /etc/hosts from target host"
+  ansible.builtin.slurp:
     path:                              /etc/hosts
+  register:                            existing_hosts_slurp
+  changed_when:                        false
+
+- name:                                "2.4 Hosts: - Update /etc/hosts with all SAP entries"
+  ansible.builtin.copy:
+    dest:                              /etc/hosts
+    content:                           "{{ (existing_hosts_content + sap_hosts_content) | join('\n') }}\n"
     mode:                              0644
-    create:                            true
-    state:                             present
-    block: |
-      {{ '%-19s' | format(scs_lb_ip) }} {{ '%-80s' | format(scs_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(scs_virtual_hostname) }}
-      {{ '%-19s' | format(ers_lb_ip) }} {{ '%-80s' | format(ers_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(ers_virtual_hostname) }}
-    marker:                            "# {mark} ASCS/ERS Entries {{ scs_virtual_hostname }}"
-  when:
-    - scs_high_availability
-    - scs_server_list | length > 0
+    backup:                            true
+  vars:
+    # Read existing hosts content from target host and preserve non-SAP entries
+    existing_hosts_file:               "{{ existing_hosts_slurp.content | b64decode }}"
+    # Remove existing SAP managed blocks (including block contents) to avoid duplicates
+    # Also remove orphaned SAP entries that became unmoored from their block markers
+    # Matches any IP address containing the SAP SID and FQDN pattern
+    cleaned_hosts_file:                "{{ existing_hosts_file |
+                                            regex_replace('(?ms)^# BEGIN ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) +
+                                            '.*?^# END ANSIBLE MANAGED BLOCK - ' + (sap_sid | upper) + '\\n?', '') |
+                                            regex_replace('(?ms)^# BEGIN ASCS/ERS Entries.*?^# END ASCS/ERS Entries.*\\n?', '') |
+                                            regex_replace('(?ms)^# BEGIN DB Entries.*?^# END DB Entries.*\\n?', '') |
+                                            regex_replace('(?m)^[0-9]+\\\\.[0-9]+\\\\.[0-9]+\\\\.[0-9]+.*' + (sap_sid | lower) + '.*' + (sap_fqdn | regex_escape) + '.*\\n?', '') }}"
+    existing_hosts_lines:              "{{ cleaned_hosts_file.split('\n') if cleaned_hosts_file else [] }}"
+    existing_hosts_content:            "{{ existing_hosts_lines | reject('match', '^$') | list }}"
 
-- name:                                "2.4 Hosts - Setup Virtual host name resolution - DB"
-  ansible.builtin.blockinfile:
-    path:                              /etc/hosts
-    mode:                              0644
-    create:                            true
-    state:                             present
-    block: |
-      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-80s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
-    marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
-  when:
-    - database_high_availability
-    - platform == 'HANA'
-
-# we only need the first DB VMs IP that belogs to subnet_cidr_client
-- name:                                "2.4 Hosts - Set the DB Virtual Instance name resolution - scale out"
-  when:
-    - platform == 'HANA'
-    - not database_high_availability
-    - database_scale_out
-  block:
-
-    - name:                            "2.4 Hosts - Set the DB Virtual Instance hostname - scale out"
-      ansible.builtin.set_fact:
-        db_so_virtual_hostname:        "{{ custom_db_virtual_hostname | default(sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so', true) }}"
-
-    - name:                            "2.4 Hosts - Calculate host name - DB - Scale Out - Standby"
-      ansible.builtin.set_fact:
-        db_so_virtualhost_ip:          "{{ hostvars[item].ansible_all_ipv4_addresses | ansible.utils.ipaddr(hostvars[item]['subnet_cidr_client']) | first | default(hostvars[item].ansible_host) }}"
-      with_items:
-        - "{{ groups[(sap_sid | upper)~'_DB' ][0] }}"
-
-    - name:                            "2.4 Hosts - Setup Virtual host name resolution - DB - Scale Out - Standby"
-      ansible.builtin.blockinfile:
-        path:                          /etc/hosts
-        mode:                          0644
-        create:                        true
-        state:                         present
-        block: |
-          {{ '%-19s' | format(db_so_virtualhost_ip) }} {{ '%-80s' | format(db_so_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_so_virtual_hostname) }}
-        marker:                        "# {mark} DB Entries {{ db_virtual_hostname | default(ansible_host) }}"
-
-- name:                                "2.4 Hosts - Setup Virtual host name resolution - DB"
-  ansible.builtin.blockinfile:
-    path:                              /etc/hosts
-    mode:                              0644
-    create:                            true
-    state:                             present
-    block: |
-      {{ '%-19s' | format(database_loadbalancer_ip) }} {{ '%-80s' | format(db_virtual_hostname + '.' + sap_fqdn) }} {{ '%-21s' | format(db_virtual_hostname) }}
-    marker:                            "# {mark} DB Entries {{ db_virtual_hostname }}"
-  when:
-    - database_high_availability
-    - platform == 'DB2'
-
-- name:                                "2.4 Hosts: Process pas_hostname variable and update host file when it is defined"
-  block:
-
-    - name:                            "2.4 Hosts: Set virtual_host fact from the fetched PAS server list"
-      ansible.builtin.set_fact:
-        pas_server_temp:               "{{ pas_server_temp | default([]) + [item] }}"
-      with_items:
-                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
-                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_SCS') }}"
-                                       - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-      when:
-                                       - "'pas' in hostvars[item]['supported_tiers']"
-
-    - name:                            "2.4 Hosts - Set fact for the PAS if pas_hostname is defined"
-      ansible.builtin.set_fact:
-        pas_virtualhost_from_inventory: "{{ pas_server_temp | first }}"
-        pas_virtual_hostname:           "{{ custom_pas_virtual_hostname | default( pas_server_temp | first , true) }}"
-      when:
-        - pas_server_temp | default([]) | length > 0
-
-    - name:                            "2.4 Hosts - Display the variables being used"
-      ansible.builtin.debug:
-        msg:
-          - "pas_virtual_hostname:     {{ pas_virtual_hostname }} "
-          - "custom_pas_hostname:      {{ custom_pas_virtual_hostname }} "
-          - "virtualhost_in_inventory: {{ pas_virtualhost_from_inventory }}"
-      when:
-        - pas_server_temp | default([]) | length > 0
-
-    - name:                            "2.4 Hosts - Get the line from /etc/hosts with virtual_host"
-      ansible.builtin.slurp:
-        src:                           /etc/hosts
-      register: hosts_content
-
-    - name:                            "2.4 Hosts - Extract the line with virtual_host"
-      ansible.builtin.set_fact:
-        virtual_host_line:             "{{ (hosts_content['content'] | b64decode).split('\n') | select('search', pas_virtualhost_from_inventory) | first }}"
-      when:
-        - pas_virtualhost_from_inventory is defined
-
-    - name:                            "2.4 Hosts - Duplicate the line with virtual_host and replace with pas_virtual_hostname in /etc/hosts"
-      when:
-        - virtual_host_line is defined
-        - pas_virtual_hostname is defined
-      ansible.builtin.lineinfile:
-        path:                          /etc/hosts
-        line:                          "{{ virtual_host_line | replace(pas_virtualhost_from_inventory, pas_virtual_hostname) }}"
-        insertbefore:                  "{{ virtual_host_line }}"
-
-- name:                                "2.4 Hosts - Setup iSCSI host name resolution"
+# -------------------------------------+---------------------------------------8
+#
+# Description: iSCSI setup (preserved from original role)
+#
+- name:                                "2.4 Hosts: - Setup iSCSI host name resolution"
   ansible.builtin.lineinfile:
     path:                              /etc/hosts
-    line:
-      "{{ '%-19s' | format(iscsi_server.ip) }} {{ '%-80s' | format(iscsi_server.host + '.' + sap_fqdn) }} {{ '%-21s' | format(iscsi_server.host) }}"
+    line: >-
+      {{ '%-19s' | format(iscsi_server.ip) }} {{ '%-80s' | format(iscsi_server.host + '.' + sap_fqdn) }} {{ '%-21s' | format(iscsi_server.host) }}
+    backup:                            true
   loop:                                "{{ iscsi_servers }}"
   loop_control:
     loop_var:                          iscsi_server
   when:                                iscsi_servers is defined
 
-- name:                                "2.4 Hosts - Remove duplicate lines from /etc/hosts"
-  block:
-    - name:                            "2.4 Hosts - Get the line from /etc/hosts with virtual_host"
-      ansible.builtin.slurp:
-        src:                           /etc/hosts
-      register:                        hosts_content_after
+# -------------------------------------+---------------------------------------8
+#
+# Description: Optional validation and troubleshooting
+#
+- name:                                "2.4 Hosts: - Build topology-aware validation host list"
+  ansible.builtin.set_fact:
+    validation_host_candidates:
+      - "{{ sap_sid | lower }}scs{{ scs_instance_number | default('00') }}cl1.{{ sap_fqdn }}"
+      - "{{ sap_sid | lower }}ers{{ ers_instance_number | default('01') }}cl2.{{ sap_fqdn }}"
+      - "{{ sap_sid | lower }}{{ db_sid | lower }}db{{ db_instance_number | default('00') }}cl.{{ sap_fqdn }}"
 
-    - name:                            "2.4 Hosts - Get unique lines from /etc/hosts"
-      ansible.builtin.set_fact:
-        unique_lines:                  "{{ (hosts_content_after['content'] | b64decode).split('\n') | unique }}"
+- name:                                "2.4 Hosts: - Build validation hostnames based on topology"
+  ansible.builtin.set_fact:
+    validation_hostnames: >-
+      {{
+        []
+        + ([validation_host_candidates[0], validation_host_candidates[1]] if (scs_high_availability | default(false)) else [])
+        + ([validation_host_candidates[2]] if (database_high_availability | default(false)) else [])
+      }}
 
-    - name:                            "2.4 Hosts - Write unique lines back to /etc/hosts"
-      ansible.builtin.copy:
-        dest:                          /etc/hosts
-        content:                       "{{ unique_lines | join('\n') }}"
-        mode:                          0644
-        backup:                        true
-      when: (hosts_content_after['content'] | b64decode).split('\n') | unique | length != (hosts_content_after['content'] | b64decode).split('\n') | length
+- name:                                "2.4 Hosts: - Keep only validation hosts generated for this topology"
+  ansible.builtin.set_fact:
+    validation_hostnames:              "{{ validation_hostnames | select('in', (sap_hosts_content | join('\n'))) | list }}"
+
+- name:                                "2.4 Hosts: - Validation skipped when no topology hostnames are expected"
+  ansible.builtin.debug:
+    msg:                               "Skipping host resolution validation: no SCS/ERS/DB validation hostnames are expected for this topology."
+  when:
+    - validation_hostnames is defined
+    - validation_hostnames | length == 0
+
+- name:                                "2.4 Hosts: - Validate generated hosts file entries"
+  ansible.builtin.command:
+    cmd:                               "getent hosts {{ item }}"
+  loop:                                "{{ validation_hostnames | default([]) }}"
+  register:                            hosts_validation
+  failed_when:                         false
+  changed_when:                        false
+  when:
+    - validation_hostnames is defined
+    - validation_hostnames | length > 0
+
+- name:                                "2.4 Hosts: - Display validation results"
+  ansible.builtin.debug:
+    msg:
+      - "Host resolution validation for {{ item.item | default('unknown host') }}:"
+      - "Status: {{ 'SUCCESS - Resolvable' if (item.rc | default(1)) == 0 else 'WARNING - Not resolvable (expected if load balancer not active)' }}"
+      - "{{ 'Note: Load balancer IPs may not respond until cluster is configured' if (item.rc | default(1)) != 0 else '' }}"
+  loop:                                "{{ hosts_validation.results | default([]) | selectattr('rc', 'defined') | list }}"
+  when:
+    - hosts_validation is defined
+    - hosts_validation.results is defined
+
+# -------------------------------------+---------------------------------------8
+#
+# Description: Verification that all required entries are present
+#
+- name:                                "2.4 Hosts: - Read final /etc/hosts for verification"
+  ansible.builtin.slurp:
+    path:                              /etc/hosts
+  register:                            final_hosts_slurp
+  changed_when:                        false
+
+- name:                                "2.4 Hosts: - Build expected and actual entry sets"
+  ansible.builtin.set_fact:
+    final_hosts_lines:                 "{{ (final_hosts_slurp.content | b64decode).split('\n') if final_hosts_slurp.content is defined else [] }}"
+    expected_sap_entries:              "{{ sap_hosts_content | reject('match', '^#') | reject('match', '^$') | list }}"
+
+- name:                                "2.4 Hosts: - Verify expected SAP entries were written"
+  ansible.builtin.assert:
+    that:
+      - expected_sap_entries | length > 0
+      - item in final_hosts_lines
+    fail_msg:                          "Expected SAP hosts entry not found in /etc/hosts: {{ item }}"
+  loop:                                "{{ expected_sap_entries }}"
+
+- name:                                "2.4 Hosts: - Final status"
+  ansible.builtin.debug:
+    msg:
+      - "SAP hosts file configuration completed successfully"
+      - "SID: {{ sap_sid | upper }}"
+      - "FQDN: {{ sap_fqdn }}"
+      - "Scale-out: {{ database_scale_out | default(false) }}"
+      - "HA Database: {{ database_high_availability | default(false) }}"
+      - "HA SCS/ERS: {{ scs_high_availability | default(false) }}"
+      - "Total hosts processed: {{ ansible_play_hosts | length }}"
 
 ...

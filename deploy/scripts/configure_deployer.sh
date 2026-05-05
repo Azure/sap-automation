@@ -234,7 +234,7 @@ pkg_mgr_install() {
 # Directories and paths
 #
 
-# Ansible installation directories
+# Ansible installation directories and paths
 ansible_base=/opt/ansible
 ansible_bin="${ansible_base}/bin"
 ansible_venv="${ansible_base}/venv/${ansible_version}"
@@ -249,9 +249,11 @@ branch="${BRANCH:-main}"
 # Azure SAP Automated Deployment directories
 asad_home="${HOME}/Azure_SAP_Automated_Deployment"
 asad_ws="${asad_home}/WORKSPACES"
-asad_repo="https://github.com/${organization}/sap-automation.git"
+
+asad_automation_repo="https://github.com/${organization}/sap-automation.git"
+asad_automation_dir="${asad_home}/$(basename ${asad_automation_repo} .git)"
+
 asad_sample_repo="https://github.com/${organization}/sap-automation-samples.git"
-asad_dir="${asad_home}/$(basename ${asad_repo} .git)"
 asad_sample_dir="${asad_home}/samples"
 
 # Terraform installation directories
@@ -437,24 +439,19 @@ echo "Ansible version: ${ansible_version}"
 # # Install required packages as determined above
 # pkg_mgr_install "${distro_required_pkgs[@]}"
 
-rg_name=$(curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq .compute.resourceGroupName)
-
-subscription_id=$(curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" -s | jq .compute.subscriptionId)
-
 # Prepare Azure SAP Automated Deployment folder structure
-mkdir -p \
-	"${asad_ws}"/LOCAL/"${rg_name}" \
-	"${asad_ws}"/LIBRARY \
-	"${asad_ws}"/SYSTEM \
-	"${asad_ws}"/LANDSCAPE \
-	"${asad_ws}"/DEPLOYER
+mkdir -p  "${asad_ws}/LOCAL"     \
+	        "${asad_ws}/LIBRARY"   \
+	        "${asad_ws}/SYSTEM"    \
+	        "${asad_ws}/LANDSCAPE" \
+	        "${asad_ws}/DEPLOYER"
 
 #
 # Clone Azure SAP Automated Deployment code repository
 #
-if [[ ! -d "${asad_dir}" ]]; then
-	git clone "${asad_repo}" "${asad_dir}"
-	cd "${asad_dir}"
+if [[ ! -d "${asad_automation_dir}" ]]; then
+	git clone "${asad_automation_repo}" "${asad_automation_dir}"
+	cd "${asad_automation_dir}"
 	git checkout "${branch}"
 fi
 
@@ -466,6 +463,9 @@ if [[ ! -d "${asad_sample_dir}" ]]; then
 	cd "${asad_sample_dir}"
 	git checkout "${branch}"
 fi
+
+chown -R "${USER}" "${asad_ws}"
+
 
 #
 # Install terraform for all users
@@ -607,10 +607,14 @@ if [[ ! -x "${ansible_venv_bin}/pip3" ]]; then
 fi
 
 # Ensure that standard tools are up to date
-sudo "${ansible_venv_bin}"/pip3 install --upgrade \
-	pip \
-	wheel \
-	setuptools
+sudo "${ansible_venv_bin}"/pip3 install --upgrade pip         \
+                                                  wheel       \
+	                                                setuptools
+
+# Install requirements
+if [[ -f "${asad_automation_dir}/deploy/ansible/requirements.txt" ]]; then
+  sudo "${ansible_venv_bin}/pip3" install -r "${asad_automation_dir}/deploy/ansible/requirements.txt"
+fi
 
 # Install latest MicroSoft Authentication Library
 # TODO(rtamalin): Do we need this? In particular do we expect to integrated
@@ -629,7 +633,8 @@ sudo "${ansible_venv_bin}"/pip3 install \
 	argcomplete \
 	'pywinrm>=0.3.0' \
 	netaddr \
-	jmespath
+	jmespath \
+	ansible-lint
 
 # Create symlinks for all relevant commands that were installed in the Ansible
 # venv's bin so that they are available in the /opt/ansible/bin directory, which
@@ -649,9 +654,7 @@ ansible_venv_commands=(
 	ansible-pull
 	ansible-test
 	ansible-vault
-
-	# ansible-lint
-	# ansible-lint
+	ansible-lint
 
 	# argcomplete
 	activate-global-python-argcomplete
@@ -672,11 +675,14 @@ sudo "${ansible_bin}"/activate-global-python-argcomplete
 sudo mkdir -p "${ansible_collections}"
 set +o xtrace
 
-sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.windows --force --collections-path "${ansible_collections}"
-sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix --force --collections-path "${ansible_collections}"
-sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils --force --collections-path "${ansible_collections}"
-sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.windows --force --collections-path "${ansible_collections}"
-sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad --force --collections-path "${ansible_collections}"
+echo "Installing ansible.windows..."    ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.windows     --force --collections-path "${ansible_collections}"
+echo "Installing ansible.posix..."      ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix       --force --collections-path "${ansible_collections}"
+echo "Installing ansible.utils..."      ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils       --force --collections-path "${ansible_collections}"
+echo "Installing community.windows..."  ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.windows   --force --collections-path "${ansible_collections}"
+echo "Installing microsoft.ad..."       ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad        --force --collections-path "${ansible_collections}"
+echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection  --force --collections-path "${ansible_collections}"
+
+echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements.txt"
 
 if [[ "${ansible_version}" == "2.11" ]]; then
 	# ansible galaxy upstream has changed. Some collections are only available for install via old-galaxy.ansible.com
@@ -699,15 +705,7 @@ echo '# Configure environment settings for deployer interactive sessions' | sudo
 
 export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${DOTNET_ROOT}"
 
-# Prepare Azure SAP Automated Deployment folder structure
-mkdir -p \
-	"${asad_ws}"/LOCAL/"${rg_name}" \
-	"${asad_ws}"/LIBRARY \
-	"${asad_ws}"/SYSTEM \
-	"${asad_ws}"/LANDSCAPE \
-	"${asad_ws}"/DEPLOYER/"${rg_name}"
 
-chown -R "${USER}" "${asad_ws}"
 
 #
 # Update current session
@@ -717,8 +715,10 @@ echo '# Configure environment settings for deployer interactive session'
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
 
-export ARM_SUBSCRIPTION_ID="${subscription_id}"
-export DEPLOYMENT_REPO_PATH="$HOME/Azure_SAP_Automated_Deployment/sap-automation"
+ARM_SUBSCRIPTION_ID="$(az account show --query id --output tsv)"
+export ARM_SUBSCRIPTION_ID
+DEPLOYMENT_REPO_PATH="$HOME/Azure_SAP_Automated_Deployment/sap-automation"
+export DEPLOYMENT_REPO_PATH
 
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
@@ -727,8 +727,13 @@ export DEPLOYMENT_REPO_PATH="$HOME/Azure_SAP_Automated_Deployment/sap-automation
 export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_COLLECTIONS_PATH=~/.ansible/collections:"${ansible_collections}"
 
-# Set env for MSI
-export ARM_USE_MSI=true
+isMSI=$(az account show --query user.assignedIdentityInfo --output tsv)
+if [ -n "$isMSI" ]; then
+	# Set env for MSI
+	ARM_CLIENT_ID=$(echo $isMSI  | cut -d'-' -f2-6)
+	export ARM_USE_MSI=true
+	export ARM_CLIENT_ID
+fi
 
 #
 # Create /etc/profile.d script to setup environment for future interactive sessions
@@ -737,7 +742,7 @@ export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${HOME}"/Azure_SAP_Automated
 
 echo "# Configure environment settings for deployer interactive sessions" | tee -a /tmp/deploy_server.sh
 
-echo "export ARM_SUBSCRIPTION_ID=${subscription_id}" | tee -a /tmp/deploy_server.sh
+echo "export ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)" | tee -a /tmp/deploy_server.sh
 
 # Replace with your actual agent directory
 AGENT_DIR="/home/${USER}/agent"
@@ -767,31 +772,16 @@ else
 
 	echo export "PATH=${ansible_bin}:${tf_bin}:${PATH}:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts:${HOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | tee -a /tmp/deploy_server.sh
 
-	# Set env for MSI
-	echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
-
-	/usr/bin/az login --identity 2>error.log || :
-	# Ensure that the user's account is logged in to Azure with specified creds
-
-	if [ ! -f error.log ]; then
-		/usr/bin/az account show >az.json
-		client_id=$(jq --raw-output .id az.json)
-		tenant_id=$(jq --raw-output .tenantId az.json)
-		rm az.json
-	else
-		client_id=''
-		tenant_id=''
+	if [ -n "${isMSI}" ]; then
+		# Set env for MSI
+		echo "export ARM_USE_MSI=true" | tee -a /tmp/deploy_server.sh
+		echo "export ARM_CLIENT_ID=${ARM_CLIENT_ID}" | tee -a /tmp/deploy_server.sh
 	fi
 
-	if [ -n "${client_id}" ]; then
-		export ARM_CLIENT_ID=${client_id}
-		echo "export ARM_CLIENT_ID=${client_id}" | tee -a /tmp/deploy_server.sh
-	fi
+	ARM_TENANT_ID=$(/usr/bin/az account show --query tenantId --output tsv)
+	
+	echo "export ARM_TENANT_ID=${ARM_TENANT_ID}" | tee -a /tmp/deploy_server.sh
 
-	# if [ -n "${tenant_id}" ]; then
-	#   export ARM_TENANT_ID=${tenant_id}
-	#   echo "export ARM_TENANT_ID=${tenant_id}" | tee -a /tmp/deploy_server.sh
-	# fi
 fi
 
 # Set env for ansible
@@ -815,12 +805,18 @@ chown -R "${USER}" "${asad_home}"
 # echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
 
 # Ensure that the user's account is logged in to Azure with specified creds
-echo 'az login --identity --output none' | tee -a /tmp/deploy_server.sh
-# shellcheck disable=SC2016
-echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
+if [ -n "${isMSI}" ]; then
+	# shellcheck disable=SC2016
+	echo 'az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none' | tee -a /tmp/deploy_server.sh
+	# shellcheck disable=SC2016
+	echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
+fi
 
 sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
 sudo rm /tmp/deploy_server.sh
-
-/usr/bin/az login --identity --output none
+if [ -n "${isMSI}" ]; then
+	/usr/bin/az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none
+else
+	/usr/bin/az login --identity --output none
+fi
 echo "${USER} account ready for use with Azure SAP Automated Deployment"

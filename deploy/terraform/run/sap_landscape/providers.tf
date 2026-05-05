@@ -53,7 +53,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          alias                      = "deployer"
-                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "", local.SAPLibrary_subscription_id)
+                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "", local.tfstate_storage_account_subscription_id)
                                          client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
                                          client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
@@ -65,7 +65,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          alias                      = "dnsmanagement"
-                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
                                          client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
                                          client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
@@ -76,7 +76,7 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          alias                      = "privatelinkdnsmanagement"
-                                         subscription_id            = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         subscription_id            = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
                                          client_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_client_id[0].value : null
                                          client_secret              = var.use_spn ? ephemeral.azurerm_key_vault_secret.cp_client_secret[0].value : null
                                          tenant_id                  = var.use_spn ? data.azurerm_key_vault_secret.cp_tenant_id[0].value : null
@@ -86,7 +86,7 @@ provider "azurerm"                     {
 
 provider "azurerm"                     {
                                          features {}
-                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         subscription_id            = coalesce(var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
                                          use_msi                    = var.use_spn ? false : true
                                          alias                      = "peering"
                                          storage_use_azuread        = true
@@ -129,7 +129,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.63.0"
+                                                                           version = "4.70.0"
                                                                          }
                                                               azapi =    {
                                                                            source  = "azure/azapi"

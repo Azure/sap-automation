@@ -14,7 +14,11 @@ grand_parent_directory="$(dirname "$parent_directory")"
 
 SCRIPT_NAME="$(basename "$0")"
 
-echo "##vso[build.updatebuildnumber]SAP Configuration and Installation"
+echo "##vso[build.updatebuildnumber]SAP Configuration and Installation of $SAP_SYSTEM_CONFIGURATION_NAME using BoM $BOM_BASE_NAME"
+system="system-$SAP_SYSTEM_CONFIGURATION_NAME"
+echo "##vso[build.addbuildtag]$system"
+BoM="BoM-$BOM_BASE_NAME"
+echo "##vso[build.addbuildtag]$BoM"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
@@ -29,7 +33,7 @@ banner_title="SAP Configuration and Installation - Ansible"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=True
 	echo "Environment variables:"
@@ -168,7 +172,7 @@ fi
 #                                                                                          #
 ############################################################################################
 
-if [ "$PLATFORM" == "devops" ]; then
+if [ "${PLATFORM:-}" == "devops" ]; then
 	cd "$BUILD_REPOSITORY_LOCALPATH" || exit
 fi
 

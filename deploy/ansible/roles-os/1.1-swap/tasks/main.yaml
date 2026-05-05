@@ -62,7 +62,7 @@
   ansible.builtin.set_fact:
     swap_value:                        "{{ swap_space.stdout_lines[0] | regex_search('([0-9]+)') }}"
 
-- name:                                "1.1 Swap - Swap space in Integer"
+- name:                                "1.1 Swap - Convert Swap space to Integer"
   ansible.builtin.set_fact:
     swap_size:                         "{{ swap_value | int }}"
 
@@ -71,8 +71,83 @@
     msg:                               "Swap size: {{ swap_size }}"
     verbosity:                         2
 
+- name:                                "1.1 Swap - Detect NVMe device count for swap helper"
+  ansible.builtin.shell:               set -o pipefail && lsblk -dn -o NAME,TYPE | awk '$2 == "disk" && $1 ~ /^nvme/ {count++} END {print count + 0}'
+  args:
+    executable:                        /bin/bash
+  register:                            nvme_device_probe
+  changed_when:                        false
+  failed_when:                         false
+
+- name:                                "1.1 Swap - Store NVMe device count"
+  ansible.builtin.set_fact:
+    nvme_device_count:                 "{{ nvme_device_probe.stdout | trim | int }}"
+
+- name:                                "1.1 Swap - Detect Microsoft NVMe Direct disk count from sysfs/udev"
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       direct_count=0
+                                       while read -r device_name; do
+                                         [ -n "$device_name" ] || continue
+                                         model_file="/sys/class/block/${device_name}/device/model"
+                                         if [ -e "$model_file" ] && grep -Eq "MSFT NVMe Accelerator|Microsoft NVMe Direct Disk" "$model_file"; then
+                                           direct_count=$((direct_count + 1))
+                                           continue
+                                         fi
+
+                                         if command -v udevadm >/dev/null 2>&1 && \
+                                            udevadm info --query=property --name="/dev/${device_name}" 2>/dev/null | \
+                                            grep -Eq "^ID_MODEL=(MSFT NVMe Accelerator|Microsoft NVMe Direct Disk)"; then
+                                           direct_count=$((direct_count + 1))
+                                         fi
+                                       done < <(lsblk -dn -o NAME,TYPE | awk '$2 == "disk" && $1 ~ /^nvme/ {print $1}')
+                                       echo "$direct_count"
+  args:
+    executable:                        /bin/bash
+  register:                            nvme_direct_probe
+  changed_when:                        false
+  failed_when:                         false
+  when:
+    - nvme_device_count | int > 0
+
+- name:                                "1.1 Swap - Store Microsoft NVMe Direct disk count"
+  ansible.builtin.set_fact:
+    nvme_direct_count:                 "{{ (nvme_direct_probe.stdout | default('0') | trim | int) if (nvme_device_count | int > 0) else 0 }}"
+
+- name:                                "1.1 Swap - Show NVMe detection summary"
+  ansible.builtin.debug:
+    msg:
+      - "use_nvme_disks: {{ use_nvme_disks | default(false) }}"
+      - "swap_size: {{ swap_size | int }}"
+      - "nvme_device_count: {{ nvme_device_count | int }}"
+      - "nvme_direct_count: {{ nvme_direct_count | int }}"
+    verbosity:                         2
+
+- name:                                "1.1 Swap - Skip NVMe helper when no NVMe devices are detected"
+  ansible.builtin.debug:
+    msg:                               "Skipping azure-nvme-swap-conf: no NVMe devices detected (mixed NVMe/SCSI presentation possible)."
+    verbosity:                         1
+  when:
+    - use_nvme_disks | default(false) | bool
+    - swap_size | int == 0
+    - nvme_device_count | int == 0
+
+- name:                                "1.1 Swap - Skip NVMe helper when no Microsoft NVMe Direct disks are detected"
+  ansible.builtin.debug:
+    msg:                               "Skipping azure-nvme-swap-conf: NVMe devices exist but no Microsoft NVMe Direct disks were detected."
+    verbosity:                         1
+  when:
+    - use_nvme_disks | default(false) | bool
+    - swap_size | int == 0
+    - nvme_device_count | int > 0
+    - nvme_direct_count | int == 0
+
 - name:                                "1.1 Swap - Configure NVMe VMs for Swap"
-  when:                                use_nvme_disks and swap_size == 0
+  when:
+    - use_nvme_disks | default(false) | bool
+    - swap_size | int == 0
+    - nvme_device_count | int > 0
+    - nvme_direct_count | int > 0
   block:
     # Install required dependencies for the NVMe swap helper script
     - name:                            "1.1 Swap - Install NVMe swap dependencies (RHEL)"
@@ -122,6 +197,15 @@
       ansible.builtin.command:         /usr/local/bin/azure-nvme-swap-conf ext4 /mnt/resource
       register:                        nvme_swap_configured
       changed_when:                    nvme_swap_configured.rc == 0 and "'Skipping' not in nvme_swap_configured.stdout"
+      failed_when:                     nvme_swap_configured.rc != 0 and 'No NVMe Direct Disks found' not in ((nvme_swap_configured.stdout | default('')) ~ ' ' ~ (nvme_swap_configured.stderr | default(''))) and 'Found 0 NVMe Direct Disks' not in ((nvme_swap_configured.stdout | default('')) ~ ' ' ~ (nvme_swap_configured.stderr | default('')))
+
+    - name:                            "1.1 Swap - Show Azure NVMe temp disk configuration helper script output"
+      ansible.builtin.debug:
+        msg:
+          - "rc: {{ nvme_swap_configured.rc }}"
+          - "stdout: {{ nvme_swap_configured.stdout | default('') }}"
+          - "stderr: {{ nvme_swap_configured.stderr | default('') }}"
+        verbosity:                     2
 
 - name:                                "1.1 Swap - Check for (waagent_conf)"
   ansible.builtin.stat:
@@ -190,7 +274,7 @@
   vars:
     swap_size_mb:                      "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
   when:
-    - swap_size == '0'
+    - swap_size | int == 0
 
 - name:                                "1.1 Swap - Reboot"
   when:

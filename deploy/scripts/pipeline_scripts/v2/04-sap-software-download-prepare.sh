@@ -206,11 +206,10 @@ elif [ "$PLATFORM" == "github" ]; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 	return_code=0
 
-	sample_path=${SAMPLE_REPO_PATH}/SAP
 	command="ansible-playbook \
 		-e download_directory=${GITHUB_WORKSPACE} \
 		-e s_user=${SUSERNAME} \
-		-e BOM_directory=${sample_path} \
+		-e BOM_directory=$SAMPLE_REPO_PATH \
 		-e bom_base_name='${BOM}' \
 		-e deployer_kv_name=${DEPLOYER_KEYVAULT} \
 		-e check_storage_account=${re_download} \

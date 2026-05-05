@@ -137,6 +137,7 @@ module "hdb_node" {
   db_asg_id                                     = module.common_infrastructure.db_asg_id
   db_subnet                                     = module.common_infrastructure.db_subnet
   deploy_application_security_groups            = var.deploy_application_security_groups
+  deployer_tfstate                              = try(data.terraform_remote_state.deployer[0].outputs, {})
   deployment                                    = var.deployment
   dns_settings                                  = local.dns_settings
   enable_firewall_for_keyvaults_and_storage     = var.enable_firewall_for_keyvaults_and_storage
@@ -211,6 +212,7 @@ module "app_tier" {
   naming                                        = length(var.name_override_file) > 0 ? local.custom_names : local.generator_as_lists
   network_location                              = module.common_infrastructure.network_location
   network_resource_group                        = module.common_infrastructure.network_resource_group
+  NFS_provider                                  = var.NFS_provider
   options                                       = local.options
   order_deployment                              = null
   ppg                                           = var.use_app_proximityplacementgroups ? module.common_infrastructure.app_ppg : module.common_infrastructure.ppg
@@ -314,6 +316,7 @@ module "output_files" {
   source                                        = "../../terraform-units/modules/sap_system/output_files"
   depends_on                                    = [module.anydb_node, module.common_infrastructure, module.app_tier, module.hdb_node]
   providers                                     = {
+                                                    azurerm.deployer       = azurerm.deployer
                                                     azurerm.main           = azurerm.system
                                                     azurerm.dnsmanagement  = azurerm.dnsmanagement
                                                     # azapi.api                                 = azapi.api
@@ -457,7 +460,7 @@ module "output_files" {
   dns                                           = try(data.terraform_remote_state.landscape.outputs.dns_label, "")
   use_custom_dns_a_registration                 = try(data.terraform_remote_state.landscape.outputs.use_custom_dns_a_registration, false)
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
-  management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
+  management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.tfstate_storage_account_resource_group_name)
   dns_zone_names                                = var.dns_zone_names
   dns_a_records_for_secondary_names             = var.dns_a_records_for_secondary_names
 
@@ -475,11 +478,13 @@ module "output_files" {
   #########################################################################################
   #  Miscallaneous                                                                        #
   #########################################################################################
+  deploy_monitoring_extension                   = var.deploy_v1_monitoring_extension
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
   suse_subscription_id                          = var.suse_subscription_id
   scale_out                                     = var.database_HANA_use_scaleout_scenario
   scale_out_no_standby_role                     = var.database_HANA_no_standby_role
+  user_assigned_identity_id                     = var.user_assigned_identity_id
 
   #########################################################################################
   #  iSCSI                                                                                #

@@ -243,7 +243,7 @@ variable "library_terraform_vars_blob_container_name" {
 
 variable "use_private_endpoint"                  {
                                                    description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                   default     = false
+                                                   default     = true
                                                    type        = bool
                                                  }
 
@@ -254,7 +254,7 @@ variable "short_named_endpoints_nics"           {
 
 variable "public_network_access_enabled"         {
                                                    description = "Boolean value indicating if public access should be enabled for key vaults and storage"
-                                                   default     = true
+                                                   default     = false
                                                    type        = bool
                                                  }
 

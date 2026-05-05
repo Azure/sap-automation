@@ -1,3 +1,4 @@
+{# This is a SAP parameter input file, not YAML #}
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
@@ -5,6 +6,7 @@
 #   2393060 - SAPinst Framework 749 Central Note
 
 archives.downloadBasket                                               = {{ target_media_location }}/download_basket
+SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT
 
 nwUsers.sapadmUID                                                     = {{ sapadm_uid }}
 nwUsers.sapsysGID                                                     = {{ sapsys_gid }}
@@ -26,13 +28,9 @@ HDB_Schema_Check_Dialogs.dropSchema                                   = true
 NW_ABAP_Import_Dialog.migmonJobNum                                    = 12
 hanadb.landscape.reorg.useParameterFile                               = DONOTUSEFILE
 
-{% if platform | upper == 'HANA' %}
+{% if platform | upper == 'HANA' and application_type | upper == 'ABAP' %}
 
 SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
-SAPINST.CD.PACKAGE.CD4                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP4
 
 HDB_Schema_Check_Dialogs.schemaName                                   = {{ hana_schema }}
 HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
@@ -53,6 +51,23 @@ NW_Recovery_Install_HDB.extractParallelJobs                           = 24
 NW_Recovery_Install_HDB.sidAdmName                                    = {{ db_sid | lower }}adm
 NW_Recovery_Install_HDB.sidAdmPassword                                = {{ main_password }}
 
+{% endif %}
+
+{% if platform | upper == 'HANA' and application_type | upper == 'JAVA' %}
+
+SAPINST.CD.PACKAGE.HDBCLIENT                                          = {{ target_media_location }}/CD_HDBCLIENT/SAP_HANA_CLIENT
+
+HDB_Schema_Check_Dialogs.schemaPassword                               = {{ main_password }}
+
+NW_HDB_DB.javaSchemaName                                              = SAPJAVA1
+NW_HDB_DB.javaSchemaPassword                                          = {{ main_password }}
+NW_HDB_getDBInfo.dbhost                                               = {{ sap_db_hostname }}
+NW_HDB_getDBInfo.dbsid                                                = {{ db_sid | upper }}
+NW_HDB_getDBInfo.instanceNumber                                       = {{ db_instance_number }}
+NW_HDB_getDBInfo.systemPassword                                       = {{ main_password }}
+NW_HDB_getDBInfo.systemid                                             = {{ db_sid | upper }}
+NW_HDB_getDBInfo.usingSSL                                             = true
+NW_JAVA_Export.keyPhrase                                              = {{ main_password }}
 
 {% endif %}
 
@@ -65,7 +80,7 @@ NW_getUnicode.isUnicode                                               = true
 NW_getDBInfoGeneric.dbhost                                            = {{ sap_db_hostname }}
 NW_getDBInfoGeneric.dbsid                                             = {{ db_sid | upper }}
 
-NW_ABAP_Import_Dialog.migmonJobNum                                    = 20
+NW_ABAP_Import_Dialog.migmonJobNum                                    = 3
 NW_ABAP_Import_Dialog.dbCodepage                                      = 4103
 NW_ABAP_Import_Dialog.migmonLoadArgs                                  = -stop_on_error -loadprocedure fast
 
@@ -78,11 +93,11 @@ storageBasedCopy.ora.clientVersion                                    = {{ ora_r
 ora.SysPassword                                                       = {{ main_password }}
 ora.SystemPassword                                                    = {{ main_password }}
 ora.createStatisticsCodeABAP                                          = CREATE
-ora.dbhome                                                            = /oracle/{{ db_sid|upper }}/{{ ora_version }}
-ora.grid.ORACLE_HOME                                                  = /oracle/GRID/{{ ora_version }}
+ora.dbhome                                                            = /oracle/{{ db_sid | upper }}/{{ ora_release }}
+ora.grid.ORACLE_HOME                                                  = /oracle/{{ db_sid | upper }}/{{ ora_version }}
 ora.grid.ORACLE_SID                                                   = +ASM
 ora.multitenant.installMT                                             = FALSE
-ora.multitenant.pdbsid                                                = {{ db_sid|upper }}
+ora.multitenant.pdbsid                                                = {{ db_sid | upper }}
 ora.rbDatabase                                                        = CREATEDB
 ora.whatIsASM                                                         = isASM
 ora.whatIsInstance                                                    = isSingle
@@ -93,11 +108,12 @@ storageBasedCopy.javaSchemaPassword                                   = {{ main_
 storageBasedCopy.ora.swowner                                          = oracle
 ora.orasidPassword                                                    = {{ main_password }}
 
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
-
 {% endif %}
+
+{% if platform | upper == 'ORACLE-ASM' and application_type | upper == 'JAVA' %}
+storageBasedCopy.ora.JavaSchema                                       = SAPSR3DB
+{% endif %}
+
 
 {% if platform | upper == 'ORACLE' %}
 SAPINST.CD.PACKAGE.ORACLI                                             = {{ target_media_location }}/oraclient
@@ -118,16 +134,16 @@ ora.whatIsSHOH                                                        = false
 storageBasedCopy.abapSchemaPassword                                   = {{ main_password }}
 storageBasedCopy.javaSchemaPassword                                   = {{ main_password }}
 storageBasedCopy.ora.swowner                                          = oracle
-SAPINST.CD.PACKAGE.CD1                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP1
-SAPINST.CD.PACKAGE.CD2                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP2
-SAPINST.CD.PACKAGE.CD3                                                = {{ target_media_location }}/CD_EXPORT/DATA_UNITS/EXP3
+
+{% endif %}
+
+{% if platform | upper == 'ORACLE' and application_type | upper == 'JAVA' %}
+storageBasedCopy.ora.JavaSchema                                       = SAPSR3DB
 {% endif %}
 
 
+{% if platform | upper == 'SYBASE' %}
 
-{% if platform | upper == 'ASE' %}
-
-# Sort order configuration of the database server
 SYB.NW_DB.aseSortOrder                                                  = binaryalt
 
 # Only if you use the 'autoextend' feature: Increment size for the SAP database default segment in GB

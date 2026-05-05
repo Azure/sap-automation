@@ -107,18 +107,8 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
-DEPLOYER_FOLDERNAME="$CONTROL_PLANE_NAME-INFRASTRUCTURE"
-ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
-LIBRARY_FOLDERNAME="$ENVIRONMENT-$LOCATION-SAP_LIBRARY"
 
-automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
-library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
-
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
 	if [ "$PLATFORM" == "devops" ]; then
@@ -127,6 +117,25 @@ if [ ! -f "$deployer_tfvars_file_name" ]; then
 	exit 2
 
 fi
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+else
+	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
+	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
+	exit 2
+fi
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
+
+if [ -z "$LIBRARY_FOLDERNAME" ]; then
+	LIBRARY_FOLDERNAME="$ENVIRONMENT-$LOCATION-SAP_LIBRARY"
+fi
+
+library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
 if [ ! -f "$library_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
@@ -216,20 +225,36 @@ else
 	platform_flag=""
 fi
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh" \
-	--deployer_parameter_file "$deployer_tfvars_file_name" \
-	--library_parameter_file "$library_tfvars_file_name" \
-	"$platform_flag" --auto-approve --keep_agent; then
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_control_plane_v2.sh"
+
+allParameters=(--deployer_parameter_file "${deployer_tfvars_file_name}")
+allParameters+=(--library_parameter_file "${library_tfvars_file_name}")
+allParameters+=(--keep_agent)
+allParameters+=(--auto-approve)
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+
+echo "Calling remove_control_plane with: ${allParameters[*]}"
+echo ""
+
+if remove_control_plane "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed" "success"
-
-	echo "##vso[task.logissue type=warning]Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed."
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=warning]Control Plane ${CONTROL_PLANE_NAME} removal step 1 completed."
+	fi
 else
 	return_code=$?
 	print_banner "$banner_title" "Control Plane ${CONTROL_PLANE_NAME} removal step 1 failed" "error"
+	if [ "$PLATFORM" == "devops" ]; then
+		echo "##vso[task.logissue type=error]Control Plane ${CONTROL_PLANE_NAME} removal step 1 failed."
+	fi
 fi
 
-echo "Return code from remove_control_plane_v2: $return_code."
+echo "Return code from remove_control_plane: $return_code."
 
 echo -e "$green--- Remove Control Plane Part 1 ---$reset_formatting"
 cd "$CONFIG_REPO_PATH" || exit
@@ -253,6 +278,31 @@ if [ -f "$library_tfvars_file_name" ]; then
 	changed=1
 fi
 
+if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+	echo "Compressing the deployer state file"
+	if [ "$PLATFORM" == "devops" ]; then
+		sudo apt-get install zip -y
+		pass=${SYSTEM_COLLECTIONID//-/}
+		zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
+		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+	elif [ "$PLATFORM" == "github" ]; then
+		rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+
+		echo "Encrypting state file"
+		gpg --batch \
+			--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
+			--encrypt \
+			--disable-dirmngr --recipient sap-azure-deployer@example.com \
+			--trust-model always \
+			DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
+		git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
+	else
+		pass="localpassword"
+	fi
+
+	changed=1
+fi
+
 if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
 	changed=1
@@ -262,31 +312,6 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 
 	if [ -n "$local_backend" ]; then
 		echo "Deployer Terraform state:              local"
-
-		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
-			echo "Compressing the deployer state file"
-			if [ "$PLATFORM" == "devops" ]; then
-				sudo apt-get install zip -y
-				pass=${SYSTEM_COLLECTIONID//-/}
-				zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-				git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
-			elif [ "$PLATFORM" == "github" ]; then
-				rm DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
-
-				echo "Encrypting state file"
-				gpg --batch \
-					--output DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg \
-					--encrypt \
-					--disable-dirmngr --recipient sap-azure-deployer@example.com \
-					--trust-model always \
-					DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate
-				git add -f DEPLOYER/$DEPLOYER_FOLDERNAME/state.gpg
-			else
-				pass="localpassword"
-			fi
-
-			changed=1
-		fi
 	else
 		echo "Deployer Terraform state:              remote"
 		if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
@@ -311,6 +336,30 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	fi
 fi
 
+if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
+	echo "Compressing the library state file"
+	if [ "$PLATFORM" == "devops" ]; then
+		sudo apt-get install zip -y
+		pass=${SYSTEM_COLLECTIONID//-/}
+		zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+	elif [ "$PLATFORM" == "github" ]; then
+		rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
+
+		echo "Encrypting state file"
+		gpg --batch \
+			--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
+			--encrypt \
+			--disable-dirmngr --recipient sap-azure-deployer@example.com \
+			--trust-model always \
+			LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
+		git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+	else
+		pass="localpassword"
+	fi
+	changed=1
+fi
+
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	git add -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
 	changed=1
@@ -319,30 +368,22 @@ if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then
 	local_backend=$(grep "\"type\": \"local\"" "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" || true)
 
 	if [ -n "$local_backend" ]; then
-		echo "Deployer Terraform state:              local"
-
+		echo "Library Terraform state:               local"
+	else
+		echo "Library Terraform state:               remote"
 		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate" ]; then
-			echo "Compressing the library state file"
-			if [ "$PLATFORM" == "devops" ]; then
-				sudo apt-get install zip -y
-				pass=${SYSTEM_COLLECTIONID//-/}
-				zip -q -j -P "${pass}" "LIBRARY/$LIBRARY_FOLDERNAME/state" "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
-				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
-			elif [ "$PLATFORM" == "github" ]; then
-				rm LIBRARY/$LIBRARY_FOLDERNAME/state.gpg >/dev/null 2>&1 || true
-
-				echo "Encrypting state file"
-				gpg --batch \
-					--output LIBRARY/$LIBRARY_FOLDERNAME/state.gpg \
-					--encrypt \
-					--disable-dirmngr --recipient sap-azure-deployer@example.com \
-					--trust-model always \
-					LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate
-				git add -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
-			else
-				pass="localpassword"
-			fi
-
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/terraform.tfstate"
+			echo "Removed the local library state file"
+			changed=1
+		fi
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip" ]; then
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.zip"
+			echo "Removed the local library state zip file"
+			changed=1
+		fi
+		if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg" ]; then
+			git rm -q --ignore-unmatch -f "LIBRARY/$LIBRARY_FOLDERNAME/state.gpg"
+			echo "Removed the local library state gpg file"
 			changed=1
 		fi
 	fi

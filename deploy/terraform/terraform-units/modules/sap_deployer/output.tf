@@ -77,7 +77,7 @@ output "deployer_private_ip_address" {
 
 output "deployer_system_assigned_identity" {
   description                          = "Deployer System Assigned Identity"
-  value                                = azurerm_linux_virtual_machine.deployer[*].identity[0].principal_id
+  value                                = try(azurerm_linux_virtual_machine.deployer[*].identity[0].principal_id, null)
 }
 
 output "deployer_user_assigned_identity" {
@@ -252,9 +252,8 @@ output "subnet_bastion_address_prefixes" {
 
 output "diagnostics_account_id" {
   description                          = "Diagnostics Storage Account ID"
-  value                                = length(var.deployer.deployer_diagnostics_account_arm_id) == 0 ? azurerm_storage_account.deployer[0].id : var.deployer.deployer_diagnostics_account_arm_id
+  value                                = length(var.deployer.deployer_diagnostics_account_arm_id) == 0 ? (min(1,var.deployer_vm_count) > 0 ? azurerm_storage_account.deployer[0].id : "") : var.deployer.deployer_diagnostics_account_arm_id
 }
-
 
 ###############################################################################
 #                                                                             #
@@ -339,3 +338,26 @@ resource "local_file" "deployer_md" {
   directory_permission = "0770"
 }
 
+
+resource "local_file" "deployer_exports" {
+  content = templatefile(format("%s/templates/deployer_exports.tmpl", path.module), {
+              subscription_id             = var.infrastructure.resource_group.exists ? (
+                                           split("/", data.azurerm_resource_group.deployer[0].id)[2]) : (
+                                           split("/", azurerm_resource_group.deployer[0].id)[2]
+                                         )
+              app_configuration_name      = var.app_config_service.deploy ? (
+                                            length(var.app_config_service.id) == 0 ? azurerm_app_configuration.app_config[0].name : data.azurerm_app_configuration.app_config[0].name) : (
+                                            "")
+              terraform_storage_account_name = var.infrastructure.tfstate_storage_account_name
+              control_plane_name          = var.naming.prefix.DEPLOYER
+              keyvault_name               = var.key_vault.exists ? (
+                                            data.azurerm_key_vault.kv_user[0].name) : (
+                                            azurerm_key_vault.kv_user[0].name)
+              app_service_name            = var.app_service.use ? try(azurerm_windows_web_app.webapp[0].name, "") : ""
+
+              }
+            )
+  filename             = format("%s/exports.sh", path.cwd)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}
