@@ -25,7 +25,7 @@ source "${parent_directory}/helper.sh"
 
 DEBUG=false
 
-if [ "$SYSTEM_DEBUG" = true ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=true
 	echo "Environment variables:"

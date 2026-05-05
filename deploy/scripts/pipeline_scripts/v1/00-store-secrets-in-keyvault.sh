@@ -2,41 +2,77 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-green="\e[1;32m"
-reset="\e[0m"
-bold_red="\e[1;31m"
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Initialize colors and debug handling                                          #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# 'set' command documentation:
+#		https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
+# error codes include those from /usr/include/sysexits.h
+#---------------------------------------+---------------------------------------#
+# region
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
-# External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
-parent_directory="$(dirname "$script_directory")"
-grand_parent_directory="$(dirname "$parent_directory")"
+echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
+export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
+
+# SYSTEM_DEBUG is set by Azure DevOps when the "Enable system diagnostics" option is turned on for the pipeline run.
+# DEBUG is an optional environment variable that can be set to "True" to enable debug mode when running the script outside of Azure DevOps.
+if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
+    [[ ${DEBUG:-False}        = True ]]; then
+      echo -e "${cyan}--- Enabling debug mode ---${reset}"
+      set -x                                                                    # Enable debug mode
+      export DEBUG=True
+      echo "Environment variables:"
+      printenv | sort
+else
+      export DEBUG=False
+fi
+
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+#-------------------------------------------------------------------------------#
+# endregion
+
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Helpers                                                                       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Example: path_to_script/grand_parent_dir/parent_dir/script_dir/script
+#---------------------------------------+---------------------------------------#
+# region
+full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          # Get the full path of the current script
+script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
+parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
+grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
 
 SCRIPT_NAME="$(basename "$0")"
-banner_title="Set Workload Zone Secrets"
 
-#call stack has full script name when using source
+# External helper functions
+# call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${grand_parent_directory}/deploy_utils.sh"
-
-#call stack has full script name when using source
 source "${parent_directory}/helper.sh"
+#-------------------------------------------------------------------------------#
+# endregion
+
+
+banner_title="Set Workload Zone Secrets"
 
 echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the SAP Workload zone defined in $ZONE"
-print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
-
-DEBUG=False
-
-if [ "$SYSTEM_DEBUG" = True ]; then
-	set -x
-	DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
-
-fi
-export DEBUG
-set -eu
 
 # Print the execution environment details
 print_header
@@ -155,7 +191,17 @@ git checkout -q "$BUILD_SOURCEBRANCHNAME"
 echo ""
 echo -e "$green--- Read parameter values ---$reset"
 
-keyvault_subscription_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv)
+keyvault_subscription_id=$(az graph query -q                                        \
+                              "Resources                                            \
+															| join kind=leftouter                                 \
+																	(ResourceContainers                               \
+																  | where type=='microsoft.resources/subscriptions' \
+																  | project subscription=name, subscriptionId       \
+																  ) on subscriptionId                               \
+															| where name == '$DEPLOYER_KEYVAULT'                  \
+															| project id, name, subscription,subscriptionId"      \
+															--query data[0].subscriptionId                        \
+															--output tsv)
 
 if [ "$USE_MSI" != "true" ]; then
 
@@ -180,4 +226,8 @@ else
 fi
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 
+
+#----------------------------------- EXIT --------------------------------------#
+echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+echo -e   "${cyan}   Return code:  ${return_code}${reset}"
 exit $return_code

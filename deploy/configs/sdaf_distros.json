@@ -1,6 +1,8 @@
 {
   "SUSE": {
     "DistroIds": [
+      "SUSE:sles-sap-15-sp7:gen2:latest",
+      "SUSE:sles-sap-15-sp6:gen2:latest",
       "SUSE:sles-sap-15-sp5:gen2:latest",
       "SUSE:sles-sap-15-sp4:gen2:latest",
       "SUSE:sles-sap-15-sp3:gen2:latest",
@@ -10,11 +12,17 @@
   },
   "REDHAT": {
     "DistroIds": [
+      "RedHat:RHEL-SAP-HA:100sapha-gen2:latest",
+      "RedHat:RHEL-SAP-HA:96sapha-gen2:latest",
+      "RedHat:RHEL-SAP-HA:94sapha-gen2:latest",
       "RedHat:RHEL-SAP-HA:92sapha-gen2:latest",
       "RedHat:RHEL-SAP-HA:90sapha-gen2:latest",
       "RedHat:RHEL-SAP-HA:88sapha-gen2:latest",
       "RedHat:RHEL-SAP-HA:86sapha-gen2:latest",
       "RedHat:RHEL-SAP-HA:84sapha-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:100sapapps-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:96sapapps-gen2:latest",
+      "RedHat:RHEL-SAP-APPS:94sapapps-gen2:latest",
       "RedHat:RHEL-SAP-APPS:92sapapps-gen2:latest",
       "RedHat:RHEL-SAP-APPS:90sapapps-gen2:latest",
       "RedHat:RHEL-SAP-APPS:88sapapps-gen2:latest",
@@ -24,6 +32,8 @@
   },
   "WINDOWS": {
     "DistroIds": [
+      "MicrosoftWindowsServer:WindowsServer:2025-datacenter-g2",
+      "MicrosoftWindowsServer:WindowsServer:2025-datacenter",
       "MicrosoftWindowsServer:WindowsServer:2022-datacenter-g2",
       "MicrosoftWindowsServer:WindowsServer:2022-datacenter",
       "MicrosoftWindowsServer:WindowsServer:2019-datacenter-g2",
@@ -33,6 +43,7 @@
   },
   "ORACLE": {
     "DistroIds": [
+      "Oracle:Oracle-Linux:ol96-lvm-gen2:latest",
       "Oracle:Oracle-Linux:ol92-lvm-gen2:latest",
       "Oracle:Oracle-Linux:ol90-lvm-gen2:latest",
       "Oracle:Oracle-Linux:ol89-lvm-gen2:latest",

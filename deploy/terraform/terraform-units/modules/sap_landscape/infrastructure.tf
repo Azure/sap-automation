@@ -126,11 +126,27 @@ resource "azurerm_management_lock" "vnet_sap" {
 #                                                                              #
 #######################################4#######################################8
 
+resource "time_sleep" "wait_for_subnets" {
+  create_duration                      = "60s"
+
+  triggers                           = {
+                                           admin     = try(azurerm_subnet.admin[0].id, "")
+                                           app       = try(azurerm_subnet.app[0].id, "")
+                                           db        = try(azurerm_subnet.db[0].id, "")
+                                           web       = try(azurerm_subnet.web[0].id, "")
+                                           iscsi     = try(azurerm_subnet.iscsi[0].id, "")
+                                           storage   = try(azurerm_subnet.storage[0].id, "")
+                                           ams       = try(azurerm_subnet.ams[0].id, "")
+                                           anf       = try(azurerm_subnet.anf[0].id, "")
+
+                                       }
+}
+
 
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_sap" {
   provider                             = azurerm.peering
-  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web, azurerm_subnet.iscsi, azurerm_subnet.storage, azurerm_subnet.ams, azurerm_subnet.anf ]
+  depends_on                           = [ time_sleep.wait_for_subnets ]
   count                                = length(local.deployer_virtual_network_id) > 0 ? (
                                            var.infrastructure.virtual_networks.sap.exists ? 0 : 1 ) : (
                                            0
@@ -156,7 +172,7 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
 // Peers SAP VNET to management VNET
 resource "azurerm_virtual_network_peering" "peering_sap_management" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web, azurerm_subnet.iscsi, azurerm_subnet.storage, azurerm_subnet.ams, azurerm_subnet.anf ]
+  depends_on                           = [ time_sleep.wait_for_subnets ]
   count                                = length(local.deployer_virtual_network_id) > 0 ? (
                                            var.infrastructure.virtual_networks.sap.exists ? 0 : 1 ) : (
                                            0
@@ -189,7 +205,7 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
 # // Peers additional VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
   provider                             = azurerm.peering
-  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web, azurerm_subnet.iscsi, azurerm_subnet.storage, azurerm_subnet.ams, azurerm_subnet.anf ]
+  depends_on                           = [ time_sleep.wait_for_subnets ]
   count                                = length(try(var.infrastructure.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",
@@ -216,7 +232,7 @@ resource "azurerm_virtual_network_peering" "peering_additional_network_sap" {
 
 resource "azurerm_virtual_network_peering" "peering_sap_additional_network" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_subnet.admin, azurerm_subnet.app, azurerm_subnet.db, azurerm_subnet.web, azurerm_subnet.iscsi, azurerm_subnet.storage, azurerm_subnet.ams, azurerm_subnet.anf ]
+  depends_on                           = [ time_sleep.wait_for_subnets ]
   count                                = length(try(var.infrastructure.additional_network_id, "")) > 0 ? 1 : 0
   name                                 = substr(
                                            format("%s_to_%s",

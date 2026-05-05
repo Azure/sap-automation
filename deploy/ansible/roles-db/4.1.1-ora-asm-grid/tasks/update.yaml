@@ -109,7 +109,7 @@
     msg:                               "No Database Release Update found"
   when:                                patch_grid_id_directory.matched != 1
 
-- name:                                "4.1.1 ORACLE Grid Update - SaveOPatch ID"
+- name:                                "4.1.1 ORACLE Grid Update - Save OPatch ID"
   ansible.builtin.set_fact:
     patch_grid_path:                   "{{ patch_grid_id_directory.files[0].path | dirname }}"
   when:                                patch_grid_id_directory.matched == 1
@@ -126,7 +126,7 @@
 - name:                                "4.1.1 ORACLE Grid Update - Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
-    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
 
 - name:                                "4.1.1 ORACLE Grid Update - copy MOPatch from {{ mopatch_path }} to /oracle/GRID/{{ ora_version }}"
   ansible.builtin.copy:
@@ -136,16 +136,6 @@
     mode:                              '0777'
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
-
-- name:                                "4.1.1 ORACLE Grid Update - Copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
-  ansible.builtin.copy:
-    src:                               "{{ mopatch_path }}"
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-    remote_src:                        true
-    mode:                              '0775'
-    owner:                             "{{ grid_user_name }}"
-    group:                             oinstall
-
 
 - name:                                "4.1.1 ORACLE Grid Update - Check if backup exists for GRID"
   ansible.builtin.stat:
@@ -478,7 +468,7 @@
 # Step 16
 - name:                                "4.1.1 ORACLE Grid Update - Start all CRS-managed resources associated with the RDBMS home"
   become:                              true
-  become_user:                         "{{ grid_user_name }}"
+  become_user:                         "{{ oracle_user_name }}"
   ansible.builtin.shell: |
                                        env ORACLE_HOME=$OHRDBMS ORACLE_BASE=$OHRDBMS.dummybase $OHRDBMS/bin/srvctl start home -o $OHRDBMS \
                                        -s $OHRDBMS.srvctlstatus

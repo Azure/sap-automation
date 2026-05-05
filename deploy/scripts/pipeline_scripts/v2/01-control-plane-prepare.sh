@@ -18,7 +18,7 @@ source "${parent_directory}/helper.sh"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "${SYSTEM_DEBUG:-false}" == true ]; then
+	if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
@@ -36,44 +36,44 @@ set -eu
 print_header
 echo ""
 
-ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
-
-if [ "$PLATFORM" == "github" ]; then
-	DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
-	DEPLOYER_TFVARS_FILENAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.tfvars"
-	LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
-	LIBRARY_TFVARS_FILENAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY.tfvars"
-fi
-
-automation_config_directory="${CONFIG_REPO_PATH}/.sap_deployment_automation"
-
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
-
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
 if [ ! -f "$deployer_tfvars_file_name" ]; then
 	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File {$deployer_tfvars_file_name} was not found."
-	fi
+	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars was not found."
 	exit 2
-
 fi
 
 if [ ! -f "$library_tfvars_file_name" ]; then
-	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---$reset"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME was not found."
-	fi
+	echo -e "$bold_red--- File $library_tfvars_file_name  was not found ---${reset}"
+	echo "##vso[task.logissue type=error]File LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars was not found."
 	exit 2
-
 fi
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+else
+	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
+	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
+	exit 2
+fi
+
+CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+export TF_VAR_control_plane_name
+export CONTROL_PLANE_NAME
+
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
+
+  TF_VAR_devops_platform="ADO"
+	export TF_VAR_devops_platform
 
 	echo "##vso[build.updatebuildnumber]Deploying the control plane defined in $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME"
 
@@ -99,6 +99,9 @@ if [ "$PLATFORM" == "devops" ]; then
 	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
 
 elif [ "$PLATFORM" == "github" ]; then
+  TF_VAR_devops_platform="GITHUB"
+	export TF_VAR_devops_platform
+
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
@@ -141,7 +144,7 @@ fi
 
 echo "Step:                                $step"
 
-if [ 0 -ne ${step:-0} ]; then
+if [ 0 -ne "${step:-0}" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Already prepared"
 	else
@@ -230,12 +233,16 @@ elif [ "$PLATFORM" == "github" ]; then
 	TF_VAR_spn_id=${ARM_OBJECT_ID:-$TF_VAR_spn_id}
 fi
 if [ -n "$TF_VAR_spn_id" ]; then
-	if is_valid_guid $TF_VAR_spn_id; then
+	if is_valid_guid "$TF_VAR_spn_id"; then
 		export TF_VAR_spn_id
 		echo "Service Principal Object id:         $TF_VAR_spn_id"
 	fi
 fi
-
+if [ -v MSI_ID ]; then
+		echo "Using Managed Identity:              $MSI_ID"
+		TF_VAR_user_assigned_identity_id="$MSI_ID"
+		export TF_VAR_user_assigned_identity_id
+fi
 # Reset the account if sourcing was done
 if printenv ARM_SUBSCRIPTION_ID; then
 	az account set --subscription "$ARM_SUBSCRIPTION_ID"
@@ -286,11 +293,11 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}" ]; then
-		echo "Terraform Remote State Account:      ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
+		echo "Terraform Remote State Account:     ${TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME}"
 	fi
 
 	if [ -n "${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}" ]; then
-		echo "Terraform Remote State RG Name:      ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
+		echo "Terraform Remote State RG Name:     ${TERRAFORM_REMOTE_STORAGE_RESOURCE_GROUP_NAME}"
 	fi
 
 	if [ -n "${tfstate_resource_id}" ]; then
@@ -300,7 +307,7 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 	fi
 
 	if [ -n "${DEPLOYER_KEYVAULT:-}" ]; then
-		az keyvault update --name "$keyvault"  --subscription "$ARM_SUBSCRIPTION_ID" --public-network-access Enabled --only-show-errors --output none
+		az keyvault update --name "$DEPLOYER_KEYVAULT"  --subscription "$ARM_SUBSCRIPTION_ID" --public-network-access Enabled --only-show-errors --output none
 	fi
 
 
@@ -321,7 +328,7 @@ if [ "$PLATFORM" == "devops" ]; then
 elif [ "$PLATFORM" == "github" ]; then
 	pass=${GITHUB_REPOSITORY//-/}
 	# Import PGP key if it exists, otherwise generate it
-	if [ -f ${CONFIG_REPO_PATH}/private.pgp ]; then
+	if [ -f "${CONFIG_REPO_PATH}/private.pgp" ]; then
 		echo "Importing PGP key"
 		set +e
 		gpg --list-keys sap-azure-deployer@example.com
@@ -329,13 +336,13 @@ elif [ "$PLATFORM" == "github" ]; then
 		set -e
 
 		if [ ${return_code} != 0 ]; then
-			echo ${pass} | gpg --batch --passphrase-fd 0 --import ${CONFIG_REPO_PATH}/private.pgp
+			echo "${pass}" | gpg --batch --passphrase-fd 0 --import "${CONFIG_REPO_PATH}/private.pgp"
 		fi
 	else
 		echo "Generating PGP key"
-		echo ${pass} | ${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh
-		gpg --output ${CONFIG_REPO_PATH}/private.pgp --armor --export-secret-key sap-azure-deployer@example.com
-		git add ${CONFIG_REPO_PATH}/private.pgp
+		echo "${pass}" | "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/pipeline_scripts/v2/generate-pgp-key.sh"
+		gpg --output "${CONFIG_REPO_PATH}/private.pgp" --armor --export-secret-key sap-azure-deployer@example.com
+		git add "${CONFIG_REPO_PATH}/private.pgp"
 		commit_changes "Adding PGP key for encryption of state file" true
 	fi
 else
@@ -345,9 +352,7 @@ fi
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
 
-msi_flag=""
 if [ "${USE_MSI:-false}" == "true" ]; then
-	msi_flag=" --msi "
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn
 	echo "Deployer using:                      Managed Identity"
@@ -364,13 +369,10 @@ fi
 echo -e "$green--- Control Plane deployment---$reset_formatting"
 
 # Platform-specific flags
-if [ "$PLATFORM" == "devops" ]; then
-	platform_flag="--ado"
-elif [ "$PLATFORM" == "github" ]; then
+if [ "$PLATFORM" == "github" ]; then
 	# Set required environment variables for GitHub
 	export USER=${GITHUB_ACTOR:-githubuser}
 	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
-	platform_flag="--github"
 
 	TF_VAR_github_server_url=${GITHUB_SERVER_URL}
 	export TF_VAR_github_server_url
@@ -383,8 +385,6 @@ elif [ "$PLATFORM" == "github" ]; then
 
 	TF_VAR_devops_platform="github"
 	export TF_VAR_devops_platform
-else
-	platform_flag=""
 fi
 
 end_group
@@ -395,18 +395,18 @@ cd "${CONFIG_REPO_PATH}" || exit
 
 start_group "Decrypting state files"
 
-if [ -f ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg" ]; then
 	echo "Decrypting state file"
-	echo ${pass} |
+	echo "${pass}" |
 		gpg --batch \
 			--passphrase-fd 0 \
-			--output ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate \
-			--decrypt ${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+			--output "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate" \
+			--decrypt "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg"
 fi
 
-if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" ]; then
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.zip" ]; then
 	echo "Unzipping the deployer state file"
-	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME"
+	unzip -o -qq -P "${pass}" "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}/state.zip" -d "${CONFIG_REPO_PATH}/DEPLOYER/${DEPLOYER_FOLDERNAME}"
 fi
 
 end_group
@@ -414,9 +414,23 @@ end_group
 start_group "Deploy the control plane"
 # Deploy the control plane
 
-if "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh" --control_plane_name "${CONTROL_PLANE_NAME}" \
-	--subscription "$ARM_SUBSCRIPTION_ID" \
-	--auto-approve ${platform_flag} ${msi_flag} --only_deployer; then
+source "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/deploy_control_plane_v2.sh"
+allParameters=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--deployer_parameter_file "${deployer_tfvars_file_name}")
+allParameters+=(--library_parameter_file "${library_tfvars_file_name}")
+allParameters+=(--auto-approve)
+allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+if [ "${USE_MSI:-false}" == "true" ]; then
+	allParameters+=(--msi)
+fi
+allParameters+=(--only_deployer)
+
+if deploy_control_plane "${allParameters[@]}"; then
 	return_code=$?
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=warning]Return code from deploy_control_plane_v2 $return_code."
@@ -534,37 +548,37 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 fi
 
-if [ -f "{$deployer_tfvars_file_name}" ]; then
-	git add -f "{$deployer_tfvars_file_name}"
+if [ -f "${deployer_tfvars_file_name}" ]; then
+	git add -f "${deployer_tfvars_file_name}"
 	added=1
 fi
 
-if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md ]; then
+if [ -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md" ]; then
 	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/readme.md"
 	added=1
 fi
 
-if [ -f DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate ]; then
+if [ -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate" ]; then
 	git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/.terraform/terraform.tfstate"
 	added=1
 fi
 
-if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
+if [ -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		sudo apt-get install zip -y
 		pass=${SYSTEM_COLLECTIONID//-/}
-		zip -q -j -P "${pass}" "DEPLOYER/$DEPLOYER_FOLDERNAME/state" "DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate"
-		git add -f "DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
+		zip -q -j -P "${pass}" "DEPLOYER/${DEPLOYER_FOLDERNAME}/state" "DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate"
+		git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/state.zip"
 	elif [ "$PLATFORM" == "github" ]; then
-		rm DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg >/dev/null 2>&1 || true
+		rm "DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg" >/dev/null 2>&1 || true
 		echo "Encrypting state file"
 		gpg --batch \
-			--output DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg \
+			--output "DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg" \
 			--encrypt \
 			--disable-dirmngr --recipient sap-azure-deployer@example.com \
 			--trust-model always \
-			DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate
-		git add -f DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg
+			"DEPLOYER/${DEPLOYER_FOLDERNAME}/terraform.tfstate"
+		git add -f "DEPLOYER/${DEPLOYER_FOLDERNAME}/state.gpg"
 	else
 		pass="localpassword"
 	fi

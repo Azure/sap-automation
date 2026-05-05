@@ -10,7 +10,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "ReadWrite"
         },
         {
@@ -106,7 +106,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "ReadWrite",
           "write_accelerator"          : false
         },
@@ -203,7 +203,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "ReadWrite",
           "write_accelerator"          : false
         },
@@ -272,7 +272,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "None",
           "write_accelerator"          : false,
           "lun_start"                  : 11
@@ -292,7 +292,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 64,
+          "size_gb"                    : 128,
           "caching"                    : "ReadOnly",
           "write_accelerator"          : false,
           "lun_start"                  : 16
@@ -310,7 +310,7 @@
           "fullname"                   : "",
           "count"                      : 1,
           "disk_type"                  : "Premium_LRS",
-          "size_gb"                    : 128,
+          "size_gb"                    : 256,
           "caching"                    : "ReadWrite",
           "write_accelerator"          : false
         },

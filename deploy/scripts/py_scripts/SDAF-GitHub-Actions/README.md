@@ -15,7 +15,7 @@ This script helps to automate the setup of a GitHub App, repository secrets, env
 
 ### Prerequisites
 
-1. **Python**: Ensure Python 3.x is installed on your machine. You can download it from [Python official website](https://www.python.org/downloads/).
+1. **Python**: Ensure Python 3.10 or higher is installed on your machine. You can download it from [Python official website](https://www.python.org/downloads/). Note: on macOS, the preinstalled Python (if any) is often older than 3.10 (or may be missing); check `python3 --version` and install a newer version if needed (e.g. via [Homebrew](https://brew.sh): `brew install python@3.12`).
 2. **Azure CLI**: Ensure the Azure CLI is installed. You can download it from [Azure CLI installation guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli).
 3. **Azure Login**: Run `az login` in your terminal to authenticate with Azure before running the script.
 
@@ -28,9 +28,11 @@ This script helps to automate the setup of a GitHub App, repository secrets, env
 2. Change directory
     `cd deploy/scripts/py_scripts/SDAF-GitHub-Actions`
 
-3. **Create a Virtual Environment**: Create and activate a virtual environment.
+3. **Create a Virtual Environment**: Create and activate a virtual environment using Python 3.10+. On macOS, if `python3` still points to the system/default Python (< 3.10), use the versioned binary (e.g. `python3.12`) instead.
 
     `python3 -m venv venv`
+
+    > **macOS note**: If `python3 --version` reports < 3.10, run `python3.12 -m venv venv` (or whichever 3.10+ version you installed via Homebrew).
 
     On Unix/Linux/macOS (bash/zsh):
 

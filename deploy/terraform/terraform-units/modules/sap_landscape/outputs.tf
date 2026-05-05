@@ -687,3 +687,54 @@ resource "local_file" "resource_group_md" {
   directory_permission = "0770"
 }
 
+resource "azurerm_storage_blob" "readme" {
+  provider               = azurerm.deployer
+  depends_on            = [local_file.resource_group_md]
+  name                   = format("LANDSCAPE/%s/readme.md", trimspace(var.naming.prefix.WORKLOAD_ZONE))
+  storage_account_name   = var.infrastructure.terraform_storage_account_name
+  storage_container_name = "tfvars"
+  type                   = "Block"
+  source                 = local_file.resource_group_md.filename
+}
+
+
+resource "azurerm_storage_blob" "tfvars" {
+  provider               = azurerm.deployer
+  depends_on            = [local_file.resource_group_md]
+  name                   = format("LANDSCAPE/%s-INFRASTRUCTURE/%s-INFRASTRUCTURE.tfvars", trimspace(var.naming.prefix.WORKLOAD_ZONE), trimspace(var.naming.prefix.WORKLOAD_ZONE))
+  storage_account_name   = var.infrastructure.terraform_storage_account_name
+  storage_container_name = "tfvars"   
+  type                   = "Block"
+  source                 = format("%s/%s-INFRASTRUCTURE.tfvars", path.cwd,trimspace(var.naming.prefix.WORKLOAD_ZONE))
+}
+
+resource "azurerm_storage_blob" "tfvars_state" {
+  provider               = azurerm.deployer
+  count                  = fileexists(format("%s/.terraform/terraform.tfstate", path.cwd)) ? 1 : 0
+  depends_on             = [local_file.resource_group_md]
+  name                   = format("LANDSCAPE/%s-INFRASTRUCTURE/.terraform/terraform.tfstate", trimspace(var.naming.prefix.WORKLOAD_ZONE))
+  storage_account_name   = var.infrastructure.terraform_storage_account_name
+  storage_container_name = "tfvars"
+  type                   = "Block"
+  source                 = format("%s/.terraform/terraform.tfstate", path.cwd)
+}
+
+
+resource "local_file" "workload_zone_exports" {
+  content = templatefile(format("%s/templates/workload_zone_exports.tmpl", path.module), {
+              subscription_id             = local.resource_group_exists ? (
+                                           split("/", data.azurerm_resource_group.resource_group[0].id)[2]) : (
+                                           split("/", azurerm_resource_group.resource_group[0].id)[2]
+                                         )
+              app_configuration_name         = local.app_config_name
+              terraform_storage_account_name = var.infrastructure.terraform_storage_account_name
+              control_plane_name             = var.infrastructure.control_plane_name
+              workload_zone_name             = var.infrastructure.workload_zone_name
+              keyvault_name                  = var.deployer_tfstate.deployer_kv_user_name
+
+              }
+            )
+  filename             = format("%s/exports.sh", path.cwd)
+  file_permission      = "0660"
+  directory_permission = "0770"
+}

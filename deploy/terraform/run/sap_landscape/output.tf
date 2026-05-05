@@ -212,26 +212,26 @@ output "dns_label"                               {
 
 output "dns_resource_group_name"                 {
                                                    description = "Resource group name for the resource group containing the local Private DNS Zone"
-                                                   value = local.SAPLibrary_resource_group_name
+                                                   value = local.tfstate_storage_account_resource_group_name
                                                  }
 
 output "management_dns_resourcegroup_name"       {
                                                    description = "Resource group name for the resource group containing the public Private DNS Zone"
-                                                   value       = coalesce(var.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
+                                                   value       = coalesce(var.management_dns_resourcegroup_name, local.tfstate_storage_account_resource_group_name)
                                                  }
 
 output "management_dns_subscription_id"          {
                                                    description = "Subscription ID for the public Private DNS Zone"
-                                                   value       = coalesce(var.management_dns_subscription_id, local.SAPLibrary_subscription_id)
+                                                   value       = coalesce(var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id)
                                                  }
 
 output "privatelink_dns_resourcegroup_name"       {
-                                                   value       = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.SAPLibrary_resource_group_name)
+                                                   value       = coalesce(var.privatelink_dns_resourcegroup_name, var.management_dns_resourcegroup_name, local.tfstate_storage_account_resource_group_name)
                                                  }
 
 output "privatelink_dns_subscription_id"          {
                                                    description = "Subscription ID for the PrivateLink Private DNS Zones"
-                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.SAPLibrary_subscription_id)
+                                                   value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id)
                                                  }
 
 

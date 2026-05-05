@@ -1,5 +1,32 @@
 #########################################################################################
 #                                                                                       #
+# System Description                                                                    #
+#                                                                                       #
+$$MD_Description$$
+$$MD_Description2$$
+$$MD_SID$$
+#                                                                                       #
+$$MD_Region$$
+$$MD_Zone$$
+#                                                                                       #
+$$MD_DBServers$$
+$$MD_SCSServers$$
+$$MD_AppServers$$
+#                                                                                       #
+$$MD_ScaleOut$$
+$$MD_ScaleOut2$$
+#                                                                                       #
+$$MD_Cluster_DB$$
+$$MD_Cluster_SCS$$
+#                                                                                       #
+$$MD_Storage$$
+$$MD_VMSS$$
+$$MD_NFS$$
+#                                                                                       #
+#########################################################################################
+
+#########################################################################################
+#                                                                                       #
 # Deployment topologies                                                                 #
 #                                                                                       #
 # Standard (All roles on same server)                                                   #
@@ -148,41 +175,6 @@ $$database_loadbalancer_ips$$
 # for the network interface cards connected to the storage subnet
 $$database_vm_storage_nic_ips$$
 
-# Sample Images for different database backends
-
-# Oracle
-#database_vm_image = {
-#  os_type         = "LINUX"
-#  source_image_id = ""
-#  publisher       = "Oracle"
-#  offer           = "Oracle-Linux",
-#  sku             = "82-gen2",
-#  version         = "latest"
-#  type            = "marketplace"
-#}
-
-#SUSE 15 SP3
-#database_vm_image = {
-#  os_type         = "LINUX"
-#  source_image_id = ""
-#  publisher       = "SUSE"
-#  offer           = "sles-sap-15-sp3"
-#  sku             = "gen2"
-#  version         = "latest"
-#  type            = "marketplace"
-#}
-
-#RedHat
-#database_vm_image={
-#  os_type         = "LINUX"
-#  source_image_id = ""
-#  publisher       = "RedHat"
-#  offer           = "RHEL-SAP-HA"
-#  sku             = "8_4"
-#  version         = "latest"
-#  type            = "marketplace"
-#}
-
 # The vm_image defines the Virtual machine image to use,
 # if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
@@ -209,6 +201,28 @@ $$database_tags$$
 
 # If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA
 $$database_active_active$$
+
+
+#########################################################################################
+#                                                                                       #
+#                                    Observer Variables                                 #
+#                                                                                       #
+#########################################################################################
+
+# use_observer defines if an observer virtual machine will be used
+$$use_observer$$
+
+# observer_vm_size defines the VM size to use for the observer
+$$observer_vm_size$$
+
+# observer_vm_tags defines tags to use specifically for the observer VM
+$$observer_vm_tags$$
+
+# observer_vm_zones defines the zone to deploy the observer in
+$$observer_vm_zones$$
+
+# observer_nic_ips defines the IP addresses for the observer virtual machines
+$$observer_nic_ips$$
 
 #########################################################################################
 #                                                                                       #

@@ -16,6 +16,14 @@
     "MaximumFaultDomainCount": "2"
   },
   {
+    "Location": "austriaeast",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "belgiumcentral",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
     "Location": "brazilsouth",
     "MaximumFaultDomainCount": "3"
   },
@@ -42,6 +50,14 @@
   {
     "Location": "centraluseuap",
     "MaximumFaultDomainCount": "1"
+  },
+  {
+    "Location": "chilecentral",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "denmarkeast",
+    "MaximumFaultDomainCount": "2"
   },
   {
     "Location": "eastasia",
@@ -76,11 +92,11 @@
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "germanywestcentral",
+    "Location": "israelcentral",
     "MaximumFaultDomainCount": "2"
   },
   {
-    "Location": "israelcentral",
+    "Location": "israelnorthwest",
     "MaximumFaultDomainCount": "2"
   },
   {
@@ -116,6 +132,10 @@
     "MaximumFaultDomainCount": "2"
   },
   {
+    "Location": "malaysiawest",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
     "Location": "mexicocentral",
     "MaximumFaultDomainCount": "2"
   },
@@ -126,6 +146,10 @@
   {
     "Location": "northcentralus",
     "MaximumFaultDomainCount": "3"
+  },
+  {
+    "Location": "northeastus",
+    "MaximumFaultDomainCount": "2"
   },
   {
     "Location": "northeurope",
@@ -160,6 +184,10 @@
     "MaximumFaultDomainCount": "3"
   },
   {
+    "Location": "southcentralus2",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
     "Location": "southcentralusstg",
     "MaximumFaultDomainCount": "2"
   },
@@ -172,7 +200,19 @@
     "MaximumFaultDomainCount": "2"
   },
   {
+    "Location": "southeastus3",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "southeastus5",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
     "Location": "southindia",
+    "MaximumFaultDomainCount": "2"
+  },
+  {
+    "Location": "southwestus",
     "MaximumFaultDomainCount": "2"
   },
   {

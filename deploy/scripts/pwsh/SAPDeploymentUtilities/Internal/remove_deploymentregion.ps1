@@ -132,7 +132,7 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green "Running init"
 
     $statefile = (Join-Path -Path $fInfo.Directory.FullName -ChildPath "terraform.tfstate")
-    $Command = " init -upgrade=true -force-copy -backend-config ""path=$statefile"""
+    $Command = " init -upgrade -force-copy -backend-config ""path=$statefile"""
 
     $Cmd = "terraform -chdir=$terraform_module_directory $Command"
     Add-Content -Path "deployment.log" -Value $Cmd
@@ -159,7 +159,7 @@ Licensed under the MIT license.
     Write-Host -ForegroundColor green "Running init"
 
     $statefile = (Join-Path -Path $fInfo.Directory.FullName -ChildPath "terraform.tfstate")
-    $Command = " init -upgrade=true -force-copy -backend-config ""path=$statefile"""
+    $Command = " init -upgrade -force-copy -backend-config ""path=$statefile"""
 
     $Cmd = "terraform -chdir=$terraform_module_directory $Command"
     Add-Content -Path "deployment.log" -Value $Cmd

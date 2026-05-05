@@ -5,12 +5,6 @@
 
 #error codes include those from /usr/include/sysexits.h
 
-#colors for terminal
-bold_red_underscore="\e[1;4;31m"
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
-
 #External helper functions
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
@@ -54,12 +48,14 @@ while :; do
 		;;
 	-o | --storageaccountname)
 		REMOTE_STATE_SA="$2"
+		export REMOTE_STATE_SA
+		getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" ""
 		shift 2
 		;;
 	-h | --help)
 		showhelp
-		exit 3
 		shift
+		exit 3
 		;;
 	-v | --verbose)
 		# Enable debugging
@@ -78,17 +74,19 @@ done
 echo "Checking the storage account access methods"
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query allowSharedKeyAccess --out tsv)
 
-if [ $useSAS = "true" ]; then
+if [ "$useSAS" = "true" ]; then
 	files=$(az storage blob list --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --query "[].name" -o tsv --only-show-errors --output tsv)
 else
 	files=$(az storage blob list --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auth-mode login --query "[].name" -o tsv --only-show-errors --output tsv)
 fi
 for name in $files; do
 	if [ -n "$name" ]; then
-		echo "Downloading file: " "$name"
+		
 		dirName=$(dirname "$name")
+		echo "Downloading file: " "$name" to "$dirName"
 		mkdir -p "$dirName"
-		if [ $useSAS = "true" ]; then
+		touch "$name"
+		if [ "$useSAS" = "true" ]; then
 			az storage blob download --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --file "${name}" --name "${name}" --only-show-errors --output none --no-progress
 		else
 			az storage blob download --container-name tfvars --account-name "${REMOTE_STATE_SA}" --subscription "${STATE_SUBSCRIPTION}" --auth-mode login --file "${name}" --name "${name}" --only-show-errors --output none --no-progress

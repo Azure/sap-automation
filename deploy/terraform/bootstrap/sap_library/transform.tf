@@ -36,6 +36,7 @@ locals {
                                                                                                data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (
                                                                                                " "),
                                                                                              " ")))
+                                           management_network_id          = var.management_network_id
                                          }
   key_vault                            = {
                                            id = coalesce(var.spn_keyvault_id, try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,"") )
@@ -58,7 +59,7 @@ locals {
                                               name                   = coalesce(var.library_sapmedia_blob_container_name, module.sap_namegenerator.naming.resource_suffixes.sapbits)
                                             }
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
-                                           public_network_access_enabled             = var.public_network_access_enabled
+                                           public_network_access_enabled             = true
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 
@@ -85,7 +86,8 @@ locals {
                                                                                      }
 
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
-                                           public_network_access_enabled             = var.public_network_access_enabled
+                                           # If either network security perimeter or app service deployment is enabled, then public network access will be enabled regardless of the value set in var.public_network_access_enabled
+                                           public_network_access_enabled             = true
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
                                          }
 

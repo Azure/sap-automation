@@ -2,11 +2,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#colors for terminal
-bold_red="\e[1;31m"
-cyan="\e[1;36m"
-reset_formatting="\e[0m"
-bold_red_underscore="\e[1;4;31m"
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
 # Ensure that the exit status of a pipeline command is non-zero if any
 # stage of the pipefile has a non-zero exit status.
@@ -34,6 +38,7 @@ script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
+echo "Entering: ${SCRIPT_NAME}"
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
@@ -58,7 +63,7 @@ function show_deployer_help {
 	echo "#   The script experts the following exports:                                           #"
 	echo "#                                                                                       #"
 	echo "#     ARM_SUBSCRIPTION_ID to specify which subscription to deploy to                    #"
-	echo "#     DEPLOYMENT_REPO_PATH the path to the folder containing the cloned sap-automation  #"
+	echo "#     SAP_AUTOMATION_REPO_PATH the path to the folder containing sap-automation repo    #"
 	echo "#                                                                                       #"
 	echo "#   The script will persist the parameters needed between the executions in the         #"
 	echo "#   ~/.sap_deployment_automation folder                                                 #"
@@ -139,8 +144,8 @@ function parse_arguments() {
 			;;
 		-h | --help)
 			show_deployer_help
-			exit 3
 			shift
+			exit 3
 			;;
 		--)
 			shift
@@ -162,23 +167,18 @@ function parse_arguments() {
 	fi
 
 	# Check that parameter files have environment and location defined
+	region=""
 	if ! validate_key_parameters "$parameterFilename"; then
 		return $?
 	fi
 
 	region=$(echo "${region}" | tr "[:upper:]" "[:lower:]")
 	# Convert the region to the correct code
-	get_region_code $region
+	get_region_code "$region"
 
 	# Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
 	if ! validate_exports; then
 		return $?
-	fi
-
-	if checkforEnvVar "TEST_ONLY"; then
-		TEST_ONLY="${TEST_ONLY}"
-	else
-		TEST_ONLY="false"
 	fi
 
 }
@@ -206,7 +206,7 @@ function sdaf_remove_deployer() {
 
 	# Parse command line arguments
 	parse_arguments "$@"
-	key=$(echo "${parameterfile_name}" | cut -d. -f1)
+	key=$(echo "${parameterFilename}" | cut -d. -f1)
 
 	CONTROL_PLANE_NAME=$(echo "$key" | cut -d'-' -f1-3)
 	export "CONTROL_PLANE_NAME"
@@ -237,60 +237,21 @@ function sdaf_remove_deployer() {
 	terraform -chdir="${terraform_module_directory}" init -reconfigure -backend-config "path=${current_directory}/terraform.tfstate"
 	extra_vars=""
 
-	# if terraform -chdir="${terraform_module_directory}" state list; then
+	this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
+	export TF_VAR_Agent_IP=$this_ip
+	echo "Agent IP:                            $this_ip"
 
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_state_file_name"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'deployer_state_file_name' removed from state"
-	# 		fi
-	# 	fi
+	DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+	if valid_kv_name "${DEPLOYER_KEYVAULT}" ; then
+		export DEPLOYER_KEYVAULT
+		az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT" --output none
+		az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled --output none
+	fi
+	APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+	if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
+		az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
+	fi
 
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_name"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'deployer_keyvault_name' removed from state"
-	# 		fi
-	# 	fi
-
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_keyvault_id"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'deployer_keyvault_id' removed from state"
-	# 		fi
-	# 	fi
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_resourcegroup_name"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'deployer_resourcegroup_name' removed from state"
-	# 		fi
-	# 	fi
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_subscription_id"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'deployer_subscription_id' removed from state"
-	# 		fi
-	# 	fi
-
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_resource_id"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'web_application_resource_id' removed from state"
-	# 		fi
-	# 	fi
-
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.deployer_msi_id"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'deployer_msi_id' removed from state"
-	# 		fi
-	# 	fi
-	# 	moduleID="module.sap_deployer.azurerm_app_configuration_key.web_application_identity_id"
-	# 	if terraform -chdir="${terraform_module_directory}" state list -id="${moduleID}"; then
-	# 		if terraform -chdir="${terraform_module_directory}" state rm "${moduleID}"; then
-	# 			echo "Setting 'deployer_msi_id' removed from state"
-	# 		fi
-	# 	fi
 
 	# fi
 	if [ -f terraform.tfvars ]; then
@@ -299,13 +260,9 @@ function sdaf_remove_deployer() {
 
 	print_banner "Remove deployer" "Running Terraform destroy" "info"
 
-	parallelism=10
-
-	#Provide a way to limit the number of parallel tasks for Terraform
-	#Provide a way to limit the number of parallel tasks for Terraform
-	if checkforEnvVar "TF_PARALLELLISM"; then
-		parallelism=$TF_PARALLELLISM
-	fi
+	# Provide a way to limit the number of parallel tasks for Terraform
+	parallelism=${TFE_PARALLELISM:-10}                                            # Default to 10 if TFE_PARALLELISM is not set
+  echo -e "${cyan}Parallelism count:                   $parallelism${reset}"
 
 	if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee destroy_output.json; then
 		return_value=${PIPESTATUS[0]}
@@ -324,14 +281,14 @@ function sdaf_remove_deployer() {
 			return_value=10
 			all_errors=$(jq 'select(."@level" == "error") | {summary: .diagnostic.summary, detail: .diagnostic.detail}' destroy_output.json)
 			if [[ -n ${all_errors} ]]; then
-				readarray -t errors_strings < <(echo ${all_errors} | jq -c '.')
+				readarray -t errors_strings < <(echo "${all_errors}" | jq -c '.')
 				for errors_string in "${errors_strings[@]}"; do
 					string_to_report=$(jq -c -r '.detail ' <<<"$errors_string")
 					if [[ -z ${string_to_report} ]]; then
 						string_to_report=$(jq -c -r '.summary ' <<<"$errors_string")
 					fi
 
-					echo -e "#                          $bold_red_underscore  $string_to_report $reset_formatting"
+					echo -e "#                          ${bold_red_underscore}${string_to_report}${reset}"
 					echo "##vso[task.logissue type=error]${string_to_report}"
 
 				done
@@ -344,16 +301,19 @@ function sdaf_remove_deployer() {
 		rm destroy_output.json
 	fi
 
-	if [ 0 == $return_value ]; then
+	if [ 0 == "$return_value" ]; then
 		print_banner "Remove deployer" "Deployer removed successfully" "success"
 		step=0
+		export step
+		save_config_var "step" "${deployer_environment_file_name}"
+		rm "${deployer_environment_file_name}"
 		save_config_var "step" "${deployer_environment_file_name}"
 	fi
 
 	unset TF_DATA_DIR
 
 	echo "Return from remove_deployer.sh"
-	return $return_value
+	return "$return_value"
 }
 
 ################################################################################

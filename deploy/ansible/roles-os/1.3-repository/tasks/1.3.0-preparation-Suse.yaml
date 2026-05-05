@@ -25,7 +25,7 @@
 
     # -------------------- BYOS / BYOL Registration Path --------------------8
     - name:                            "1.3.0 Repository - SUSE - Re-register SLE instance (BYOS - using registration code)"
-      when:                            suse_subscription_id | default('') | length > 0
+      when:                            suse_subscription_id | default('', true) | length > 0
       block:
         - name:                        "1.3.0 Repository - SUSE - BYOS - Cleanup existing registration"
           ansible.builtin.shell:      |
@@ -60,7 +60,7 @@
 
     # -------------------- PAYG Registration Path ---------------------------8
     - name:                            "1.3.0 Repository - SUSE - Re-register SLE instance (PAYG - using registercloudguest)"
-      when:                            suse_subscription_id | default('') | length == 0
+      when:                            suse_subscription_id | default('', true) | length == 0
       block:
         - name:                        "1.3.0 Repository - SUSE - PAYG - Cleanup existing registration"
           ansible.builtin.shell:      |

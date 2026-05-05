@@ -9,7 +9,7 @@
     src:                               "{{ grub_config_file }}"
   register: grub_config_file_slurp
 
-- name:                                "2.10 SAP Note - Update the current setting"
+- name:                                "2.10 SAP Note - Update the current 'GRUB_CMDLINE_LINUX' setting"
   ansible.builtin.lineinfile:
     path:                              "{{ grub_config_file }}"
     regexp:                            '^GRUB_CMDLINE_LINUX="(.*){{ item.key }}=(?:[^\s]+)( .*"|")'
@@ -17,7 +17,7 @@
     backrefs:                          true
   when: item.key in grub_config_file_slurp.content | b64decode
 
-- name:                                "2.10 SAP Note - Add the argument if it does not exist"
+- name:                                "2.10 SAP Note - Add the 'GRUB_CMDLINE_LINUX' setting if it does not exist"
   ansible.builtin.lineinfile:
     path:                              "{{ grub_config_file }}"
     regexp:                            '^GRUB_CMDLINE_LINUX="(.*)"'

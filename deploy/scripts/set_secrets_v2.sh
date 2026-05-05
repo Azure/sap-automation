@@ -2,24 +2,73 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-#error codes include those from /usr/include/sysexits.h
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Initialize colors and debug handling                                          #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# 'set' command documentation:
+#		https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
+# error codes include those from /usr/include/sysexits.h
+#---------------------------------------+---------------------------------------#
+# region
+# colors for terminal
+bold_red_underscore="\e[1;4;31m"                                                #    CRIT_COLOR
+           bold_red="\e[1;31m"                                                  #   ERROR_COLOR
+              green="\e[1;32m"                                                  # SUCCESS_COLOR
+             yellow="\e[1;33m"                                                  # WARNING_COLOR
+               blue="\e[1;34m"                                                  #   DEBUG_COLOR
+            magenta="\e[1;35m"                                                  #   TRACE_COLOR
+               cyan="\e[1;36m"                                                  #    INFO_COLOR
+              reset="\e[0m"                                                     #   RESET_COLOR
 
-#External helper functions
-#. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
-full_script_path="$(realpath "${BASH_SOURCE[0]}")"
-script_directory="$(dirname "${full_script_path}")"
+echo -e "\n${cyan}Entering script:  ${BASH_SOURCE[0]}${reset}\n"
+export PS4='+$(basename "${BASH_SOURCE[0]}"):${LINENO}: '                       # Debug prompt format
+
+# SYSTEM_DEBUG is set by Azure DevOps when the "Enable system diagnostics" option is turned on for the pipeline run.
+# DEBUG is an optional environment variable that can be set to "True" to enable debug mode when running the script outside of Azure DevOps.
+if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
+    [[ ${DEBUG:-False}        = True ]]; then
+      echo -e "${cyan}--- Enabling debug mode ---${reset}"
+      set -x                                                                    # Enable debug mode
+      export DEBUG=True
+      echo "Environment variables:"
+      printenv | sort
+else
+      export DEBUG=False
+fi
+
+set -o errexit                                                                  # Same as -e; Exit immediately if a command exits with a non-zero status.
+set -o nounset                                                                  # Same as -u; Treat unset variables as an error when substituting.
+set -o pipefail                                                                 # Return the exit status of the last command in the pipe that failed.
+#-------------------------------------------------------------------------------#
+# endregion
+
+
+#-------------------------------------------------------------------------------#
+#                                                                               #
+# Helpers                                                                       #
+#                                                                               #
+#-------------------------------------------------------------------------------#
+# Example: path_to_script/grand_parent_dir/parent_dir/script_dir/script
+#---------------------------------------+---------------------------------------#
+# region
+full_script_path="$(      realpath ${BASH_SOURCE[0]})"                          # Get the full path of the current script
+script_directory="$(      dirname  ${full_script_path})"                        # Get the directory of the current script
+parent_directory="$(      dirname  ${script_directory})"                        # Get the parent directory of the script directory
+grand_parent_directory="$(dirname  ${parent_directory})"                        # Get the grandparent directory of the script directory
+
 SCRIPT_NAME="$(basename "$0")"
 
-if printenv DEBUG; then
-	if [ $DEBUG = True ]; then
-		set -x
-		DEBUG=True
-		echo "prefix variables:"
-		printenv | sort
-	fi
-fi
-export DEBUG
-set -eu
+# External helper functions
+# call stack has full script name when using source
+
+# handled in function
+#-------------------------------------------------------------------------------#
+# endregion
+
+
 
 
 function addKeyVaultNetworkRule {
@@ -328,7 +377,6 @@ function show_help {
 # Example:                   																				                       #
 #   source_helper_scripts "script1.sh" "script2.sh"            														 #
 ############################################################################################
-
 function source_helper_scripts() {
 	local -a helper_scripts=("$@")
 	for script in "${helper_scripts[@]}"; do
@@ -351,10 +399,9 @@ function source_helper_scripts() {
 # Usage:                                                                                   #
 #   parse_arguments                                                                        #
 ############################################################################################
-
 function parse_arguments() {
 	local input_opts
-	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:g:hwma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,gh_pat:,workload,help,msi,ado -- "$@")
+	input_opts=$(getopt -n set_secrets_v2 -o v:s:i:p:t:b:n:c:g:hma --longoptions control_plane_name:,prefix:,key_vault:,subscription:,client_id:,client_secret:,client_tenant_id:,application_configuration_name:,keyvault_subscription:,gh_pat:,help,msi,ado,github -- "$@")
 	is_input_opts_valid=$?
 
 	if [[ "${is_input_opts_valid}" != "0" ]]; then
@@ -408,15 +455,15 @@ function parse_arguments() {
 			gh_pat="$2"
 			shift 2
 			;;
-		-w | --workload)
-			workload=1
-			shift
-			;;
 		-m | --msi)
 			deploy_using_msi_only=1
+			export deploy_using_msi_only
 			shift
 			;;
 		-a | --ado)
+			shift
+			;;
+		--github)
 			shift
 			;;
 		-h | --help)
@@ -484,7 +531,6 @@ function parse_arguments() {
 # Usage:                     																				                       #
 #   retrieve_parameters                                                                    #
 ############################################################################################
-
 function retrieve_parameters() {
 	if checkforEnvVar APPLICATION_CONFIGURATION_ID; then
 		if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
@@ -530,6 +576,8 @@ function set_all_secrets() {
 	source_helper_scripts "${helper_scripts[@]}"
 
 	print_banner "$banner_title" "Starting script $SCRIPT_NAME" "info"
+	detect_platform
+
 
 	# Parse command line arguments
 	if parse_arguments "$@"; then
@@ -606,5 +654,12 @@ function set_all_secrets() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 	# Only run if script is executed directly, not when sourced
 	set_all_secrets "$@"
-	exit $?
+
+	return_code=$?
+
+	#----------------------------------- EXIT --------------------------------------#
+	echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
+	echo -e   "${cyan}   Return code:  ${return_code}${reset}"
+	exit $return_code
+
 fi

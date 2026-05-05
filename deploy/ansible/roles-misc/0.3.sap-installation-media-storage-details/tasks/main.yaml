@@ -60,16 +60,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-- name:                                "0.3 Installation Media - Get Control Plane Subscription"
-  ansible.builtin.set_fact:
-    control_plane_subscription_id:     "{{ lookup('ansible.builtin.env', 'control_plane_subscription') | default('') }}"
-
-- name:                                "0.3 Installation Media - Extract SAP Binaries Storage Account SAS (temp)"
-  ansible.builtin.set_fact:
-    subscription_parameter:            "{% if control_plane_subscription_id | length > 0 %} --subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
-
-
 - name:                                "0.3 Installation Media - Extract SAP Binaries Storage Account secrets"
   block:
     - name:                            "0.3 Installation Media - Extract SAP Binaries Storage Account information"
@@ -95,6 +85,28 @@
     container_name:                    "{{ sapbits_location_base_path.rpartition('//')[2].split('/')[1] }}"
   when:                                sapbits_location_base_path is defined
 
+- name:                                "0.3 Installation Media - Get Control Plane Subscription"
+  ansible.builtin.set_fact:
+    control_plane_subscription_id:     "{{ lookup('ansible.builtin.env', 'control_plane_subscription') | default('') }}"
+
+- name:                                "0.3 Installation Media - Extract SAP Binaries Storage Account SAS (temp)"
+  ansible.builtin.set_fact:
+    subscription_parameter:            "{% if control_plane_subscription_id | length > 0 %} --subscription {{ control_plane_subscription_id }}{% else %}{% endif %}"
+
+- name:                                "0.3 Installation Media - Check Binaries Storage Account for Shared Key Access with Control Plane Subscription"
+  when:
+    - not is_executed_by_acss
+  ansible.builtin.command: >-
+                                       az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '{{ account_name }}' | project id, name, subscription,subscriptionId" --query data[0].subscriptionId --output tsv
+
+  changed_when:                        false
+  register:                            az_StorageAccountSubscription
+
+- name:                                "0.3 Installation Media - Extract SAP Binaries Storage Account SAS (temp)"
+  when:                                 az_StorageAccountSubscription.stdout is defined and az_StorageAccountSubscription.stdout | length > 0
+  ansible.builtin.set_fact:
+    terraform_subscription_id:         "{{ az_StorageAccountSubscription.stdout | default('') }}"
+
 - name:                                "0.3 Installation Media - Extract Shared Key Access token flag"
   ansible.builtin.set_fact:
     allowSharedKeyAccess:             false
@@ -103,10 +115,10 @@
   when:
     - not is_executed_by_acss
   ansible.builtin.command: >-
-                                       az storage account show          \
-                                         --name {{ account_name }}      \
-                                         --query allowSharedKeyAccess   \
-                                         {{ subscription_parameter }}   \
+                                       az storage account show                          \
+                                         --name {{ account_name }}                      \
+                                         --query allowSharedKeyAccess                   \
+                                         --subscription {{ terraform_subscription_id }} \
                                          --out tsv
   changed_when:                        false
   register:                            az_allowSharedKeyAccess

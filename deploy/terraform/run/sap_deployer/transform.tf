@@ -84,6 +84,8 @@ locals {
                                            server_url                     = var.github_server_url
                                            api_url                        = var.github_api_url
                                            platform                       = var.devops_platform
+                                           organization                   = var.organization
+                                           branch                         = var.branch
                                          }
 
     tfstate_resource_id                = var.tfstate_resource_id
@@ -173,6 +175,7 @@ locals {
                                             use_spn                         = var.use_spn
                                             assign_resource_permissions     = var.deployer_assign_resource_permissions
                                             assign_subscription_permissions = var.deployer_assign_subscription_permissions
+                                            network_security_perimeter      = local.network_security_perimeter
                                          }
 
   firewall                             = {
@@ -185,12 +188,10 @@ locals {
 
 
   app_service                          = {
-                                           use                 = var.app_service_deployment
-                                           app_registration_id = var.app_registration_app_id
-                                           client_secret       = var.webapp_client_secret
-                                           use                 = var.app_service_deployment
-                                           app_registration_id = var.app_registration_app_id
-                                           client_secret       = var.webapp_client_secret
+                                           use                          = var.app_service_deployment
+                                           app_registration_id          = var.app_registration_app_id
+                                           client_secret                = var.webapp_client_secret
+                                           tfstate_storage_account_name = local.tfstate_storage_account_name
                                          }
 
   dns_settings                         = {
@@ -201,9 +202,9 @@ locals {
                                            register_endpoints_with_dns                  = var.register_endpoints_with_dns
                                            dns_zone_names                               = var.dns_zone_names
 
-                                           local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
+                                           local_dns_resourcegroup_name                 = local.tfstate_storage_account_resource_group_name
 
-                                           local_dns_resourcegroup_name                 = local.SAPLibrary_resource_group_name
+                                           local_dns_resourcegroup_name                 = local.tfstate_storage_account_resource_group_name
 
                                            management_dns_resourcegroup_name            = trimspace(var.management_dns_resourcegroup_name)
                                            management_dns_subscription_id               = var.management_dns_subscription_id
@@ -220,6 +221,15 @@ locals {
                                            exists                                      = length(var.application_configuration_id) > 0 ? true : false
                                            deploy                                      = var.application_configuration_deployment
                                            control_plane_name                          = module.sap_namegenerator.naming.prefix.DEPLOYER
+                                         }
+
+  network_security_perimeter              = {
+                                           name                                        = coalesce(var.network_security_perimeter_name,module.sap_namegenerator.naming_new.network_security_perimeter_name)
+                                           id                                          = var.network_security_perimeter_id
+                                           exists                                      = length(var.network_security_perimeter_id) > 0 ? true : false
+                                           deploy                                      = var.network_security_perimeter_deployment
+                                           network_security_access_mode                = var.network_security_access_mode
+
                                          }
 
 

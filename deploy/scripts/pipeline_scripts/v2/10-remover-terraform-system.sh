@@ -274,11 +274,28 @@ echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
 
-cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh" --parameter_file "$SAP_SYSTEM_TFVARS_FILENAME" --type sap_system \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "$APPLICATION_CONFIGURATION_NAME" \
-	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	$platform_flag --auto-approve; then
+
+cd "${CONFIG_REPO_PATH}" || exit
+cd "SYSTEM/${SAP_SYSTEM_FOLDERNAME}"	|| exit
+
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover_v2.sh"
+
+allParameters=(--parameter_file "${SAP_SYSTEM_TFVARS_FILENAME}")
+allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
+allParameters+=(--workload_zone_name "${WORKLOAD_ZONE_NAME}")
+allParameters+=(--type sap_system)
+allParameters+=(--auto-approve)
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+
+echo "Calling sdaf_remover with: ${allParameters[*]}"
+echo ""
+
+if sdaf_remover "${allParameters[@]}"; then
 	return_code=$?
 	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
 else
@@ -286,7 +303,6 @@ else
 	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
 fi
 
-echo
 if [ 0 != $return_code ]; then
 	echo "##vso[task.logissue type=error]Return code from remover $return_code."
 else
