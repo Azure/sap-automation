@@ -171,7 +171,7 @@
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+                path:                  "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
                 state:                 touch
                 mode:                  0755
               when:
@@ -422,7 +422,7 @@
               delegate_to:             localhost
               become:                  false
               ansible.builtin.file:
-                path:                  "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+                path:                  "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
                 state:                 touch
                 mode:                  0755
               when:
@@ -710,7 +710,7 @@
   # Build the list of tasks to be executed in order here.
   #
   # -------------------------------------+---------------------------------------8
-    - name:                            "Database Installation Playbook: - Oracle -Install Oracle"
+    - name:                            "Database Installation Playbook: - Oracle - Install Oracle"
       become:                          true
       become_user:                     root
       when:
@@ -733,10 +733,10 @@
           tags:
             - always
 
-        - name:                        "Database Installation Playbook: - Oracle ASM - Register repositories"
+        - name:                        "Database Installation Playbook: - Oracle - Register repositories"
           ansible.builtin.import_tasks: roles-os/1.3-repository/tasks/1.3.3-repositories-from-BOM.yaml
 
-        - name:                        "Database Installation Playbook: - Create Symlink"
+        - name:                        "Database Installation Playbook: - Oracle - Create Symlink"
           ansible.builtin.import_tasks: roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
 
         - name:                        "Database Installation Playbook: - Oracle - Create SAP users/groups"
@@ -764,7 +764,7 @@
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
 
@@ -800,7 +800,7 @@
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
 
@@ -883,9 +883,10 @@
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
+
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -958,9 +959,17 @@
           vars:
             suffix:                    "_DB"
             tier:                      'db2'
-            prefix:                    "{{ bom.product_ids.dblha.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').replace('/JAVA', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             this_sid:                  "{{ sap_sid }}"
+
+        - name:                        "Database Installation Playbook: - DB2 - Set db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0655
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -1040,6 +1049,13 @@
             path:                      "INSTALL/DISTRIBUTED/{{ db2_instance_type }}/DB"
             this_sid:                  "{{ sap_sid }}"
 
+        - name:                        "Database Installation Playbook: - DB2 - Set db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0655
 
 # /*----------------------------------------------------------------------------8
 # |                                                                            |
@@ -1111,11 +1127,19 @@
             name:                      roles-sap/7.0.0-post-install
           vars:
             suffix:                    "_DB"
-            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').split(':')[1] }}"
+            prefix:                    "{{ bom.product_ids.dbl.replace('.', '/').replace('/ABAP', '').replace('/JAVA', '').split(':')[1] }}"
             path:                      "INSTALL/DISTRIBUTED/ABAP/DB"
             tier:                      'sybase'
             this_sid:                  "{{ sap_sid | upper }}"
             work_log_component_name: "ASE{{ db_instance_number }}"
+
+        - name:                        "Database Installation Playbook: - ASE - Set db-install-done flag"
+          delegate_to:                 localhost
+          become:                      false
+          ansible.builtin.file:
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
+            state:                     touch
+            mode:                      0655
 
 
 # /*----------------------------------------------------------------------------8
@@ -1171,7 +1195,7 @@
           delegate_to:                 localhost
           become:                      false
           ansible.builtin.file:
-            path:                      "{{ _workspace_directory }}/.progress/db/db-install-done{{ ansible_hostname }}"
+            path:                      "{{ _workspace_directory }}/.progress/db-install-done{{ ansible_hostname }}"
             state:                     touch
             mode:                      0755
       vars:

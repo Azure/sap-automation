@@ -15,12 +15,11 @@ source "${script_directory}/set-colors.sh"
 source "${grand_parent_directory}/deploy_utils.sh"
 
 source "${parent_directory}/helper.sh"
-
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
 	echo "##vso[build.updatebuildnumber]Setting the deployment credentials for the Key Vault defined in $ZONE"
 	DEBUG=false
-	if [ "${SYSTEM_DEBUG:-false}" == "true" ]; then
+	if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
@@ -176,14 +175,31 @@ fi
 # Enable case-insensitive matching
 shopt -s nocasematch
 
+allParameters=(--prefix "$ZONE")
+allParameters+=(--key_vault "${key_vault}")
+allParameters+=(--keyvault_subscription "$keyvault_subscription_id")
+allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID")
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+	allParameters+=(--gh_pat "$GH_PAT")
+fi
+if [ "${USE_MSI:-false}" == "true" ]; then
+	allParameters+=(--msi)
+fi
+
 if [ "$USE_MSI" != "true" ]; then
-	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" --ado)
+	allParameters+=(--client_id "$ARM_CLIENT_ID")
+	allParameters+=(--client_secret "$ARM_CLIENT_SECRET")
+	allParameters+=(--client_tenant_id "$ARM_TENANT_ID")
+fi
 
-	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
-		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_secret" "$ARM_CLIENT_SECRET" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT" --ado)
-	fi
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh"
 
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
+if [ "$USE_MSI" != "true" ]; then
+
+	if set_all_secrets "${allParameters[@]}"; then
 		return_code=$?
 	else
 		return_code=$?
@@ -191,21 +207,8 @@ if [ "$USE_MSI" != "true" ]; then
 		exit $return_code
 	fi
 else
-	set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" --msi --ado)
-
-	if [ "$PLATFORM" == "github" ] && [ -n "${GH_PAT:-}" ]; then
-		set_secrets_args=("--prefix" "$ZONE" "--key_vault" "${key_vault}" "--keyvault_subscription" "$keyvault_subscription_id" "--subscription" "$ARM_SUBSCRIPTION_ID" "--client_id" "$ARM_CLIENT_ID" "--client_tenant_id" "$ARM_TENANT_ID" "--gh_pat" "$GH_PAT" --msi --ado)
-	fi
-
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${set_secrets_args[@]}"; then
-		return_code=$?
-	else
-		return_code=$?
-		print_banner "$banner_title - Set secrets" "Set_secrets failed" "error"
-		exit $return_code
-	fi
+	return_code=0
 fi
-
 # Disable case-insensitive matching to restore default behavior
 shopt -u nocasematch
 

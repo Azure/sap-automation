@@ -6,8 +6,6 @@
 #error codes include those from /usr/include/sysexits.h
 
 #colors for terminal
-bold_red_underscore="\e[1;4;31m"
-bold_red="\e[1;31m"
 cyan="\e[1;36m"
 reset_formatting="\e[0m"
 
@@ -64,7 +62,7 @@ function showhelp {
 	echo "#   [CONFIG_REPO_PATH]/.sap_deployment_automation folder                                                         #"
 	echo "#                                                                                                                #"
 	echo "#                                                                                                                #"
-	echo "#   Usage: remove_region.sh                                                                                      #"
+	echo "#   Usage: remove_controlplane.sh                                                                                #"
 	echo "#      -d or --deployer_parameter_file       deployer parameter file                                             #"
 	echo "#      -l or --library_parameter_file        library parameter file                                              #"
 	echo "#                                                                                                                #"
@@ -85,7 +83,7 @@ function missing {
 	echo "#                                                                                       #"
 	echo "#   Missing : ${val}                                  #"
 	echo "#                                                                                       #"
-	echo "#   Usage: remove_region.sh                                                             #"
+	echo "#   Usage: remove_controlplane.sh                                                       #"
 	echo "#      -d or --deployer_parameter_file       deployer parameter file                    #"
 	echo "#      -l or --library_parameter_file        library parameter file                     #"
 	echo "#                                                                                       #"
@@ -93,8 +91,6 @@ function missing {
 
 }
 
-force=0
-ado=0
 INPUT_ARGUMENTS=$(getopt -n remove_control_plane -o d:l:s:b:r:ihag --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
 VALID_ARGUMENTS=$?
 
@@ -126,7 +122,8 @@ while :; do
 		shift 2
 		;;
 	-a | --ado)
-		approve_parameter="--auto-approve;ado=1"
+		ado="1"
+		approve="--auto-approve"
 		shift
 		;;
 	-g | --keep_agent)
@@ -134,7 +131,7 @@ while :; do
 		shift
 		;;
 	-i | --auto-approve)
-		approve_parameter="--auto-approve"
+		approve="--auto-approve"
 		shift
 		;;
 	-h | --help)
@@ -181,6 +178,7 @@ if [ 0 != $return_code ]; then
 	exit $return_code
 fi
 
+region=""
 if valid_region_name "${region}"; then
 	# Convert the region to the correct code
 	get_region_code "${region}"
@@ -189,25 +187,28 @@ else
 	exit 2
 fi
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation"
 generic_environment_file_name="${automation_config_directory}"/config
-CONTROL_PLANE_NAME=$(echo "$deployer_parameter_file" | cut -d'-' -f1-3)
+CONTROL_PLANE_NAME=$(basename "$deployer_parameter_file" | cut -d'-' -f1-3)
+TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
+export TF_VAR_control_plane_name
+
 deployer_tfstate_key="${CONTROL_PLANE_NAME}-INFRASTRUCTURE.terraform.tfstate"
 export deployer_tfstate_key
-environment=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $1}' | xargs)
-region_code=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $2}' | xargs)
-network_logical_name=$(echo "$deployer_tfstate_key" | awk -F'-' '{print $3}' | xargs)
+environment=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $1}' | xargs)
+region_code=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $2}' | xargs)
+network_logical_name=$(echo "$CONTROL_PLANE_NAME" | awk -F'-' '{print $3}' | xargs)
 
 deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$environment" "$region_code" "$network_logical_name")
 SYSTEM_CONFIGURATION_FILE="${deployer_environment_file_name}"
 export SYSTEM_CONFIGURATION_FILE
 
 load_config_vars "${deployer_environment_file_name}" "step"
-if [ 1 -eq $step ]; then
+if [ 1 -eq "$step" ]; then
 	exit 0
 fi
 
-if [ 0 -eq $step ]; then
+if [ 0 -eq "$step" ]; then
 	exit 0
 fi
 
@@ -235,6 +236,7 @@ else
 fi
 
 echo "Deployer environment:                  $environment"
+echo "Deployer configuration file:           $deployer_environment_file_name"
 
 this_ip=$(curl -s ipinfo.io/ip) >/dev/null 2>&1
 export TF_VAR_Agent_IP=$this_ip
@@ -245,6 +247,8 @@ if [ -n "${subscription}" ]; then
 else
 	subscription=$ARM_SUBSCRIPTION_ID
 fi
+TF_VAR_subscription_id="$ARM_SUBSCRIPTION_ID"
+export TF_VAR_subscription_id
 
 deployer_dirname=$(dirname "${deployer_parameter_file}")
 deployer_tfvars_filename=$(basename "${deployer_parameter_file}")
@@ -272,10 +276,7 @@ terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/run/sa
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 if [ -z "${storage_account}" ]; then
-	load_config_vars "${deployer_environment_file_name}" "STATE_SUBSCRIPTION"
-	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_SA"
-	load_config_vars "${deployer_environment_file_name}" "REMOTE_STATE_RG"
-	load_config_vars "${deployer_environment_file_name}" "tfstate_resource_id"
+	load_config_vars "${deployer_environment_file_name}" "STATE_SUBSCRIPTION" "REMOTE_STATE_SA"  "REMOTE_STATE_RG" "tfstate_resource_id"
 
 	if [ -n "${STATE_SUBSCRIPTION}" ]; then
 		subscription="${STATE_SUBSCRIPTION}"
@@ -296,24 +297,25 @@ key=$(echo "${deployer_tfvars_filename}" | cut -d. -f1)
 useSAS=$(az storage account show --name "${REMOTE_STATE_SA}" --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
 
 if [ "$useSAS" = "true" ]; then
-	echo "Storage Account Authentication:        Key"
-	export ARM_USE_AZUREAD=false
-else
-	echo "Storage Account Authentication:        Entra ID"
-	export ARM_USE_AZUREAD=true
-fi
+		echo "Storage Account Authentication:      Key"
+		AZURE_STORAGE_AUTH_MODE=key
+		export AZURE_STORAGE_AUTH_MODE
+		export ARM_USE_AZUREAD=false
+	else
+		echo "Storage Account Authentication:      Entra ID"
+		AZURE_STORAGE_AUTH_MODE=login
+		export AZURE_STORAGE_AUTH_MODE
+		export ARM_USE_AZUREAD=true
+	fi
+
 
 TF_VAR_subscription_id="${STATE_SUBSCRIPTION}"
 export TF_VAR_subscription_id
 
 # Reinitialize
 echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                          Running Terraform init (deployer)                            #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Remove Control Plane " "Running Terraform init (deployer - local)" "info"
+
 echo "#  subscription_id=${subscription}"
 echo "#  backend-config resource_group_name=${resource_group}"
 echo "#  storage_account_name=${storage_account}"
@@ -360,13 +362,22 @@ else
 	fi
 fi
 
-deployer_statefile_foldername_path=$(dirname "${deployer_parameter_file}")
 if [ 0 != $return_value ]; then
 	unset TF_DATA_DIR
 	exit 10
 fi
 
-print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
+DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
+if valid_kv_name "${DEPLOYER_KEYVAULT}" ; then
+	export DEPLOYER_KEYVAULT
+	az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$DEPLOYER_KEYVAULT" --output none
+	az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled --output none
+fi
+APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
+	az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
+fi
+
 
 if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
 	keyvault_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_arm_id | tr -d \")
@@ -386,6 +397,7 @@ terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootst
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 #Reinitialize
+print_banner "Remove Control Plane " "Running Terraform init (library - local)" "info"
 
 if [ -f .terraform/terraform.tfstate ]; then
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
@@ -425,45 +437,67 @@ else
 	fi
 fi
 
-extra_vars=""
-
-if [ -f terraform.tfvars ]; then
-	extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
-fi
-
-var_file="${param_dirname}"/"${library_tfvars_filename}"
 
 export TF_DATA_DIR="${param_dirname}/.terraform"
 export TF_use_spn=false
 
 print_banner "Remove Control Plane " "Running Terraform destroy (library)" "info"
+allRemovalParameters=(-var-file ${library_parameter_file})
+if [ -f terraform.tfvars ]; then
+	allRemovalParameters+=(-var-file terraform.tfvars)
+fi
+if [ -n "${deployer_dirname}" ]; then
+	echo "Deployer folder specified:           ${deployer_dirname}"
+	allRemovalParameters+=(-var "deployer_statefile_foldername=${deployer_dirname}")
+fi
 
-if terraform -chdir="${terraform_module_directory}" destroy -input=false -var-file="${library_parameter_file}" -var deployer_statefile_foldername="${deployer_statefile_foldername_path}" "${approve_parameter}"; then
-	return_value=$?
+if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+	allRemovalParameters+=(-auto-approve)
+fi
+if [ "$PLATFORM" != "cli" ] ; then
+	allRemovalParameters+=(-input=false)
+fi
+
+if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee destroy_output.log; then
+	return_value=${PIPESTATUS[0]}
 	print_banner "Remove Control Plane " "Terraform destroy (library) succeeded" "success"
+
+	if [ -f "${param_dirname}/terraform.tfstate" ]; then
+		rm "${param_dirname}/terraform.tfstate"
+	fi
+	if [ -f "${param_dirname}/terraform.tfstate.backup" ]; then
+		rm "${param_dirname}/terraform.tfstate.backup"
+	fi
+	if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+		rm "${param_dirname}/.terraform/terraform.tfstate"
+	fi
+	if [ -d "${param_dirname}/.terraform" ]; then
+		rm -rf "${param_dirname}/.terraform"
+	fi
 else
-	return_value=$?
+	return_value=${PIPESTATUS[0]}
 	print_banner "Remove Control Plane " "Terraform destroy (library) failed" "error"
 	unset TF_DATA_DIR
 	exit 20
 fi
 
-echo ""
-echo "#########################################################################################"
-echo "#                                                                                       #"
-echo "#                                       Reset settings                                  #"
-echo "#                                                                                       #"
-echo "#########################################################################################"
-echo ""
+print_banner "Remove Control Plane" "Reset local settings" "info"
 
-STATE_SUBSCRIPTION=''
-REMOTE_STATE_SA=''
+# shellcheck disable=SC2034
 REMOTE_STATE_RG=''
+REMOTE_STATE_SA=''
+STATE_SUBSCRIPTION=''
+# shellcheck disable=SC2034
+tfstate_resource_id=''
+# shellcheck disable=SC2034
+library_random_id=''
+
 save_config_vars "${deployer_environment_file_name}" \
-	tfstate_resource_id \
-	REMOTE_STATE_SA \
+	library_random_id \
 	REMOTE_STATE_RG \
-	STATE_SUBSCRIPTION
+	REMOTE_STATE_SA \
+	STATE_SUBSCRIPTION \
+	tfstate_resource_id
 
 cd "${current_directory}" || exit
 step=1
@@ -494,7 +528,20 @@ if [ 1 -eq $keep_agent ]; then
 
 	fi
 
-	if terraform -chdir="${terraform_module_directory}" apply -input=false -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+	allParameters=(-var-file "${deployer_parameter_file}")
+	if [ -f terraform.tfvars ]; then
+		allParameters+=(-var-file terraform.tfvars)
+	fi
+
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allParameters+=(-auto-approve)
+	fi
+	if [ "$PLATFORM" != "cli" ] ; then
+		allParameters+=(-input=false)
+	fi
+
+
+	if terraform -chdir="${terraform_module_directory}" apply "${allParameters[@]}"; then
 		return_value=$?
 		print_banner "Remove Control Plane " "Terraform apply (deployer) succeeded" "success"
 	else
@@ -514,7 +561,7 @@ else
 	if [ -z "$keyvault" ]; then
 		load_config_vars "${deployer_environment_file_name}" "keyvault"
 		if valid_kv_name "$keyvault"; then
-			az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault"
+			az keyvault network-rule add --ip-address "$TF_VAR_Agent_IP" --name "$keyvault" --output none
 		fi
 
 	fi
@@ -522,25 +569,23 @@ else
 	terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}"/deploy/terraform/bootstrap/sap_deployer/
 	export TF_DATA_DIR="${param_dirname}/.terraform"
 
-	extra_vars=""
-
+	print_banner "Remove Control Plane " "Running Terraform destroy (deployer)" "info"
+	allRemovalParameters=(-var-file "${deployer_parameter_file}")
 	if [ -f terraform.tfvars ]; then
-		extra_vars=" -var-file=${param_dirname}/terraform.tfvars "
+		allRemovalParameters+=(-var-file terraform.tfvars)
 	fi
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                     Running Terraform destroy (deployer)                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+	if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+		allRemovalParameters+=(-auto-approve)
+	fi
+	if [ "$PLATFORM" != "cli" ] ; then
+		allRemovalParameters+=(-input=false)
+	fi
 
-	if terraform -chdir="${terraform_module_directory}" destroy -var-file="${deployer_parameter_file}" "${approve_parameter}"; then
+	if terraform -chdir="$terraform_module_directory" destroy "${allRemovalParameters[@]}" | tee plan_output.log; then
 		return_value=$?
-		echo ""
-		echo -e "${cyan}Terraform destroy:                      succeeded$reset_formatting"
-		echo ""
+		print_banner "Remove Control Plane " "Terraform destroy (deployer) succeeded" "success"
+
 		if [ -f "${param_dirname}/terraform.tfstate" ]; then
 			rm "${param_dirname}/terraform.tfstate"
 		fi
@@ -550,35 +595,52 @@ else
 		if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
 			rm "${param_dirname}/.terraform/terraform.tfstate"
 		fi
+		if [ -d "${param_dirname}/.terraform" ]; then
+			rm -rf "${param_dirname}/.terraform"
+		fi
+		step=0
+		save_config_var "step" "${deployer_environment_file_name}"
+
+		# shellcheck disable=SC2034
+		APPLICATION_CONFIGURATION_DEPLOYMENT=''
+		# shellcheck disable=SC2034
+		APPLICATION_CONFIGURATION_NAME=''
+		# shellcheck disable=SC2034
+		APP_CONFIG_DEPLOYMENT=''
+		# shellcheck disable=SC2034
+		APP_SERVICE_DEPLOYMENT=''
+		# shellcheck disable=SC2034
+		APP_SERVICE_NAME=''
+		# shellcheck disable=SC2034
+		DEPLOYER_KEYVAULT=''
+		# shellcheck disable=SC2034
+		deployer_random_id=''
+		# shellcheck disable=SC2034
+		deployer_tfstate_key=''
+		# shellcheck disable=SC2034
+		deployer_public_ip_address=''
+		# shellcheck disable=SC2034
+		keyvault=''
+
+		save_config_vars "${deployer_environment_file_name}" \
+			APPLICATION_CONFIGURATION_DEPLOYMENT \
+			APPLICATION_CONFIGURATION_NAME \
+			APP_CONFIG_DEPLOYMENT \
+			APP_SERVICE_DEPLOYMENT \
+			APP_SERVICE_NAME \
+			DEPLOYER_KEYVAULT \
+			deployer_public_ip_address \
+			deployer_random_id \
+			deployer_tfstate_key \
+			keyvault
 	else
 		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform destroy:                      failed$reset_formatting"
-		echo ""
+		print_banner "Remove Control Plane " "Terraform destroy (deployer) failed" "error"
+		unset TF_DATA_DIR
+		exit 20
 	fi
 
-	step=0
-	save_config_var "step" "${deployer_environment_file_name}"
-	if [ 0 != $return_value ]; then
-		keyvault=''
-		deployer_tfstate_key=''
-		DEPLOYER_KEYVAULT=''
-		APPLICATION_CONFIGURATION_NAME=''
-		APPLICATION_CONFIGURATION_DEPLOYMENT=''
-		APP_SERVICE_DEPLOYMENT=''
-		APP_SERVICE_NAME=''
 
-		save_config_var "$keyvault" "${deployer_environment_file_name}"
-		save_config_var "$deployer_tfstate_key" "${deployer_environment_file_name}"
-		save_config_var "$DEPLOYER_KEYVAULT" "${deployer_environment_file_name}"
-		save_config_var "$APPLICATION_CONFIGURATION_NAME" "${deployer_environment_file_name}"
-		save_config_var "$APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_environment_file_name}"
-		save_config_var "$APP_SERVICE_DEPLOYMENT" "${deployer_environment_file_name}"
-		save_config_var "$APP_SERVICE_NAME" "${deployer_environment_file_name}"
-		if [ -f "${deployer_environment_file_name}" ]; then
-			rm "${deployer_environment_file_name}"
-		fi
-	fi
 fi
 
 cd "${current_directory}" || exit

@@ -162,7 +162,8 @@ def main():
                 "User Access Administrator",
                 "Storage Blob Data Owner",
                 "Key Vault Administrator",
-                "App Configuration Data Owner"
+                "App Configuration Data Owner",
+                "Network Contributor"
             ]
 
             # Track assigned and failed roles for summary

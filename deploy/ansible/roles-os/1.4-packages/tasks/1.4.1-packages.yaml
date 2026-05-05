@@ -48,6 +48,14 @@
                                        - "Packages for {{ distribution_full_id }} : {{ packages_for_specific_tier }}"
     verbosity:                         2
 
+
+- name:                                "1.4 Packages - Import Red Hat RPM GPG key (Azure Marketplace RHEL)"
+  when:                                distribution_id in ['redhat8', 'redhat9', 'redhat10']
+  ansible.builtin.rpm_key:
+    state:                             present
+    key:                               /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+  register:                            rpm_key_result
+
 - name:                                "1.4 Packages - Update OS packages: {{ distribution_id }}"
   block:
     - name:                            "1.4 Packages - Update OS packages RHEL {{ distribution_id }}"
@@ -95,7 +103,17 @@
 
     - name:                            "1.4 Packages - Update OS packages: {{ distribution_id }} and rescue"
       block:
+
+
+        - name:                        "1.4 Packages - Reset RPM/DMF metadata after image provisioning"
+          when:                        ansible_os_family | upper == "REDHAT"
+          ansible.builtin.shell: |
+                                       dnf clean all
+                                       rm -rf /var/cache/dnf
+                                       rpm --rebuilddb
+
         - name:                        "1.4 Packages - Update OS packages RHEL: {{ distribution_id }}"
+          when:                        ansible_os_family | upper == "REDHAT"
           ansible.builtin.dnf:
             name:                      "{{ packages_for_tier |
                                           selectattr('state', 'equalto', item.state) |
@@ -105,12 +123,13 @@
             disablerepo:              "epel*"
             skip_broken:              true
             nobest:                   true
+            disable_gpg_check:        true
+
           register:                    package_result
           loop:
             - { state: 'latest' }  # Update necessary packages
             - { state: 'present' }  # Install required packages
             - { state: 'absent' }   # Then remove packages that we don't want
-          when:                        ansible_os_family | upper == "REDHAT"
 
         - name:                        "1.4 Packages - Update OS packages SLES: {{ distribution_id }}"
           ansible.builtin.package:
@@ -195,6 +214,7 @@
             disablerepo:               "epel*"
             skip_broken:               true
             nobest:                    true
+            disable_gpg_check:         true
           register:                    package_result
           loop:
                                        - { state: 'latest'  }  # Update necessary packages

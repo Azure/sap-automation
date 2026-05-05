@@ -8,7 +8,7 @@ function Get-IniContent {
     .SYNOPSIS
         Get-IniContent
 
-
+    
 .LINK
     https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
 
@@ -48,11 +48,11 @@ function Out-IniFile {
     <#
         .SYNOPSIS
             Out-IniContent
-
-
+    
+        
     .LINK
         https://devblogs.microsoft.com/scripting/use-powershell-to-work-with-any-ini-file/
-
+    
         #>
     <#
     #>
@@ -563,11 +563,11 @@ function New-SDAFADOProject {
 
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "Key Vault Secret Officer",
-      "App Configuration Data Owner"
+      "Key Vault Secrets Officer",
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     $Pipelines = @(
@@ -576,6 +576,7 @@ function New-SDAFADOProject {
       @{ Name = "Deploy Workload Zone"; Description = "Deploys the workload zone"; YamlPath = "/pipelines/02-sap-workload-zone.yml" },
       @{ Name = "SAP SID Infrastructure deployment"; Description = "Deploys the infrastructure required for a SAP SID deployment"; YamlPath = "/pipelines/03-sap-system-deployment.yml" },
       @{ Name = "SAP Software acquisition"; Description = "Downloads the software from SAP"; YamlPath = "/pipelines/04-sap-software-download.yml" },
+      @{ Name = "SAP Software acquisition new"; Description = "Downloads the software from SAP"; YamlPath = "/pipelines/04-sap-software-download_v2.yml" },
       @{ Name = "Configuration and SAP installation"; Description = "Configures the Operating System and installs the SAP application"; YamlPath = "/pipelines/05-DB-and-SAP-installation.yml" },
       @{ Name = "Remove System or Workload Zone"; Description = "Removes either the SAP system or the workload zone"; YamlPath = "/pipelines/10-remover-terraform.yml" },
       @{ Name = "Remove deployments via ARM"; Description = "Removes the resource groups via ARM. Use this only as last resort"; YamlPath = "/pipelines/11-remover-arm-fallback.yml" },
@@ -666,16 +667,15 @@ function New-SDAFADOProject {
       }
       $JsonInputFile = "sdafMI.json"
 
-      $ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role "User Access Administrator" --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ProjectName-$ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role "App Configuration Data Owner" --scopes /subscriptions/$SubscriptionId  --only-show-errors)
 
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
-            tenantid                             = $TenantId
-            workloadIdentityFederationIssuerType = "EntraID"
-            serviceprincipalid                   = $ManagedIdentityClientId
-            scope                                = "/subscriptions/" + $SubscriptionId
-
+            tenantid           = $TenantId
+            serviceprincipalid = $AppRegistrationId
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -684,8 +684,7 @@ function New-SDAFADOProject {
           scopeLevel       = "Subscription"
           subscriptionId   = $SubscriptionId
           subscriptionName = (az account show --query name -o tsv)
-          creationMode     = "Automatic"
-          identityType     = "ManagedIdentity"
+          creationMode     = "Manual"
         }
         name                             = $ConnectionName
         owner                            = "library"
@@ -704,16 +703,29 @@ function New-SDAFADOProject {
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
-      az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --output none --only-show-errors
+      $Fed = (az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create service connection '$ConnectionName'"
         throw "Service connection creation failed"
       }
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
-
       if (Test-Path $JsonInputFile) {
         Remove-Item $JsonInputFile
       }
+
+      $PostBody = [PSCustomObject]@{
+        name      = "fic-for-sc"
+        issuer    = $Fed.workloadIdentityFederationIssuer
+        subject   = $Fed.workloadIdentityFederationSubject
+        audiences = @("api://AzureADTokenExchange")
+      }
+
+      Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
+
+      az ad app federated-credential create --id $AppRegistrationId --parameters $JsonInputFile
+
+      az ad app show --id $AppRegistrationId --query '{appId:appId,principalId:id,Name:displayName}'
+
     }
 
     function UpdateAdoRepositoryReferences {
@@ -727,7 +739,7 @@ function New-SDAFADOProject {
 
       Write-Host "Using a non standard DevOps project name, need to update some of the parameter files" -ForegroundColor Green
 
-      $ObjectId = (az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+      $ObjectId = az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0].objectId
 
       $TemplateFileName = "resources.yml"
       if (Test-Path $TemplateFileName) {
@@ -748,10 +760,10 @@ resources:
   repositories:
     - repository: sap-automation
       type: git
-      name: $AdoProject/sap-automation
-      ref: refs/heads/main
+      name: sap-automation
+      ref: main
 "@
-
+      Write-Host "Generated updated resources.yml content:" -ForegroundColor Green
       Set-Content -Path $TemplateFileName -Value $ResourcesContent
 
       $FileContent = Get-Content -Path $TemplateFileName -Raw
@@ -801,17 +813,17 @@ resources:
   repositories:
     - repository: sap-automation
       type: git
-      name: $AdoProject/sap-automation
-      ref: refs/heads/main
+      name: sap-automation
+      ref: main
     - repository: sap-samples
       type: git
-      name: $AdoProject/sap-samples
-      ref: refs/heads/main
+      name: sap-samples
+      ref: main
 "@
 
       Set-Content -Path $TemplateFileName -Value $ResourcesSamplesContent
 
-      $ObjectId = (az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0] | ConvertFrom-Json).objectId
+      $ObjectId = az devops invoke --area git --resource refs --route-parameters project=$AdoProject repositoryId=$RepositoryId --query-parameters filter=heads/main --query value[0].objectId
 
       Remove-Item $JsonInputFile
       $FileContent2 = Get-Content -Path $TemplateFileName -Raw
@@ -880,7 +892,7 @@ resources:
       type: GitHub
       endpoint: $GitHubConnection
       name: $GitHubRepoName
-      ref: refs/heads/$BranchName
+      ref: $BranchName
 "@
 
       Set-Content -Path $TemplateFileName -Value $GitHubResourcesContent
@@ -934,12 +946,12 @@ resources:
       type: GitHub
       endpoint: $GitHubConnection
       name: $GitHubRepoName
-      ref: refs/heads/$BranchName
+      ref: $BranchName
     - repository: sap-samples
       type: GitHub
       endpoint: $GitHubConnection
       name: Azure/sap-automation-samples
-      ref: refs/heads/main
+      ref: main
 "@
 
       Set-Content -Path $TemplateFileName -Value $GitHubSamplesContent
@@ -1020,7 +1032,7 @@ resources:
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-      $VersionLabel = "v3.19.0.0"
+      $VersionLabel = "v3.20.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -1258,11 +1270,6 @@ resources:
         az repos import create --git-url $Repositories.Samples --repository $SampleRepositoryId  --output none
         az repos update --repository $SampleRepositoryId --default-branch main  --output none
 
-        # Update resource files for non-standard project names
-        if ($AdoProject -ne "SAP Deployment Automation Framework") {
-          UpdateAdoRepositoryReferences -RepositoryId $RepositoryId -AdoProject $AdoProject
-        }
-
         $CodeRepositoryId = (az repos list --query "[?name=='sap-automation'].id | [0]"  --out tsv)
         $QueryString = "?api-version=6.0-preview"
         $PipelinePermissionUrl = "$AdoOrganization/$ProjectId/_apis/pipelines/pipelinePermissions/repository/$ProjectId.$CodeRepositoryId$QueryString"
@@ -1272,7 +1279,7 @@ resources:
         Add-Content -Path $WikiFileName -Value "Using the code directly from GitHub"
 
         $ResourcesUrl = $AdoOrganization + "/_git/" + [uri]::EscapeDataString($AdoProject) + "?path=/pipelines/resources.yml"
-        $LogEntry = ("Please update [resources.yml](" + $ResourcesUrl + ") to point to Github instead of Azure DevOps.")
+        $LogEntry = ("Please update [resources.yml](" + $ResourcesUrl + ") to point to GitHub instead of Azure DevOps.")
       }
       #endregion
 
@@ -1306,7 +1313,7 @@ resources:
 
       $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
       if ($GeneralGroupId.Length -eq 0) {
-        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.14.6" ansible_core_version="2.16.15" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+        az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.15.1" ansible_core_version="2.16.18" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
         $GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
         az pipelines variable-group variable update --group-id $GeneralGroupId --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
       }
@@ -1353,12 +1360,13 @@ resources:
       if ($CreateConnections -and $GitHubConnection.Length -eq 0) {
         $GitHubConnectionUrl = $AdoOrganization + "/" + [uri]::EscapeDataString($AdoProject) + "/_settings/adminservices"
         Write-Host ""
-        Write-Host "The browser will now open, please create a new Github connection, record the name of the connection." -ForegroundColor Blue
+        Write-Host "The browser will now open, please create a new GitHub connection, record the name of the connection." -ForegroundColor Blue
         Write-Host "URL: " $GitHubConnectionUrl -ForegroundColor Blue
         Start-Process $GitHubConnectionUrl
         Read-Host "Please press enter when you have created the connection"
 
         $GitHubConnection = (az devops service-endpoint list --query "[?type=='github'].name | [0]"  --out tsv)
+
         UpdateGitHubRepositoryReferences -RepositoryId $RepositoryId -AdoProject $AdoProject -GitHubConnection $GitHubConnection -BranchName $BranchName -GitHubRepoName $GitHubRepoName
 
         Write-Host ""
@@ -1545,6 +1553,18 @@ resources:
 
             Write-Host "Assigning role" $RoleName "to the control plane Service Principal" -ForegroundColor Green
             az role assignment create --assignee $ControlPlaneClientId --role $RoleName --scope /subscriptions/$Control_plane_subscriptionID --output none --only-show-errors
+          }
+
+          $RoleName = "User Access Administrator"
+          $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+          $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+          if ($roleAssignment) {
+            Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+            Write-Verbose "Role assignment ID: $roleAssignment"
+          }
+          else {
+            Write-Warning "Identity created but conditional role assignment may have failed"
           }
 
           Write-Host "Create the Service Endpoint in Azure for the control plane" -ForegroundColor Green
@@ -1750,6 +1770,15 @@ resources:
       }
       if (Test-Path ".${pathSeparator}start.md") { Write-Host "Removing start.md" ; Remove-Item ".${pathSeparator}start.md" }
 
+
+      if ($ShouldImportCodeFromGitHub) {
+
+        # Update resource files for non-standard project names
+        if ($AdoProject -ne "SAP Deployment Automation Framework") {
+          UpdateAdoRepositoryReferences -RepositoryId $RepositoryId -AdoProject $AdoProject
+        }
+      }
+
       Write-Host "The script has completed" -ForegroundColor Green
       Write-Verbose "New-SDAFADOProject cmdlet completed successfully"
 
@@ -1768,7 +1797,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1385
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1418
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -1923,11 +1952,11 @@ function New-SDAFADOWorkloadZone {
 
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "Key Vault Secret Officer",
-      "App Configuration Data Owner"
+      "Key Vault Secrets Officer",
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     # Helper function for menu display
@@ -1960,13 +1989,14 @@ function New-SDAFADOWorkloadZone {
       }
       $JsonInputFile = "sdafMI.json"
 
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role contributor --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+      $AppRegistrationId = (az ad sp create-for-rbac --name $ConnectionName  --query "appId" --create-password false --output tsv --service-management-reference $ServiceManagementReference --role "User Access Administrator" --scopes /subscriptions/$SubscriptionId  --only-show-errors)
+
       $PostBody = [PSCustomObject]@{
         authorization                    = [PSCustomObject]@{
           parameters = [PSCustomObject]@{
-            tenantid                             = $TenantId
-            workloadIdentityFederationIssuerType = "EntraID"
-            serviceprincipalid                   = $ManagedIdentityClientId
-            scope                                = "/subscriptions/" + $SubscriptionId
+            tenantid           = $TenantId
+            serviceprincipalid = $AppRegistrationId
           }
           scheme     = "WorkloadIdentityFederation"
         }
@@ -1975,8 +2005,7 @@ function New-SDAFADOWorkloadZone {
           scopeLevel       = "Subscription"
           subscriptionId   = $SubscriptionId
           subscriptionName = (az account show --query name -o tsv)
-          creationMode     = "Automatic"
-          identityType     = "ManagedIdentity"
+          creationMode     = "Manual"
         }
         name                             = $ConnectionName
         owner                            = "library"
@@ -1991,20 +2020,29 @@ function New-SDAFADOWorkloadZone {
             name = $ProjectName
           }
         }
-
       }
-
-      Write-Verbose "Creating JSON input file for service connection"
-      Write-Verbose $PostBody | ConvertTo-Json -Depth 6
       Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
 
       Write-Verbose "Creating service connection: $ConnectionName"
-      az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --output none --only-show-errors
+
+      $Fed = (az devops service-endpoint create --service-endpoint-configuration $JsonInputFile --organization $AdoOrganization --project $AdoProject --query authorization.parameters --only-show-errors | ConvertFrom-Json)
       if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create service connection '$ConnectionName'"
         throw "Service connection creation failed"
       }
       Write-Host "Service connection '$ConnectionName' created successfully." -ForegroundColor Green
+
+      $PostBody = [PSCustomObject]@{
+        name      = "fic-for-sc"
+        issuer    = $Fed.workloadIdentityFederationIssuer
+        subject   = $Fed.workloadIdentityFederationSubject
+        audiences = @("api://AzureADTokenExchange")
+      }
+
+      Set-Content -Path $JsonInputFile -Value ($PostBody | ConvertTo-Json -Depth 6)
+      az ad app federated-credential create --id $AppRegistrationId --parameters $JsonInputFile
+
+      az ad app show --id $AppRegistrationId --query '{appId:appId,principalId:id,Name:displayName}'
 
       if (Test-Path $JsonInputFile) {
         Remove-Item $JsonInputFile
@@ -2045,7 +2083,7 @@ function New-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.19.0.0"
+      $VersionLabel = "v3.20.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -2198,10 +2236,11 @@ function New-SDAFADOWorkloadZone {
       if ($AuthenticationMethod -eq "Managed Identity") {
         $Roles = @(
           "Contributor",
-          "Role Based Access Control Administrator",
           "Storage Blob Data Owner",
           "Key Vault Administrator",
-          "App Configuration Data Owner"
+          "Key Vault Secrets Officer",
+          "App Configuration Data Owner",
+          "Network Contributor"
         )
 
         if ($ManagedIdentityId.Length -ne 0) {
@@ -2229,6 +2268,17 @@ function New-SDAFADOWorkloadZone {
           }
         }
 
+        $RoleName = "User Access Administrator"
+        $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+        $roleAssignment = az role assignment create --assignee-object-id $ManagedIdentityObjectId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+        if ($roleAssignment) {
+          Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+          Write-Verbose "Role assignment ID: $roleAssignment"
+        }
+        else {
+          Write-Warning "Identity created but conditional role assignment may have failed"
+        }
 
         $ServiceEndpointExists = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].name | [0]"  --out tsv)
         if ($ServiceEndpointExists.Length -eq 0) {
@@ -2310,6 +2360,17 @@ function New-SDAFADOWorkloadZone {
           Write-Host "Assigning role" $RoleName "to the workload zone Service Principal" -ForegroundColor Green
           az role assignment create --assignee $WorkloadZoneClientId --role $RoleName --scope /subscriptions/$WorkloadZoneSubscriptionId --output none --only-show-errors
         }
+        $RoleName = "User Access Administrator"
+        $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+        $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+        if ($roleAssignment) {
+          Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+          Write-Verbose "Role assignment ID: $roleAssignment"
+        }
+        else {
+          Write-Warning "Identity created but conditional role assignment may have failed"
+        }
 
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_ID" -VariableValue $WorkloadZoneClientClientId
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_CLIENT_SECRET" -VariableValue $WorkloadZoneClientSecret -IsSecret
@@ -2379,7 +2440,7 @@ function New-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOWorkloadZone
-#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 579
+#EndRegion '.\Public\New-SDAFADOWorkloadZone.ps1' 641
 #Region '.\Public\New-SDAFUserAssignedIdentity.ps1' -1
 
 function New-SDAFUserAssignedIdentity {
@@ -2401,10 +2462,11 @@ function New-SDAFUserAssignedIdentity {
   begin {
     $Roles = @(
       "Contributor",
-      "Role Based Access Control Administrator",
       "Storage Blob Data Owner",
       "Key Vault Administrator",
-      "App Configuration Data Owner"
+      "Key Vault Secrets Officer",
+      "App Configuration Data Owner",
+      "Network Contributor"
     )
 
     Write-Verbose "Starting creation of user-assigned identity: $ManagedIdentityName"
@@ -2477,6 +2539,17 @@ function New-SDAFUserAssignedIdentity {
           }
         }
 
+        $RoleName = "User Access Administrator"
+        $Condition = "( ( !(ActionMatches{'Microsoft.Authorization/roleAssignments/write'}) ) OR  (  @Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} )) AND ( (  !(ActionMatches{'Microsoft.Authorization/roleAssignments/delete'}) ) OR  (  @Resource[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAllValues:GuidNotEquals {8e3af657-a8ff-443c-a75c-2fe8c4bcb635, 18d7d88d-d35e-4fb5-a5c3-7773c20a72d9} ))"
+
+        $roleAssignment = az role assignment create --assignee-object-id $identity.principalId --assignee-principal-type ServicePrincipal --role $RoleName --scope /subscriptions/$SubscriptionId --query id --condition-version "2.0" --condition $Condition --output tsv --only-show-errors
+        if ($roleAssignment) {
+          Write-Host "Successfully assigned $RoleName role with condition to identity" -ForegroundColor Green
+          Write-Verbose "Role assignment ID: $roleAssignment"
+        }
+        else {
+          Write-Warning "Identity created but conditional role assignment may have failed"
+        }
         # Return the identity object
         return [PSCustomObject]@{
           Name             = $ManagedIdentityName
@@ -2507,7 +2580,7 @@ function New-SDAFUserAssignedIdentity {
 
 # Export the function
 Export-ModuleMember -Function New-SDAFUserAssignedIdentity
-#EndRegion '.\Public\New-SDAFUserAssignedIdentity.ps1' 126
+#EndRegion '.\Public\New-SDAFUserAssignedIdentity.ps1' 138
 #Region '.\Public\Remove-SDAFADOProject.ps1' -1
 
 #Requires -Version 5.1
@@ -2608,7 +2681,7 @@ function Remove-SDAFADOProject {
 
       #region Initialize variables
       Write-Verbose "Initializing variables from parameters"
-      $VersionLabel = "v3.19.0.0"
+      $VersionLabel = "v3.20.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
       #endregion
 
@@ -2747,6 +2820,19 @@ function Remove-SDAFADOProject {
         }
       }
 
+      $federatedIdentityName = "$AdoProject-Control_Plane_Service_Connection"
+
+      $FoundFederatedIdentity = (az ad app list --all --filter "startswith(displayName, '$federatedIdentityName')" --query  "[?displayName=='$federatedIdentityName'].id | [0]" --only-show-errors)
+      if ($FoundFederatedIdentity.Length -ne 0) {
+        $confirmation = Read-Host "Remove App registration ($federatedIdentityName) y/n?"
+        if ($confirmation -eq 'y') {
+          Write-Host "Removing the App Registration : $federatedIdentityName" -ForegroundColor Green
+          az ad app delete --id $FoundFederatedIdentity
+        }
+        else {
+          Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+        }
+      }
 
       $FoundAppRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].id | [0]" --only-show-errors)
       if ($FoundAppRegistration.Length -ne 0) {
@@ -2756,7 +2842,7 @@ function Remove-SDAFADOProject {
           az ad app delete --id $FoundAppRegistration
         }
         else {
-          Write-Host "Skipping removal of App registration" $ServicePrincipalName -ForegroundColor Yellow
+          Write-Host "Skipping removal of App registration" $ApplicationName -ForegroundColor Yellow
         }
       }
       else {
@@ -2765,7 +2851,7 @@ function Remove-SDAFADOProject {
       #endregion
 
       Write-Host "The script has completed" -ForegroundColor Green
-      Write-Verbose "New-SDAFADOProject cmdlet completed successfully"
+      Write-Verbose "Remove-SDAFADOProject cmdlet completed successfully"
 
     }
     catch {
@@ -2782,7 +2868,7 @@ function Remove-SDAFADOProject {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOProject
-#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 273
+#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 286
 #Region '.\Public\Remove-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -2907,7 +2993,7 @@ function Remove-SDAFADOWorkloadZone {
       Write-Verbose "Initializing variables from parameters"
       $ArmTenantId = $TenantId
       $WorkloadZoneSubscriptionIdInternal = $WorkloadZoneSubscriptionId
-      $VersionLabel = "v3.19.0.0"
+      $VersionLabel = "v3.20.0.0"
       Write-Verbose "Version label set to: $VersionLabel"
 
       # Set path separator based on OS
@@ -2997,7 +3083,6 @@ function Remove-SDAFADOWorkloadZone {
 
       #endregion
 
-
       $ProjectId = (az devops project list --organization $AdoOrganization --query "[value[]] | [0] | [? name=='$AdoProject'].id | [0]" --out tsv)
 
       if ($ProjectId.Length -eq 0) {
@@ -3007,10 +3092,28 @@ function Remove-SDAFADOWorkloadZone {
 
       $ServiceConnectionName = $WorkloadZoneCode + "_WorkloadZone_Service_Connection"
 
-      $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ConnectionName'].id | [0]" --project $ProjectId --out tsv)
+      $ServiceConnectionId = (az devops service-endpoint list --query "[?name=='$ServiceConnectionName'].id | [0]" --organization $AdoOrganization --project $ProjectId --out tsv)
       if ($ServiceConnectionId.Length -gt 0) {
         Write-Host "Service Connection" $ServiceConnectionName "exists, removing it." -ForegroundColor Yellow
+
+        $federatedIdentityName = $ServiceConnectionName
+
+        $FoundFederatedIdentity = (az ad app list --all --filter "startswith(displayName, '$federatedIdentityName')" --query  "[?displayName=='$federatedIdentityName'].id | [0]" --only-show-errors)
+        if ($FoundFederatedIdentity.Length -ne 0) {
+          $confirmation = Read-Host "Remove App registration ($federatedIdentityName) y/n?"
+          if ($confirmation -eq 'y') {
+            Write-Host "Removing the App Registration : $federatedIdentityName" -ForegroundColor Green
+            az ad app delete --id $FoundFederatedIdentity
+          }
+          else {
+            Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+          }
+        }
+
+        az ad sp delete --id $ServiceConnectionName --only-show-errors
+
         az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
+
       }
       else {
         Write-Host "Service Connection" $ServiceConnectionName "not found, skipping removal."
@@ -3067,7 +3170,7 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 283
+#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 300
 #Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
 
 function Remove-SDAFUserAssignedIdentity {

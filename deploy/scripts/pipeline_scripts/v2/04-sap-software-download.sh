@@ -78,8 +78,6 @@ fi
 
 cd "$CONFIG_REPO_PATH" || exit
 
-sample_path="$SAMPLE_REPO_PATH/SAP"
-
 if [ "$PLATFORM" == "devops" ]; then
 	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
 	git checkout -q "$BUILD_SOURCEBRANCHNAME"
@@ -131,7 +129,7 @@ sapbits_location_base_path=$(getVariableFromApplicationConfiguration "$APPLICATI
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=false
 
 command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
--e BOM_directory=${sample_path} \
+-e BOM_directory=$SAMPLE_REPO_PATH \
 -e bom_base_name=$BOM_NAME \
 -e deployer_kv_name=$DEPLOYER_KEYVAULT \
 -e check_storage_account=$CHECK_STORAGE_ACCOUNT \

@@ -27,7 +27,7 @@ echo "##vso[build.updatebuildnumber]Removing workload zone defined in  defined i
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=True
 	echo "Environment variables:"
@@ -324,7 +324,7 @@ else
 
 		remove_variable "$VARIABLE_GROUP_ID" "DEPLOYER_KEYVAULT"
 
-		remove_variable "$VARIABLE_GROUP_ID" "APPSERVICE_NAME"
+		remove_variable "$VARIABLE_GROUP_ID" "APP_SERVICE_NAME"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Account_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Resource_Group_Name"
 		remove_variable "$VARIABLE_GROUP_ID" "Terraform_Remote_Storage_Subscription"

@@ -29,6 +29,7 @@ variable "license_type"                                 { description = "Specifi
 variable "naming"                                       { description = "Defines the names for the resources" }
 variable "network_location"                             { description = "Location of the Virtual Network" }
 variable "network_resource_group"                       { description = "Resource Group of the Virtual Network" }
+variable "NFS_provider"                                 { description = "NFS provider *(AFS, ANF, NONE)*)" }
 variable "options"                                      { description = "Dictionary of miscallaneous parameters" }
 variable "order_deployment"                             { description = "psuedo condition for ordering deployment" }
 variable "ppg"                                          { description = "Details of the proximity placement group" }

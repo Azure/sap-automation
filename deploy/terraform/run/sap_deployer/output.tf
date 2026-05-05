@@ -105,8 +105,13 @@ output "deployer_uai"                            {
                                                  }
 
 output "deployer_sshkey"                         {
-                                                   description = "Name of the secreet containing the deployer ssh key"
+                                                   description = "Name of the secret containing the deployer ssh key"
                                                    value       = module.sap_deployer.ppk_secret_name
+                                                 }
+
+output "deployer_username"                      {
+                                                   description = "Name of deployer username"
+                                                   value       = var.deployer_authentication_username
                                                  }
 
 ###############################################################################
@@ -149,7 +154,7 @@ output "subnets_to_add_to_firewall_for_keyvaults_and_storage" {
 
 output "additional_network_id"                     {
                                                        description = "Agent Network resource ID"
-                                                       value       = length(var.additional_network_id) > 0 ? provider::azurerm::normalise_resource_id(split("/subnets/",var.additional_network_id)[0]) : null
+                                                       value       = length(var.additional_network_id) > 0 ? provider::azurerm::normalise_resource_id(split("/subnets/",var.additional_network_id)[0]) : ""
                                                      }
 
 
@@ -296,3 +301,26 @@ output "DevOpsInfrastructureObjectId"            {
                                                    description = "DevOps Infrastructure Object ID"
                                                    value       = var.DevOpsInfrastructure_object_id
                                                  }
+
+
+#######################################4#######################################8
+#                                                                              #
+#                          Network Security Perimeter outputs                  #
+#                                                                              #
+#######################################4#######################################8
+
+output "network_security_perimeter_deployment"  {
+                                                    description = "Is the Network Security Perimeter deployed"
+                                                    value       = var.network_security_perimeter_deployment
+                                                }
+
+output "network_security_perimeter_id"          {
+                                                  description = "The Azure network security perimeter id"
+                                                  value       = var.network_security_perimeter_deployment ? module.sap_deployer.network_security_perimeter_id : ""
+                                                }
+
+
+output "network_security_access_mode"          {
+                                                  description = "The access mode for the network security perimeter association. Possible values are Audit, Enforced, and Learning."
+                                                  value       = var.network_security_access_mode
+                                                }

@@ -255,7 +255,7 @@ variable "library_terraform_vars_blob_container_name" {
 
 variable "use_private_endpoint"                  {
                                                    description = "Boolean value indicating if private endpoint should be used for the deployment"
-                                                   default     = false
+                                                   default     = true
                                                    type        = bool
                                                  }
 

@@ -83,7 +83,7 @@ data "azurerm_subnet" "subnet_mgmt" {
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
   depends_on                           = [ azurerm_subnet.subnet_mgmt ]
-  count                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : 1
+  count                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : min(1,var.deployer_vm_count)
   name                                 = local.storageaccount_names
   resource_group_name                  = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location

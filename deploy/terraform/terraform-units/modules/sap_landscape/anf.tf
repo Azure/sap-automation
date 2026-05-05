@@ -103,7 +103,7 @@ data "azurerm_netapp_pool" "workload_netapp_pool" {
 
 resource "azurerm_netapp_volume" "transport" {
   provider                             = azurerm.main
-  count                                = var.create_transport_storage && var.NFS_provider == "ANF" && !var.use_AFS_for_shared_storage ? (
+  count                                = var.create_transport_storage && var.NFS_provider == "ANF" ? (
                                            var.ANF_settings.use_existing_transport_volume ? (
                                              0) : (
                                              1

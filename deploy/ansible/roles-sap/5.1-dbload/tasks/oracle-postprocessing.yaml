@@ -14,8 +14,8 @@
 
 - name:                                "5.1 Database Load  - ORACLE: Set Runtime Variables"
   ansible.builtin.set_fact:
-    is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
-    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+    is_UEK6:                          "{{ ansible_kernel is version('5.5', '<') }}"
+    CV_ASSUME_DISTID:                 "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OEL{{ ansible_distribution_version }} {% endif %}"
 
 - name:                                "5.1 Database Load - Check if database is open"
   block:

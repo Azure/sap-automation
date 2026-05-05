@@ -103,6 +103,81 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
+# | SBD - BEGIN                                                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.18.2.0 Generic Pacemaker - Configure the cluster SBD STONITH device on the primary node"
+  when:
+                                       - cluster_stonith_type in ['ASD', 'ISCSI']
+                                       - os_version_supported_for_sbd | bool
+                                       - inventory_hostname == primary_instance_name
+  block:
+    - name:                            "1.18.2.0 Generic Pacemaker - Format SBD device list for pcs commands"
+      ansible.builtin.set_fact:
+        sbd_device_comma_separated:    "{{ sbd_device | replace(';', ',') }}"
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Set stonith-timeout property"
+      ansible.builtin.command:
+        cmd:                           "pcs property set stonith-timeout=210"
+      register:                        pcs_stonith_timeout_result
+      changed_when:                    pcs_stonith_timeout_result.rc == 0
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Enable stonith"
+      ansible.builtin.command:
+        cmd:                           "pcs property set stonith-enabled=true"
+      register:                        pcs_stonith_enabled_result
+      changed_when:                    pcs_stonith_enabled_result.rc == 0
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Create SBD stonith device"
+      ansible.builtin.command:
+        cmd:                           "pcs stonith create sbd fence_sbd devices={{ sbd_device_comma_separated }} op monitor interval=600 timeout=15"
+      register:                        pcs_create_sbd_result
+      changed_when:                    pcs_create_sbd_result.rc == 0
+      failed_when:
+                                       - pcs_create_sbd_result.rc != 0
+                                       - "'already exists' not in pcs_create_sbd_result.stderr"
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Stop Cluster on all nodes"
+      when:                            pcs_create_sbd_result.rc == 0
+      ansible.builtin.command:
+        cmd:                           "pcs cluster stop --all"
+      register:                        pcs_cluster_stop_result
+      changed_when:                    pcs_cluster_stop_result.rc == 0
+      failed_when:                     pcs_cluster_stop_result.rc != 0
+
+    - name:                            "1.18.2.0 Generic Pacemaker - Start Cluster on all nodes"
+      when:                            pcs_cluster_stop_result.rc == 0
+      ansible.builtin.command:
+        cmd:                           "pcs cluster start --all --request-timeout 140"
+      register:                        pcs_cluster_start_result
+      changed_when:                    pcs_cluster_start_result.rc == 0
+      failed_when:                     pcs_cluster_start_result.rc != 0
+
+    # switch to using pcs status xml for RHEL 8.x and 9.x
+    - name:                            "1.18.2.0 Generic Pacemaker - Wait until cluster has stabilized [SBD]"
+      when:
+                                       - ansible_distribution_major_version in ["8", "9", "10"]
+                                       - pcs_create_sbd_result.rc == 0
+      ansible.builtin.shell:           set -o pipefail && pcs status xml
+      register:                        cluster_status_xml
+      retries:                         12
+      delay:                           10
+      until: >-
+                                       cluster_status_xml.rc == 0 and
+                                       (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"') | length) >= 2 and
+                                       primary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"')) and
+                                       secondary_instance_name in (cluster_status_xml.stdout | regex_findall('<node [^>]*name="([^"]*)"[^>]*online="true"'))
+      changed_when:                    false
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | SBD - END                                                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
 # | Fencing - BEGIN                                                              |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/

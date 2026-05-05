@@ -40,8 +40,6 @@ if [ "$PLATFORM" == "devops" ]; then
 	# Configure DevOps
 	configure_devops
 
-	platform_flag="--ado"
-
 	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
 		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
@@ -61,9 +59,6 @@ elif [ "$PLATFORM" == "github" ]; then
 	echo "Configuring for GitHub Actions"
 	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
 	git config --global --add safe.directory "$CONFIG_REPO_PATH"
-	platform_flag="--github"
-else
-	platform_flag=""
 fi
 
 banner_title="Deploy SAP System"
@@ -106,8 +101,6 @@ if [ "$USE_MSI" == "true" ]; then
 	export ARM_USE_MSI
 fi
 
-
-
 if [ "$PLATFORM" == "devops" ]; then
 	if [ "$USE_MSI" != "true" ]; then
 
@@ -143,11 +136,11 @@ LOCATION=$(grep -m1 "^location" "$tfvarsFile" | awk -F'=' '{print $2}' | tr '[:u
 NETWORK=$(grep -m1 "^network_logical_name" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 SID=$(grep -m1 "^sid" "$tfvarsFile" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"')
 
-ENVIRONMENT_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $1}')
-LOCATION_CODE_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $2}')
+ENVIRONMENT_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $1}')
+LOCATION_CODE_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $2}')
 LOCATION_IN_FILENAME=$(get_region_from_code "$LOCATION_CODE_IN_FILENAME" || true)
-NETWORK_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $3}')
-SID_IN_FILENAME=$(echo $SAP_SYSTEM_FOLDERNAME | awk -F'-' '{print $4}')
+NETWORK_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $3}')
+SID_IN_FILENAME=$(echo "${SAP_SYSTEM_FOLDERNAME}" | awk -F'-' '{print $4}')
 
 WORKLOAD_ZONE_NAME=$(echo "$SAP_SYSTEM_FOLDERNAME" | cut -d'-' -f1-3)
 landscape_tfstate_key="${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.terraform.tfstate"
@@ -229,7 +222,6 @@ else
 		echo "::warning title=Application Configuration ID Not Defined::Variable APPLICATION_CONFIGURATION_ID was not defined."
 	fi
 	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
 	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
 	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
@@ -279,17 +271,35 @@ echo "Statefile subscription:              $terraform_storage_account_subscripti
 echo "Statefile storage account:           $terraform_storage_account_name"
 echo ""
 echo "Target subscription:                 $ARM_SUBSCRIPTION_ID"
+source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh"
 
-cd "$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer_v2.sh" --parameter_file $SAP_SYSTEM_TFVARS_FILENAME --type sap_system \
-	--control_plane_name "${CONTROL_PLANE_NAME}" --application_configuration_name "${APPLICATION_CONFIGURATION_NAME}" \
-	--workload_zone_name "${WORKLOAD_ZONE_NAME}" \
-	"$platform_flag" --auto-approve; then
+allParameters=(--parameter_file "${SAP_SYSTEM_TFVARS_FILENAME}")
+allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
+allParameters+=(--application_configuration_name "${APPLICATION_CONFIGURATION_NAME}")
+allParameters+=(--storage_accountname "${terraform_storage_account_name}")
+allParameters+=(--workload_zone_name "${WORKLOAD_ZONE_NAME}")
+allParameters+=(--type sap_system)
+allParameters+=(--auto-approve)
+if [ "$PLATFORM" == "devops" ]; then
+	allParameters+=(--ado)
+elif [ "$PLATFORM" == "github" ]; then
+	allParameters+=(--github)
+fi
+
+echo "Calling sdaf_installer with: ${allParameters[*]}"
+echo ""
+
+cd "${CONFIG_REPO_PATH}" || exit
+cd "SYSTEM/${SAP_SYSTEM_FOLDERNAME}"	|| exit
+
+echo "PLATFORM: $PLATFORM"
+
+if sdaf_installer "${allParameters[@]}"; then
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success"
+	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME completed successfully" "success" "System name: $SAP_SYSTEM_FOLDERNAME"
 else
 	return_code=$?
-	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME failed" "error"
+	print_banner "$banner_title" "Deployment of $SAP_SYSTEM_FOLDERNAME failed" "error" "System name: $SAP_SYSTEM_FOLDERNAME"
 	echo -e "$bold_red--- Deployment failed ---$reset_formatting"
 	if [ "$PLATFORM" == "devops" ]; then
 		echo "##vso[task.logissue type=error]Deployment failed."
@@ -318,8 +328,6 @@ fi
 # Pull changes if there are other deployment jobs
 
 cd "${CONFIG_REPO_PATH}/SYSTEM/$SAP_SYSTEM_FOLDERNAME" || exit
-
-echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
 if [ -f stdout.az ]; then
 	rm stdout.az
@@ -368,10 +376,10 @@ if [ -f "readme.md" ]; then
 	git add "readme.md"
 	added=1
 fi
-
+echo "added: $added"
 
 # Commit changes based on platform
-if [ 1 = $added ]; then
+if [ 1 -eq $added ]; then
 	commit_message="Added updates from SAP System Infrastructure Deployment of $SAP_SYSTEM_FOLDERNAME [skip ci]"
 	if [ "$PLATFORM" == "devops" ]; then
 		git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
@@ -385,16 +393,20 @@ if [ 1 = $added ]; then
 		git config --global user.name "Local User"
 	fi
 
-	if [ "$DEBUG" = True ]; then
+	if [ "$DEBUG" = true ]; then
 		git status --verbose
 		if git commit --message --verbose "$commit_message"; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
+				else
+					echo "Pushed changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
 				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
+				else
+					echo "Pushed changes to the repository."
 				fi
 			fi
 		fi
@@ -403,10 +415,15 @@ if [ 1 = $added ]; then
 			if [ "$PLATFORM" == "devops" ]; then
 				if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
+				else
+					echo
+					echo "Pushed changes to the repository."
 				fi
 			elif [ "$PLATFORM" == "github" ]; then
 				if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
 					echo "Failed to push changes to the repository."
+				else
+					echo "Pushed changes to the repository."
 				fi
 			fi
 		fi

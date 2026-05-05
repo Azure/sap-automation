@@ -38,7 +38,7 @@
 - name:                                "4.1.2 ORACLE ASM Database Update - Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
-    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
 
 - name:                                "4.1.2 ORACLE ASM Database Update - Ensure Oracle is running"
   become:                              true

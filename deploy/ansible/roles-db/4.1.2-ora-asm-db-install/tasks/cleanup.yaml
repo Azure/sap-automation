@@ -1,0 +1,130 @@
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Kill stale ORA database processes only"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                       set -o pipefail
+                                       pkill -9 -f "ora_pmon_{{ db_sid | upper }}" || true
+                                       pkill -9 -f "ora_smon_{{ db_sid | upper }}" || true
+                                       pkill -9 -f "ora_lgwr_{{ db_sid | upper }}" || true
+                                       pkill -9 -f "ora_dbw0_{{ db_sid | upper }}" || true
+                                       sleep 2
+  failed_when:                         false
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Remove DB lock file"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/lk{{ db_sid | upper }}"
+    state:                             absent
+  failed_when:                         false
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Clean orphaned shared memory"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.shell: |
+                                    set -o pipefail
+                                    for seg in $(ipcs -m | grep oracle | awk '$6==0 {print $2}'); do ipcrm -m $seg; done || true
+  failed_when:                         false
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Force remount ASM diskgroups to clear stale clients"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                    sqlplus -S / as sysasm <<EOF
+                                    ALTER DISKGROUP DATA DISMOUNT FORCE;
+                                    ALTER DISKGROUP DATA MOUNT;
+                                    ALTER DISKGROUP RECO DISMOUNT FORCE;
+                                    ALTER DISKGROUP RECO MOUNT;
+                                    EXIT;
+                                    EOF
+  register:                            asm_remount_results
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ grid_env }}"
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Dismount ASM diskgroups to evict stale client registrations"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                    sqlplus -S / as sysasm <<EOF
+                                    ALTER DISKGROUP DATA DISMOUNT FORCE;
+                                    ALTER DISKGROUP RECO DISMOUNT FORCE;
+                                    ALTER DISKGROUP ARCH DISMOUNT FORCE;
+                                    EXIT;
+                                    EOF
+  register:                            asm_dismount_results
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ grid_env }}"
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Wait for ASM to complete stale client deregistration"
+  ansible.builtin.pause:
+    seconds:                           10
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Mount ASM diskgroups after stale client eviction"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                    sqlplus -S / as sysasm <<EOF
+                                    ALTER DISKGROUP DATA MOUNT;
+                                    ALTER DISKGROUP RECO MOUNT;
+                                    ALTER DISKGROUP ARCH MOUNT;
+                                    EXIT;
+                                    EOF
+  register:                            asm_remount_results
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ grid_env }}"
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Check ASM stale client count"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                    sqlplus -S / as sysasm <<EOF
+                                    set pages 0 feedback off verify off heading off echo off
+                                    select count(*) from v\$asm_client where db_name='{{ db_sid | upper }}';
+                                    EXIT;
+                                    EOF
+  register:                            asm_stale_client_count
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ grid_env }}"
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Fail if ASM client for SID is still connected"
+  ansible.builtin.assert:
+    that:
+      - "(asm_stale_client_count.stdout | regex_search('[0-9]+') | int) == 0"
+    fail_msg:                      "Stale ASM client remains for SID {{ db_sid | upper }}. ASM client count output: {{ asm_stale_client_count.stdout | trim }}"
+    success_msg:                   "No stale ASM client registration for SID {{ db_sid | upper }}"
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Remove partial Oracle Restart DB resource"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+
+                                    srvctl status database -d {{ db_sid | upper }} >/dev/null 2>&1
+                                    srvctl remove database -d {{ db_sid | upper }} -f >/dev/null 2>&1
+  register:                            srvctl_cleanup_results
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ grid_env }}"
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Validate CRS diskgroup resources exist"
+  become:                              true
+  become_user:                         "{{ grid_user_name }}"
+  ansible.builtin.shell: |
+                                    crsctl stat res ora.{{ item }}.dg >/dev/null 2>&1
+  loop:
+    - DATA
+    - RECO
+    - ARCH
+  register:                            crs_dg_resource_check
+  changed_when:                        false
+  failed_when:                         false
+  environment:                         "{{ grid_env }}"
+
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Fail if CRS diskgroup resources are missing"
+  ansible.builtin.assert:
+    that:
+      - "(crs_dg_resource_check.results | selectattr('rc', 'ne', 0) | list | length) == 0"
+    fail_msg:                           "Missing CRS diskgroup resource(s): {{ crs_dg_resource_check.results | selectattr('rc', 'ne', 0) | map(attribute='item') | join(', ') }}"
+    success_msg:                        "CRS diskgroup resources are present for DATA, RECO, and ARCH"

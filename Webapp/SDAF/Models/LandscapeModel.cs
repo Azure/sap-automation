@@ -54,6 +54,169 @@ namespace SDAFWebApp.Models
         public string locationCode { get; set; } = "";
         public string Description { get; set; }
 
+        public string MD_Region
+        {
+            get
+            {
+                string regionDescription = string.Format("# Azure Region:       {0}", location).PadRight(88);
+                regionDescription += "#";
+                return regionDescription;
+            }
+        }
+
+        public string MD_Zone
+        {
+            get
+            {
+                string zoneDescription = string.Format("# Workload Zone:      {0}", workload_zone ?? environment + "-" + locationCode + "-" + network_logical_name).PadRight(88);
+                zoneDescription += "#";
+                return zoneDescription;
+            }
+        }
+
+        public string MD_VNet
+        {
+            get
+            {
+                string vnetDescription = string.Format("# Virtual Network:    {0}", network_arm_id != null ? "Existing" : "New").PadRight(88);
+
+                vnetDescription += "#";
+                return vnetDescription;
+            }
+        }
+
+        public string MD_KeyVault
+        {
+            get
+            {
+                string keyVaultDescription = string.Format("# Key Vault:          {0}", user_keyvault_id != null ? "Existing" : "New").PadRight(88);
+                keyVaultDescription += "#";
+                return keyVaultDescription;
+            }
+        }
+
+        public string MD_NAT
+        {
+            get
+            {
+                string NATDescription = string.Format("# NAT:                {0}", (bool)deploy_nat_gateway ? "Will be deployed" : "No").PadRight(88);
+                NATDescription += "#";
+                return NATDescription;
+            }
+        }
+
+        
+        public string MD_ISCSIServers
+        {
+            get
+
+            {
+                if (iscsi_count == 0)
+                {
+                    string noISCSIDescription = string.Format("# iSCSI servers:      Not in use").PadRight(88);
+                    noISCSIDescription += "#";
+                    return noISCSIDescription;
+                }
+                else
+                {
+                    string publisher = iscsi_image?.publisher ?? "Unknown";
+                    string offer = iscsi_image?.offer ?? "Unknown";
+                    string sku = iscsi_image?.sku ?? "Unknown";
+                    string iSCSIDescription = string.Format("# iSCSI servers:      {0} x {1} {2} {3}", iscsi_count, publisher, offer, sku).PadRight(88);
+
+                    iSCSIDescription += "#";
+                    return iSCSIDescription;
+                }
+                
+            }
+        }
+
+
+        public string MD_NFS
+        {
+            get
+            {
+                string nfsDescription = string.Format("# NFS:                Not in use").PadRight(88);
+                if (NFS_provider != null)
+                {
+                    nfsDescription = string.Format("# NFS Implementation: {0}", NFS_provider).PadRight(88);
+                }
+                nfsDescription += "#";
+                return nfsDescription;
+            }
+        }
+
+        public string MD_AppSubnet
+        {
+            get
+            {
+                string appSubnetDescription = string.Format("# App Subnet:         {0}", app_subnet_address_prefix != null ? "Defined" : app_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                appSubnetDescription += "#";
+                return appSubnetDescription;
+            }
+        }
+
+        public string MD_DbSubnet
+        {
+            get
+            {
+                string dbSubnetDescription = string.Format("# DB Subnet:          {0}", db_subnet_address_prefix != null ? "Defined" : db_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                dbSubnetDescription += "#";
+                return dbSubnetDescription;
+            }
+        }
+
+        public string MD_WebSubnet
+        {
+            get
+            {
+                string webSubnetDescription = string.Format("# Web Subnet:         {0}", web_subnet_address_prefix != null ? "Defined" : web_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                webSubnetDescription += "#";
+                return webSubnetDescription;
+            }
+        }
+
+        public string MD_AdminSubnet
+        {
+            get
+            {
+                string adminSubnetDescription = string.Format("# Admin Subnet:       {0}", admin_subnet_address_prefix != null ? "Defined" : admin_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                adminSubnetDescription += "#";
+                return adminSubnetDescription;
+            }
+        }
+
+        public string MD_ANFSubnet
+        {
+            get
+            {   
+                string anfSubnetDescription = string.Format("# ANF Subnet:         {0}", anf_subnet_address_prefix != null ? "Defined" : anf_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                anfSubnetDescription += "#";
+                return anfSubnetDescription;
+            }
+        }
+
+        public string MD_StorageSubnet
+        {
+            get
+            {
+                string storageSubnetDescription = string.Format("# Storage Subnet:     {0}", storage_subnet_address_prefix != null ? "Defined" : storage_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                storageSubnetDescription += "#";
+                return storageSubnetDescription;
+            }
+        }
+
+        public string MD_ISCSISubnet
+        {
+            get
+            {   
+                string iscsiSubnetDescription = string.Format("# iSCSI Subnet:       {0}", iscsi_subnet_address_prefix != null ? "Defined" : iscsi_subnet_arm_id != null ? "Existing" : "Not defined").PadRight(88);
+                iscsiSubnetDescription += "#";
+                return iscsiSubnetDescription;
+            }
+        }
+
+
         public string name_override_file { get; set; }
 
         public bool? save_naming_information { get; set; }
@@ -210,6 +373,15 @@ namespace SDAFWebApp.Models
         public string storage_subnet_nsg_arm_id { get; set; }
 
         public string storage_subnet_nsg_name { get; set; }
+
+        public bool? use_separate_storage_subnet
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(storage_subnet_address_prefix) || !string.IsNullOrEmpty(storage_subnet_arm_id);
+            }
+
+        }
 
 
         /*---------------------------------------------------------------------------8

@@ -56,7 +56,7 @@
 - name:                                "4.1.2 Oracle ASM Database - Update - Set Runtime Variables"
   ansible.builtin.set_fact:
     is_UEK6:                           "{{ ansible_kernel is version('5.5', '<') }}"
-    CV_ASSUME_DISTID:                  "{% if ansible_kernel is version('5.5', '<') %} OEL7 {% else %} OL8 {% endif %}"
+    CV_ASSUME_DISTID:                  "{{ CV_ASSUME_DISTID }}"
 
 # Step 4
 - name:                                "4.1.2 Oracle ASM Database - Pre processing reset permissions"
@@ -116,6 +116,106 @@
     mode:                              '4750'
     owner:                             "{{ oracle_user_name }}"
     group:                             oinstall
+
+
+- name:                                "4.1.2 Oracle ASM Database - Verify Status on Primary"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       SET PAGESIZE 0 FEEDBACK OFF HEADING OFF;
+                                       SELECT database_role || ':' || open_mode FROM v\$database;
+                                       EXIT;
+                                       EOF
+
+  register:                            dg_status
+  changed_when:                        false
+  failed_when:                         false
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+  environment:                         "{{ oracle_env }}"
+
+- name:                                "4.1.2 Oracle ASM Database - Set status on Primary"
+  ansible.builtin.set_fact:
+    primary_mounted:                   "{{ (dg_status.stdout is search('PRIMARY:MOUNTED')) | bool }}"
+
+- name:                                "4.1.2 Oracle ASM Database - Show status on Primary"
+  ansible.builtin.debug:
+    msg:
+      - "Database instance:            {{ ansible_hostname }}"
+      - "Primary instance mounted:     {{ primary_mounted }}"
+
+- name:                                "4.1.2 Oracle ASM Database - Restart Primary instance"
+  when:
+    - not primary_mounted
+  block:
+    - name:                            "4.1.2 Oracle ASM Database - Restart Primary instance"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       SHUTDOWN;
+                                       EXIT;
+                                       EOF
+
+      register:                        db_shut_down
+      changed_when:                    false
+      failed_when:                     false
+      environment:                     "{{ oracle_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+
+    - name:                            "4.1.2 Oracle ASM Database - Shutdown instance - Check for zombie standby processes"
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       ps -ef | grep ora_pmon_{{ db_sid | upper }} | grep -v grep || true
+      become_user:                     "root"
+      become:                          true
+      register:                        standby_pmon
+      changed_when:                    false
+
+    - name:                            "4.1.2 Oracle ASM Database - Shutdown instance - Kill zombie standby processes"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell:           kill -9 {{ item.split()[1] }}
+      loop:                            "{{ standby_pmon.stdout_lines }}"
+      when:                            standby_pmon.stdout | length > 0
+      failed_when:                     false
+
+    - name:                            "4.1.2 Oracle ASM Database - Shutdown instance - Clean orphaned shared memory segments"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       for seg in $(ipcs -m | grep {{ oracle_user_name }} | awk '$6==0 {print $2}'); do
+                                         ipcrm -m $seg
+                                       done
+      failed_when:                     false
+      when:                            standby_pmon.stdout | length > 0
+
+    - name:                            "4.1.2 Oracle ASM Database - Shutdown instance - Remove lock file"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.file:
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/ls{{ db_sid | upper }}"
+        state:                         absent
+      failed_when:                     false
+
+    - name:                            "4.1.2 Oracle ASM Database - Restart Primary instance"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       sqlplus -S / as sysdba <<EOF
+                                       STARTUP NOMOUNT;
+                                       EXIT;
+                                       EOF
+
+      register:                        db_started
+      changed_when:                    false
+      failed_when:                     false
+      environment:                     "{{ oracle_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
 
 ...
 # /*---------------------------------------------------------------------------8

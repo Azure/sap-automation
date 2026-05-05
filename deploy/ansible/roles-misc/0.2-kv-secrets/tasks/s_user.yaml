@@ -75,9 +75,9 @@
 #     - operation == "bom"
 
 
-- name:                                "0.2 Key Vault - S-User: - Retrieve S User details"
+- name:                                "0.2 Key Vault - Retrieve S User details"
   block:
-    - name:                            "BoM Secrets: Retrieve S User detail secret"
+    - name:                            "0.2 Key Vault - Retrieve S User details"
       ansible.builtin.command: >-
         az keyvault secret show
           --vault-name {{ deployer_kv_name }}
@@ -87,7 +87,7 @@
       changed_when:                    false
       register:                        keyvault_secret_show_s_user
 
-    - name:                            "0.2 Key Vault - S-User: - Extract S User secret details"
+    - name:                            "0.2 Key Vault - Save S-User name"
       ansible.builtin.set_fact:
         s_user:                        "{{ keyvault_secret_show_s_user.stdout }}"
         cacheable:                     true
@@ -96,26 +96,27 @@
   when:
     - s_user is not defined
 
-- name:                                "0.2 Key Vault - S-User: - Show S User"
+- name:                                "0.2 Key Vault - Show S User"
   ansible.builtin.debug:
     var:                               s_user
     verbosity:                         2
 
-- name:                                "0.2 Key Vault - S-User: - BoM Secrets: Retrieve S Password details"
+- name:                                "0.2 Key Vault - Retrieve S Password details"
   block:
-    - name:                            "0.2 Key Vault - S-User: - BoM Secrets: Retrieve S Password detail secret"
+    - name:                            "0.2 Key Vault - Retrieve S Password details"
       ansible.builtin.command: >-
         az keyvault secret show
           --vault-name {{ deployer_kv_name }}
           --name "S-Password"
+          --query value
+          --output tsv
       changed_when:                    false
       register:                        keyvault_secret_show_s_password
       no_log:                          true
 
-    - name:                            "0.2 Key Vault - S-User: - BoM Secrets: Extract S User Password secret details"
+    - name:                            "0.2 Key Vault - Save S-User password"
       ansible.builtin.set_fact:
-        s_password: >-
-          {{ (keyvault_secret_show_s_password.stdout | from_json).value }}
+        s_password:                    "{{ keyvault_secret_show_s_password.stdout }}"
       no_log:                          true
 
   when:

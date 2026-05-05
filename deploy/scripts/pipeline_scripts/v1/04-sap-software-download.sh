@@ -38,8 +38,6 @@ set -eu
 
 cd "$CONFIG_REPO_PATH" || exit
 
-sample_path="$SAMPLE_REPO_PATH/SAP"
-
 if [ "$USE_MSI" != "true" ]; then
   if [ -z "$ARM_CLIENT_ID" ]; then
     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
@@ -84,7 +82,7 @@ fi
 az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
--e s_user=$SUSERNAME -e BOM_directory=${sample_path} \
+-e s_user=$SUSERNAME -e BOM_directory=$SAMPLE_REPO_PATH \
 -e bom_base_name=$BOM_NAME \
 -e deployer_kv_name=$DEPLOYER_KEYVAULT \
 -e check_storage_account=$CHECK_STORAGE_ACCOUNT \

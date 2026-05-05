@@ -17,13 +17,13 @@ function Show-Menu($data) {
 #region Initialize
 # Initialize variables from Environment variables
 
-$ADO_Organization = $Env:SDAF_ADO_ORGANIZATION
-$ADO_Project = $Env:SDAF_ADO_PROJECT
-$Workload_zone_subscriptionID = $Env:SDAF_WorkloadZoneSubscriptionID
-$Workload_zoneSubscriptionName = $Env:SDAF_WorkloadZoneSubscriptionName
-$Workload_zone_code = $Env:SDAF_WORKLOAD_ZONE_CODE
+$ADO_Organization                 = $Env:SDAF_ADO_ORGANIZATION
+$ADO_Project                      = $Env:SDAF_ADO_PROJECT
+$Workload_zone_code               = $Env:SDAF_WORKLOAD_ZONE_CODE
+$Workload_zone_subscriptionID     = $Env:SDAF_WorkloadZoneSubscriptionID
+$Workload_zoneSubscriptionName    = $Env:SDAF_WorkloadZoneSubscriptionName
 
-$Workload_zone_prefix = "SDAF-" + $Workload_zone_code
+$Workload_zone_prefix             = "SDAF-" + $Workload_zone_code
 
 if ( $null -ne $Env:CreateConnections) {
   $CreateConnection = [System.Convert]::ToBoolean($Env:CreateConnections)

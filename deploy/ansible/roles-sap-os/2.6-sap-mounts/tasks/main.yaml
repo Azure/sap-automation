@@ -56,7 +56,7 @@
 
 - name:                                "2.6 SAP Mounts - Set the usr/sap/install path"
   ansible.builtin.set_fact:
-    usr_sap_install_mount_point:       "{% if NFS_provider in ['AFS', 'ANF'] %}{% if usr_sap_install_mountpoint is defined and usr_sap_install_mountpoint != '' %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
+    usr_sap_install_mount_point:       "{% if NFS_provider in ['AFS', 'ANF'] %}{% if usr_sap_install_mountpoint | default('') | length > 0 %}{{ usr_sap_install_mountpoint }}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}{% else %}{{ nfs_server }}:{{ target_media_location }}{% endif %}"
 
 - name:                                "2.6 SAP Mounts - Show information about NFS mounts"
   ansible.builtin.debug:
@@ -180,7 +180,7 @@
 
 - name:                                "2.6 SAP Mounts - Debug"
   ansible.builtin.debug:
-    msg:                               "Installation mount point: {{ usr_sap_install_mountpoint }}"
+    msg:                               "Installation mount point: {{ usr_sap_install_mountpoint | default('Undefined') }}"
 
 - name:                                "2.6 SAP Mounts - Mount local install file system on SCS (when not using AFS)"
   ansible.posix.mount:
@@ -250,7 +250,7 @@
     - name:                            "2.6 SAP Mounts - Re-mount File systems when not using external NFS (app & pas)"
       ansible.builtin.debug:
         msg:                           Trying to remount sap_mnt
-    - name:                            "2.6 SAP Mounts: - Mount sapmnt file system when not using external NFS (all app tier)"
+    - name:                            "2.6 SAP Mounts - Mount sapmnt file system when not using external NFS (all app tier)"
       ansible.posix.mount:
         src:                           "{{ nfs_server }}:/sapmnt/{{ sap_sid | upper }}"
         path:                          /sapmnt/{{ sap_sid | upper }}
@@ -266,7 +266,7 @@
 
 - name:                                "2.6 SAP Mounts - Mount Install folder when not using AFS"
   ansible.posix.mount:
-    src:                               "{{ usr_sap_install_mountpoint }}"
+    src:                               "{{ nfs_server }}:/usr/sap/install"
     path:                              "{{ target_media_location }}"
     fstype:                            nfs4
     opts:                              defaults
@@ -369,7 +369,7 @@
     - node_tier == "observer"
     - platform == "ORACLE"
 
-- name:                                "2.6 SAP Mounts: - Import Oracle shared home tasks"
+- name:                                "2.6 SAP Mounts - Import Oracle shared home tasks"
   ansible.builtin.import_tasks:        "2.6.3-oracle-multi-sid.yaml"
   when:
     - node_tier == "oracle-multi-sid"
@@ -385,7 +385,7 @@
   ansible.builtin.import_tasks:        "2.6.6-sybase-mounts.yaml"
   when: node_tier == "sybase"
 
-- name:                                "2.6 SAP Mounts: - Import ANF tasks"
+- name:                                "2.6 SAP Mounts - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.8-anf-mounts-simplemount.yaml
   when:
     - use_simple_mount is defined and use_simple_mount
@@ -393,16 +393,16 @@
     - NFS_provider == 'ANF'
 
 # Import NFS mounts and permissions changes for oracle and oracle-asm installation.
-- name:                                "2.6 SAP Mounts: - Import Oracle NFS tasks"
+- name:                                "2.6 SAP Mounts - Import Oracle NFS tasks"
   ansible.builtin.import_tasks:        "2.6.6-oracle-nfs-mounts.yaml"
   when:
     - node_tier in ['oracle','oracle-asm','observer']
     - platform == "ORACLE"
 
-- name:                                "2.6 SAP Mounts: - Set permissions"
+- name:                                "2.6 SAP Mounts - Set permissions"
   when:                                 node_tier == "hana"
   block:
-    - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
+    - name:                            "2.6 SAP Mounts - Set permissions on hana folders"
       ansible.builtin.file:
         owner:                         "{{ db_sid | lower }}adm"
         group:                         sapsys
@@ -415,7 +415,7 @@
         - { mode: '0755', path: "{{ hana_log_basepath }}" }
         - { mode: '0755', path: '/hana/shared' }
   rescue:
-    - name:                            "2.6 SAP Mounts: - Set permissions on hana folders"
+    - name:                            "2.6 SAP Mounts - Rescue - Set permissions on hana folders using UID"
       ansible.builtin.file:
         owner:                         '{{ hdbadm_uid }}'
         group:                         sapsys

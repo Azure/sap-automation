@@ -171,6 +171,12 @@ namespace SDAFWebApp.Controllers
                 bool b = (bool)value;
                 str.Append(property.Name + " = " + b.ToString().ToLower());
             }
+            else if (property.PropertyType == typeof(bool))
+            {
+                if (value == null) return "#" + property.Name + " = false";
+                bool b = (bool)value;
+                str.Append(property.Name + " = " + b.ToString().ToLower());
+            }
             else if (property.PropertyType == typeof(int?))
             {
                 if (value == null) return "#" + property.Name + " = 0";
@@ -183,11 +189,24 @@ namespace SDAFWebApp.Controllers
                 if (property.Name == "network_address_space")
                 {
                     string networkValue = value.ToString();
-                    str.Append(property.Name + " = " + $"[\"{networkValue.Replace('-',',')}\"]");                    
+                    string[] cidrValues = networkValue
+                        .Split(new[] { '-', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(v => v.Trim())
+                        .Where(v => !string.IsNullOrWhiteSpace(v))
+                        .ToArray();
+
+                    str.Append(property.Name + " = " + $"[{string.Join(",", cidrValues.Select(v => $"\"{v}\""))}]");
                 }
                 else if (property.PropertyType == typeof(string))
                 {
-                    str.Append(property.Name + " = " + $"\"{value}\"");
+                    if (property.Name.StartsWith("MD_"))
+                    {
+                        str.Append($"{value}");
+                    }
+                    else
+                    {
+                        str.Append(property.Name + " = " + $"\"{value}\"");
+                    }
                 }
                 else
                 {

@@ -21,7 +21,7 @@ source "${grand_parent_directory}/deploy_utils.sh"
 
 DEBUG=False
 
-if [ "$SYSTEM_DEBUG" = True ]; then
+if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	set -eu
 	DEBUG=True
@@ -89,26 +89,42 @@ print_header
 # Configure DevOps
 configure_devops
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
+deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File $deployer_tfvars_file_name was not found."
+	exit 2
+fi
 
-deployer_environment_file_name=$(get_configuration_file "$automation_config_directory" "$ENVIRONMENT" "$LOCATION" "$NETWORK")
-SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
-export SYSTEM_CONFIGURATION_FILE
+
+if get_name_components "$deployer_tfvars_file_name" "control_plane" ; then
+	echo -e "${green}--- Extracted name components from deployer tfvars file ---${reset}"
+else
+	echo -e "${bold_red}--- Failed to extract name components from deployer tfvars file ---${reset}"
+	echo "##vso[task.logissue type=error]Failed to extract name components from deployer tfvars file."
+	exit 2
+fi
 
 CONTROL_PLANE_NAME="${ENVIRONMENT}-${LOCATION}-${NETWORK}"
+TF_VAR_control_plane_name="$CONTROL_PLANE_NAME"
+export TF_VAR_control_plane_name
 export CONTROL_PLANE_NAME
 
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
+automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
+deployer_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT}" "${LOCATION}" "${NETWORK}")
+SYSTEM_CONFIGURATION_FILE="$deployer_environment_file_name"
+export SYSTEM_CONFIGURATION_FILE
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
+else
+	DEPLOYER_KEYVAULT=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "DEPLOYER_KEYVAULT")
+
+	TF_VAR_spn_keyvault_id=$(az keyvault show --name "$DEPLOYER_KEYVAULT" --subscription "$ARM_SUBSCRIPTION_ID" --query id -o tsv)
+	export TF_VAR_spn_keyvault_id
 fi
 export VARIABLE_GROUP_ID
 
@@ -122,19 +138,19 @@ echo ""
 echo -e "$cyan Starting the removal of the deployer and its associated infrastructure $reset"
 echo ""
 
-if [ ! -f "$deployerTFvarsFile" ]; then
-	echo -e "$bold_red--- File ${deployerTFvarsFile} was not found ---$reset"
-	echo "##vso[task.logissue type=error]File DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME was not found."
+if [ ! -f "$deployer_tfvars_file_name" ]; then
+	echo -e "$bold_red--- File $deployer_tfvars_file_name was not found ---$reset"
+	echo "##vso[task.logissue type=error]File $deployer_tfvars_file_name was not found."
 	exit 2
 fi
 
+deployer_tfstate_key="$DEPLOYER_FOLDERNAME.terraform.tfstate"
 TF_VAR_deployer_tfstate_key="$deployer_tfstate_key"
 export TF_VAR_deployer_tfstate_key
 
 CONTROL_PLANE_NAME=$(echo "$DEPLOYER_FOLDERNAME" | cut -d'-' -f1-3)
 export "CONTROL_PLANE_NAME"
 
-automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
 automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 
@@ -167,6 +183,9 @@ fi
 
 az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
+TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
+export TF_VAR_subscription_id
+
 cd "$CONFIG_REPO_PATH" || exit
 echo -e "$green--- Running the remove_deployer script that destroys deployer VM ---$reset"
 
@@ -179,8 +198,8 @@ echo -e "$green--- Running the remove region script that destroys deployer VM an
 
 cd "$CONFIG_REPO_PATH/DEPLOYER/$DEPLOYER_FOLDERNAME" || exit
 
-if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer_v2.sh" --auto-approve \
-	--parameter_file "$DEPLOYER_TFVARS_FILENAME"; then
+if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_deployer.sh" --auto-approve \
+	--parameterfile "$DEPLOYER_TFVARS_FILENAME"; then
 	return_code=$?
 	echo "Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
 	echo "##vso[task.logissue type=warning]Control Plane $DEPLOYER_FOLDERNAME removal step 2 completed."
@@ -228,6 +247,13 @@ if [ 0 == $return_code ]; then
 
 	environment=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f1)
 	region_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f2)
+	vnet_code=$(echo "$CONTROL_PLANE_NAME" | cut -d"-" -f3)
+
+	if [ -f ".sap_deployment_automation/${environment}${region_code}${vnet_code}" ]; then
+		rm ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+		git rm -q --ignore-unmatch ".sap_deployment_automation/${environment}${region_code}${vnet_code}"
+		changed=1
+	fi
 
 	if [ -f ".sap_deployment_automation/${environment}${region_code}" ]; then
 		rm ".sap_deployment_automation/${environment}${region_code}"

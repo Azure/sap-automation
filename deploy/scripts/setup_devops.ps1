@@ -340,11 +340,11 @@ else {
 
   $resources_url = $ADO_ORGANIZATION + "/_git/" + [uri]::EscapeDataString($ADO_Project) + "?path=/pipelines/resources.yml"
 
-  $log = ("Please update [resources.yml](" + $resources_url + ") to point to Github instead of Azure DevOps.")
+  $log = ("Please update [resources.yml](" + $resources_url + ") to point to GitHub instead of Azure DevOps.")
 
   $gh_connection_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_settings/adminservices"
   Write-Host ""
-  Write-Host "The browser will now open, please create a new Github connection, record the name of the connection."
+  Write-Host "The browser will now open, please create a new GitHub connection, record the name of the connection."
   Start-Process $gh_connection_url
   Read-Host "Please press enter when you have created the connection"
 
@@ -485,7 +485,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.11.3" ansible_core_version="2.16" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.15.1" ansible_core_version="2.16" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
   $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
   az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 

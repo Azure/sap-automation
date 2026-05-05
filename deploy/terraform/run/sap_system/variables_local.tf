@@ -34,8 +34,8 @@ locals {
 
   parsed_id                           = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
 
-  SAPLibrary_subscription_id          = local.parsed_id["subscription_id"]
-  SAPLibrary_resource_group_name      = local.parsed_id["resource_group_name"]
+  tfstate_storage_account_subscription_id          = local.parsed_id["subscription_id"]
+  tfstate_storage_account_resource_group_name      = local.parsed_id["resource_group_name"]
   tfstate_storage_account_name        = local.parsed_id["resource_name"]
   tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
 
@@ -55,7 +55,7 @@ locals {
                                         null
                                       )
 
-  
+
   // Convert ALL generator virtualmachine_names attributes to lists
   generator_as_lists                = merge(
                                         module.sap_namegenerator.naming,

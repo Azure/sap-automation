@@ -126,7 +126,7 @@ function _printlog() {
 
     #+${BASH_SOURCE/$HOME/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:
     #who_called="+${BASH_SOURCE[2]}@${BASH_LINENO[1]}:${FUNCNAME[2]}:"
-    who_called="+${BASH_SOURCE/$DEPLOYMENT_REPO_PATH/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:"
+    who_called="+${BASH_SOURCE/$SAP_AUTOMATION_REPO_PATH/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:"
 
     if [[ $log_level_set ]]; then
         ((log_level_set >= log_level)) && {
@@ -158,7 +158,7 @@ function _writelog_to_file() {
     log_level_set="${log_level_mapper[$logger]}"
 
     #+${BASH_SOURCE/$HOME/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:
-    #+${BASH_SOURCE/$DEPLOYMENT_REPO_PATH/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:
+    #+${BASH_SOURCE/$SAP_AUTOMATION_REPO_PATH/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:
     who_called="+${BASH_SOURCE[2]/$HOME/\~}@${BASH_LINENO[1]}:${FUNCNAME[2]}:"
 
     if [[ $log_level_set ]]; then

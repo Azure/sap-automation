@@ -12,9 +12,77 @@ To list all the Azure regions, run the following command:
 
 ```bash
 
-az account list-locations  --query "[?metadata.regionType=='Physical'].name -o Table"
+az account list-locations  --query "[?metadata.regionType=='Physical'].name" -o Table
 
 ```
+
+Result
+------------------
+
+australiacentral
+australiacentral2
+australiaeast
+australiasoutheast
+austriaeast
+belgiumcentral
+brazilsouth
+brazilsoutheast
+canadacentral
+canadaeast
+centralindia
+centralus
+centraluseuap
+chilecentral
+denmarkeast
+eastasia
+eastus
+eastus2
+eastus2euap
+eastusstg
+francecentral
+francesouth
+germanynorth
+germanywestcentral
+indonesiacentral
+israelcentral
+italynorth
+japaneast
+japanwest
+jioindiacentral
+jioindiawest
+koreacentral
+koreasouth
+malaysiawest
+mexicocentral
+newzealandnorth
+northcentralus
+northeurope
+norwayeast
+norwaywest
+polandcentral
+qatarcentral
+southafricanorth
+southafricawest
+southcentralus
+southcentralusstg
+southeastasia
+southindia
+spaincentral
+swedencentral
+switzerlandnorth
+switzerlandwest
+uaecentral
+uaenorth
+uksouth
+ukwest
+westcentralus
+westeurope
+westindia
+westus
+westus2
+westus3
+
+
 
 To list the availability zone counts for each region, run the following command:
 
