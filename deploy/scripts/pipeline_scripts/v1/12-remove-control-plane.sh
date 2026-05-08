@@ -62,6 +62,19 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.14.5}"
 	echo -e "$green--- az login ---$reset"
 fi
+
+if [ -v MSI_ID ]; then
+    echo "Using Managed Identity:              $MSI_ID"
+    TF_VAR_user_assigned_identity_id="$MSI_ID"
+    export TF_VAR_user_assigned_identity_id
+		ARM_CLIENT_ID=$(az identity show --ids "$MSI_ID" --query clientId -o tsv)
+		if [ -n "$ARM_CLIENT_ID" ]; then
+			export ARM_CLIENT_ID
+		else
+			echo "##vso[task.logissue type=error]Unable to retrieve client ID for the provided MSI_ID: $MSI_ID."
+		fi
+fi
+
 LogonToAzure $USE_MSI
 return_code=$?
 if [ 0 != $return_code ]; then

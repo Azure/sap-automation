@@ -67,7 +67,7 @@ function configureNonDeployer() {
 	fi
 }
 
-function LogonToAzure() {
+function ObsoleteLogonToAzure() {
 	local useMSI=$1
 	local subscriptionId=$ARM_SUBSCRIPTION_ID
 
@@ -87,12 +87,15 @@ function LogonToAzure() {
 
 	else
 		echo "Deployment credentials:              Managed Service Identity"
-		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
-			echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
-			source "/etc/profile.d/deploy_server.sh"
+		if [ -v ARM_CLIENT_ID ]; then
+		    echo "$ARM_CLIENT_ID"
+		  	az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
 		else
-			echo "Running az login --identity"
-		  az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+				if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+						echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
+						source "/etc/profile.d/deploy_server.sh"
+						az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+				fi
 		fi
 
 		az account show --query user --output table
