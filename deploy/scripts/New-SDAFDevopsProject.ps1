@@ -77,6 +77,16 @@ if (Test-Path ".${pathSeparator}${wikiFileName}") { Write-Host "  Removing $wiki
 <#-------------------------------------+---------------------------------------#>
 #endregion
 
+Write-Host  "Please switch to use the SDAFUtilities module instead of this script..." `
+            -ForegroundColor DarkCyan
+
+$confirmation = Read-Host "Do you want to continue? y/n?"
+if ($confirmation -eq 'y') {  Write-Host "Continuing with the execution of the script..." }
+else {
+    Write-Host "Exiting the script. Please use the SDAFUtilities module for a more streamlined experience." `
+            -ForegroundColor Yellow
+    exit
+}
 
 
 <#-----------------------------------------------------------------------------|
