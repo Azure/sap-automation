@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -34,6 +36,7 @@ namespace SDAFWebApp.Controllers
         private readonly string sdafControlPlaneEnvironment;
         private readonly string sdafControlPlaneLocation;
         private readonly string tenantId;
+        private readonly string ghToken;
         private readonly string managedIdentityClientId;
 
         private readonly Azure.Identity.DefaultAzureCredential credential;
@@ -56,7 +59,9 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             tenantId = configuration["AZURE_TENANT_ID"];
+
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
+            ghToken = configuration.GetConnectionString("gh_Token");
 
             jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
@@ -186,6 +191,12 @@ namespace SDAFWebApp.Controllers
         public async Task<string[]> GetTemplateFileNames(string scopePath)
         {
             string getUri = $"{sampleUrl}/contents/{scopePath}?ref=main";
+
+            if(!string.IsNullOrEmpty(ghToken))
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ghToken);
+                getUri+= "&access_token=ghToken";
+            }
             using HttpResponseMessage response = client.GetAsync(getUri).Result;
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
