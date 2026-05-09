@@ -266,38 +266,37 @@ function Remove-SDAFADOProject {
       else {
         Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
       }
-    }
 
-    $FoundAppRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].id | [0]" --only-show-errors)
-    if ($FoundAppRegistration.Length -ne 0) {
-      $confirmation = Read-Host "Remove App registration y/n?"
-      if ($confirmation -eq 'y') {
-        Write-Host "Removing the App Registration: $ApplicationName" -ForegroundColor Green
-        az ad app delete --id $FoundAppRegistration
+      $FoundAppRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].id | [0]" --only-show-errors)
+      if ($FoundAppRegistration.Length -ne 0) {
+        $confirmation = Read-Host "Remove App registration y/n?"
+        if ($confirmation -eq 'y') {
+          Write-Host "Removing the App Registration: $ApplicationName" -ForegroundColor Green
+          az ad app delete --id $FoundAppRegistration
+        }
+        else {
+          Write-Host "Skipping removal of App registration" $ApplicationName -ForegroundColor Yellow
+        }
       }
       else {
-        Write-Host "Skipping removal of App registration" $ApplicationName -ForegroundColor Yellow
+        Write-Host "No App Registration found for: $ApplicationName" -ForegroundColor Yellow
       }
+      #endregion
+
+      Write-Host "The script has completed" -ForegroundColor Green
+      Write-Verbose "Remove-SDAFADOProject cmdlet completed successfully"
+
     }
-    else {
-      Write-Host "No App Registration found for: $ApplicationName" -ForegroundColor Yellow
+    catch {
+      Write-Error "An error occurred during execution: $($_.Exception.Message)"
+      Write-Verbose "Error details: $($_.Exception.ToString())"
+      throw
     }
-    #endregion
-
-    Write-Host "The script has completed" -ForegroundColor Green
-    Write-Verbose "Remove-SDAFADOProject cmdlet completed successfully"
-
   }
-  catch {
-    Write-Error "An error occurred during execution: $($_.Exception.Message)"
-    Write-Verbose "Error details: $($_.Exception.ToString())"
-    throw
-  }
-}
 
-end {
-  Write-Verbose "Remove-SDAFADOProject cmdlet finished"
-}
+  end {
+    Write-Verbose "Remove-SDAFADOProject cmdlet finished"
+  }
 }
 
 # Export the function

@@ -2853,43 +2853,42 @@ function Remove-SDAFADOProject {
       else {
         Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
       }
-    }
 
-    $FoundAppRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].id | [0]" --only-show-errors)
-    if ($FoundAppRegistration.Length -ne 0) {
-      $confirmation = Read-Host "Remove App registration y/n?"
-      if ($confirmation -eq 'y') {
-        Write-Host "Removing the App Registration: $ApplicationName" -ForegroundColor Green
-        az ad app delete --id $FoundAppRegistration
+      $FoundAppRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].id | [0]" --only-show-errors)
+      if ($FoundAppRegistration.Length -ne 0) {
+        $confirmation = Read-Host "Remove App registration y/n?"
+        if ($confirmation -eq 'y') {
+          Write-Host "Removing the App Registration: $ApplicationName" -ForegroundColor Green
+          az ad app delete --id $FoundAppRegistration
+        }
+        else {
+          Write-Host "Skipping removal of App registration" $ApplicationName -ForegroundColor Yellow
+        }
       }
       else {
-        Write-Host "Skipping removal of App registration" $ApplicationName -ForegroundColor Yellow
+        Write-Host "No App Registration found for: $ApplicationName" -ForegroundColor Yellow
       }
+      #endregion
+
+      Write-Host "The script has completed" -ForegroundColor Green
+      Write-Verbose "Remove-SDAFADOProject cmdlet completed successfully"
+
     }
-    else {
-      Write-Host "No App Registration found for: $ApplicationName" -ForegroundColor Yellow
+    catch {
+      Write-Error "An error occurred during execution: $($_.Exception.Message)"
+      Write-Verbose "Error details: $($_.Exception.ToString())"
+      throw
     }
-    #endregion
-
-    Write-Host "The script has completed" -ForegroundColor Green
-    Write-Verbose "Remove-SDAFADOProject cmdlet completed successfully"
-
   }
-  catch {
-    Write-Error "An error occurred during execution: $($_.Exception.Message)"
-    Write-Verbose "Error details: $($_.Exception.ToString())"
-    throw
-  }
-}
 
-end {
-  Write-Verbose "Remove-SDAFADOProject cmdlet finished"
-}
+  end {
+    Write-Verbose "Remove-SDAFADOProject cmdlet finished"
+  }
 }
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOProject
-#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 305
+#EndRegion '.\Public\Remove-SDAFADOProject.ps1' 304
 #Region '.\Public\Remove-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
@@ -3125,15 +3124,29 @@ function Remove-SDAFADOWorkloadZone {
           if ($confirmation -eq 'y') {
             Write-Host "Removing the App Registration : $federatedIdentityName" -ForegroundColor Green
             az ad app delete --id $FoundFederatedIdentity
-          }
-          else {
-            Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+
+            $uri = "https://graph.microsoft.com/v1.0/directory/deletedItems/microsoft.graph.application?`$filter=displayName eq '$federatedIdentityName'&`$select=id,appId,displayName,deletedDateTime"
+            $deleted = az rest --method GET --url $uri | ConvertFrom-Json
+            if (-not $deleted.value -or $deleted.value.Count -eq 0) {
+              Write-Host "No deleted app found to purge." -ForegroundColor DarkYellow
+            }
+            else {
+              foreach ($d in $deleted.value) {
+                Write-Host "Purging deleted app: $($d.displayName) | appId=$($d.appId) | deletedObjectId=$($d.id)" -ForegroundColor Red
+                az rest --method DELETE --url "https://graph.microsoft.com/v1.0/directory/deletedItems/$($d.id)" | Out-Null
+              }
+
+            }
+
+            Write-Host "Purge complete." -ForegroundColor Green
+            $deletedAppId = $deleted.value[0].id
+            Write-Host "Purging deleted app with id: $deletedAppId" -ForegroundColor Green
+            az ad app delete --id $deletedAppId --only-show-errors
           }
         }
-
-        az ad sp delete --id $ServiceConnectionName --only-show-errors
-
-        az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
+        else {
+          Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+        }        az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
 
       }
       else {
@@ -3191,7 +3204,7 @@ function Remove-SDAFADOWorkloadZone {
 
 # Export the function
 Export-ModuleMember -Function Remove-SDAFADOWorkloadZone
-#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 300
+#EndRegion '.\Public\Remove-SDAFADOWorkloadZone.ps1' 314
 #Region '.\Public\Remove-SDAFUserAssignedIdentity.ps1' -1
 
 function Remove-SDAFUserAssignedIdentity {

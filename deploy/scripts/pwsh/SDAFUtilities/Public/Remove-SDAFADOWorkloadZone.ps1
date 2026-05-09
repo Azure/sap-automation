@@ -231,15 +231,29 @@ function Remove-SDAFADOWorkloadZone {
           if ($confirmation -eq 'y') {
             Write-Host "Removing the App Registration : $federatedIdentityName" -ForegroundColor Green
             az ad app delete --id $FoundFederatedIdentity
-          }
-          else {
-            Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+
+            $uri = "https://graph.microsoft.com/v1.0/directory/deletedItems/microsoft.graph.application?`$filter=displayName eq '$federatedIdentityName'&`$select=id,appId,displayName,deletedDateTime"
+            $deleted = az rest --method GET --url $uri | ConvertFrom-Json
+            if (-not $deleted.value -or $deleted.value.Count -eq 0) {
+              Write-Host "No deleted app found to purge." -ForegroundColor DarkYellow
+            }
+            else {
+              foreach ($d in $deleted.value) {
+                Write-Host "Purging deleted app: $($d.displayName) | appId=$($d.appId) | deletedObjectId=$($d.id)" -ForegroundColor Red
+                az rest --method DELETE --url "https://graph.microsoft.com/v1.0/directory/deletedItems/$($d.id)" | Out-Null
+              }
+
+            }
+
+            Write-Host "Purge complete." -ForegroundColor Green
+            $deletedAppId = $deleted.value[0].id
+            Write-Host "Purging deleted app with id: $deletedAppId" -ForegroundColor Green
+            az ad app delete --id $deletedAppId --only-show-errors
           }
         }
-
-        az ad sp delete --id $ServiceConnectionName --only-show-errors
-
-        az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
+        else {
+          Write-Host "Skipping removal of App registration" $federatedIdentityName -ForegroundColor Yellow
+        }        az devops service-endpoint delete --id $ServiceConnectionId --only-show-errors
 
       }
       else {
