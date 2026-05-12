@@ -192,12 +192,13 @@ namespace SDAFWebApp.Controllers
         {
             string getUri = $"{sampleUrl}/contents/{scopePath}?ref=main";
 
-            if(!string.IsNullOrEmpty(ghToken))
+            using HttpRequestMessage request = new(HttpMethod.Get, getUri);
+            if (!string.IsNullOrEmpty(ghToken))
             {
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ghToken);
-                getUri+= "&access_token=ghToken";
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ghToken);
             }
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
+
+            using HttpResponseMessage response = await client.SendAsync(request);
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
 
