@@ -7,8 +7,14 @@
 # Deployed by Ansible role 1.1-swap as a cloud-init per-boot script.
 
 SWAP_FILE="/mnt/resource/swapfile"
+WAAGENT_SWAP_FILE="/mnt/swapfile"
 SWAP_SIZE_MB="{{ swap_size_mb }}"
 MOUNT_POINT="/mnt/resource"
+
+if swapon --show | grep -q "$WAAGENT_SWAP_FILE"; then
+  echo "Swap already configured by waagent" | systemd-cat -t create-swap
+  exit 0
+fi
 
 # Wait for the temp disk to be mounted (RAID0 from initramfs)
 for _ in $(seq 1 30); do
