@@ -317,6 +317,41 @@ locals {
                                            disk_type          = var.utility_vm_os_disk_type
                                          }
 
+  utility_storage_settings             = [
+                                           for acct in var.utility_storage_accounts : {
+                                             name                     = acct.name
+                                             account_kind             = acct.account_kind
+                                             account_tier             = acct.account_kind == "FileStorage" ? "Premium" : acct.account_tier
+                                             account_replication_type = acct.account_replication_type
+                                             file_shares              = acct.account_kind == "StorageV2" ? [
+                                               for share in acct.file_shares : {
+                                                 name     = share.name
+                                                 quota    = share.quota
+                                                 protocol = upper(share.protocol)
+                                               } if upper(share.protocol) != "NFS"
+                                             ] : [
+                                               for share in acct.file_shares : {
+                                                 name     = share.name
+                                                 quota    = share.quota
+                                                 protocol = upper(share.protocol)
+                                               }
+                                             ]
+                                             blob_containers          = acct.account_kind == "FileStorage" ? [] : acct.blob_containers
+                                             https_traffic_only_enabled = (
+                                               acct.account_kind == "FileStorage" &&
+                                               length([for s in acct.file_shares : s if upper(s.protocol) == "NFS"]) > 0
+                                             ) ? false : (acct.account_kind == "FileStorage" ? var.AFS_enable_encryption_in_transit : true)
+                                           }
+                                           if (
+                                             length(
+                                               acct.account_kind == "StorageV2" ? [
+                                                 for s in acct.file_shares : s if upper(s.protocol) != "NFS"
+                                               ] : acct.file_shares
+                                             ) > 0
+                                             || length(acct.account_kind == "FileStorage" ? [] : acct.blob_containers) > 0
+                                           )
+                                         ]
+
   ANF_settings                         = {
                                           use               = var.NFS_provider == "ANF"
                                           name              = var.ANF_account_name

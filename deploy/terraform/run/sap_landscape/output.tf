@@ -288,6 +288,17 @@ output "witness_storage_account_key"             {
                                                    value       = module.sap_landscape.witness_storage_account_key
                                                  }
 
+//Utility Storage
+output "utility_storage_account_ids"             {
+                                                   description = "List of utility storage account IDs"
+                                                   value       = module.sap_landscape.utility_storage_account_ids
+                                                 }
+
+output "utility_storage_account_names"           {
+                                                   description = "List of utility storage account names"
+                                                   value       = module.sap_landscape.utility_storage_account_names
+                                                 }
+
 ###############################################################################
 #                                                                             #
 #                            ANF                                              #
