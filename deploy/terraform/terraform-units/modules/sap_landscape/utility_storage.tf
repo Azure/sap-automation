@@ -137,7 +137,7 @@ resource "azurerm_storage_container" "utility" {
 
 resource "azurerm_storage_account_network_rules" "utility" {
   provider                             = azurerm.main
-  count                                = var.enable_firewall_for_keyvaults_and_storage ? length(var.utility_storage_settings) : 0
+  count                                = length(var.utility_storage_settings)
   depends_on                           = [
                                            azurerm_storage_account.utility,
                                            azurerm_storage_share.utility,
@@ -145,7 +145,7 @@ resource "azurerm_storage_account_network_rules" "utility" {
                                          ]
 
   storage_account_id                   = azurerm_storage_account.utility[count.index].id
-  default_action                       = "Deny"
+  default_action                       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
 
   ip_rules                             = var.public_network_access_enabled ? compact([
                                            length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
