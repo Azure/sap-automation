@@ -1106,12 +1106,12 @@ variable "utility_storage_accounts"                {
                                                        account_tier             = optional(string, "Standard")
                                                        account_replication_type = optional(string, "LRS")
                                                        file_shares = optional(list(object({
-                                                         name     = string
+                                                         name     = optional(string, "")
                                                          quota    = optional(number, 128)
                                                          protocol = optional(string, "SMB")
                                                        })), [])
                                                        blob_containers = optional(list(object({
-                                                         name = string
+                                                         name = optional(string, "")
                                                        })), [])
                                                      }))
                                                      default     = []
