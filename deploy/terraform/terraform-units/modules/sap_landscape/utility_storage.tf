@@ -161,7 +161,8 @@ resource "azurerm_storage_account_network_rules" "utility" {
                                              var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
                                              null
                                            ),
-                                           length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
+                                           length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
+                                           length(var.infrastructure.additional_subnet_id) > 0 ? var.infrastructure.additional_subnet_id : null
                                          ]) : null
 
   bypass                               = ["Metrics", "Logging", "AzureServices"]
