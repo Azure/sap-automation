@@ -89,8 +89,32 @@ resource "azurerm_storage_account" "utility" {
                                          )
   default_to_oauth_authentication      = true
 
+  network_rules {
+                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+                  ip_rules                    = var.public_network_access_enabled && var.utility_storage_settings[count.index].https_traffic_only_enabled ? compact([
+                                                  length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                                  length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                                ]) : []
+                  virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
+                                                  (var.infrastructure.virtual_networks.sap.subnet_db.defined || var.infrastructure.virtual_networks.sap.subnet_db.exists) ? (
+                                                    var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
+                                                    null
+                                                  ),
+                                                  (var.infrastructure.virtual_networks.sap.subnet_app.defined || var.infrastructure.virtual_networks.sap.subnet_app.exists) ? (
+                                                    var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
+                                                    null
+                                                  ),
+                                                  length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
+                                                  length(var.infrastructure.additional_subnet_id) > 0 ? var.infrastructure.additional_subnet_id : null
+                                                ]) : null
+                  bypass                      = ["Metrics", "Logging", "AzureServices"]
+                }
+
   tags                                 = var.tags
 
+  lifecycle {
+              ignore_changes = [network_rules[0].virtual_network_subnet_ids]
+            }
 }
 
 
@@ -126,49 +150,6 @@ resource "azurerm_storage_container" "utility" {
   storage_account_id                   = azurerm_storage_account.utility[local.utility_blob_containers[count.index].acct_index].id
   container_access_type                = "private"
 
-}
-
-
-################################################################################
-#                                                                              #
-#                     Utility storage network rules                            #
-#                                                                              #
-################################################################################
-
-resource "azurerm_storage_account_network_rules" "utility" {
-  provider                             = azurerm.main
-  count                                = length(var.utility_storage_settings)
-  depends_on                           = [
-                                           azurerm_storage_account.utility,
-                                           azurerm_storage_share.utility,
-                                           azurerm_storage_container.utility,
-                                         ]
-
-  storage_account_id                   = azurerm_storage_account.utility[count.index].id
-  default_action                       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-
-  ip_rules                             = var.public_network_access_enabled ? compact([
-                                           length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-                                           length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                         ]) : null
-
-  virtual_network_subnet_ids           = var.public_network_access_enabled ? compact([
-                                           (var.infrastructure.virtual_networks.sap.subnet_db.defined || var.infrastructure.virtual_networks.sap.subnet_db.exists) ? (
-                                             var.infrastructure.virtual_networks.sap.subnet_db.exists ? var.infrastructure.virtual_networks.sap.subnet_db.id : azurerm_subnet.db[0].id) : (
-                                             null
-                                           ),
-                                           (var.infrastructure.virtual_networks.sap.subnet_app.defined || var.infrastructure.virtual_networks.sap.subnet_app.exists) ? (
-                                             var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id) : (
-                                             null
-                                           ),
-                                           length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
-                                           length(var.infrastructure.additional_subnet_id) > 0 ? var.infrastructure.additional_subnet_id : null
-                                         ]) : null
-
-  bypass                               = ["Metrics", "Logging", "AzureServices"]
-  lifecycle {
-              ignore_changes = [virtual_network_subnet_ids]
-            }
 }
 
 

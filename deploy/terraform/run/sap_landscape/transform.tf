@@ -323,17 +323,11 @@ locals {
                                              account_kind             = acct.account_kind
                                              account_tier             = acct.account_kind == "FileStorage" ? "Premium" : acct.account_tier
                                              account_replication_type = acct.account_replication_type
-                                             file_shares              = acct.account_kind == "StorageV2" ? [
+                                             file_shares              = [
                                                for share_idx, share in acct.file_shares : {
                                                  name     = length(share.name) > 0 ? share.name : format("share%02d", share_idx)
                                                  quota    = share.quota
-                                                 protocol = upper(share.protocol)
-                                               } if upper(share.protocol) != "NFS"
-                                             ] : [
-                                               for share_idx, share in acct.file_shares : {
-                                                 name     = length(share.name) > 0 ? share.name : format("share%02d", share_idx)
-                                                 quota    = share.quota
-                                                 protocol = upper(share.protocol)
+                                                 protocol = acct.account_kind == "StorageV2" ? "SMB" : upper(share.protocol)
                                                }
                                              ]
                                              blob_containers          = acct.account_kind == "FileStorage" ? [] : [
@@ -347,11 +341,7 @@ locals {
                                              ) ? false : (acct.account_kind == "FileStorage" ? var.AFS_enable_encryption_in_transit : true)
                                            }
                                            if (
-                                             length(
-                                               acct.account_kind == "StorageV2" ? [
-                                                 for s in acct.file_shares : s if upper(s.protocol) != "NFS"
-                                               ] : acct.file_shares
-                                             ) > 0
+                                             length(acct.file_shares) > 0
                                              || length(acct.account_kind == "FileStorage" ? [] : acct.blob_containers) > 0
                                            )
                                          ]
