@@ -669,6 +669,12 @@ variable "github_app_token"                           {
                                                         description = "If provided, contains token to access GitHub"
                                                         default     = ""
                                                       }
+
+variable "github_pat"                                 {
+                                                        description = "If provided, contains PAT to access GitHub"
+                                                        default     = ""
+                                                      }
+
 variable "github_server_url"                          {
                                                        description = "If provided, contains the Server Url of the GitHub instance"
                                                        default     = "https://github.com"
@@ -753,7 +759,7 @@ variable "app_service_devops_authentication_type"     {
 
 variable "app_service_SKU_name"                       {
                                                         description = "The SKU of the App Service Plan"
-                                                        default     = "S1"
+                                                        default     = "B1"
                                                       }
 
 variable "enable_firewall_for_keyvaults_and_storage" {

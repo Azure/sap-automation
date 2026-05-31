@@ -29,7 +29,7 @@ provider "azurerm"                     {
                                                   }
 
                                          storage_use_azuread        = true
-                                         use_msi                    = true
+                                         use_msi                    = var.use_spn ? false : true
                                          subscription_id            = var.subscription_id
 
                                        }
