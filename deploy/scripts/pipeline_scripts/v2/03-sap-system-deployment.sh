@@ -431,7 +431,7 @@ if [ 1 -eq $added ]; then
 fi
 
 # Platform-specific summary handling
-if [ -f "${SID}.md" ]; then
+if [ -f "readme.md" ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 	  sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${SID}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/${SID}.md"

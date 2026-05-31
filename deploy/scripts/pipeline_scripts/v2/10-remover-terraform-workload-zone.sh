@@ -285,6 +285,13 @@ else
 			git pull -q origin "$GITHUB_REF_NAME"
 		fi
 
+		output_file="readme.md"
+		now=$(date +"%d of %b %Y at %H:%M:%S")
+		{
+				printf "**SAP Workload Zone Infrastructure Removal**\n\n\n" >"$output_file"
+				printf "The Workload Zone infrastructure defined in %s has been removed on %s. "  "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars" "$now" >>"$output_file"
+		}
+
 		git clean -d -f -X
 
 		if [ -f ".terraform/terraform.tfstate" ]; then
@@ -298,7 +305,7 @@ else
 		fi
 
 		if [ -f "readme.md" ]; then
-			git rm --ignore-unmatch -q "readme.md"
+			git add "readme.md"
 			changed=1
 		fi
 
@@ -354,6 +361,12 @@ else
 					fi
 				fi
 			fi
+		fi
+
+		if [ "$PLATFORM" == "github" ]; then
+				cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
+		else
+				echo "##vso[task.uploadsummary]${output_file}"
 		fi
 
 		echo -e "$green--- Deleting variables ---$reset_formatting"
