@@ -732,9 +732,9 @@ function sdaf_remover() {
 	fi
 
 	unset TF_DATA_DIR
-	print_banner "$banner_title" "Removal completed." "info" "Exiting $SCRIPT_NAME"
+	print_banner "$banner_title" "Removal completed. ($return_value	)" "info" "Exiting $SCRIPT_NAME"
 
-	exit "$return_value"
+	return "$return_value"
 }
 
 ###############################################################################
@@ -744,12 +744,40 @@ function sdaf_remover() {
 ###############################################################################
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-	# Only run if script is executed directly, not when sourced
-	if sdaf_remover "$@"; then
-		echo "Script executed successfully."
-		exit 0
-	else
-		echo "Script failed with exit code $?"
-		exit 10
-	fi
+    # Only run if script is executed directly, not when sourced
+    # Ensure that the exit status of a pipeline command is non-zero if any
+    # stage of the pipefile has a non-zero exit status.
+    set -o pipefail
+
+    #External helper functions
+    #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
+
+    script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+    SCRIPT_NAME="$(basename "$0")"
+
+    # Fail on any error, undefined variable, or pipeline failure
+
+    # Enable debug mode if DEBUG is set to 'True'
+    if [[ "${DEBUG:-false}" == 'true' ]]; then
+        # Enable debugging
+        # Exit on error
+        set -euox pipefail
+        echo "Environment variables:"
+        printenv | sort
+    fi
+
+    if [[ -f /etc/profile.d/deploy_server.sh ]]; then
+        path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
+        export PATH=$path
+    fi
+    if sdaf_remover "$@"; then
+		    return_value=$?
+        echo "Script executed successfully."
+        exit $return_value
+    else
+		    return_value=$?
+        echo "Script failed with exit code $?"
+        exit $?
+    fi
+
 fi

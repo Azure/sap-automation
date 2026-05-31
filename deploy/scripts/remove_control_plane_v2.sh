@@ -138,7 +138,7 @@ function check_environment_variables() {
 
 function parse_arguments() {
     local input_opts
-    input_opts=$(getopt -n remove_control_plane_v2 -o c:d:l:s:b:r:ihag --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,help,keep_agent -- "$@")
+    input_opts=$(getopt -n remove_control_plane_v2 -o c:d:l:s:b:r:ihag --longoptions control_plane_name:,deployer_parameter_file:,library_parameter_file:,subscription:,resource_group:,storage_account:,auto-approve,ado,github,help,keep_agent -- "$@")
     VALID_ARGUMENTS=$?
 
     if [ "$VALID_ARGUMENTS" != "0" ]; then
@@ -178,6 +178,10 @@ function parse_arguments() {
                 shift 2
             ;;
             -a | --ado)
+                approve_parameter="--auto-approve;ado=1"
+                shift
+            ;;
+            --github)
                 approve_parameter="--auto-approve;ado=1"
                 shift
             ;;
