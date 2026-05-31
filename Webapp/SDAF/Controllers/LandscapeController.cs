@@ -26,7 +26,6 @@ namespace SDAFWebApp.Controllers
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
         private readonly GitHubActionsService _githubActions;
-        private readonly GitHubActionsService _githubActions;
         private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
@@ -34,14 +33,12 @@ namespace SDAFWebApp.Controllers
         private readonly string sdafControlPlaneLocation;
         private readonly string sdafControlPlaneName;
         private readonly string platform;
-        private readonly string platform;
 
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _landscapeService = landscapeService;
             _appFileService = appFileService;
             _configuration = configuration;
-            platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             if(platform == "GitHub")
@@ -316,22 +313,6 @@ namespace SDAFWebApp.Controllers
 
                         await restHelper.TriggerPipeline(pipelineId, requestBody);
                         await restHelper.TriggerPipeline(pipelineId, requestBody);
-
-                        TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
-                        break;
-                        }
-                    case "github":
-                    {
-                            // Trigger with inputs
-                            var inputs = new Dictionary<string, object>
-                            {
-                                { "workload_zone_name", id.Replace("-INFRASTRUCTURE", "") },
-                                { "control_plane_name", sdafControlPlaneName }
-                            };
-                            await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", "main", inputs);
-                            break;
-                        }
-                }
 
                         TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
                         break;
