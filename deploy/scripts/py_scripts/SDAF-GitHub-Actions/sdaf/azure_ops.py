@@ -99,6 +99,7 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
         "Contributor",
         "User Access Administrator",
         "Storage Blob Data Owner",
+        "Storage Table Data Contributor",
         "Key Vault Administrator",
         "App Configuration Data Owner",
         "Network Contributor"
@@ -241,6 +242,7 @@ def create_azure_service_principal(user_data):
             "User Access Administrator",
             "Contributor",
             "Storage Blob Data Owner",
+            "Storage Table Data Contributor",
             "Key Vault Administrator",
             "App Configuration Data Owner",
             "Network Contributor"
@@ -388,6 +390,7 @@ def create_azure_service_principal(user_data):
             "User Access Administrator",
             "Contributor",
             "Storage Blob Data Owner",
+            "Storage Table Data Contributor",
             "Key Vault Administrator",
             "App Configuration Data Owner",
             "Network Contributor"
@@ -610,3 +613,117 @@ def get_current_subscription_info():
         print("Failed to parse subscription data.")
         print(show_result.stdout)
         return False, None, None
+
+def create_app_registration(application_name, service_management_reference=None):
+    """
+    Create or retrieve an existing Entra ID App Registration for the SDAF web application.
+
+    The registration is configured with:
+        - ID token issuance enabled (required for SDAF web app authentication)
+        - Single-tenant sign-in audience (AzureADMyOrg)
+        - Microsoft Graph User.Read delegated permission scope
+
+    Args:
+        application_name: Display name for the app registration (e.g. 'MGMT-WEEU-DEP01-app')
+        service_management_reference: Optional service management reference tag
+
+    Returns:
+        dict with 'app_id' (client ID) and 'object_id', or None on failure
+    """
+    import os
+    import tempfile
+
+    print(f"\nChecking for existing App Registration '{application_name}'...")
+
+    # Check whether an app registration with this exact display name already exists
+    list_args = [
+        "ad", "app", "list",
+        "--all",
+        "--filter", f"startswith(displayName, '{application_name}')",
+        "--query", f"[?displayName=='{application_name}'] | [0]",
+        "--only-show-errors",
+    ]
+    list_result = run_az_command(list_args, capture_output=True, text=True)
+
+    if (
+        list_result.returncode == 0
+        and list_result.stdout.strip()
+        and list_result.stdout.strip() != "null"
+    ):
+        try:
+            existing = json.loads(list_result.stdout)
+            app_id = existing["appId"]
+            object_id = existing["id"]
+            print(f"✓ Found existing App Registration '{application_name}': {app_id}")
+            return {"app_id": app_id, "object_id": object_id}
+        except (json.JSONDecodeError, KeyError):
+            pass  # Fall through to create a new one
+
+    print(f"Creating new App Registration '{application_name}'...")
+
+    manifest = [
+        {
+            "resourceAppId": "00000003-0000-0000-c000-000000000000",
+            "resourceAccess": [
+                {"id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d", "type": "Scope"}
+            ],
+        }
+    ]
+
+    # Write the manifest to a temp file so it can be passed to az ad app create
+    manifest_fd, manifest_path = tempfile.mkstemp(suffix=".json", prefix="sdaf_manifest_")
+    try:
+        with os.fdopen(manifest_fd, "w") as f:
+            json.dump(manifest, f)
+
+        create_args = [
+            "ad", "app", "create",
+            "--display-name", application_name,
+            "--enable-id-token-issuance", "true",
+            "--sign-in-audience", "AzureADMyOrg",
+            "--required-resource-access", f"@{manifest_path}",
+            "--query", "appId",
+            "--output", "tsv",
+        ]
+
+        if service_management_reference:
+            create_args += ["--service-management-reference", service_management_reference]
+
+        create_result = run_az_command(create_args, capture_output=True, text=True)
+
+        if create_result.returncode != 0:
+            print(f"Failed to create App Registration: {create_result.stderr}")
+            return None
+
+        app_id = create_result.stdout.strip()
+        print(f"✓ App Registration created with App ID: {app_id}")
+
+        # Retrieve the object ID by querying the newly created registration
+        list_result2 = run_az_command(
+            [
+                "ad", "app", "list",
+                "--all",
+                "--filter", f"startswith(displayName, '{application_name}')",
+                "--query", f"[?displayName=='{application_name}'] | [0]",
+                "--only-show-errors",
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        if list_result2.returncode == 0 and list_result2.stdout.strip():
+            try:
+                app_data = json.loads(list_result2.stdout)
+                object_id = app_data["id"]
+                print(f"✓ App Registration Object ID: {object_id}")
+                return {"app_id": app_id, "object_id": object_id}
+            except (json.JSONDecodeError, KeyError):
+                print("Warning: Could not retrieve App Registration Object ID.")
+                return {"app_id": app_id, "object_id": ""}
+
+    finally:
+        # Clean up the temporary manifest file
+        if os.path.exists(manifest_path):
+            os.remove(manifest_path)
+
+    return None

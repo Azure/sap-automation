@@ -448,6 +448,21 @@ def get_user_input():
     custom_docker_image = input(f"Enter a custom Docker image or press Enter to use the default: ").strip()
     docker_image = custom_docker_image if custom_docker_image else default_docker_image
 
+    # Web Application support
+    print("\n--- Web Application Configuration ---")
+    print("The SDAF Web Application provides a UI for configuration management.")
+    print("Enabling this will create an Entra ID App Registration for authentication.")
+    use_webapp = input("Do you want to enable the SDAF Web Application? (y/n): ").strip().lower() in ["y", "yes"]
+
+    app_registration_name = ""
+    if use_webapp:
+        default_app_name = f"{control_plane_name}-app"
+        entered_name = input(
+            f"Enter the App Registration display name (press Enter to use default '{default_app_name}'): "
+        ).strip()
+        app_registration_name = entered_name if entered_name else default_app_name
+        print(f"Using App Registration name: {app_registration_name}")
+
     return {
         "token": token,
         "repo_name": repo_name,
@@ -482,4 +497,7 @@ def get_user_input():
         "s_password": s_password,
         "resource_group": resource_group_name,
         "docker_image": docker_image,
+        # Web Application parameters
+        "use_webapp": use_webapp,
+        "app_registration_name": app_registration_name,
     }
