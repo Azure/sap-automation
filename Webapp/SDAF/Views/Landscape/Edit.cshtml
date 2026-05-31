@@ -15,7 +15,7 @@
         createModel(landscape);
         setDataFromResource();
         retainFormValues();
-        getEnvironmentsFromAdo(@ViewBag.IsPipelineDeployment);
+        getEnvironments(@ViewBag.IsPipelineDeployment, @ViewBag.Platform);
 
         var formHeader = $("#form-sticky-header");
         var sticky = $("#form-sticky-header").offset().top;

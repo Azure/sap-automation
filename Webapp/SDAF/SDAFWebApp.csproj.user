@@ -11,5 +11,6 @@
     <WebStackScaffolding_IsLayoutPageSelected>True</WebStackScaffolding_IsLayoutPageSelected>
     <WebStackScaffolding_IsPartialViewSelected>False</WebStackScaffolding_IsPartialViewSelected>
     <WebStackScaffolding_IsReferencingScriptLibrariesSelected>True</WebStackScaffolding_IsReferencingScriptLibrariesSelected>
+    <NameOfLastUsedPublishProfile>C:\Work\Repos\kimforss-sap-automation\Webapp\SDAF\Properties\PublishProfiles\may11-sece-sapdeployment08d - Web Deploy1.pubxml</NameOfLastUsedPublishProfile>
   </PropertyGroup>
 </Project>

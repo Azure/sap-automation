@@ -27,9 +27,16 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="System" asp-action="Index">Systems</a>
                         </li>
-                        @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment)) {
+                        @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment) && ViewBag.Platform == "ado" )
+                        {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Environment" asp-action="Index">Environments</a>
+                            </li>
+                        }
+                        @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment) && ViewBag.Platform == "github")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="GitHubEnvironment" asp-action="Index">GitHub Environments</a>
                             </li>
                         }
                     </ul>
@@ -46,7 +53,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - SAP Deployment Automation - <a href="https://privacy.microsoft.com/en-US/privacystatement">Privacy</a>
+            &copy; 2026 - SAP Deployment Automation - <a href="https://privacy.microsoft.com/en-US/privacystatement">Privacy</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

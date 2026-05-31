@@ -25,26 +25,36 @@ namespace SDAFWebApp.Controllers
         private FormViewModel<LandscapeModel> landscapeView;
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
+        private readonly GitHubActionsService _githubActions;
+        private readonly GitHubActionsService _githubActions;
         private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
         private readonly string sdafControlPlaneEnvironment;
         private readonly string sdafControlPlaneLocation;
         private readonly string sdafControlPlaneName;
+        private readonly string platform;
+        private readonly string platform;
 
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _landscapeService = landscapeService;
             _appFileService = appFileService;
             _configuration = configuration;
-            restHelper = new RestHelper(configuration);
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
+            restHelper = new RestHelper(configuration, platform);
+            if(platform == "GitHub")
+            {
+                _githubActions = new GitHubActionsService(configuration["GITHUB_TOKEN"], configuration["GITHUB_REPOSITORY"].Split("/")[0], configuration["GITHUB_REPOSITORY"].Split("/")[1]);
+            }
             landscapeView = SetViewData();
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
-            
+
         }
         private FormViewModel<LandscapeModel> SetViewData()
         {
@@ -139,7 +149,10 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<LandscapeModel> GetById(string id, string partitionKey)
         {
-            if (id == null || partitionKey == null) throw new ArgumentNullException();
+            if (id == null) throw new ArgumentNullException(nameof(id), "Parameter 'id' cannot be null.");
+            if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey), "Parameter 'partitionKey' cannot be null.");
+            if (id == null) throw new ArgumentNullException(nameof(id), "Parameter 'id' cannot be null.");
+            if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey), "Parameter 'partitionKey' cannot be null.");
             var landscapeEntity = await _landscapeService.GetByIdAsync(id, partitionKey);
             if (landscapeEntity == null || landscapeEntity.Landscape == null) throw new KeyNotFoundException();
             return JsonConvert.DeserializeObject<LandscapeModel>(landscapeEntity.Landscape);
@@ -264,7 +277,7 @@ namespace SDAFWebApp.Controllers
 
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
 
-                
+
                 if (!string.IsNullOrEmpty(landscape.subscription))
                 {
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
@@ -279,27 +292,63 @@ namespace SDAFWebApp.Controllers
 
                 await restHelper.UpdateRepo(path, content);
 
-                string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
-                string branch = _configuration["SourceBranch"];
-                parameters.workload_zone = id;
-                PipelineRequestBody requestBody = new()
+                switch (platform.ToLower())
                 {
-                    resources = new Resources
-                    {
-                        repositories = new Repositories
+                    case "ado":
                         {
-                            self = new Self
+                        string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
+                        string branch = _configuration["SourceBranch"];
+                        parameters.workload_zone = id;
+                        PipelineRequestBody requestBody = new()
+                        {
+                            resources = new Resources
                             {
-                                refName = $"refs/heads/{branch}"
-                            }
+                                repositories = new Repositories
+                                {
+                                    self = new Self
+                                    {
+                                        refName = $"refs/heads/{branch}"
+                                    }
+                                }
+                            },
+                            templateParameters = parameters
+                        };
+
+                        await restHelper.TriggerPipeline(pipelineId, requestBody);
+                        await restHelper.TriggerPipeline(pipelineId, requestBody);
+
+                        TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
+                        break;
                         }
-                    },
-                    templateParameters = parameters
-                };
+                    case "github":
+                    {
+                            // Trigger with inputs
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone_name", id.Replace("-INFRASTRUCTURE", "") },
+                                { "control_plane_name", sdafControlPlaneName }
+                            };
+                            await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", "main", inputs);
+                            break;
+                        }
+                }
 
-                await restHelper.TriggerPipeline(pipelineId, requestBody);
+                        TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
+                        break;
+                        }
+                    case "github":
+                    {
+                            // Trigger with inputs
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone_name", id.Replace("-INFRASTRUCTURE", "") },
+                                { "control_plane_name", sdafControlPlaneName }
+                            };
+                            await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", "main", inputs);
+                            break;
+                        }
+                }
 
-                TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
             }
             catch (Exception e)
             {
