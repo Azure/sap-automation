@@ -89,3 +89,6 @@
 - name:                                "1.17 Generic Pacemaker - Cluster based on {{ ansible_os_family }} on VM {{ ansible_hostname }}"
   ansible.builtin.include_tasks:       "1.17.2.0-cluster-{{ ansible_os_family }}.yml"
   # when:                                cluster_existence_check != 0
+
+- name:                                "1.17 Generic Pacemaker - Configure pacemaker.timer for boot delay"
+  ansible.builtin.include_tasks:       1.17.2.1-pacemaker-timer.yml

@@ -12,6 +12,7 @@
 # |  They may be overridden, if required, but normally are not                 |
 # |                                                                           |
 # +------------------------------------4--------------------------------------*/
+pacemaker_start_delay:               "{{ '216' if ansible_os_family | upper == 'SUSE' else '186' }}"
 
 cluster_totem:
   token:                               30000

@@ -1,0 +1,9 @@
+[Unit]
+Description=Delay start of pacemaker.service after boot
+
+[Timer]
+OnBootSec={{ pacemaker_start_delay }}
+Unit=pacemaker.service
+
+[Install]
+WantedBy=timers.target

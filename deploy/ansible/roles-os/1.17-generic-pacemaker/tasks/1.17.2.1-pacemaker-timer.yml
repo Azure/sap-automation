@@ -1,0 +1,52 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Configure pacemaker.timer to delay pacemaker startup after boot.          |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "1.17 Generic Pacemaker - Deploy pacemaker.timer unit"
+  ansible.builtin.template:
+    src:                               pacemaker.timer.j2
+    dest:                              /etc/systemd/system/pacemaker.timer
+    owner:                             root
+    group:                             root
+    mode:                              '0644'
+
+- name:                                "1.17 Generic Pacemaker - Reload systemd daemon"
+  ansible.builtin.systemd:
+    daemon_reload:                     true
+
+- name:                                "1.17 Generic Pacemaker - Enable pacemaker.timer"
+  ansible.builtin.systemd:
+    name:                              pacemaker.timer
+    enabled:                           true
+
+- name:                                "1.17 Generic Pacemaker - Disable SBD_DELAY_START (timer handles delay)"
+  when:                                cluster_stonith_type in ['ASD', 'ISCSI']
+  ansible.builtin.lineinfile:
+    path:                              /etc/sysconfig/sbd
+    regexp:                            '^SBD_DELAY_START=.*'
+    line:                              'SBD_DELAY_START=no'
+    owner:                             root
+    group:                             root
+    mode:                              '0644'
+    backup:                            true
+
+- name:                                "1.17 Generic Pacemaker - Disable pacemaker autostart (timer controls startup)"
+  ansible.builtin.systemd:
+    name:                              pacemaker
+    enabled:                           false
+
+- name:                                "1.17 Generic Pacemaker - Disable corosync autostart (timer controls startup)"
+  ansible.builtin.systemd:
+    name:                              corosync
+    enabled:                           false
+
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
