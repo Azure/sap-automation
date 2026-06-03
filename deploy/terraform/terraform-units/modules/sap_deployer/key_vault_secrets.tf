@@ -163,7 +163,7 @@ resource "azurerm_key_vault_secret" "app_token" {
   depends_on                           = [
                                            time_sleep.wait_for_keyvault
                                          ]
-  name                                 = "GH_APP_PAT"
+  name                                 = "GH-APP-PAT"
   value                                = var.infrastructure.devops.app_token
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
