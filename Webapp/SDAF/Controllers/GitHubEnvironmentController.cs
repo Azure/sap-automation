@@ -90,17 +90,18 @@ namespace SDAFWebApp.Controllers
                                 { "control_plane_name", _sdafControlPlaneName }
                             }
 
-            };
+                };
                 try
                 {
                     await githubClient.Actions.Workflows.CreateDispatch(_ghOrganization, _ghRepository, "02-create-workload-environment.yml", workflowDispatch);
+                    TempData["success"] = "Successfully created environment: " + newName + description;
+                    return RedirectToAction("Index");
                 }
                 catch (Octokit.ApiException ex)
                 {
                     throw new HttpRequestException($"Failed to trigger GitHub workflow: {ex.Message}");
                 }
 
-                return RedirectToAction("Index");
             }
             catch (Exception e)
             {
