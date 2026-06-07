@@ -41,7 +41,7 @@ namespace SDAFWebApp.Controllers
             _configuration = configuration;
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
-            if(platform == "GitHub")
+            if (string.Equals(platform, "github", StringComparison.OrdinalIgnoreCase))
             {
                 _githubActions = new GitHubActionsService(configuration["GITHUB_TOKEN"], configuration["GITHUB_REPOSITORY"].Split("/")[0], configuration["GITHUB_REPOSITORY"].Split("/")[1]);
             }
