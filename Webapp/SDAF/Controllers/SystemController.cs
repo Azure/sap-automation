@@ -206,7 +206,6 @@ namespace SDAFWebApp.Controllers
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
-                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                     SystemEntity systemEntity = new(system);
                     await _systemService.CreateAsync(systemEntity);
                     TempData["success"] = "Successfully created system " + system.Id;

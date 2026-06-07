@@ -148,8 +148,6 @@ namespace SDAFWebApp.Controllers
         {
             if (id == null) throw new ArgumentNullException(nameof(id), "Parameter 'id' cannot be null.");
             if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey), "Parameter 'partitionKey' cannot be null.");
-            if (id == null) throw new ArgumentNullException(nameof(id), "Parameter 'id' cannot be null.");
-            if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey), "Parameter 'partitionKey' cannot be null.");
             var landscapeEntity = await _landscapeService.GetByIdAsync(id, partitionKey);
             if (landscapeEntity == null || landscapeEntity.Landscape == null) throw new KeyNotFoundException();
             return JsonConvert.DeserializeObject<LandscapeModel>(landscapeEntity.Landscape);

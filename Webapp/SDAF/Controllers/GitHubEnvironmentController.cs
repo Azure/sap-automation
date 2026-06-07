@@ -138,7 +138,7 @@ namespace SDAFWebApp.Controllers
             try
             {
                 // await restHelper.UpdateVariableGroup(environment, newName, description);
-                TempData["success"] = "Successfully edited environment: " + newName;
+                // TempData["success"] = "Successfully edited environment: " + newName;
                 return RedirectToAction("Index");
             }
             catch (Exception e)
