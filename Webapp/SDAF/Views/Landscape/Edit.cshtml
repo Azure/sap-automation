@@ -15,7 +15,10 @@
         createModel(landscape);
         setDataFromResource();
         retainFormValues();
-        getEnvironments(@ViewBag.IsPipelineDeployment, @ViewBag.Platform);
+        getEnvironments(
+             @(string.Equals((string)ViewBag.IsPipelineDeployment, "true", StringComparison.OrdinalIgnoreCase)),
+             @Html.Raw(JsonSerializer.Serialize((string)ViewBag.Platform))
+         );
 
         var formHeader = $("#form-sticky-header");
         var sticky = $("#form-sticky-header").offset().top;
@@ -74,7 +77,7 @@
             </div>
         </div>
     }
-    
+
     <div id="form-sticky-header">
         <div class="filter-checkboxes">
             <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 1)" id="basic-filter">Basic</fluent-checkbox>

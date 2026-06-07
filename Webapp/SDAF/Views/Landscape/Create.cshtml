@@ -15,7 +15,10 @@
         createModel(landscape);
         retainFormValues();
 
-        getEnvironments(@ViewBag.IsPipelineDeployment, @ViewBag.Platform );
+        getEnvironments(
+             @(string.Equals((string)ViewBag.IsPipelineDeployment, "true", StringComparison.OrdinalIgnoreCase)),
+             @Html.Raw(JsonSerializer.Serialize((string)ViewBag.Platform))
+         );
 
         var formHeader = $("#form-sticky-header");
         var sticky = $("#form-sticky-header").offset().top;
