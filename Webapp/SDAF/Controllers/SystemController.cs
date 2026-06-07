@@ -37,7 +37,7 @@ namespace SDAFWebApp.Controllers
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
-            platform = configuration["DEVOPS_PLATFORM"] ?? "ADO";
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             systemView = SetViewData();
 

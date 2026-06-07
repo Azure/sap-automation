@@ -121,7 +121,7 @@ namespace SDAFWebApp.Controllers
                     Name = ghEnvironment.Name,
                     Description = ghEnvironment.Description,
                     SdafControlPlaneEnvironment = ghEnvironment.SdafControlPlaneEnvironment
-                };  
+                };
                 return View(environment);
             }
             catch (Exception e)
@@ -137,6 +137,7 @@ namespace SDAFWebApp.Controllers
         {
             try
             {
+                //Not implemented yet as GitHub Environments API does not support updating environment details, only creating and deleting. Would require custom implementation to store environment details in a separate storage and link it to the GitHub Environment.
                 // await restHelper.UpdateVariableGroup(environment, newName, description);
                 // TempData["success"] = "Successfully edited environment: " + newName;
                 return RedirectToAction("Index");

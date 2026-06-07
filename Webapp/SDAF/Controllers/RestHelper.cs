@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Octokit;
 using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
@@ -61,10 +62,7 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             tenantId = configuration["AZURE_TENANT_ID"];
-            ghOrganization = configuration["GITHUB_REPOSITORY"].Split("/")[0];
-            ghRepository = configuration["GITHUB_REPOSITORY"].Split("/")[1];
-            ghToken = configuration["GITHUB_PAT"];
-
+            ghRepository = configuration["GH_REPOSITORY"];
 
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
 
@@ -112,6 +110,14 @@ namespace SDAFWebApp.Controllers
             }
             else if (repoType.ToLower() == "github")
             {
+                if (ghRepository.Length > 0)
+                {
+                    ghToken = configuration["GH_TOKEN"];
+                    ghOrganization = configuration["GITHUB_REPOSITORY"].Split("/")[0];
+                    ghRepository = configuration["GITHUB_REPOSITORY"].Split("/")[1];
+                    ghToken = configuration["GITHUB_PAT"];
+                }
+
                 client = new HttpClient();
 
                 client.DefaultRequestHeaders.Accept.Add(

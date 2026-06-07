@@ -25,7 +25,7 @@ namespace SDAFWebApp.Controllers
         private FormViewModel<LandscapeModel> landscapeView;
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
-        private readonly GitHubActionsService _githubActions;
+
         private readonly ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
@@ -41,10 +41,6 @@ namespace SDAFWebApp.Controllers
             _configuration = configuration;
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
-            if (string.Equals(platform, "github", StringComparison.OrdinalIgnoreCase))
-            {
-                _githubActions = new GitHubActionsService(configuration["GITHUB_TOKEN"], configuration["GITHUB_REPOSITORY"].Split("/")[0], configuration["GITHUB_REPOSITORY"].Split("/")[1]);
-            }
             landscapeView = SetViewData();
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             InitializeImageOptionsAndMapping();
@@ -309,7 +305,6 @@ namespace SDAFWebApp.Controllers
                             templateParameters = parameters
                         };
 
-                        await restHelper.TriggerPipeline(pipelineId, requestBody);
                         await restHelper.TriggerPipeline(pipelineId, requestBody);
 
                         TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
