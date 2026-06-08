@@ -62,7 +62,7 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             tenantId = configuration["AZURE_TENANT_ID"];
-            ghRepository = configuration["GH_REPOSITORY"];
+            string ghOrgAndRepository = configuration["GITHUB_REPOSITORY"];
 
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
 
@@ -110,12 +110,16 @@ namespace SDAFWebApp.Controllers
             }
             else if (repoType.ToLower() == "github")
             {
-                if (ghRepository.Length > 0)
+                if (ghOrgAndRepository.Length > 0)
                 {
-                    ghToken = configuration["GH_TOKEN"];
-                    ghOrganization = configuration["GITHUB_REPOSITORY"].Split("/")[0];
-                    ghRepository = configuration["GITHUB_REPOSITORY"].Split("/")[1];
+                    ghOrganization = ghOrgAndRepository.Split("/")[0];
+                    ghRepository = ghOrgAndRepository.Split("/")[1];
                     ghToken = configuration["GITHUB_PAT"];
+                }
+                else
+                {
+                    throw new ArgumentNullException("GitHub repository must be provided for GitHub operations.");
+                 
                 }
 
                 client = new HttpClient();

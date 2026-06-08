@@ -71,7 +71,7 @@
             </div>
 
             <div class="right-input">
-                @Html.TextBox("workload_environment_parameter", Model.SapObject.workload_zone, new { @class = "ms-TextField-field" })
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['environment'], 'confirm-deploy-system-checkbox')" })
             </div>
         </div>
 

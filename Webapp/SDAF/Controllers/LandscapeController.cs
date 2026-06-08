@@ -121,15 +121,22 @@ namespace SDAFWebApp.Controllers
             ];
             try
             {
-                List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
-
-                foreach (LandscapeEntity e in landscapeEntities)
+                
+                if (platform == "ado")
                 {
-                    options.Add(new SelectListItem
+                    List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                    foreach (SelectListItem zone in environments)
                     {
-                        Text = e.RowKey,
-                        Value = e.RowKey
-                    });
+                        options.Add(zone);
+                    }
+                }
+                else
+                {
+                    List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                    foreach (SelectListItem zone in environments)
+                    {
+                        options.Add(zone);
+                    }
                 }
             }
             catch

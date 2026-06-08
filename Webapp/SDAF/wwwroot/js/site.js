@@ -277,19 +277,35 @@ function updateAndSetDropdowns(dropdown) {
 function getEnvironments(isPipelineDeployment, platform) {
     var id = "workload";
   if (isPipelineDeployment) {
+    alert(platform);
 
-        $.ajax({
-            type: "GET",
-            url: "/Environment/GetEnvironments",
-            data: {},
-            success: function (data) {
-                resetDropdowns([id]);
-                populateAzureDropdownData(id, data);
-                setCurrentValue(id);
-            },
-            error: function () { alert("Error retrieving existing environments from ADO"); }
-        });
+    if (platform == "ado") {
+      $.ajax({
+        type: "GET",
+        url: "/Environment/GetEnvironments",
+        data: {},
+        success: function (data) {
+          resetDropdowns([id]);
+          populateAzureDropdownData(id, data);
+          setCurrentValue(id);
+        },
+        error: function () { alert("Error retrieving existing environments from ADO"); }
+      });
     }
+    if (platform == "github") {
+      $.ajax({
+        type: "GET",
+        url: "/GitHubEnvironment/GetEnvironments",
+        data: {},
+        success: function (data) {
+          resetDropdowns([id]);
+          populateAzureDropdownData(id, data);
+          setCurrentValue(id);
+        },
+        error: function () { alert("Error retrieving existing environments from GitHub"); }
+      });
+    }
+  }
 }
 
 // populate a dropdown with data
