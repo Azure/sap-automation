@@ -148,7 +148,6 @@ resource "azurerm_windows_web_app" "webapp" {
         client_id                                = var.app_service.app_registration_id
         tenant_auth_endpoint                     = "https://login.microsoftonline.com/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
         www_authentication_disabled              = false
-        client_secret_setting_name               = "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"
         allowed_applications                     = [var.app_service.app_registration_id]
         allowed_audiences                        = []
         allowed_groups                           = []
@@ -196,8 +195,7 @@ resource "azurerm_windows_web_app" "webapp" {
 
   lifecycle                                  {
     ignore_changes                              = [
-                                                    zip_deploy_file,
-                                                    tags
+                                                    zip_deploy_file
                                                   ]
                                              }
 
