@@ -277,7 +277,7 @@ function updateAndSetDropdowns(dropdown) {
 function getEnvironments(isPipelineDeployment, platform) {
     var id = "workload";
   if (isPipelineDeployment) {
-    alert(platform);
+
 
     if (platform == "ado") {
       $.ajax({

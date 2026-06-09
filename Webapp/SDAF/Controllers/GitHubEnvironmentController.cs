@@ -134,7 +134,7 @@ namespace SDAFWebApp.Controllers
 
         [HttpPost]
         [ActionName("Edit")]
-        public ActionResult Edit(EnvironmentModel environment, string newName, string description)
+        public ActionResult Edit(GitHubEnvironment environment, string newName, string description)
         {
             try
             {
