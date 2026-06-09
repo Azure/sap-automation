@@ -296,7 +296,9 @@ namespace SDAFWebApp.Controllers
                         {
                         string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
                         string branch = _configuration["SourceBranch"];
+
                         parameters.workload_zone = id;
+                        parameters.environment = null; 
                         PipelineRequestBody requestBody = new()
                         {
                             resources = new Resources
@@ -326,6 +328,7 @@ namespace SDAFWebApp.Controllers
                                 { "control_plane_name", sdafControlPlaneName }
                             };
                             await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", "main", inputs);
+                            TempData["success"] = "Successfully triggered workload zone deployment action for " + id;
                             break;
                         }
                 }

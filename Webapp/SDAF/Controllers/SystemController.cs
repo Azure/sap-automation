@@ -346,7 +346,10 @@ namespace SDAFWebApp.Controllers
                                 { "workload_zone_name", parameters.environment },
                                 { "sap_system_identifier", system.sid }
                             };
-                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs); break;
+                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs);
+                            TempData["success"] = "Successfully triggered system deployment action for " + id;
+                            break;
+                            
                         }
                 }
 
@@ -433,6 +436,7 @@ namespace SDAFWebApp.Controllers
                                 { "webdispatcher_installation", parameters.webdispatcher_installation }
                             };
                             await restHelper.TriggerGitHubWorkflow("07-configuration-installation.yml", "main", inputs);
+                            TempData["success"] = "Successfully triggered system installation action for " + id;
                             break;
                         }
                 }
