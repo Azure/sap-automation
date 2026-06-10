@@ -24,10 +24,6 @@
   ansible.builtin.systemd:
     name:                              pacemaker.timer
     enabled:                           true
-
-- name:                                "1.17 Generic Pacemaker - Start pacemaker.timer"
-  ansible.builtin.systemd:
-    name:                              pacemaker.timer
     state:                             started
 
 - name:                                "1.17 Generic Pacemaker - Check if SBD sysconfig file exists"
