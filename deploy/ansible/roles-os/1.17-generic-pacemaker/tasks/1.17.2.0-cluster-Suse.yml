@@ -319,14 +319,14 @@
           ansible.builtin.shell: |
                                        crm configure primitive stonith-sbd stonith:external/sbd \
                                          params pcmk_delay_max="15" \
-                                         op monitor interval="600" timeout="15"
+                                         op monitor interval="600" timeout="120"
 
     - name:                            "1.17 Generic Pacemaker - Ensure Stonith SBD is configured in cluster"
       when:                            stonith_sbd_configured.rc != 0
       ansible.builtin.shell: |
                                        crm configure primitive stonith-sbd stonith:external/sbd \
                                          params pcmk_delay_max="15" \
-                                         op monitor interval="600" timeout="15"
+                                         op monitor interval="600" timeout="120"
 
     - name:                            "1.17 Generic Pacemaker - Set the Stonith SBD Timeout Property"
       ansible.builtin.shell:           crm configure property stonith-timeout=210
