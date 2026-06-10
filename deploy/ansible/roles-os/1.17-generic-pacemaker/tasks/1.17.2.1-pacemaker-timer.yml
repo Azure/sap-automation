@@ -31,7 +31,7 @@
   ansible.builtin.stat:
     path:                              /etc/sysconfig/sbd
   register:                            sbd_sysconfig_file
- 
+
 - name:                                "1.17 Generic Pacemaker - Disable SBD_DELAY_START (timer handles delay)"
   when:
                                        - cluster_stonith_type in ['ASD', 'ISCSI']
