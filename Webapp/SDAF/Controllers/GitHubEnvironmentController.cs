@@ -42,6 +42,7 @@ namespace SDAFWebApp.Controllers
             _sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
 
             _helper = new GitHubEnvironmentHelper(_ghToken, _ghOrganization, _ghRepository);
+        }
 
         [ActionName("Index")]
         public async Task<IActionResult> IndexAsync()
