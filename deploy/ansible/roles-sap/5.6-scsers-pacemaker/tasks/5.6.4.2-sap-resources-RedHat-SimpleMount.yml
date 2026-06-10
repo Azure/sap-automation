@@ -127,7 +127,7 @@
                                        pcs resource create rsc_SAPInstance_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:heartbeat:SAPInstance \
                                        InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
                                        START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
-                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true \
+                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true IS_ERS=true\
                                        meta priority=10 \
                                        --group g-{{ sap_sid | upper }}_ERS \
                                        op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
