@@ -19,6 +19,7 @@ def main():
     print("  - User Access Administrator: For assigning roles to resources")
     print("  - Contributor: For creating and managing Azure resources")
     print("  - Storage Blob Data Owner: For accessing blob storage data")
+    print("  - Storage Table Data Contributor: For accessing table storage data")
     print("  - Key Vault Administrator: For managing secrets in Key Vault")
     print("  - App Configuration Data Owner: For managing app configuration data")
     print("\nThe script will attempt to assign these roles, but if you don't have sufficient permissions,")
@@ -161,6 +162,7 @@ def main():
                 "Contributor",
                 "User Access Administrator",
                 "Storage Blob Data Owner",
+                "Storage Table Data Contributor",
                 "Key Vault Administrator",
                 "App Configuration Data Owner",
                 "Network Contributor"
@@ -267,6 +269,15 @@ def main():
             print("Cannot continue without creating the service principal. Exiting.")
             sys.exit(1)
 
+    # Create App Registration for the Web Application
+    app_reg_data = None
+    if user_data.get("use_webapp") and user_data.get("app_registration_name"):
+        print("\nCreating App Registration for the SDAF Web Application...")
+        app_reg_data = azure_ops.create_app_registration(user_data["app_registration_name"])
+        if not app_reg_data:
+            print("Warning: Failed to create App Registration.")
+            print("APP_REGISTRATION_APP_ID and APP_REGISTRATION_OBJECTID will not be configured.")
+
     print("\nGenerating GitHub secrets...\n")
 
     # Enter GitHub token to add repository secrets
@@ -339,6 +350,12 @@ def main():
         environment_secrets["ARM_CLIENT_SECRET"] = spn_data["password"]
         print("Environment configuration prepared for Service Principal (USE_MSI=false)")
 
+    # Add App Registration variables if webapp is enabled
+    if app_reg_data:
+        environment_variables["APP_REGISTRATION_APP_ID"] = app_reg_data["app_id"]
+        environment_variables["APP_REGISTRATION_OBJECTID"] = app_reg_data["object_id"]
+        print("✓ App Registration variables added to environment configuration.")
+
     # Add SAP S-User password and PAT to Environment secrets, with a placeholder if not provided
     environment_secrets["S_PASSWORD"] = user_data["s_password"] if user_data["s_password"] else "Add SAP S Password here"
     environment_secrets["PAT"] = user_data["token"]
@@ -381,6 +398,17 @@ def main():
         print(f"   - Service Principal Object ID: {spn_data['object_id']}")
 
     print(f"   - Subscription ID: {user_data['subscription_id']}")
+
+    if user_data.get("use_webapp"):
+        print(f"\n- Web Application:")
+        print(f"   - App Registration Name: {user_data.get('app_registration_name')}")
+        if app_reg_data:
+            print(f"   - APP_REGISTRATION_APP_ID: {app_reg_data['app_id']}")
+            print(f"   - APP_REGISTRATION_OBJECTID: {app_reg_data['object_id']}")
+        else:
+            print("   - App Registration: not configured (creation failed)")
+    else:
+        print("\n- Web Application: disabled")
 
     # Trigger the environment creation workflow
     workflow_id = "00-create-environment.yml"

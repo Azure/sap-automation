@@ -35,7 +35,7 @@ provider "azurerm"                     {
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          storage_use_azuread        = !var.shared_access_key_enabled
                                          subscription_id            = var.subscription_id
-                                         use_msi                    = true
+                                         use_msi                    = var.use_spn ? false : true
 
                                        }
 
@@ -123,7 +123,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.70.0"
+                                                                           version = "4.76.0"
                                                                          }
                                                               azapi =   {
                                                                            source  = "Azure/azapi"

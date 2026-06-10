@@ -1,9 +1,9 @@
 FROM mcr.microsoft.com/azurelinux/base/core:3.0
 
-ARG TF_VERSION=1.14.1
+ARG TF_VERSION=1.15.5.1
 ARG YQ_VERSION=v4.42.1
-ARG NODE_VERSION=18.19.1
-ARG ANSIBLE_VERSION=2.16.5
+ARG NODE_VERSION=26.1.0
+ARG ANSIBLE_VERSION=2.16.18
 
 # Install core utilities and system tools
 RUN tdnf install -y \
@@ -36,7 +36,7 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 # Install development tools and languages
 RUN tdnf install -y \
-  dotnet-sdk-8.0 \
+  dotnet-sdk-9.0 \
   python3 \
   python3-pip \
   python3-virtualenv \
@@ -87,13 +87,6 @@ RUN pip3 install --no-cache-dir \
     chmod \
     pyyaml
 
-# Copy BOM files
-COPY SAP-automation-samples /source/SAP-automation-samples
-COPY . /source
-
-ENV SAP_AUTOMATION_REPO_PATH=/source
-ENV SAMPLE_REPO_PATH=/source/SAP-automation-samples
-
 RUN useradd -m -s /bin/bash azureadm && \
     usermod -aG sudo azureadm && \
     echo "azureadm ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/azureadm && \
@@ -104,7 +97,13 @@ RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 RUN echo "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /root/.ssh/config && \
     chmod 600 /root/.ssh/config
 
+COPY . /source
+ENV SAP_AUTOMATION_REPO_PATH=/source
 WORKDIR /source
+
+# Build and publish the Web app as part of the image build.
+RUN dotnet restore /source/Webapp/SDAF/SDAFWebApp.csproj && \
+        dotnet publish /source/Webapp/SDAF/SDAFWebApp.csproj -c Release -o /source/Webapp/SDAF/publish /p:UseAppHost=false
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD terraform version && ansible --version && az version || exit 1

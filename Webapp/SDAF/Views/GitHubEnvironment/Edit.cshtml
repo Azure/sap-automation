@@ -1,0 +1,67 @@
+@model GHEnvironmentModel
+
+@{
+    ViewBag.Title = "Edit environment";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+    window.onload = function () {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Environment")">Environments</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Edit</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>@Model.Name </h2>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+        <div class="notificationInner">
+            <span class="notificationText">
+                @Html.ValidationSummary(false)
+            </span>
+        </div>
+    </div>
+}
+
+<form class="wrapper" asp-controller="githubenvironment" asp-action="edit">
+    @Html.AntiForgeryToken()
+
+    <div class="parameters">
+        <p>Note, any values left blank will be updated as such.</p>
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("newName", "Environment name", new { @class = $"ms-Label required" })
+                <p>Environment name. </p>
+            </div>            
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("description", "Description", new { @class = $"ms-Label" })
+                <p>Add a description for the variable group. </p>
+            </div>
+            <div class="right-input">
+                @Html.TextBox("description", Model.Description, new { @class = "ms-TextField-field" })
+            </div>
+        </div>
+        @Html.HiddenFor(m => m.Name )
+
+    </div>
+
+    <fluent-button appearance="accent" style="margin-top: 15px" type="submit">
+        Save
+    </fluent-button>
+
+    <fluent-anchor href="@Url.Action("Index", "GitHubEnvironment")">
+        Back
+    </fluent-anchor>
+</form>

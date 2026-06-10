@@ -12,12 +12,12 @@
     <h2>Existing @(displayName.ToLower() + "s")</h2>
     <p>
         <a href=@adoRepoUrl target="_blank" rel="noopener noreferrer">
-            Azure DevOps repository (@displayName.ToUpper())
+            Repository (@displayName.ToUpper())
         </a>
     </p>
     <p>
         <a href=@adoPipelineUrl target="_blank" rel="noopener noreferrer">
-            Azure DevOps Pipelines
+            Pipelines/Actions
         </a>
     </p>
     <p>
@@ -27,20 +27,29 @@
     </p>
 </div>
 
-<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
-    <div class="notificationInner">
-        <span class="notificationText">
-            @TempData["success"]
-        </span>
+@if (TempData["success"] != null)
+{
+    <div class="notificationContainer alert-success" role="alert" data-timeout="5000">
+        <div class="notificationInner">
+            <span class="notificationText">@TempData["success"]</span>
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
-</div>
-<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
-    <div class="notificationInner">
-        <span class="notificationText">
-            @TempData["error"]
-        </span>
+}
+
+@if (TempData["error"] != null)
+{
+    <div class="notificationContainer alert-danger" role="alert" data-timeout="10000">
+        <div class="notificationInner">
+            <span class="notificationText">@TempData["error"]</span>
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
-</div>
+}
 
 
 <div class="table-scroll">

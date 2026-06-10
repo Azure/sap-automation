@@ -36,6 +36,13 @@ set -eu
 print_header
 echo ""
 
+if [ "$PLATFORM" == "github" ]; then
+    DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+    ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+    LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+    NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+    LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
+fi
 deployer_tfvars_file_name="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_FOLDERNAME.tfvars"
 library_tfvars_file_name="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_FOLDERNAME.tfvars"
 
@@ -383,7 +390,7 @@ if [ "$PLATFORM" == "github" ]; then
 	TF_VAR_github_repository=${GITHUB_REPOSITORY}
 	export TF_VAR_github_repository
 
-	TF_VAR_devops_platform="github"
+	TF_VAR_devops_platform="GITHUB"
 	export TF_VAR_devops_platform
 fi
 

@@ -1,0 +1,74 @@
+@model GHEnvironmentModel
+
+@{
+ViewBag.Title = "Create GitHub environment";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+    window.onload = function () {
+        $('.notificationContainer').delay(6000).fadeOut();
+    }
+
+    var submitting = false;
+    window.onbeforeunload = function () {
+        if (!submitting) {
+            return "";
+        }
+    };
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "GitHubEnvironment")">Environments</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Create</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>New environment</h2>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="notificationContainer" style="display: flex; background: rgb(253, 231, 233);">
+        <div class="notificationInner">
+            <span class="notificationText">
+                @Html.ValidationSummary(false)
+            </span>
+        </div>
+    </div>
+}
+
+<form class="wrapper" asp-controller="githubenvironment" asp-action="create">
+    @Html.AntiForgeryToken()
+
+    <div class="parameters">
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("newName", "GitHub Environment name", new { @class = $"ms-Label required" })
+                <p>Name of the environment.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBox("newName", "", new { @class = "ms-TextField-field" })
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("description", "Description", new { @class = $"ms-Label" })
+                <p>Add a description for the environment. </p>
+            </div>
+            <div class="right-input">
+                @Html.TextBox("description", Model.Description, new { @class = "ms-TextField-field" })
+            </div>
+        </div>
+    </div>
+
+    <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+        Submit
+    </fluent-button>
+
+    <fluent-anchor href="@Url.Action("Index", "GitHubEnvironment")">
+        Cancel
+    </fluent-anchor>
+</form>

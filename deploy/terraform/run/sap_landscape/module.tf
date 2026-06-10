@@ -57,6 +57,7 @@ module "sap_landscape" {
   use_private_endpoint                         = var.use_private_endpoint
   use_service_endpoint                         = var.use_service_endpoint
   vm_settings                                  = local.vm_settings
+  utility_storage_settings                     = local.utility_storage_settings
   witness_storage_account                      = local.witness_storage_account
   dns_settings                                 = local.dns_settings
   data_plane_available                         = var.data_plane_available
@@ -71,5 +72,6 @@ module "sap_namegenerator" {
   random_id                                    = coalesce(var.custom_random_id, module.sap_landscape.random_id)
   sap_vnet_name                                = var.network_logical_name
   utility_vm_count                             = var.utility_vm_count
+  utility_storage_count                        = length(local.utility_storage_settings)
 }
 

@@ -185,6 +185,12 @@
       register:                        helper_script_created
 
     # touch /etc/mdadm/mdadm.conf to avoid errors in the script
+    - name:                            "1.1 Swap - Ensure /etc/mdadm directory exists"
+      ansible.builtin.file:
+        path:                          /etc/mdadm
+        state:                         directory
+        mode:                          '0755'
+
     - name:                            "1.1 Swap - Ensure /etc/mdadm/mdadm.conf exists"
       ansible.builtin.file:
         path:                          /etc/mdadm/mdadm.conf
@@ -206,6 +212,44 @@
           - "stdout: {{ nvme_swap_configured.stdout | default('') }}"
           - "stderr: {{ nvme_swap_configured.stderr | default('') }}"
         verbosity:                     2
+
+    # Create swap file on the NVMe temp disk mount
+    # waagent cannot manage swap on NVMe VMs (ResourceDiskError: unable to detect disk topology)
+    # so we create the swap file explicitly
+    - name:                            "1.1 Swap - Copy NVMe swap creation script"
+      ansible.builtin.copy:
+        src:                           create-nvme-swap.sh
+        dest:                          /usr/local/bin/create-nvme-swap.sh
+        mode:                          '0755'
+        owner:                         root
+        group:                         root
+        force:                         true
+
+    - name:                            "1.1 Swap - Create swap file on NVMe temp disk"
+      ansible.builtin.command:         /usr/local/bin/create-nvme-swap.sh {{ swap_size_mb }} /mnt/resource
+      vars:
+        swap_size_mb:                  "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
+      register:                        nvme_swap_file_created
+      changed_when:                    "'already exists' not in nvme_swap_file_created.stdout"
+
+    # Deploy a cloud-init per-boot script to recreate swap after VM restarts
+    # NVMe temp disk data is lost on stop/deallocate; the RAID0 config persists
+    # in initramfs but the swap file needs to be recreated
+    - name:                            "1.1 Swap - Ensure cloud-init per-boot directory exists"
+      ansible.builtin.file:
+        path:                          /var/lib/cloud/scripts/per-boot
+        state:                         directory
+        mode:                          '0755'
+
+    - name:                            "1.1 Swap - Deploy per-boot swap recreation script for NVMe"
+      ansible.builtin.template:
+        src:                           create-swap-perboot.sh.j2
+        dest:                          /var/lib/cloud/scripts/per-boot/create-swap.sh
+        mode:                          '0755'
+        owner:                         root
+        group:                         root
+      vars:
+        swap_size_mb:                  "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
 
 - name:                                "1.1 Swap - Check for (waagent_conf)"
   ansible.builtin.stat:
@@ -278,7 +322,7 @@
 
 - name:                                "1.1 Swap - Reboot"
   when:
-    - wagent_configuration.changed
+    - wagent_configuration is changed
   block:
 
     - name:                            "1.1 Swap - Reboot"
@@ -296,5 +340,20 @@
       ansible.builtin.wait_for_connection:
         delay:                         10
         timeout:                       300
+
+    # This is a temporary workaround to ensure that systemd is fully running before we proceed with any other tasks,
+    # as the swap configuration may not be fully applied until systemd is running.
+    # This was added in response to an issue where subsequent tasks were failing due to systemd not being in a
+    # running state after the reboot.
+    - name: "1.1 Swap - Wait for systemd to be in a running state after reboot"
+      ansible.builtin.command: systemctl is-system-running
+      register: systemd_status
+      until: systemd_status.stdout == "running"
+      retries: 30
+      delay: 10
+      failed_when: systemd_status.rc > 1
+      changed_when: false
+      tags:
+        - skip_ansible_lint
 
 ...

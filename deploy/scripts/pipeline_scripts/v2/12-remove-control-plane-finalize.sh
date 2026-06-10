@@ -14,6 +14,14 @@ if [ "$PLATFORM" == "devops" ]; then
     echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLOYER_FOLDERNAME "
 fi
 
+if [ "$PLATFORM" == "github" ]; then
+    DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+    ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+    LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+    NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+    LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
+fi
+
 #External helper functions
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
@@ -265,11 +273,13 @@ echo -e "$green--- Control Plane deployment---$reset_formatting"
 
 # Platform-specific flags
 if [ "$PLATFORM" == "devops" ]; then
-    platform_flag="--ado"
-    elif [ "$PLATFORM" == "github" ]; then
-    # Set required environment variables for GitHub
-    export USER=${GITHUB_ACTOR:-githubuser}
-    export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
+	platform_flag="--ado"
+	TF_VAR_devops_platform="ADO"
+	export TF_VAR_devops_platform
+elif [ "$PLATFORM" == "github" ]; then
+	# Set required environment variables for GitHub
+	export USER=${GITHUB_ACTOR:-githubuser}
+	export DEPLOYER_KEYVAULT=${DEPLOYER_KEYVAULT:-""}
 
     platform_flag="--github"
 

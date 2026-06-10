@@ -12,14 +12,14 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Removing the system defined in $SAP_SYSTEM_FOLDERNAME"
-	DEBUG=false
-	if [ "${SYSTEM_DEBUG:-False}" == True ]; then
-		set -x
-		DEBUG=true
-		echo "Environment variables:"
-		printenv | sort
-	fi
+    echo "##vso[build.updatebuildnumber]Removing the system defined in $SAP_SYSTEM_FOLDERNAME"
+    DEBUG=false
+    if [ "${SYSTEM_DEBUG:-False}" == True ]; then
+        set -x
+        DEBUG=true
+        echo "Environment variables:"
+        printenv | sort
+    fi
 fi
 
 # External helper functions
@@ -41,25 +41,25 @@ echo ""
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
-	# Configure DevOps
-	configure_devops
+    # Configure DevOps
+    configure_devops
 
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
-	platform_flag="--ado"
-elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	# Values will be stored in GitHub Environment variables
-	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
-	git config --global --add safe.directory "$CONFIG_REPO_PATH"
-	platform_flag="--github"
+    if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+        echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+        echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+        exit 2
+    fi
+    export VARIABLE_GROUP_ID
+    platform_flag="--ado"
+    elif [ "$PLATFORM" == "github" ]; then
+    # No specific variable group setup for GitHub Actions
+    # Values will be stored in GitHub Environment variables
+    echo "Configuring for GitHub Actions"
+    export VARIABLE_GROUP_ID="${CONTROL_PLANE_NAME}"
+    git config --global --add safe.directory "$CONFIG_REPO_PATH"
+    platform_flag="--github"
 else
-	platform_flag=""
+    platform_flag=""
 fi
 
 banner_title="Remove SAP System"
@@ -71,59 +71,59 @@ tfvarsFile="SYSTEM/$SAP_SYSTEM_FOLDERNAME/$SAP_SYSTEM_TFVARS_FILENAME"
 cd "${CONFIG_REPO_PATH}" || exit
 
 if [ "$PLATFORM" == "devops" ]; then
-	git pull -q origin "$BUILD_SOURCEBRANCHNAME"
-elif [ "$PLATFORM" == "github" ]; then
-	git pull -q origin "$GITHUB_REF_NAME"
+    git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+    elif [ "$PLATFORM" == "github" ]; then
+    git pull -q origin "$GITHUB_REF_NAME"
 fi
 
 if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
-	print_banner "$banner_title" "$SAP_SYSTEM_TFVARS_FILENAME was not found" "error"
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
-	fi
-	exit 2
+    print_banner "$banner_title" "$SAP_SYSTEM_TFVARS_FILENAME was not found" "error"
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]File $SAP_SYSTEM_TFVARS_FILENAME was not found."
+    fi
+    exit 2
 fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.14.5}"
+    configureNonDeployer "${tf_version:-1.14.5}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
 
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "$USE_MSI" != "true" ]; then
+    if [ "$USE_MSI" != "true" ]; then
 
-		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-		export ARM_TENANT_ID
-		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-		export ARM_SUBSCRIPTION_ID
-	else
-		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-	fi
-	LogonToAzure "${USE_MSI:-false}"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
+        ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+        export ARM_TENANT_ID
+        ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_SUBSCRIPTION_ID
+    else
+        unset ARM_CLIENT_SECRET
+        ARM_USE_MSI=true
+        export ARM_USE_MSI
+    fi
+    LogonToAzure "${USE_MSI:-false}"
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        echo -e "$bold_red--- Login failed ---$reset"
+        echo "##vso[task.logissue type=error]az login failed."
+        exit $return_code
+    fi
 else
-	if [ "$USE_MSI" == "true" ]; then
-		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-		echo "Deployment credentials:              Managed Service Identity"
-  else
-		echo "Deployment credentials:              Service Principal"
-	fi
+    if [ "$USE_MSI" == "true" ]; then
+        unset ARM_CLIENT_SECRET
+        ARM_USE_MSI=true
+        export ARM_USE_MSI
+        echo "Deployment credentials:              Managed Service Identity"
+    else
+        echo "Deployment credentials:              Service Principal"
+    fi
 
 fi
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-	export APPLICATION_CONFIGURATION_ID
+    APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+    export APPLICATION_CONFIGURATION_ID
 fi
 
 APPLICATION_CONFIGURATION_SUBSCRIPTION_ID=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d '/' -f 3)
@@ -171,80 +171,80 @@ echo "SID:                                 $SID"
 echo "SID(filename):                       $SID_IN_FILENAME"
 
 if [ "$ENVIRONMENT" != "$ENVIRONMENT_IN_FILENAME" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	fi
-	exit 2
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "##vso[task.logissue type=error]The environment setting in $SAP_SYSTEM_TFVARS_FILENAME '$ENVIRONMENT' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$ENVIRONMENT_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+    fi
+    exit 2
 fi
 
 if [ "$LOCATION" != "$LOCATION_IN_FILENAME" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	fi
-	exit 2
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "##vso[task.logissue type=error]The location setting in $SAP_SYSTEM_TFVARS_FILENAME '$LOCATION' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$LOCATION_IN_FILENAME'. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+    fi
+    exit 2
 fi
 
 if [ "$NETWORK" != "$NETWORK_IN_FILENAME" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
-	fi
-	exit 2
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "##vso[task.logissue type=error]The network_logical_name setting in $SAP_SYSTEM_TFVARS_FILENAME '$NETWORK' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$NETWORK_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-INFRASTRUCTURE"
+    fi
+    exit 2
 fi
 
 if [ "$SID" != "$SID_IN_FILENAME" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
-	fi
-	exit 2
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "##vso[task.logissue type=error]The sid setting in $SAP_SYSTEM_TFVARS_FILENAME '$SID' does not match the $SAP_SYSTEM_TFVARS_FILENAME file name '$SID_IN_FILENAME-. Filename should have the pattern [ENVIRONMENT]-[REGION_CODE]-[NETWORK_LOGICAL_NAME]-[SID]"
+    fi
+    exit 2
 fi
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-	ZONE="${CONTROL_PLANE_NAME}"
-	export ZONE
-	tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId")
-	key_vault_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultResourceId")
-	key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
+    ZONE="${CONTROL_PLANE_NAME}"
+    export ZONE
+    tfstate_resource_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId")
+    key_vault_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_KeyVaultResourceId")
+    key_vault=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
-	workload_key_vault=$(get_value_with_key "${WORKLOAD_ZONE_NAME}_KeyVaultName")
+    workload_key_vault=$(get_value_with_key "${WORKLOAD_ZONE_NAME}_KeyVaultName")
 
-	management_subscription_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_SubscriptionId")
-	TF_VAR_management_subscription_id=${management_subscription_id}
-	export TF_VAR_management_subscription_id
+    management_subscription_id=$(get_value_with_key "${CONTROL_PLANE_NAME}_SubscriptionId")
+    TF_VAR_management_subscription_id=${management_subscription_id}
+    export TF_VAR_management_subscription_id
 else
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
-	else
-		echo "::warning title=Application Configuration ID Not Defined::Variable APPLICATION_CONFIGURATION_ID was not defined."
-	fi
-	load_config_vars "${workload_environment_file_name}" "keyvault"
-	key_vault="$keyvault"
-	load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
-	key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=warning]Variable APPLICATION_CONFIGURATION_ID was not defined."
+    else
+        echo "::warning title=Application Configuration ID Not Defined::Variable APPLICATION_CONFIGURATION_ID was not defined."
+    fi
+    load_config_vars "${workload_environment_file_name}" "keyvault"
+    key_vault="$keyvault"
+    load_config_vars "${workload_environment_file_name}" "tfstate_resource_id"
+    key_vault_id=$(az resource list --name "${keyvault}" --subscription "$ARM_SUBSCRIPTION_ID" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 fi
 
 if [ -z "$key_vault" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
-	fi
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "##vso[task.logissue type=error]Key vault name (${CONTROL_PLANE_NAME}_KeyVaultName) was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
+    fi
 fi
 
 if [ -z "$tfstate_resource_id" ]; then
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
-	elif [ "$PLATFORM" == "github" ]; then
-		echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
-	fi
-	exit 2
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "##vso[task.logissue type=error]Terraform state storage account resource id ('${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId') was not found in the application configuration ( '$APPLICATION_CONFIGURATION_NAME' nor was it defined in ${workload_environment_file_name})."
+    fi
+    exit 2
 fi
 
 export TF_VAR_spn_keyvault_id=${key_vault_id}
@@ -287,132 +287,162 @@ allParameters+=(--workload_zone_name "${WORKLOAD_ZONE_NAME}")
 allParameters+=(--type sap_system)
 allParameters+=(--auto-approve)
 if [ "$PLATFORM" == "devops" ]; then
-	allParameters+=(--ado)
-elif [ "$PLATFORM" == "github" ]; then
-	allParameters+=(--github)
+    allParameters+=(--ado)
+    elif [ "$PLATFORM" == "github" ]; then
+    allParameters+=(--github)
 fi
 
 echo "Calling sdaf_remover with: ${allParameters[*]}"
 echo ""
 
 if sdaf_remover "${allParameters[@]}"; then
-	return_code=$?
-	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
+    return_code=$?
+    print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME succeeded" "success" "Return code: ${return_code}"
 else
-	return_code=$?
-	print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
+    return_code=$?
+    print_banner "$banner_title" "The removal of $SAP_SYSTEM_TFVARS_FILENAME failed" "error" "Return code: ${return_code}"
 fi
 
 if [ 0 != $return_code ]; then
-	echo "##vso[task.logissue type=error]Return code from remover $return_code."
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=error]Return code from remover $return_code."
+        elif [ "$PLATFORM" == "github" ]; then
+        echo "::error title=Remover Failed::Return code from remover $return_code."
+    fi
 else
-	if [ 0 == $return_code ]; then
-		# Pull changes if there are other deployment jobs
-		if [ "$PLATFORM" == "devops" ]; then
-			git pull -q origin "$BUILD_SOURCEBRANCHNAME"
-			git checkout -q "$BUILD_SOURCEBRANCHNAME"
-		elif [ "$PLATFORM" == "github" ]; then
-			git pull -q origin "$GITHUB_REF_NAME"
-		fi
+    # Pull changes if there are other deployment jobs
+    if [ "$PLATFORM" == "devops" ]; then
+        git pull -q origin "$BUILD_SOURCEBRANCHNAME"
+        git checkout -q "$BUILD_SOURCEBRANCHNAME"
+        elif [ "$PLATFORM" == "github" ]; then
+        git pull -q origin "$GITHUB_REF_NAME"
+    fi
+    output_file="readme.md"
+    now=$(date +"%d of %b %Y at %H:%M:%S")
+    {
+        printf "**SAP System Infrastructure Removal**\n\n\n" >"$output_file"
+        printf "The SAP system infrastructure defined in %s has been removed on %s. The following files have been deleted from the repository:\n\n" "$SAP_SYSTEM_TFVARS_FILENAME" "$now" >>"$output_file"
+        if [ -f "sap-parameters.yaml" ]; then
+            printf "\t sap-parameters.yaml\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_hosts.yaml" ]; then
+            printf "\t ${SID}_hosts.yaml\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_inventory.md" ]; then
+            printf "\t ${SID}_inventory.md\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_virtual_machines.json" ]; then
+            printf "\t ${SID}_virtual_machines.json\n" >>"$output_file"
+        fi
+        if [ -d "logs" ]; then
+            printf "\t logs/ (directory)\n" >>"$output_file"
+        fi
+    }
 
-		# Clean up untracked files and directories, including ignored files, to ensure a clean working directory
-		git clean -d -f -X
 
-		if [ -f ".terraform/terraform.tfstate" ]; then
-			git rm -f --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
-			changed=1
-		fi
+    # Clean up untracked files and directories, including ignored files, to ensure a clean working directory
+    git clean -d -f -X
 
-		if [ -d ".terraform" ]; then
-			git rm -q -r --ignore-unmatch ".terraform"
-			changed=1
-		fi
+    if [ -f ".terraform/terraform.tfstate" ]; then
+        git rm -f --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
+        changed=1
+    fi
 
-		if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
-			git add "$SAP_SYSTEM_TFVARS_FILENAME"
-			changed=1
-		fi
+    if [ -d ".terraform" ]; then
+        git rm -q -r --ignore-unmatch ".terraform"
+        changed=1
+    fi
 
-		if [ -f "sap-parameters.yaml" ]; then
-			git rm -f --ignore-unmatch -q "sap-parameters.yaml"
-			changed=1
-		fi
+    if [ -f "$SAP_SYSTEM_TFVARS_FILENAME" ]; then
+        git add "$SAP_SYSTEM_TFVARS_FILENAME"
+        changed=1
+    fi
 
-		if [ -f "${SID}_hosts.yaml" ]; then
-			git rm -f --ignore-unmatch -q "${SID}_hosts.yaml"
-			changed=1
-		fi
+    if [ -f "sap-parameters.yaml" ]; then
+        git rm -f --ignore-unmatch -q "sap-parameters.yaml"
+        changed=1
+    fi
 
-		if [ -f "${SID}.md" ]; then
-			git rm -f --ignore-unmatch -q "${SID}.md"
-			changed=1
-		fi
+    if [ -f "${SID}_hosts.yaml" ]; then
+        git rm -f --ignore-unmatch -q "${SID}_hosts.yaml"
+        changed=1
+    fi
 
-		if [ -f "readme.md" ]; then
-			git rm --ignore-unmatch -q "readme.md"
-			changed=1
-		fi
+    if [ -f "${SID}.md" ]; then
+        git rm -f --ignore-unmatch -q "${SID}.md"
+        changed=1
+    fi
 
-		if [ -f "${SID}_inventory.md" ]; then
-			git rm --ignore-unmatch -q "${SID}_inventory.md"
-			changed=1
-		fi
+    if [ -f "readme.md" ]; then
+        git add "readme.md"
+        changed=1
+    fi
 
-		if [ -f "${SID}_virtual_machines.json" ]; then
-			git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
-			changed=1
-		fi
+    if [ -f "${SID}_inventory.md" ]; then
+        git rm --ignore-unmatch -q "${SID}_inventory.md"
+        changed=1
+    fi
 
-		if [ -d "logs" ]; then
-			git rm -q -r --ignore-unmatch "logs"
-			changed=1
-		fi
+    if [ -f "${SID}_virtual_machines.json" ]; then
+        git rm --ignore-unmatch -q "${SID}_virtual_machines.json"
+        changed=1
+    fi
 
-		# Commit changes based on platform
-		if [ 1 == $changed ]; then
-			commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
-			if [ "$PLATFORM" == "devops" ]; then
-				git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
-				git config --global user.name "$BUILD_REQUESTEDFOR"
+    if [ -d "logs" ]; then
+        git rm -q -r --ignore-unmatch "logs"
+        changed=1
+    fi
 
-			elif [ "$PLATFORM" == "github" ]; then
-				git config --global user.email "github-actions@github.com"
-				git config --global user.name "GitHub Actions"
-			else
-				git config --global user.email "local@example.com"
-				git config --global user.name "Local User"
-			fi
+    # Commit changes based on platform
+    if [ 1 == $changed ]; then
+        commit_message="Added updates from SAP System Infrastructure Removal of $SAP_SYSTEM_FOLDERNAME [skip ci]"
+        if [ "$PLATFORM" == "devops" ]; then
+            git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
+            git config --global user.name "$BUILD_REQUESTEDFOR"
 
-			if [ "$DEBUG" = True ]; then
-				git status --verbose
-				if git commit --message --verbose "$commit_message"; then
-					if [ "$PLATFORM" == "devops" ]; then
-						if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-							echo "Failed to push changes to the repository."
-						fi
-					elif [ "$PLATFORM" == "github" ]; then
-						if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-							echo "Failed to push changes to the repository."
-						fi
-					fi
-				fi
-			else
-				if git commit -m "$commit_message"; then
-					if [ "$PLATFORM" == "devops" ]; then
-						if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
-							echo "Failed to push changes to the repository."
-						fi
-					elif [ "$PLATFORM" == "github" ]; then
-						if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
-							echo "Failed to push changes to the repository."
-						fi
-					fi
-				fi
-			fi
-		fi
+            elif [ "$PLATFORM" == "github" ]; then
+            git config --global user.email "github-actions@github.com"
+            git config --global user.name "GitHub Actions"
+        else
+            git config --global user.email "local@example.com"
+            git config --global user.name "Local User"
+        fi
 
-		print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
+        if [ "$DEBUG" = True ]; then
+            git status --verbose
+            if git commit --message --verbose "$commit_message"; then
+                if [ "$PLATFORM" == "devops" ]; then
+                    if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                    elif [ "$PLATFORM" == "github" ]; then
+                    if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                fi
+            fi
+        else
+            if git commit -m "$commit_message"; then
+                if [ "$PLATFORM" == "devops" ]; then
+                    if ! git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BUILD_SOURCEBRANCHNAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                    elif [ "$PLATFORM" == "github" ]; then
+                    if ! git push --set-upstream origin "$GITHUB_REF_NAME" --force-with-lease; then
+                        echo "Failed to push changes to the repository."
+                    fi
+                fi
+            fi
+        fi
 
-	fi
+        if [ "$PLATFORM" == "github" ]; then
+            cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
+        else
+            echo "##vso[task.uploadsummary]${output_file}"
+        fi
+    fi
+
+    print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
+
 fi
 exit $return_code

@@ -5,7 +5,8 @@
 #   mdadm
 #   gdisk
 
-readonly USAGE="Usage: $(basename "$0") <filesystem> <filesystem mount point (optional)>"
+script_name="$(basename "$0")"
+readonly USAGE="Usage: ${script_name} <filesystem> <filesystem mount point (optional)>"
 
 # Label used to identify the NVMe array file system and associated disks
 # Can't exceed 16 characters
@@ -128,7 +129,7 @@ fi
 # Initialize enumerated disks as RAID 0
 printf "Creating RAID 0 array from:\n"
 printf "${nvme_direct_disks[*]}\n\n"
-if ! mdadm --create $RAID0_DEVICE_PATH --verbose $additional_mdadm_params --name=$RAID0_FILESYSTEM_LABEL --level=0 --raid-devices=$nvme_direct_disk_count ${nvme_direct_disks[*]}; then
+if ! mdadm --create $RAID0_DEVICE_PATH --verbose $additional_mdadm_params --name=$RAID0_FILESYSTEM_LABEL --level=0 --raid-devices=$nvme_direct_disk_count "${nvme_direct_disks[@]}"; then
     printf "Failed to create RAID 0 array\n"
     exit 1
 fi
@@ -156,18 +157,35 @@ echo "LABEL=$RAID0_FILESYSTEM_LABEL $mount_point $filesystem defaults,nofail 0 0
 
 # Add RAID 0 array to mdadm.conf
 mdadm --detail --scan >> $mdadm_conf_path
-# Update initramfs to include the new mdadm configuration for OS other than RHEL/OracleLinux
-if ! grep -E "ID=RHEL|ID=\"OracleLinux\"" /etc/os-release > /dev/null; then
-    printf "\nUpdating initramfs with new mdadm configuration..\n"
-    update-initramfs -u
+# Update initramfs/dracut based on distro family derived from /etc/os-release
+os_id=""
+if [ -r /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    os_id="${ID,,}"
+fi
+
+if [[ "$os_id" == "rhel" || "$os_id" == "ol" || "$os_id" == "oraclelinux" ]]; then
+    printf "\nUpdating dracut with new mdadm configuration..\n"
+    dracut -f
     if [ $? -ne 0 ]; then
         printf "Failed to update initramfs\n"
         exit 1
     fi
     printf "The operation has completed successfully.\n"
-elif grep -E "ID=RHEL|ID=\"OracleLinux\"" /etc/os-release > /dev/null;  then
-    printf "\nUpdating dracut with new mdadm configuration..\n"
-    dracut -f
+else
+    # Prefer update-initramfs where available; fall back to dracut (for example on SLES)
+    if command -v update-initramfs > /dev/null 2>&1; then
+        printf "\nUpdating initramfs with new mdadm configuration..\n"
+        update-initramfs -u
+    elif command -v dracut > /dev/null 2>&1; then
+        printf "\nUpdating dracut with new mdadm configuration..\n"
+        dracut -f
+    else
+        printf "No supported initramfs regeneration tool found (update-initramfs/dracut)\n"
+        exit 1
+    fi
+
     if [ $? -ne 0 ]; then
         printf "Failed to update initramfs\n"
         exit 1

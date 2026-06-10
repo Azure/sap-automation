@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Downloading the software defined in $BOM_NAME"
+    echo "##vso[build.updatebuildnumber]Downloading the software defined in $BOM_NAME"
 fi
 
 # External helper functions
@@ -31,10 +31,10 @@ SCRIPT_NAME="$(basename "$0")"
 DEBUG=false
 
 if [ "${SYSTEM_DEBUG:-False}" = True ]; then
-  set -x
-  DEBUG=True
-	echo "Environment variables:"
-	printenv | sort
+    set -x
+    DEBUG=True
+    echo "Environment variables:"
+    printenv | sort
 
 fi
 export DEBUG
@@ -46,82 +46,82 @@ echo ""
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
-	# Configure DevOps
-	configure_devops
+    # Configure DevOps
+    configure_devops
 
-	platform_flag="--ado"
+    platform_flag="--ado"
 
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
-	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
-		echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
-	else
-		echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-		echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
-	fi
+    if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+        echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset_formatting"
+        echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+        exit 2
+    fi
+    export VARIABLE_GROUP_ID
+    if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "CONTROL_PLANE_NAME" "$CONTROL_PLANE_NAME"; then
+        echo "Variable CONTROL_PLANE_NAME was added to the $VARIABLE_GROUP variable group."
+    else
+        echo "##vso[task.logissue type=error]Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+        echo "Variable CONTROL_PLANE_NAME was not added to the $VARIABLE_GROUP variable group."
+    fi
 
-elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	# Values will be stored in GitHub Environment variables
-	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
-	git config --global --add safe.directory "$CONFIG_REPO_PATH"
-	platform_flag="--github"
+    elif [ "$PLATFORM" == "github" ]; then
+    # No specific variable group setup for GitHub Actions
+    # Values will be stored in GitHub Environment variables
+    echo "Configuring for GitHub Actions"
+    export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+    git config --global --add safe.directory "$CONFIG_REPO_PATH"
+    platform_flag="--github"
 else
-	platform_flag=""
+    platform_flag=""
 fi
 
 
 cd "$CONFIG_REPO_PATH" || exit
 
 if [ "$PLATFORM" == "devops" ]; then
-	echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
-	git checkout -q "$BUILD_SOURCEBRANCHNAME"
-elif [ "$PLATFORM" == "github" ]; then
-	echo -e "$green--- Checkout $GITHUB_REF_NAME ---$reset_formatting"
-	git checkout -q "$GITHUB_REF_NAME"
+    echo -e "$green--- Checkout $BUILD_SOURCEBRANCHNAME ---$reset_formatting"
+    git checkout -q "$BUILD_SOURCEBRANCHNAME"
+    elif [ "$PLATFORM" == "github" ]; then
+    echo -e "$green--- Checkout $GITHUB_REF_NAME ---$reset_formatting"
+    git checkout -q "$GITHUB_REF_NAME"
 fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.14.5}"
+    configureNonDeployer "${tf_version:-1.14.5}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
 if [ "$USE_MSI" == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
+    unset ARM_CLIENT_SECRET
+    ARM_USE_MSI=true
+    export ARM_USE_MSI
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "$USE_MSI" != "true" ]; then
+    if [ "$USE_MSI" != "true" ]; then
 
-		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-		export ARM_TENANT_ID
-		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-		export ARM_SUBSCRIPTION_ID
-	else
-		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
-	fi
-	LogonToAzure "${USE_MSI:-false}"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
+        ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+        export ARM_TENANT_ID
+        ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_SUBSCRIPTION_ID
+    else
+        unset ARM_CLIENT_SECRET
+        ARM_USE_MSI=true
+        export ARM_USE_MSI
+    fi
+    LogonToAzure "${USE_MSI:-false}"
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        echo -e "$bold_red--- Login failed ---$reset"
+        echo "##vso[task.logissue type=error]az login failed."
+        exit $return_code
+    fi
 fi
 
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-	export APPLICATION_CONFIGURATION_ID
+    APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+    export APPLICATION_CONFIGURATION_ID
 fi
 
 sapbits_location_base_path=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SAPMediaPath" "${CONTROL_PLANE_NAME}")
@@ -136,11 +136,29 @@ command="ansible-playbook -e download_directory=$AGENT_TEMP_DIRECTORY \
 -e orchestration_ansible_user=$USER \
 -e create_checksums=true \
 -e sapbits_location_base_path=$sapbits_location_base_path \
- $EXTRA_PARAMETERS $SAP_AUTOMATION_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml"
+$EXTRA_PARAMETERS $SAP_AUTOMATION_REPO_PATH/deploy/ansible/playbook_bom_downloader.yaml"
 
 echo "##[section]Executing [$command]..."
 echo "##[group]- output"
 eval $command
 return_code=$?
 echo "##[endgroup]"
+
+PLATFORM="devops"
+OUTPUT_DIR="${BUILD_REPOSITORY_LOCALPATH}"
+bom_name=$(echo $BOM | cut -d'-' -f1)
+
+output_file="$OUTPUT_DIR/Web Application Configuration.md"
+if [ 0 != $return_code ]; then
+    echo -e "$bold_red--- Software download failed ---$reset"
+    echo "::error title=Software Download Failed::An error occurred while downloading the software. Please check the logs for details."
+else
+    {
+        printf "**Software downloaded**\n\n\n" >"$output_file"
+        printf "The software defined in ${bom_name} has been downloaded successfully.\n" >>"$output_file"
+
+        printf "\n\n" >>"$output_file"
+    }
+fi
+echo "##vso[task.uploadsummary]${output_file}"
 exit $return_code

@@ -30,13 +30,15 @@ namespace SDAFWebApp.Controllers
         private ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
+        private readonly string platform;
 
         public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
-            restHelper = new RestHelper(configuration);
+            platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
+            restHelper = new RestHelper(configuration, platform);
             systemView = SetViewData();
 
             imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
@@ -203,7 +205,7 @@ namespace SDAFWebApp.Controllers
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    system.subscription_id = system.subscription.Replace("/subscriptions/","");
+                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                     SystemEntity systemEntity = new(system);
                     await _systemService.CreateAsync(systemEntity);
                     TempData["success"] = "Successfully created system " + system.Id;
@@ -307,28 +309,50 @@ namespace SDAFWebApp.Controllers
 
                 await restHelper.UpdateRepo(path, content);
 
-
-                string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
-                string branch = _configuration["SourceBranch"];
-                parameters.sap_system = id;
-                PipelineRequestBody requestBody = new()
+                switch (platform.ToLower())
                 {
-                    resources = new Resources
-                    {
-                        repositories = new Repositories
+                    case "ado":
                         {
-                            self = new Self
+
+                            string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
+                            string branch = _configuration["SourceBranch"];
+                            parameters.sap_system = id;
+                            PipelineRequestBody requestBody = new()
                             {
-                                refName = $"refs/heads/{branch}"
-                            }
+                                resources = new Resources
+                                {
+                                    repositories = new Repositories
+                                    {
+                                        self = new Self
+                                        {
+                                            refName = $"refs/heads/{branch}"
+                                        }
+                                    }
+                                },
+                                templateParameters = parameters
+                            };
+
+                            await restHelper.TriggerPipeline(pipelineId, requestBody);
+
+                            TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
+                            break;
                         }
-                    },
-                    templateParameters = parameters
-                };
+                    case "github":
+                        {
+                            string key = "-" + system.sid;
+                            // Trigger with
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone_name", parameters.environment },
+                                { "sap_system_identifier", system.sid }
+                            };
+                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs);
+                            TempData["success"] = "Successfully triggered system deployment action for " + id;
+                            break;
+                            
+                        }
+                }
 
-                await restHelper.TriggerPipeline(pipelineId, requestBody);
-
-                TempData["success"] = "Successfully triggered system deployment pipeline for " + id;
             }
             catch (Exception e)
             {
@@ -365,25 +389,58 @@ namespace SDAFWebApp.Controllers
             {
                 SystemModel system = await GetById(id, partitionKey);
 
-                string pipelineId = _configuration["SAP_INSTALL_PIPELINE_ID"];
-                string branch = _configuration["SourceBranch"];
-                PipelineRequestBody requestBody = new()
+                switch (platform.ToLower())
                 {
-                    resources = new Resources
-                    {
-                        repositories = new Repositories
+                    case "ado":
                         {
-                            self = new Self
-                            {
-                                refName = $"refs/heads/{branch}"
-                            }
-                        }
-                    },
-                    templateParameters = parameters
-                };
 
-                await restHelper.TriggerPipeline(pipelineId, requestBody);
-                TempData["success"] = "Successfully triggered SAP installation pipeline for " + id;
+                            string pipelineId = _configuration["SAP_INSTALL_PIPELINE_ID"];
+                            string branch = _configuration["SourceBranch"];
+                            PipelineRequestBody requestBody = new()
+                            {
+                                resources = new Resources
+                                {
+                                    repositories = new Repositories
+                                    {
+                                        self = new Self
+                                        {
+                                            refName = $"refs/heads/{branch}"
+                                        }
+                                    }
+                                },
+                                templateParameters = parameters
+                            };
+
+                            await restHelper.TriggerPipeline(pipelineId, requestBody);
+                            TempData["success"] = "Successfully triggered SAP installation pipeline for " + id;
+                            break;
+                        }
+                    case "github":
+                        {
+                            string key = "-" + system.sid;
+                            // Trigger with
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone_name", parameters.environment },
+                                { "sap_system_identifier", system.sid },
+                                { "bom_override_name", parameters.bom_base_name },
+                                { "base_os_configuration", parameters.base_os_configuration },
+                                { "sap_os_configuration", parameters.sap_os_configuration },
+                                { "bom_processing", parameters.bom_processing },
+                                { "scs_installation", parameters.scs_installation },
+                                { "database_install", parameters.database_install },
+                                { "db_load", parameters.db_load },
+                                { "high_availability_configuration", parameters.high_availability_configuration },
+                                { "pas_installation", parameters.pas_installation },
+                                { "application_server_installation", parameters.application_server_installation },
+                                { "webdispatcher_installation", parameters.webdispatcher_installation }
+                            };
+                            await restHelper.TriggerGitHubWorkflow("07-configuration-installation.yml", "main", inputs);
+                            TempData["success"] = "Successfully triggered system installation action for " + id;
+                            break;
+                        }
+                }
+
             }
             catch (Exception e)
             {

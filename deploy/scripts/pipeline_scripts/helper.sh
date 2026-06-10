@@ -200,7 +200,6 @@ function configureNonDeployer() {
 function LogonToAzure() {
     local useMSI=$1
     local subscriptionId=$ARM_SUBSCRIPTION_ID
-
     if [ "$useMSI" != "true" ]; then
         echo "Deployment credentials:              Service Principal"
         echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
@@ -217,13 +216,29 @@ function LogonToAzure() {
 
     else
         echo "Deployment credentials:              Managed Service Identity"
-        if [ -f "/etc/profile.d/deploy_server.sh" ]; then
-            echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
-            source "/etc/profile.d/deploy_server.sh"
-        else
-            echo "Running az login --identity"
-            az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
-        fi
+				if [ -v MSI_ID ]; then
+						TF_VAR_user_assigned_identity_id="$MSI_ID"
+						export TF_VAR_user_assigned_identity_id
+						ARM_CLIENT_ID=$(az identity show --ids "$MSI_ID" --query clientId -o tsv)
+						if [ -n "$ARM_CLIENT_ID" ]; then
+							export ARM_CLIENT_ID
+							if az account show > /dev/null 2>&1; then
+								echo "Already logged in with MSI, skipping az login."
+							else
+								az login --identity --allow-no-subscriptions --resource-id "$MSI_ID" --output none
+							fi
+						else
+							echo "##vso[task.logissue type=error]Unable to retrieve client ID for the provided MSI_ID: $MSI_ID."
+						fi
+				else
+        		if [ -f "/etc/profile.d/deploy_server.sh" ]; then
+            		echo "Sourcing deploy_server.sh to set up environment variables for MSI authentication"
+            		source "/etc/profile.d/deploy_server.sh"
+        		else
+			          echo "Running az login --identity"
+            		az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
+        		fi
+				fi
 
         az account show --query user --output yaml
 

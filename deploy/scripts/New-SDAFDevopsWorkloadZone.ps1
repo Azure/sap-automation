@@ -13,6 +13,13 @@ function Show-Menu($data) {
 
 }
 
+$confirmation = Read-Host "Do you want to continue? y/n?"
+if ($confirmation -eq 'y') {  Write-Host "Continuing with the execution of the script..." }
+else {
+    Write-Host "Exiting the script. Please use the SDAFUtilities module for a more streamlined experience." `
+            -ForegroundColor Yellow
+    exit
+}
 
 #region Initialize
 # Initialize variables from Environment variables

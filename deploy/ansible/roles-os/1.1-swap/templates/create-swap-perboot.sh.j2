@@ -1,0 +1,41 @@
+#!/bin/bash
+# Recreate swap file on NVMe temp disk after reboot.
+# NVMe temp disks are ephemeral - data is lost on VM stop/deallocate.
+# The RAID0 config persists in initramfs, but the swap file needs
+# to be recreated on each boot.
+#
+# Deployed by Ansible role 1.1-swap as a cloud-init per-boot script.
+
+SWAP_FILE="/mnt/resource/swapfile"
+WAAGENT_SWAP_FILE="/mnt/swapfile"
+SWAP_SIZE_MB="{{ swap_size_mb }}"
+MOUNT_POINT="/mnt/resource"
+
+if swapon --show | grep -q "$WAAGENT_SWAP_FILE"; then
+  echo "Swap already configured by waagent" | systemd-cat -t create-swap
+  exit 0
+fi
+
+# Wait for the temp disk to be mounted (RAID0 from initramfs)
+for _ in $(seq 1 30); do
+  if mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
+    break
+  fi
+  sleep 2
+done
+
+if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
+  echo "ERROR: $MOUNT_POINT is not a mountpoint" | systemd-cat -t create-swap -p err
+  exit 1
+fi
+
+if swapon --show | grep -q "$SWAP_FILE"; then
+  echo "Swap already active" | systemd-cat -t create-swap
+  exit 0
+fi
+
+fallocate -l "${SWAP_SIZE_MB}M" "$SWAP_FILE"
+chmod 0600 "$SWAP_FILE"
+mkswap "$SWAP_FILE" >/dev/null
+swapon "$SWAP_FILE"
+echo "Swap file created and activated: ${SWAP_SIZE_MB}MB" | systemd-cat -t create-swap
