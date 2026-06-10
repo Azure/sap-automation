@@ -25,8 +25,21 @@
     name:                              pacemaker.timer
     enabled:                           true
 
-- name:                                "1.17 Generic Pacemaker - Disable SBD_DELAY_START (timer handles delay)"
+- name:                                "1.17 Generic Pacemaker - Start pacemaker.timer"
+  ansible.builtin.systemd:
+    name:                              pacemaker.timer
+    state:                             started
+
+- name:                                "1.17 Generic Pacemaker - Check if SBD sysconfig file exists"
   when:                                cluster_stonith_type in ['ASD', 'ISCSI']
+  ansible.builtin.stat:
+    path:                              /etc/sysconfig/sbd
+  register:                            sbd_sysconfig_file
+ 
+- name:                                "1.17 Generic Pacemaker - Disable SBD_DELAY_START (timer handles delay)"
+  when:
+                                       - cluster_stonith_type in ['ASD', 'ISCSI']
+                                       - sbd_sysconfig_file.stat.exists
   ansible.builtin.lineinfile:
     path:                              /etc/sysconfig/sbd
     regexp:                            '^SBD_DELAY_START=.*'
