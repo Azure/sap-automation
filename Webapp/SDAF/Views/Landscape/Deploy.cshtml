@@ -71,7 +71,7 @@
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['environment'], 'confirm-deploy-landscape-checkbox')" })
+                @Html.DropDownList("workload_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['workload_environment_parameter'], 'confirm-deploy-landscape-checkbox')" })
             </div>
         </div>
 

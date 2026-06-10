@@ -24,13 +24,24 @@ namespace SDAFWebApp.Controllers
         public GitHubEnvironmentController(IConfiguration configuration)
         {
             _configuration = configuration;
-            _ghOrganization = configuration["GITHUB_REPOSITORY"].Split("/")[0];
-            _ghRepository = configuration["GITHUB_REPOSITORY"].Split("/")[1];
+            var repoFullName = configuration["GITHUB_REPOSITORY"];
+            if (string.IsNullOrWhiteSpace(repoFullName) || !repoFullName.Contains('/'))
+            {
+                throw new ArgumentNullException(nameof(repoFullName), "GITHUB_REPOSITORY must be provided as 'owner/repo'.");
+            }
+
+            var parts = repoFullName.Split('/', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2)
+            {
+                throw new ArgumentException("GITHUB_REPOSITORY must be provided as 'owner/repo'.", nameof(repoFullName));
+            }
+
+            _ghOrganization = parts[0];
+            _ghRepository = parts[1];
             _ghToken = configuration["GITHUB_PAT"];
             _sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
 
             _helper = new GitHubEnvironmentHelper(_ghToken, _ghOrganization, _ghRepository);
-        }
 
         [ActionName("Index")]
         public async Task<IActionResult> IndexAsync()
@@ -61,9 +72,9 @@ namespace SDAFWebApp.Controllers
             {
                 return Json(await _helper.ListEnvironmentsAsync());
             }
-            catch
+            catch (Exception e)
             {
-                return null;
+                return StatusCode(500, $"Error retrieving environments: {e.Message}");
             }
         }
 
@@ -75,7 +86,7 @@ namespace SDAFWebApp.Controllers
 
         [HttpPost]
         [ActionName("Create")]
-        public async Task<ActionResult> CreateAsync(EnvironmentModel environment, string newName, string description)
+        public async Task<ActionResult> CreateAsync(GHEnvironmentModel environment, string newName, string description)
         {
             try
             {
@@ -94,7 +105,7 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     await githubClient.Actions.Workflows.CreateDispatch(_ghOrganization, _ghRepository, "02-create-workload-environment.yml", workflowDispatch);
-                    TempData["success"] = "Successfully created environment: " + newName + description;
+                    TempData["success"] = $"Successfully triggered environment creation for '{newName}'.";
                     return RedirectToAction("Index");
                 }
                 catch (Octokit.ApiException ex)
@@ -111,11 +122,11 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Edit")]
-        public ActionResult Edit(string name)
+        public async Task<ActionResult> EditAsync(string name)
         {
             try
             {
-                GitHubEnvironment ghEnvironment = _helper.GetEnvironmentAsync(name).Result;
+                var ghEnvironment = await _helper.GetEnvironmentAsync(name);
                 GHEnvironmentModel environment = new GHEnvironmentModel
                 {
                     Id = ghEnvironment.Id,
@@ -134,20 +145,10 @@ namespace SDAFWebApp.Controllers
 
         [HttpPost]
         [ActionName("Edit")]
-        public ActionResult Edit(GitHubEnvironment environment, string newName, string description)
+        public ActionResult Edit(GHEnvironmentModel environment, string newName, string description)
         {
-            try
-            {
-                //Not implemented yet as GitHub Environments API does not support updating environment details, only creating and deleting. Would require custom implementation to store environment details in a separate storage and link it to the GitHub Environment.
-                // await restHelper.UpdateVariableGroup(environment, newName, description);
-                // TempData["success"] = "Successfully edited environment: " + newName;
-                return RedirectToAction("Index");
-            }
-            catch (Exception e)
-            {
-                ModelState.AddModelError("EnvironmentId", "Error editing environment: " + e.Message);
-            }
-            return View(environment);
+            TempData["error"] = "Editing GitHub environments is not supported via the GitHub Environments API.";
+            return RedirectToAction("Index");
         }
     }
 }

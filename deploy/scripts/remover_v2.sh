@@ -732,7 +732,7 @@ function sdaf_remover() {
 	fi
 
 	unset TF_DATA_DIR
-	print_banner "$banner_title" "Removal completed. ($return_value	)" "info" "Exiting $SCRIPT_NAME"
+	print_banner "$banner_title" "Removal completed. ($return_value)" "info" "Exiting $SCRIPT_NAME"
 
 	return "$return_value"
 }
