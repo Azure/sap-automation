@@ -85,10 +85,11 @@ locals {
                                            tf_version                     = var.tf_version
                                            DevOpsInfrastructure_object_id = var.DevOpsInfrastructure_object_id
                                            app_token                      = var.github_app_token
+                                           github_pat                     = var.github_pat
                                            repository                     = var.github_repository
                                            server_url                     = var.github_server_url
                                            api_url                        = var.github_api_url
-                                           platform                       = var.devops_platform
+                                           platform                       = lower(var.devops_platform)
                                            organization                   = var.organization
                                            branch                         = var.branch
                                          }

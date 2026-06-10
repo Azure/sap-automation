@@ -1,4 +1,4 @@
-﻿@model SDAFWebApp.Models.FormViewModel<LandscapeModel>;
+@model SDAFWebApp.Models.FormViewModel<LandscapeModel>;
 @using System.Text.Json
 
 @{
@@ -14,7 +14,11 @@
         var landscape = @Html.Raw(JsonSerializer.Serialize(Model.SapObject));
         createModel(landscape);
         retainFormValues();
-        getEnvironmentsFromAdo(@ViewBag.IsPipelineDeployment);
+
+        getEnvironments(
+             @(string.Equals((string)ViewBag.IsPipelineDeployment, "true", StringComparison.OrdinalIgnoreCase)),
+             @Html.Raw(JsonSerializer.Serialize((string)ViewBag.Platform))
+         );
 
         var formHeader = $("#form-sticky-header");
         var sticky = $("#form-sticky-header").offset().top;

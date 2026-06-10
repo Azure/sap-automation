@@ -136,12 +136,12 @@ resource "azurerm_key_vault_secret" "pwd" {
 
 
 resource "azurerm_key_vault_secret" "pat" {
-  count                                = local.enable_key && (length(coalesce(var.infrastructure.devops.agent_pat, var.infrastructure.devops.app_token, " ")) > 1) && !var.key_vault.exists  ? 1 : 0
+  count                                = local.enable_key && (length(coalesce(var.infrastructure.devops.agent_pat, " ")) > 1) && !var.key_vault.exists  ? 1 : 0
   depends_on                           = [
                                            time_sleep.wait_for_keyvault
                                          ]
   name                                 = "PAT"
-  value                                = coalesce(var.infrastructure.devops.agent_pat, var.infrastructure.devops.app_token)
+  value                                = var.infrastructure.devops.agent_pat
   key_vault_id                         = var.key_vault.exists ? (
                                            var.key_vault.id) : (
                                            azurerm_key_vault.kv_user[0].id
@@ -158,3 +158,48 @@ resource "azurerm_key_vault_secret" "pat" {
   }
 }
 
+resource "azurerm_key_vault_secret" "app_token" {
+  count                                = local.enable_key && (length(coalesce(var.infrastructure.devops.app_token, " ")) > 1) && !var.key_vault.exists  ? 1 : 0
+  depends_on                           = [
+                                           time_sleep.wait_for_keyvault
+                                         ]
+  name                                 = "GH-APP-PAT"
+  value                                = var.infrastructure.devops.app_token
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  expiration_date                      = var.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+  content_type                         = "secret"
+  tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
+}
+
+resource "azurerm_key_vault_secret" "github_pat" {
+  count                                = local.enable_key && (length(coalesce(var.infrastructure.devops.github_pat, " ")) > 1) && !var.key_vault.exists  ? 1 : 0
+  depends_on                           = [
+                                           time_sleep.wait_for_keyvault
+                                         ]
+  name                                 = format("%s-GH-PAT", upper(var.naming.prefix.DEPLOYER))
+  value                                = var.infrastructure.devops.github_pat
+  key_vault_id                         = var.key_vault.exists ? (
+                                           var.key_vault.id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  expiration_date                      = var.set_secret_expiry ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
+  content_type                         = "secret"
+  tags                                 = var.infrastructure.tags
+  lifecycle {
+    ignore_changes = [ expiration_date]
+  }
+}

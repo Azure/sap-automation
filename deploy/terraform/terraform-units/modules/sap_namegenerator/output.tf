@@ -51,6 +51,7 @@ output "naming" {
                              witness_storageaccount_name                     = local.witness_storageaccount_name
                              landscape_shared_transport_storage_account_name = local.landscape_shared_transport_storage_account_name
                              landscape_shared_install_storage_account_name   = local.landscape_shared_install_storage_account_name
+                             landscape_utility_storage_account_names         = local.landscape_utility_storage_account_names
                            }
                            LIBRARY = {
                              library_storageaccount_name        = local.library_storageaccount_name

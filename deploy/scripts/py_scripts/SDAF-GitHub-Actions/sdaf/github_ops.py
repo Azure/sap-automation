@@ -5,7 +5,7 @@ import time
 def add_repository_variables(github_client, repo_full_name, variables):
     """
     Add variables to the repository level.
-    
+
     Args:
         github_client: The authenticated GitHub client
         repo_full_name: Full repository name (owner/repo)
@@ -18,7 +18,7 @@ def add_repository_variables(github_client, repo_full_name, variables):
         if variable_value is None or variable_value == "":
             print(f"Skipping variable {variable_name} because it has an empty value.")
             continue
-            
+
         try:
             repo.create_variable(variable_name, str(variable_value))
             print(f"*** Variable {variable_name} added to repository {repo_full_name}.***")
@@ -48,7 +48,7 @@ def add_environment_secrets(github_client, repo_full_name, environment_name, sec
         if secret_value is None or secret_value == "":
             print(f"Skipping secret {secret_name} because it has an empty value.")
             continue
-            
+
         try:
             environment.create_secret(secret_name, secret_value)
             print(f"*** Secret {secret_name} added to environment {environment_name} in {repo_full_name}.***")
@@ -60,7 +60,7 @@ def add_environment_secrets(github_client, repo_full_name, environment_name, sec
 def add_environment_variables(github_client, repo_full_name, environment_name, variables):
     """
     Add variables to a specific environment in the repository.
-    
+
     Args:
         github_client: The authenticated GitHub client
         repo_full_name: Full repository name (owner/repo)
@@ -75,7 +75,7 @@ def add_environment_variables(github_client, repo_full_name, environment_name, v
         if variable_value is None or variable_value == "":
             print(f"Skipping variable {variable_name} because it has an empty value.")
             continue
-            
+
         try:
             environment.create_variable(variable_name, variable_value)
             print(
@@ -88,12 +88,12 @@ def add_environment_variables(github_client, repo_full_name, environment_name, v
 def generate_repository_secrets(user_data, app_id, private_key):
     """
     Generate repository-level secrets.
-    
+
     Args:
         user_data: User input data dictionary
         app_id: GitHub App ID
         private_key: Private key for the GitHub App
-    
+
     Returns:
         Dictionary with repository secrets
     """
@@ -114,7 +114,7 @@ def trigger_github_workflow(user_data, workflow_id):
     if user_data.get("use_managed_identity") and not user_data.get("identity_id"):
         print("\nWARNING: Managed identity is enabled but identity_id is missing.")
         print("This may cause GitHub workflow to fail. Checking if we can construct the ID...")
-        
+
         # Try to construct ID from components
         if all(user_data.get(k) for k in ["identity_name", "subscription_id", "resource_group"]):
             constructed_id = (
@@ -128,28 +128,29 @@ def trigger_github_workflow(user_data, workflow_id):
         else:
             print("ERROR: Cannot construct MSI ID. Missing required components.")
             print("Please ensure identity_name, subscription_id, and resource_group are set.")
-    
+
     # Prepare workflow inputs with safe dictionary access
     try:
         workflow_inputs = {
             "control_plane_name": user_data["control_plane_name"],
             "use_msi": "true" if user_data.get("use_managed_identity") else "false",
             "msi_id": user_data.get("identity_id", "") if user_data.get("use_managed_identity") else "",
+            "use_webapp": "true" if user_data.get("use_webapp") else "false",
         }
-        
+
         # Validate MSI ID format if MSI is enabled
         if workflow_inputs["use_msi"] == "true" and workflow_inputs["msi_id"]:
             msi_id = workflow_inputs["msi_id"]
             msi_id_lower = msi_id.lower()  # normalize for validation only
-            if not (msi_id_lower.startswith("/subscriptions/") and 
-                    "resourcegroups/" in msi_id_lower and 
+            if not (msi_id_lower.startswith("/subscriptions/") and
+                    "resourcegroups/" in msi_id_lower and
                     "microsoft.managedidentity/userassignedidentities/" in msi_id_lower):
                 print(f"WARNING: MSI ID format may be invalid: {msi_id}")
                 print("Expected format: /subscriptions/.../resourceGroups/.../providers/Microsoft.ManagedIdentity/userAssignedIdentities/...")
     except KeyError as e:
         print(f"ERROR: Missing required workflow input: {e}")
         return False
-        
+
     data = {
         "ref": "main",
         "inputs": workflow_inputs

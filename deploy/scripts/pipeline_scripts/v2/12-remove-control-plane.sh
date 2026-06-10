@@ -74,6 +74,11 @@ elif [ "$PLATFORM" == "github" ]; then
 
 	export USER=${GITHUB_ACTOR:-githubuser}
 
+	DEPLOYER_FOLDERNAME="${CONTROL_PLANE_NAME}-INFRASTRUCTURE"
+	ENVIRONMENT=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $1}' | xargs)
+	LOCATION=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $2}' | xargs)
+	NETWORK=$(echo "${CONTROL_PLANE_NAME}" | awk -F'-' '{print $3}' | xargs)
+	LIBRARY_FOLDERNAME="${ENVIRONMENT}-${LOCATION}-SAP_LIBRARY"
 else
 	platform_flag=""
 fi
@@ -231,6 +236,7 @@ allParameters=(--deployer_parameter_file "${deployer_tfvars_file_name}")
 allParameters+=(--library_parameter_file "${library_tfvars_file_name}")
 allParameters+=(--keep_agent)
 allParameters+=(--auto-approve)
+allParameters+=(--control_plane_name "${CONTROL_PLANE_NAME}")
 if [ "$PLATFORM" == "devops" ]; then
 	allParameters+=(--ado)
 elif [ "$PLATFORM" == "github" ]; then

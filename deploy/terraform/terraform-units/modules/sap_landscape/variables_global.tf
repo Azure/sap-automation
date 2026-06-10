@@ -257,6 +257,26 @@ variable "vm_settings"                                   {
                                                            }
                                                          }
 
+variable "utility_storage_settings"                      {
+                                                           description = "List of utility storage account configurations (normalized from transform.tf)"
+                                                           type = list(object({
+                                                             name                       = string
+                                                             account_kind               = string
+                                                             account_tier               = string
+                                                             account_replication_type    = string
+                                                             https_traffic_only_enabled = bool
+                                                             file_shares = list(object({
+                                                               name     = string
+                                                               quota    = number
+                                                               protocol = string
+                                                             }))
+                                                             blob_containers = list(object({
+                                                               name = string
+                                                             }))
+                                                           }))
+                                                           default = []
+                                                         }
+
 variable "peer_with_control_plane_vnet"                  { description = "Defines in the SAP VNet will be peered with the controlplane VNet" }
 
 variable "enable_firewall_for_keyvaults_and_storage"     { description = "Boolean value indicating if firewall should be enabled for key vaults and storage" }

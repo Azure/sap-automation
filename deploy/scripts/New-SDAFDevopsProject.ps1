@@ -77,6 +77,16 @@ if (Test-Path ".${pathSeparator}${wikiFileName}") { Write-Host "  Removing $wiki
 <#-------------------------------------+---------------------------------------#>
 #endregion
 
+Write-Host  "Please switch to use the SDAFUtilities module instead of this script..." `
+            -ForegroundColor DarkCyan
+
+$confirmation = Read-Host "Do you want to continue? y/n?"
+if ($confirmation -eq 'y') {  Write-Host "Continuing with the execution of the script..." }
+else {
+    Write-Host "Exiting the script. Please use the SDAFUtilities module for a more streamlined experience." `
+            -ForegroundColor Yellow
+    exit
+}
 
 
 <#-----------------------------------------------------------------------------|
@@ -719,7 +729,7 @@ if ($general_group_id.Length -eq 0) {
                                       --variables ANSIBLE_HOST_KEY_CHECKING=false          `
                                                   Deployment_Configuration_Path=WORKSPACES `
                                                   Branch=main                              `
-                                                  tf_version="1.15.1"                      `
+                                                  tf_version="1.15.5"                      `
                                                   ansible_core_version="2.16.18"           `
                                                   S-Username=$SUserName                    `
                                                   S-Password=$SPassword                    `

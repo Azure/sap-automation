@@ -71,7 +71,7 @@ output "network_security_perimeter_id" {
 
 locals {
 
-  security_perimeter_parsed_id            = var.options.network_security_perimeter.deploy ? provider::azurerm::parse_resource_id(var.options.network_security_perimeter.id) : null
-  security_perimeter_name                 = var.options.network_security_perimeter.deploy ? local.security_perimeter_parsed_id["resource_name"] : ""
-  security_perimeter_resource_group_name  = var.options.network_security_perimeter.deploy ? local.security_perimeter_parsed_id["resource_group_name"] : ""
+  security_perimeter_parsed_id            = var.options.network_security_perimeter.deploy && length(var.options.network_security_perimeter.id) > 0 ? provider::azurerm::parse_resource_id(var.options.network_security_perimeter.id) : null
+  security_perimeter_name                 = var.options.network_security_perimeter.deploy && length(var.options.network_security_perimeter.id) > 0  ? local.security_perimeter_parsed_id["resource_name"] : ""
+  security_perimeter_resource_group_name  = var.options.network_security_perimeter.deploy && length(var.options.network_security_perimeter.id) > 0 ? local.security_perimeter_parsed_id["resource_group_name"] : ""
   }

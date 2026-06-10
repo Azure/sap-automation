@@ -365,6 +365,8 @@ variable "resource_prefixes" {
     "storage_private_link_tf"        = ""
     "storage_private_link_transport" = ""
     "storage_private_link_witness"   = ""
+    "storage_private_link_utility_blob" = ""
+    "storage_private_link_utility_file" = ""
     "storage_private_svc_diag"       = ""
     "storage_private_svc_install"    = ""
     "storage_private_svc_sap"        = ""
@@ -372,6 +374,8 @@ variable "resource_prefixes" {
     "storage_private_svc_tf"         = ""
     "storage_private_svc_transport"  = ""
     "storage_private_svc_witness"    = ""
+    "storage_private_svc_utility_blob" = ""
+    "storage_private_svc_utility_file" = ""
     "storage_privatelink_hanashared" = ""
     "storage_subnet"                 = ""
     "storage_subnet_nsg"             = ""
@@ -510,6 +514,8 @@ variable "resource_suffixes" {
     "storage_private_link_tf"        = "-tf-storage-private-endpoint"
     "storage_private_link_transport" = "-transport-storage-private-endpoint"
     "storage_private_link_witness"   = "-witness-storage-private-endpoint"
+    "storage_private_link_utility_blob"   = "-utility-blob-storage-private-endpoint"
+    "storage_private_link_utility_file"   = "-utility-file-storage-private-endpoint"
     "storage_private_svc_diag"       = "-diag-storage-private-service"
     "storage_private_svc_install"    = "-install-storage-private-service"
     "storage_private_svc_sap"        = "-sap-storage-private-service"
@@ -517,6 +523,8 @@ variable "resource_suffixes" {
     "storage_private_svc_tf"         = "-tf-storage-private-service"
     "storage_private_svc_transport"  = "-transport-storage-private-service"
     "storage_private_svc_witness"    = "-witness-storage-private-service"
+    "storage_private_svc_utility_blob"    = "-utility-blob-storage-private-service"
+    "storage_private_svc_utility_file"    = "-utility-file-storage-private-service"
     "storage_privatelink_hanashared" = "-hanashared-storage-private-endpoint"
     "storage_subnet"                 = "storage-subnet"
     "storage_subnet_nsg"             = "storageSubnet-nsg"
@@ -586,6 +594,11 @@ variable "deployer_location" {
 }
 
 variable "utility_vm_count" {
+  type    = number
+  default = 0
+}
+
+variable "utility_storage_count" {
   type    = number
   default = 0
 }

@@ -40,16 +40,26 @@ namespace SDAFWebApp.Controllers
         [ActionName("Templates")]
         public ActionResult Templates(string sourceController)
         {
-            string[] landscapeFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/LANDSCAPE").Result;
-            string[] systemFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/SYSTEM").Result;
+            try
+            {
+                string[] landscapeFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/LANDSCAPE").Result;
+                string[] systemFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/SYSTEM").Result;
 
-            Dictionary<string, string[]> filePaths = new()
-      {
+                Dictionary<string, string[]> filePaths = new()
+            {
                 { "landscapes", landscapeFilePaths },
                 { "systems", systemFilePaths }
             };
-            ViewBag.SourceController = sourceController;
-            return View(filePaths);
+                ViewBag.SourceController = sourceController;
+                return View(filePaths);
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error retrieving templates: " + e.Message;
+            }
+            return RedirectToAction("Index");
+
+
         }
 
         [ActionName("UseTemplate")]

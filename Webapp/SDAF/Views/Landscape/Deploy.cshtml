@@ -43,7 +43,7 @@
     {
         @Html.AntiForgeryToken()
 
-        <div class="ms-TextField">                    
+        <div class="ms-TextField">
             <div class="left-input">
                 @Html.Label("environment", "Control plane name", new { @class = $"ms-Label" })
                 <p>Deployer environment name</p>
@@ -52,8 +52,8 @@
                 @Html.TextBox("deployer_environment_parameter", Model.SapObject.controlPlaneName, new { @class = "ms-TextField-field" })
             </div>
         </div>
-@* 
-        <div class="ms-TextField">                    
+@*
+        <div class="ms-TextField">
             <div class="left-input">
                 @Html.Label("deployer_region_parameter", "Control plane location code", new { @class = $"ms-Label" })
                 <p>Deployer Control plane location code</p>
@@ -64,14 +64,14 @@
             </div>
         </div>
  *@
-        <div class="ms-TextField">                    
+        <div class="ms-TextField">
             <div class="left-input">
                 @Html.Label("workload_environment_parameter", "Workload Zone Environment", new { @class = $"ms-Label" })
                 <p>Workload environment to deploy to</p>
             </div>
 
             <div class="right-input">
-                @Html.TextBox("workload_environment_parameter", Model.SapObject.workload_zone, new { @class = "ms-TextField-field" })
+                @Html.DropDownList("workload_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['workload_environment_parameter'], 'confirm-deploy-landscape-checkbox')" })
             </div>
         </div>
 
