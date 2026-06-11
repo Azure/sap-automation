@@ -78,11 +78,6 @@
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the Virtual IP group to the Master node on RHEL 7"
-          ansible.builtin.shell:       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master 4000
-          register:                    constraint
-          failed_when:                 constraint.rc > 1
-
 
     # RHEL 8, 9, 10 specific cluster configuration
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure cluster resources for RHEL 8, 9, 10"
@@ -137,11 +132,6 @@
           register:                    constraint
           failed_when:                 constraint.rc > 1
 
-        - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Add the Virtual IP group to the Master node on RHEL 8, 9, 10"
-          ansible.builtin.shell:       pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone 4000
-          register:                    constraint
-          failed_when:                 constraint.rc > 1
-
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add the netcat resource for the Load Balancer Healthprobe"
       ansible.builtin.shell:           pcs resource create nc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
       register:                        netcat
@@ -156,6 +146,26 @@
       ansible.builtin.shell:           pcs resource group add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} nc_{{ db_sid | upper }}_{{ db_instance_number }} vip_{{ db_sid | upper }}_{{ db_instance_number }}
       register:                        vip_g
       failed_when:                     vip_g.rc > 1
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add the Virtual IP group colocation to the Master node on RHEL 7"
+      when:                            ansible_distribution_major_version is version('8', '<')
+      ansible.builtin.shell:           pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-master 4000
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add the Virtual IP group colocation to the Master node on RHEL 8, 9"
+      when:
+                                       - ansible_distribution_major_version is version('8', '>=')
+                                       - ansible_distribution_major_version is version('10', '<')
+      ansible.builtin.shell:           pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with master SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone 4000
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add the Virtual IP group colocation to the Promoted node on RHEL 10+"
+      when:                            ansible_distribution_major_version is version('10', '>=')
+      ansible.builtin.shell:           pcs constraint colocation add g_ip_{{ db_sid | upper }}_{{ db_instance_number }} with Promoted SAPHana_{{ db_sid | upper }}_{{ db_instance_number }}-clone 4000
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
 
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add resource defaults resource-stickiness=1000"
       ansible.builtin.shell:           pcs resource defaults resource-stickiness=1000
