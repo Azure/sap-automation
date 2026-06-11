@@ -610,17 +610,6 @@
               failed_when:             update_priority_nc.rc > 1
 
 
-    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Disable SBD_DELAY_START (timer handles delay)"
-      when:                            cluster_stonith_type in ['ASD', 'ISCSI']
-      ansible.builtin.lineinfile:
-        path:                          /etc/sysconfig/sbd
-        regexp:                        '^SBD_DELAY_START=.*'
-        line:                          'SBD_DELAY_START=no'
-        owner:                         root
-        group:                         root
-        mode:                          '0644'
-        backup:                        true
-
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Disable Maintenance mode for the cluster"
       ansible.builtin.shell:           pcs property set maintenance-mode=false
 
