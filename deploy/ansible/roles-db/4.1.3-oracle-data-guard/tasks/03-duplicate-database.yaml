@@ -108,11 +108,9 @@
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
                                        SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                       SET CONTROL_FILES='/oracle/{{ db_sid | upper }}_STDBY/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}_STDBY/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}_STDBY/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
+                                       SET CONTROL_FILES='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
                                        SET FAL_SERVER='{{ db_sid | upper }}'
                                        SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
-                                       SET DB_FILE_NAME_CONVERT='/oracle/{{ db_sid | upper }}/','/oracle/{{ db_sid | upper }}_STDBY/'
-                                       SET LOG_FILE_NAME_CONVERT='/oracle/{{ db_sid | upper }}/','/oracle/{{ db_sid | upper }}_STDBY/'
                                        SET STANDBY_FILE_MANAGEMENT='AUTO'
                                        SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
                                        SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
@@ -194,9 +192,7 @@
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
                                        SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                       SET CONTROL_FILES='/oracle/{{ db_sid | upper }}_STDBY/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}_STDBY/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}_STDBY/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
-                                       SET DB_FILE_NAME_CONVERT='/oracle/{{ db_sid | upper }}/','/oracle/{{ db_sid | upper }}_STDBY/'
-                                       SET LOG_FILE_NAME_CONVERT='/oracle/{{ db_sid | upper }}/','/oracle/{{ db_sid | upper }}_STDBY/'
+                                       SET CONTROL_FILES='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
                                        SET FAL_SERVER='{{ db_sid | upper }}'
                                        SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
                                        SET STANDBY_FILE_MANAGEMENT='AUTO'
