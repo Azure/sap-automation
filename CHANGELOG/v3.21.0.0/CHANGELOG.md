@@ -15,7 +15,7 @@
 - Fixed the additional IP for HA IPs for Windows deployments
 
 ### 4. Miscellaneous fixes
-- Don't create a user profile for 'grid' user for non ORACLE ASM deployments
+- Do not create a user profile for the 'grid' user on non-ORACLE-ASM deployments
 
 
 ## Notes
