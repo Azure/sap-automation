@@ -40,6 +40,19 @@
     - node_tier == "oracle-asm"
     - asm_status is defined
 
+- name:                                "4.1.3 Oracle Data Guard - Setup Secondary - Create directories as oracle user"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "{{ item.path }}"
+    state:                             directory
+    mode:                              "{{ item.mode }}"
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+    recurse:                           "{{ item.recurse }}"
+  loop:
+    - { state: 'directory', mode: '0775', recurse: false, path: "/oracle/{{ db_sid | upper }}" }
+
 - name:                                "4.1.3 Oracle Data Guard - Check Database status on Secondary {{ ansible_hostname }}"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
