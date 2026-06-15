@@ -70,6 +70,8 @@
 
 
 - name:                                "4.1.0 ORACLE Setup - Create directories as oracle user"
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              "{{ item.path }}"
     state:                             directory
@@ -343,7 +345,7 @@
 
     - name:                            "4.1.0 Oracle Database Installation - Install status"
       ansible.builtin.debug:
-        msg:                           "Oracle ASM: is already installed"
+        msg:                           "Oracle: is already installed"
 
     - name:                            "4.1.0 Oracle Database Installation - return value"
       ansible.builtin.set_fact:
