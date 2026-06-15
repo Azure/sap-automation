@@ -33,7 +33,7 @@
                                        EXIT;
                                        EOF
   register:                            datafile_count
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   changed_when:                        false
@@ -103,7 +103,6 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
@@ -120,7 +119,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -187,7 +186,6 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
@@ -204,7 +202,7 @@
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:                     "{{ oracle_standby_env }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -247,7 +245,7 @@
   register:                            db_status
   changed_when:                        false
   failed_when:                         "'PHYSICAL STANDBY:MOUNTED' not in db_status.stdout and 'PHYSICAL STANDBY:READ ONLY' not in db_status.stdout"
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
@@ -271,7 +269,7 @@
                                        EXIT;
                                        EOF
   register:                            pfile_location
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
@@ -306,7 +304,7 @@
                                        ALTER DATABASE ARCHIVELOG;
                                        exit
                                        EOF
-  environment:                         "{{ oracle_env }}"
+  environment:                         "{{ oracle_standby_env }}"
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
   register:                            archive_log_secondary
