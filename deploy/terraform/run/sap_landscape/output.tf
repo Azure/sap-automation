@@ -240,6 +240,16 @@ output "privatelink_file_id"                     {
                                                    value       = module.sap_landscape.privatelink_file_id
                                                  }
 
+output "privatelink_storage_id"                  {
+                                                   description = "Azure resource identifier for the zone for the blob storage resources"
+                                                   value       = module.sap_landscape.privatelink_storage_id
+                                                 }
+
+output "privatelink_keyvault_id"                 {
+                                                   description = "Azure resource identifier for the zone for the keyvault resources"
+                                                   value       = module.sap_landscape.privatelink_keyvault_id
+                                                 }
+
 output "register_virtual_network_to_dns"         {
                                                    description = "Boolean flag to indicate if the SAP virtual network are registered to DNS"
                                                    value       = var.register_virtual_network_to_dns

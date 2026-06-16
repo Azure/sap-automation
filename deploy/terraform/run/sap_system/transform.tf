@@ -655,6 +655,19 @@ locals {
                                                                                               ), " "
                                                                                             ))
 
+                                            privatelink_file_id                          = trimspace(coalesce(var.privatelink_file_id,
+                                                                                              try(data.terraform_remote_state.landscape.outputs.privatelink_file_id, ""),
+                                                                                              " "
+                                                                                            ))
+                                            privatelink_storage_id                       = trimspace(coalesce(var.privatelink_storage_id,
+                                                                                              try(data.terraform_remote_state.landscape.outputs.privatelink_storage_id, ""),
+                                                                                              " "
+                                                                                            ))
+                                            privatelink_keyvault_id                      = trimspace(coalesce(var.privatelink_keyvault_id,
+                                                                                              try(data.terraform_remote_state.landscape.outputs.privatelink_keyvault_id, ""),
+                                                                                              " "
+                                                                                            ))
+
                                             register_storage_accounts_keyvaults_with_dns = var.register_storage_accounts_keyvaults_with_dns
                                             register_endpoints_with_dns                  = var.register_endpoints_with_dns
 

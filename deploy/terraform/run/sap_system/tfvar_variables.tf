@@ -1257,6 +1257,36 @@ variable "privatelink_dns_resourcegroup_name"      {
                                                      type        = string
                                                      }
 
+variable "privatelink_file_id"                     {
+                                                     description = "If provided, the Azure resource id of the private DNS zone for file storage (privatelink.file.core.windows.net)"
+                                                     default     = ""
+                                                     type        = string
+                                                     validation    {
+                                                                     condition     = length(var.privatelink_file_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.privatelink_file_id))
+                                                                     error_message = "If specified the 'privatelink_file_id' variable must be a correct Azure resource identifier."
+                                                                   }
+                                                   }
+
+variable "privatelink_storage_id"                  {
+                                                     description = "If provided, the Azure resource id of the private DNS zone for blob storage (privatelink.blob.core.windows.net)"
+                                                     default     = ""
+                                                     type        = string
+                                                     validation    {
+                                                                     condition     = length(var.privatelink_storage_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.privatelink_storage_id))
+                                                                     error_message = "If specified the 'privatelink_storage_id' variable must be a correct Azure resource identifier."
+                                                                   }
+                                                   }
+
+variable "privatelink_keyvault_id"                 {
+                                                     description = "If provided, the Azure resource id of the private DNS zone for key vault (privatelink.vaultcore.azure.net)"
+                                                     default     = ""
+                                                     type        = string
+                                                     validation    {
+                                                                     condition     = length(var.privatelink_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.privatelink_keyvault_id))
+                                                                     error_message = "If specified the 'privatelink_keyvault_id' variable must be a correct Azure resource identifier."
+                                                                   }
+                                                   }
+
 
 variable "dns_zone_names"                       {
                                                   description = "Private DNS zone names"
