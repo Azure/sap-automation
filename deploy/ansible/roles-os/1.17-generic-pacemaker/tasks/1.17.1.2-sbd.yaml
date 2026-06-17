@@ -28,9 +28,7 @@
                                               - "database_cluster_type:           {{ database_cluster_type }}"
                                               - "sbdDevices:                      {{ sbdDevices }}"
     verbosity:                                2
-  when:
-                                              - (database_cluster_type == "ASD")   or
-                                                (scs_cluster_type      == "ASD")
+  when:                                         cluster_stonith_type == "ASD"
 
 - name:                                       "Parameters to be used..."
   ansible.builtin.debug:
@@ -39,9 +37,7 @@
                                               - "database_cluster_type:           {{ database_cluster_type }}"
                                               - "iscsi_servers:                   {{ iscsi_servers }}"
     verbosity:                                2
-  when:
-                                              - (database_cluster_type == "ISCSI")   or
-                                                (scs_cluster_type      == "ISCSI")
+  when:                                       cluster_stonith_type == "ISCSI"
 
 
 - name:                                       "Parameters testing..."
@@ -51,9 +47,7 @@
                                               - "item.lun:                       {{ item.LUN }}"
     verbosity:                                2
   loop:                                       "{{ sbdDevices }}"
-  when:
-                                              - (database_cluster_type == "ASD")   or
-                                                (scs_cluster_type      == "ASD")
+  when:                                       cluster_stonith_type == "ASD"
 
 
 # - name:                                       "Parameters testing..."
@@ -92,8 +86,7 @@
                                                   diskById:   ''                  }
       loop:                                   "{{ sbdDevices }}"
       when:
-                                              - (database_cluster_type == "ASD")   or
-                                                (scs_cluster_type      == "ASD")
+                                              - cluster_stonith_type == "ASD"
                                               - item.host == ansible_hostname
 
     - name:                                   "ISCSI - Build SBD Dictionary"
@@ -107,19 +100,13 @@
                                                   diskByLun:  ''                ,
                                                   diskById:   ''                  }
       loop:                                   "{{ iscsi_device_map }}"
-      when:
-                                              - (database_cluster_type == "ISCSI")   or
-                                                (scs_cluster_type      == "ISCSI")
+      when:                                   cluster_stonith_type == "ISCSI"
 
     - name:                                   "SBD Dictionary..."
       ansible.builtin.debug:
         var:                                  sbdMap
         verbosity:                            2
-      when:
-                                              - (database_cluster_type == "ASD")   or
-                                                (database_cluster_type == "ISCSI") or
-                                                (scs_cluster_type      == "ASD")   or
-                                                (scs_cluster_type      == "ISCSI")
+      when:                                   cluster_stonith_type in ['ASD', 'ISCSI']
 
     - name:                                   "SBD Dictionary..."
       ansible.builtin.debug:
@@ -128,9 +115,7 @@
                                               - "item.blockDev:                  {{ item.blockDev }}"
         verbosity:                            2
       loop:                                   "{{ sbdMap }}"
-      when:
-                                              - (database_cluster_type == "ISCSI")   or
-                                                (scs_cluster_type      == "ISCSI")
+      when:                                   cluster_stonith_type == "ISCSI"
 
     # +------------------------------------
     # -------------------------------------+---------------------------------------8
@@ -178,7 +163,7 @@
         verbosity:                            2
 
     - name:                                   "Create SBD Device(s)..."
-      when:                                   sbdDumpCommand_results.rc == 1
+      when:                                   sbdDumpCommand_results.rc != 0
       run_once:                               true                                            # run on only one host in play
       block:
         - name:                               "create SBD Device(s)..."
@@ -230,30 +215,6 @@
                                                             {{    entry.diskById                 }}
                                                             {%- endfor                          -%}
                                                             "'}
-
-    - name:                                   "SBD config file"
-      block:
-        - name:                               "SBD config file - set SBD_DELAY_START"
-          when:                               ansible_os_family | upper == "SUSE"
-          ansible.builtin.lineinfile:
-            path:                             /etc/sysconfig/sbd
-            regexp:                           "^SBD_DELAY_START=.*"
-            line:                             'SBD_DELAY_START=216'
-            owner:                            root
-            group:                            root
-            mode:                             '0644'
-            backup:                           true
-
-        - name:                               "SBD config file - set SBD_DELAY_START"
-          when:                               ansible_os_family | upper == "REDHAT"
-          ansible.builtin.lineinfile:
-            path:                             /etc/sysconfig/sbd
-            regexp:                           "^SBD_DELAY_START=.*"
-            line:                             'SBD_DELAY_START=186'
-            owner:                            root
-            group:                            root
-            mode:                             '0644'
-            backup:                           true
 
     - name:                                  "set fact sbd_device as list of entries in sbdMap"
       ansible.builtin.set_fact:
@@ -355,29 +316,21 @@
     name:                                  sbd
     enabled:                               true
     daemon_reload:                         true
-  when:
-                                            - (database_cluster_type == "ASD")   or
-                                              (database_cluster_type == "ISCSI") or
-                                              (scs_cluster_type      == "ASD")   or
-                                              (scs_cluster_type      == "ISCSI")       # scs_high_availability = true is already assumed
+  when:                                    cluster_stonith_type in ['ASD', 'ISCSI']
 
 - name:                                    "systemctl enable iscsi"
   ansible.builtin.systemd:
     name:                                  iscsi
     enabled:                               true
     daemon_reload:                         true
-  when:
-                                           - (database_cluster_type == "ISCSI") or
-                                             (scs_cluster_type      == "ISCSI")
+  when:                                    cluster_stonith_type == "ISCSI"
 
 - name:                                    "systemctl enable iscsid"
   ansible.builtin.systemd:
     name:                                  iscsid
     enabled:                               true
     daemon_reload:                         true
-  when:
-                                           - (database_cluster_type == "ISCSI") or
-                                             (scs_cluster_type      == "ISCSI")
+  when:                                    cluster_stonith_type == "ISCSI"
 ...
 # /*---------------------------------------------------------------------------8
 # |                                   END                                      |
