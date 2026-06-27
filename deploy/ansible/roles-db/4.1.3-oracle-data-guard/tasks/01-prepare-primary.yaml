@@ -48,6 +48,11 @@
     mode:                              '0644'
   register:                            listener_config
 
+- name:                                "4.1.3 Oracle Data Guard - Prepare Primary - Remove tnsnames.ora"
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/network/admin/tnsnames.ora"
+    state:                             absent
+
 - name:                                "4.1.3 Oracle Data Guard - Prepare Primary - Deploy tnsnames.ora"
   ansible.builtin.template:
     src:                               tnsnames_primary.ora.j2
@@ -55,6 +60,18 @@
     owner:                             "{{ oracle_user_name }}"
     group:                             "{{ oracle_group }}"
     mode:                              '0644'
+
+- name:                                "4.1.3 Oracle Data Guard - Prepare Primary - Reload listener"
+  become_user:                         "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
+  environment:                         "{{ (node_tier == 'oracle-asm') | ternary(grid_env, oracle_env) }}"
+  register:                            listener_reload_results
+  failed_when:
+                                      - listener_reload_results.rc not in [0, 1]
+  args:
+    chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
 
 - name:                                "4.1.3 Oracle Data Guard - Verify Status on Primary"
   become_user:                         "{{ oracle_user_name }}"
@@ -329,5 +346,6 @@
     content:                           "{{ primary_register_listener.stdout }}"
     mode:                              '0777'
   when:                                primary_register_listener.stdout is defined
+
 
 ...

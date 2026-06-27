@@ -26,15 +26,12 @@
                                     for seg in $(ipcs -m | grep oracle | awk '$6==0 {print $2}'); do ipcrm -m $seg; done || true
   failed_when:                         false
 
-- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Force remount ASM diskgroups to clear stale clients"
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Set ASM diskgroup attribute compatible.rdbms to 19.0.0.0.0"
   become:                              true
   become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell: |
                                     sqlplus -S / as sysasm <<EOF
-                                    ALTER DISKGROUP DATA DISMOUNT FORCE;
-                                    ALTER DISKGROUP DATA MOUNT;
-                                    ALTER DISKGROUP RECO DISMOUNT FORCE;
-                                    ALTER DISKGROUP RECO MOUNT;
+                                    ALTER DISKGROUP DATA SET ATTRIBUTE 'compatible.rdbms' = '19.0.0.0.0';
                                     EXIT;
                                     EOF
   register:                            asm_remount_results
@@ -42,7 +39,7 @@
   failed_when:                         false
   environment:                         "{{ grid_env }}"
 
-- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Dismount ASM diskgroups to evict stale client registrations"
+- name:                                "4.1.2 Oracle ASM database software Installation - Pre-Create Cleanup: Dismount ASM disk groups to evict stale client registrations"
   become:                              true
   become_user:                         "{{ grid_user_name }}"
   ansible.builtin.shell: |

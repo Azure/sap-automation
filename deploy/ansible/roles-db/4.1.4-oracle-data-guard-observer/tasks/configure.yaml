@@ -166,180 +166,180 @@
 # | Post processing                                                     |
 # +------------------------------------4--------------------------------------*/
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh exists"
-  ansible.builtin.stat:
-    path:                              /oracle/oraInventory/orainstRoot.sh
-  register:                            orainstroot_exists
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh exists"
+#   ansible.builtin.stat:
+#     path:                              /oracle/oraInventory/orainstRoot.sh
+#   register:                            orainstroot_exists
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh"
-  when:                                orainstroot_exists.stat.exists
-  block:
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh"
+#   when:                                orainstroot_exists.stat.exists
+#   block:
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.shell:           /oracle/oraInventory/orainstRoot.sh
-      register:                        orainstRoot_results
-      environment:                     "{{ oracle_env }}"
+#     - name:                            "4.1.4 Oracle Data Guard - Observer - Post Processing - Run orainstRoot.sh"
+#       become:                          true
+#       become_user:                     root
+#       ansible.builtin.shell:           /oracle/oraInventory/orainstRoot.sh
+#       register:                        orainstRoot_results
+#       environment:                     "{{ oracle_env }}"
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Show orainstRoot output"
-      ansible.builtin.debug:
-        var:                           orainstRoot_results.stdout
-        verbosity:                     2
+#     - name:                            "4.1.4 Oracle Data Guard - Observer - Show orainstRoot output"
+#       ansible.builtin.debug:
+#         var:                           orainstRoot_results.stdout
+#         verbosity:                     2
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Copy orainstRoot output to orainstRoot.log"
-      ansible.builtin.copy:
-        dest:                          "/etc/sap_deployment_automation/observer/orainstRoot.log"
-        content:                       "{{ orainstRoot_results.stdout }}"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0655'
-      when:                            orainstRoot_results.stdout is defined
-# /*---------------------------------------------------------------------------8
+#     - name:                            "4.1.4 Oracle Data Guard - Observer - Copy orainstRoot output to orainstRoot.log"
+#       ansible.builtin.copy:
+#         dest:                          "/etc/sap_deployment_automation/observer/orainstRoot.log"
+#         content:                       "{{ orainstRoot_results.stdout }}"
+#         owner:                         "{{ oracle_user_name }}"
+#         group:                         oinstall
+#         mode:                          '0655'
+#       when:                            orainstRoot_results.stdout is defined
+# # /*---------------------------------------------------------------------------8
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Check if root.sh exists"
-  ansible.builtin.stat:
-    path:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
-  register:                            root_exists
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Check if root.sh exists"
+#   ansible.builtin.stat:
+#     path:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
+#   register:                            root_exists
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run root.sh"
-  when:                                root_exists.stat.exists
-  block:
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Post Processing - Run Root.sh"
-      become:                          true
-      become_user:                     root
-      ansible.builtin.shell:           /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
-      register:                        rootscript_results
-      environment:                     "{{ oracle_env }}"
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Post Processing - Run root.sh"
+#   when:                                root_exists.stat.exists
+#   block:
+#     - name:                            "4.1.4 Oracle Data Guard - Observer - Post Processing - Run Root.sh"
+#       become:                          true
+#       become_user:                     root
+#       ansible.builtin.shell:           /oracle/{{ db_sid | upper }}/{{ ora_version }}/root.sh
+#       register:                        rootscript_results
+#       environment:                     "{{ oracle_env }}"
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Show root.sh script output"
-      ansible.builtin.debug:
-        var:                           rootscript_results.stdout
-        verbosity:                     2
+#     - name:                            "4.1.4 Oracle Data Guard - Observer - Show root.sh script output"
+#       ansible.builtin.debug:
+#         var:                           rootscript_results.stdout
+#         verbosity:                     2
 
-    - name:                            "4.1.4 Oracle Data Guard - Observer - Copy root.sh script output log to rootscript.log"
-      ansible.builtin.copy:
-        dest:                          "/etc/sap_deployment_automation/observer/rootscript.log"
-        content:                       "{{ rootscript_results.stdout }}"
-        owner:                         "{{ oracle_user_name }}"
-        group:                         oinstall
-        mode:                          '0655'
-      when:                            rootscript_results.stdout is defined
+#     - name:                            "4.1.4 Oracle Data Guard - Observer - Copy root.sh script output log to rootscript.log"
+#       ansible.builtin.copy:
+#         dest:                          "/etc/sap_deployment_automation/observer/rootscript.log"
+#         content:                       "{{ rootscript_results.stdout }}"
+#         owner:                         "{{ oracle_user_name }}"
+#         group:                         oinstall
+#         mode:                          '0655'
+#       when:                            rootscript_results.stdout is defined
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Remove old OPatch"
-  ansible.builtin.file:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-    state:                             absent
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Remove old OPatch"
+#   ansible.builtin.file:
+#     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+#     state:                             absent
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Copy OPatch from downloads"
-  ansible.builtin.copy:
-    src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
-    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-    remote_src:                        true
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-    mode:                              '0655'
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Copy OPatch from downloads"
+#   ansible.builtin.copy:
+#     src:                               "{{ target_media_location }}/SBP/OPATCH/OPatch"
+#     dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+#     remote_src:                        true
+#     owner:                             "{{ oracle_user_name }}"
+#     group:                             oinstall
+#     mode:                              '0655'
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Set folder permissions for OPatch"
-  ansible.builtin.file:
-    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-    recurse:                           true
-    mode:                              '0755'
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Set folder permissions for OPatch"
+#   ansible.builtin.file:
+#     path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch"
+#     owner:                             "{{ oracle_user_name }}"
+#     group:                             oinstall
+#     recurse:                           true
+#     mode:                              '0755'
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Find Patch ID for SBP_DBRU"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/SBP/"
-    patterns:                          "{{ bom.patch_information.SBP_DBRU }}"
-    file_type:                         directory
-    recurse:                           true
-  register:                            patch_SBP_DBRU_directory
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Find Patch ID for SBP_DBRU"
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.find:
+#     paths:                             "{{ target_media_location }}/SBP/"
+#     patterns:                          "{{ bom.patch_information.SBP_DBRU }}"
+#     file_type:                         directory
+#     recurse:                           true
+#   register:                            patch_SBP_DBRU_directory
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Execute OPatch for SBP_DBRU"
-  when:                                patch_SBP_DBRU_directory.matched == 1
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
-                                       $ORACLE_HOME/OPatch/opatch apply -silent
-  register:                            orainstaller_results
-  failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
-  environment:                         "{{ oracle_env }}"
-  args:
-    chdir:                             "{{ patch_SBP_DBRU_directory.files[0].path }}"
-    creates:                           "/etc/sap_deployment_automation/observer/SBP_DBRU_oracle_installed.txt"
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Execute OPatch for SBP_DBRU"
+#   when:                                patch_SBP_DBRU_directory.matched == 1
+#   become:                              true
+#   become_user:                         "{{ oracle_user_name }}"
+#   ansible.builtin.shell: |
+#                                        $ORACLE_HOME/OPatch/opatch apply -silent
+#   register:                            orainstaller_results
+#   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+#   environment:                         "{{ oracle_env }}"
+#   args:
+#     chdir:                             "{{ patch_SBP_DBRU_directory.files[0].path }}"
+#     creates:                           "/etc/sap_deployment_automation/observer/SBP_DBRU_oracle_installed.txt"
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Debug: OPatch SBP_DBRU output"
-  ansible.builtin.debug:
-    msg:                               "OPatch SBP_DBRU output {{ orainstaller_results.stdout }}"
-    verbosity:                         2
-  when:                                orainstaller_results.stdout is defined
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Debug: OPatch SBP_DBRU output"
+#   ansible.builtin.debug:
+#     msg:                               "OPatch SBP_DBRU output {{ orainstaller_results.stdout }}"
+#     verbosity:                         2
+#   when:                                orainstaller_results.stdout is defined
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
-  ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/observer/SBP_DBRU.log"
-    content:                           "{{ orainstaller_results.stdout }}"
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-    mode:                              '0655'
-  when:                                orainstaller_results.stdout is defined
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
+#   ansible.builtin.copy:
+#     dest:                              "/etc/sap_deployment_automation/observer/SBP_DBRU.log"
+#     content:                           "{{ orainstaller_results.stdout }}"
+#     owner:                             "{{ oracle_user_name }}"
+#     group:                             oinstall
+#     mode:                              '0655'
+#   when:                                orainstaller_results.stdout is defined
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Create SBP_DBRU_oracle_installed.txt"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/observer/SBP_DBRU_oracle_installed.txt"
-    state:                             touch
-    mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-  when:                                orainstaller_results.rc | default(1) == 0
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Create SBP_DBRU_oracle_installed.txt"
+#   ansible.builtin.file:
+#     path:                              "/etc/sap_deployment_automation/observer/SBP_DBRU_oracle_installed.txt"
+#     state:                             touch
+#     mode:                              '0755'
+#     owner:                             "{{ oracle_user_name }}"
+#     group:                             oinstall
+#   when:                                orainstaller_results.rc | default(1) == 0
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Find Patch ID for SBP_JDKRU"
-  become:                              true
-  become_user:                         root
-  ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/SBP/"
-    patterns:                          "{{ bom.patch_information.SBP_JDKRU }}"
-    file_type:                         directory
-    recurse:                           true
-  register:                            patch_SBP_JDKRU_directory
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Find Patch ID for SBP_JDKRU"
+#   become:                              true
+#   become_user:                         root
+#   ansible.builtin.find:
+#     paths:                             "{{ target_media_location }}/SBP/"
+#     patterns:                          "{{ bom.patch_information.SBP_JDKRU }}"
+#     file_type:                         directory
+#     recurse:                           true
+#   register:                            patch_SBP_JDKRU_directory
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Execute OPatch for SBP_JDKRU"
-  when:                                patch_SBP_JDKRU_directory.matched == 1
-  become:                              true
-  become_user:                         "{{ oracle_user_name }}"
-  ansible.builtin.shell: |
-                                       $ORACLE_HOME/OPatch/opatch apply -silent
-  register:                            orainstaller_results
-  failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
-  environment:                         "{{ oracle_env }}"
-  args:
-    chdir:                             "{{ patch_SBP_JDKRU_directory.files[0].path }}"
-    creates:                           "/etc/sap_deployment_automation/observer/SBP_JDKRU_oracle_installed.txt"
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Execute OPatch for SBP_JDKRU"
+#   when:                                patch_SBP_JDKRU_directory.matched == 1
+#   become:                              true
+#   become_user:                         "{{ oracle_user_name }}"
+#   ansible.builtin.shell: |
+#                                        $ORACLE_HOME/OPatch/opatch apply -silent
+#   register:                            orainstaller_results
+#   failed_when:                         orainstaller_results.rc >= 2              # installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
+#   environment:                         "{{ oracle_env }}"
+#   args:
+#     chdir:                             "{{ patch_SBP_JDKRU_directory.files[0].path }}"
+#     creates:                           "/etc/sap_deployment_automation/observer/SBP_JDKRU_oracle_installed.txt"
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
-  ansible.builtin.copy:
-    dest:                              "/etc/sap_deployment_automation/observer/SBP_JDKRU.log"
-    content:                           "{{ orainstaller_results.stdout }}"
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-    mode:                              '0655'
-  when:                                orainstaller_results.stdout is defined
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Debug installer output log"
+#   ansible.builtin.copy:
+#     dest:                              "/etc/sap_deployment_automation/observer/SBP_JDKRU.log"
+#     content:                           "{{ orainstaller_results.stdout }}"
+#     owner:                             "{{ oracle_user_name }}"
+#     group:                             oinstall
+#     mode:                              '0655'
+#   when:                                orainstaller_results.stdout is defined
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Debug: OPatch SBP_DBRU output"
-  ansible.builtin.debug:
-    var:                               orainstaller_results.stdout_lines
-    verbosity:                         2
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Debug: OPatch SBP_DBRU output"
+#   ansible.builtin.debug:
+#     var:                               orainstaller_results.stdout_lines
+#     verbosity:                         2
 
-- name:                                "4.1.4 Oracle Data Guard - Observer - Create SBP_JDKRU_oracle_installed.txt"
-  ansible.builtin.file:
-    path:                              "/etc/sap_deployment_automation/observer/SBP_JDKRU_oracle_installed.txt"
-    state:                             touch
-    mode:                              '0755'
-    owner:                             "{{ oracle_user_name }}"
-    group:                             oinstall
-  when:                                orainstaller_results.rc | default(1) == 0
+# - name:                                "4.1.4 Oracle Data Guard - Observer - Create SBP_JDKRU_oracle_installed.txt"
+#   ansible.builtin.file:
+#     path:                              "/etc/sap_deployment_automation/observer/SBP_JDKRU_oracle_installed.txt"
+#     state:                             touch
+#     mode:                              '0755'
+#     owner:                             "{{ oracle_user_name }}"
+#     group:                             oinstall
+#   when:                                orainstaller_results.rc | default(1) == 0
 
 #  SBP_DBRU:                                  37960098
 #  SBP_JDKRU:                                 37860476

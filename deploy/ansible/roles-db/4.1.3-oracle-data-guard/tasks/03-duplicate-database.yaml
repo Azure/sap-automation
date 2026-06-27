@@ -2,46 +2,50 @@
 
 # In dg_duplicate/tasks/main.yml
 
-- name:                                "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - ASM"
   when:                                node_tier == "oracle-asm"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
-  ansible.builtin.shell: |
+  block:
+
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+      ansible.builtin.shell: |
                                        export ORACLE_SID={{ db_sid | upper }}_STDBY
                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
                                        SET PAGESIZE 0 FEEDBACK OFF
                                        SELECT COUNT(*) FROM v\$datafile WHERE name LIKE '+DATA/{{ db_sid | upper }}_STDBY%';
                                        EXIT;
                                        EOF
-  register:                            datafile_count
-  environment:                         "{{ oracle_env }}"
-  args:
-    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-  changed_when:                        false
-  failed_when:                         false
+      register:                        datafile_count
+      environment:                     "{{ oracle_standby_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+      changed_when:                    false
+      failed_when:                     false
 
-- name:                                "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - ASM"
   when:                                node_tier == "oracle"
   become_user:                         "{{ oracle_user_name }}"
-
   become:                              true
-  ansible.builtin.shell: |
-                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
-                                       sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
-                                       SET PAGESIZE 0 FEEDBACK OFF
-                                       SELECT COUNT(*) FROM v\$datafile;
-                                       EXIT;
-                                       EOF
-  register:                            datafile_count
-  environment:                         "{{ oracle_standby_env }}"
-  args:
-    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
-  changed_when:                        false
-  failed_when:                         false
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Duplicate - Check if standby already restored"
+      ansible.builtin.shell: |
+                                        export ORACLE_SID={{ db_sid | upper }}_STDBY
+                                        sqlplus -S sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY as sysdba <<EOF
+                                        SET PAGESIZE 0 FEEDBACK OFF
+                                        SELECT COUNT(*) FROM v\$datafile;
+                                        EXIT;
+                                        EOF
+      register:                         datafile_count
+      environment:                      "{{ oracle_standby_env }}"
+      args:
+        chdir:                          "/etc/sap_deployment_automation/dataguard_scripts/"
+      changed_when:                     false
+      failed_when:                      false
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Determine if RMAN duplicate is required"
   ansible.builtin.set_fact:
-    rman_duplication_required:         "{%if not datafile_count.stdout is defined %}True{% else %} {{ ((datafile_count.stdout | trim | int == 0) or (datafile_count.stderr is search('ORA-01507'))) }} {% endif %}"
+    rman_duplication_required:         "{{ (datafile_count.stdout | default('') | trim | int == 0) or (datafile_count.stderr | default('') is search('ORA-01507')) }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Show if RMAN run is required"
   ansible.builtin.debug:
@@ -60,6 +64,38 @@
         current_sid:                   "{{ db_sid | upper }}_STDBY"
         use_pfile_on_startup:           true
 
+- name:                                "4.1.3 Oracle Data Guard - Run TNSPING to check connectivity to primary database"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       tnsping {{ db_sid | upper }}
+  environment:                         "{{ oracle_env }}"
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+  register:                            tnsping_result
+  failed_when:                         false
+
+- name:                                "4.1.3 Oracle Data Guard - tnsping result"
+  ansible.builtin.debug:
+    msg:
+      - "TNSPING result (primary): {{ tnsping_result.stdout | default('UNKNOWN') }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Run TNSPING to check connectivity to secondary database"
+  become_user:                         "{{ oracle_user_name }}"
+  become:                              true
+  ansible.builtin.shell: |
+                                       tnsping {{ db_sid | upper }}_STDBY
+  environment:                         "{{ oracle_standby_env }}"
+  args:
+    chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
+  register:                            tnsping_secondary_result
+  failed_when:                         false
+
+- name:                                "4.1.3 Oracle Data Guard - tnsping result"
+  ansible.builtin.debug:
+    msg:
+      - "TNSPING result (secondary): {{ tnsping_secondary_result.stdout | default('UNKNOWN') }}"
+
 - name:                                "4.1.3 Oracle Data Guard - Configure Data Guard"
   when:
     - rman_duplication_required
@@ -76,23 +112,26 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
+                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }}.WORLD AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY.WORLD <<EOF
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
-                                        SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                        SET CONTROL_FILES='+DATA','+RECO','+ARCH'
-                                        SET FAL_SERVER='{{ db_sid | upper }}'
-                                        SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
-                                        SET STANDBY_FILE_MANAGEMENT='AUTO'
-                                        SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
-                                        SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
-                                        SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
-                                        SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
-                                        SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
+                                         SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
+                                         SET CONTROL_FILES='+DATA','+RECO'
+                                         SET FAL_SERVER='{{ db_sid | upper }}'
+                                         SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
+                                         SET STANDBY_FILE_MANAGEMENT='AUTO'
+                                         SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
+                                         SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                         SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
+                                         SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
+                                         SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        ORACLE_SID:                    ""
+        PATH:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -103,19 +142,20 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
-                                       SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                       SET CONTROL_FILES='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
-                                       SET FAL_SERVER='{{ db_sid | upper }}'
-                                       SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
-                                       SET STANDBY_FILE_MANAGEMENT='AUTO'
-                                       SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
-                                       SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
-                                       SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
-                                       SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
-                                       SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
+                                         SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
+                                         SET CONTROL_FILES='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
+                                         SET FAL_SERVER='{{ db_sid | upper }}'
+                                         SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
+                                         SET STANDBY_FILE_MANAGEMENT='AUTO'
+                                         SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
+                                         SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                         SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
+                                         SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
+                                         SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
@@ -159,23 +199,26 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
-                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
+                                       rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }}.WORLD AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY.WORLD <<EOF
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
-                                        SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                        SET CONTROL_FILES='+DATA','+RECO','+ARCH'
-                                        SET FAL_SERVER='{{ db_sid | upper }}'
-                                        SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
-                                        SET STANDBY_FILE_MANAGEMENT='AUTO'
-                                        SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
-                                        SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
-                                        SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
-                                        SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
-                                        SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
+                                         SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
+                                         SET CONTROL_FILES='+DATA','+RECO'
+                                         SET FAL_SERVER='{{ db_sid | upper }}'
+                                         SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
+                                         SET STANDBY_FILE_MANAGEMENT='AUTO'
+                                         SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
+                                         SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                         SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
+                                         SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
+                                         SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
-      environment:                     "{{ oracle_env }}"
+      environment:
+        ORACLE_HOME:                   "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+        ORACLE_SID:                    ""
+        PATH:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
       args:
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
       register:                        rman_duplicate
@@ -186,19 +229,20 @@
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
       ansible.builtin.shell: |
+                                       export ORACLE_SID={{ db_sid | upper }}_STDBY
                                        rman TARGET sys/'{{ main_password }}'@{{ db_sid | upper }} AUXILIARY sys/'{{ main_password }}'@{{ db_sid | upper }}_STDBY <<EOF
                                        DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER
                                        SPFILE
-                                       SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
-                                       SET CONTROL_FILES='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | lower }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
-                                       SET FAL_SERVER='{{ db_sid | upper }}'
-                                       SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
-                                       SET STANDBY_FILE_MANAGEMENT='AUTO'
-                                       SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
-                                       SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
-                                       SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
-                                       SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
-                                       SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
+                                         SET DB_UNIQUE_NAME='{{ db_sid | upper }}_STDBY'
+                                         SET CONTROL_FILES='/oracle/{{ db_sid | upper }}/origlogA/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}/origlogB/cntrl/cntrl{{ db_sid | upper }}.dbf','/oracle/{{ db_sid | upper }}/sapdata1/cntrl/cntrl{{ db_sid | upper }}.dbf'
+                                         SET FAL_SERVER='{{ db_sid | upper }}'
+                                         SET FAL_CLIENT='{{ db_sid | upper }}_STDBY'
+                                         SET STANDBY_FILE_MANAGEMENT='AUTO'
+                                         SET LOG_ARCHIVE_CONFIG='DG_CONFIG=({{ db_sid | upper }},{{ db_sid | upper }}_STDBY)'
+                                         SET LOG_ARCHIVE_DEST_1='LOCATION=USE_DB_RECOVERY_FILE_DEST VALID_FOR=(ALL_LOGFILES,ALL_ROLES) DB_UNIQUE_NAME={{ db_sid | upper }}_STDBY'
+                                         SET LOCAL_LISTENER='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ora_secondary }})(PORT={{ listener_port }}))'
+                                         SET REMOTE_LOGIN_PASSWORDFILE='EXCLUSIVE'
+                                         SET DB_RECOVERY_FILE_DEST_SIZE='{{ db_recovery_file_dest_size }}'
                                        NOFILENAMECHECK;
                                        EXIT;
                                        EOF
@@ -230,6 +274,7 @@
     - rman_duplicate.stdout is defined
     - not rman_duplicate.stdout is search("Finished Duplicate Db")
 
+
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Check standby database mounted"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
@@ -253,11 +298,6 @@
   ansible.builtin.set_fact:
     secondary_duplicated:              "{{ 'PHYSICAL STANDBY:MOUNTED' in db_status.stdout or 'PHYSICAL STANDBY:READ ONLY' in db_status.stdout }}"
 
-- name:                                "4.1.3 Oracle Data Guard - Duplicate - Display duplication status"
-  ansible.builtin.debug:
-    msg:
-      - "Database instance:            {{ ansible_hostname }}"
-      - "Database duplicated:          {{ secondary_duplicated }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Start Instance - Show SPFile location"
   become_user:                         "{{ oracle_user_name }}"
@@ -273,9 +313,13 @@
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
-- name:                                "4.1.3 Oracle Data Guard - Duplicate - Show SPFile location"
+- name:                                "4.1.3 Oracle Data Guard - Duplicate - Display duplication status"
   ansible.builtin.debug:
-    msg:                               "SPFile location: {{ pfile_location.stdout }}"
+    msg:
+      - "RMAN DUPLICATE ran successfully."
+      - "Database instance:            {{ ansible_hostname }}"
+      - "Database duplicated:          {{ secondary_duplicated }}"
+      - "SPFile location:              {{ pfile_location.stdout }}"
 
 - name:                                "4.1.3 Oracle Data Guard - Duplicate - Create standby initialization file"
   when:                                node_tier == "oracle-asm"

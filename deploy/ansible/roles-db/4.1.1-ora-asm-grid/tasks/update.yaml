@@ -137,6 +137,15 @@
     owner:                             "{{ grid_user_name }}"
     group:                             oinstall
 
+- name:                                "4.1.1 ORACLE Grid Update - copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
+  ansible.builtin.copy:
+    src:                               "{{ mopatch_path }}"
+    dest:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    remote_src:                        true
+    mode:                              '0777'
+    owner:                             "{{ oracle_user_name }}"
+    group:                             oinstall
+
 - name:                                "4.1.1 ORACLE Grid Update - Check if backup exists for GRID"
   ansible.builtin.stat:
     path:                              "/oracle/GRID/{{ ora_version }}/bin/oradism"

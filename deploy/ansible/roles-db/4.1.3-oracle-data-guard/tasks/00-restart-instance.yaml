@@ -41,7 +41,35 @@
   failed_when:                         false
   when:                                standby_pmon.stdout | length > 0
 
+- name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Remove lock file"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.file:
+    path:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/lk{{ current_sid }}"
+    state:                             absent
+  failed_when:                         false
+
 - name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Start instance with NOMOUNT"
+  when:                                not use_pfile_on_startup
+  block:
+    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance"
+      become_user:                     "{{ oracle_user_name }}"
+      become:                          true
+      ansible.builtin.shell: |
+                                       export ORACLE_SID={{ current_sid }}
+                                       sqlplus -s / as sysdba <<EOF
+                                       STARTUP;
+                                       EXIT;
+                                       EOF
+      register:                        startup_result
+      failed_when:                     startup_result.rc != 0
+      environment:                     "{{ oracle_env }}"
+      args:
+        chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
+        creates:                       /etc/sap_deployment_automation/dataguard_scripts/standby_started.txt
+
+- name:                                "4.1.3 Oracle Data Guard - Shutdown instance - Start instance with NOMOUNT"
+  when:                                use_pfile_on_startup
   block:
     - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
       become_user:                     "{{ oracle_user_name }}"
@@ -111,10 +139,9 @@
       become:                          true
       become_user:                     root
       ansible.builtin.file:
-        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/ls{{ current_sid }}"
+        path:                          "/oracle/{{ db_sid | upper }}/{{ ora_version }}/dbs/lk{{ current_sid }}"
         state:                         absent
       failed_when:                     false
-
 
     - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
       when:                            use_pfile_on_startup
@@ -133,7 +160,7 @@
         chdir:                         "/etc/sap_deployment_automation/dataguard_scripts/"
         creates:                       /etc/sap_deployment_automation/dataguard_scripts/standby_started.txt
 
-    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT using PFile"
+    - name:                            "4.1.3 Oracle Data Guard - Start Instance - Start instance with NOMOUNT"
       when:                            not use_pfile_on_startup
       become_user:                     "{{ oracle_user_name }}"
       become:                          true
@@ -153,17 +180,21 @@
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+
                                        sqlplus -S / as sysdba <<EOF
+                                       ALTER SYSTEM SET local_listener='(ADDRESS=(PROTOCOL=TCP)(HOST={{ ansible_hostname }})(PORT={{ listener_port }}))' SCOPE=MEMORY;
                                        ALTER SYSTEM REGISTER;
                                        EXIT;
                                        EOF
   register:                            startup_result
-  environment:                         "{{ oracle_env }}"
+  environment:
+    ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
+    ORACLE_SID:                        "{{ current_sid }}"
+    PATH:                              "/oracle/{{ db_sid | upper }}/{{ ora_version }}/bin:{{ ansible_env.PATH }}"
   args:
     chdir:                            "/etc/sap_deployment_automation/dataguard_scripts/"
 
-- name:                                "4.1.3 Oracle Data Guard - Start Instance - Verify standby instance running"
+- name:                                "4.1.3 Oracle Data Guard - Start Instance - Verify instance is running"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
@@ -177,9 +208,9 @@
   become_user:                         "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+                                       export ORACLE_SID={{ '+ASM' if node_tier == 'oracle-asm' else current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl reload
-  environment:                         "{{ grid_env }}"
+  environment:                         "{% if node_tier == 'oracle-asm' %}{{ grid_env }}{% else %}{{ oracle_env }}{% endif %}"
   register:                            listener_reload_results
   failed_when:
                                       - listener_reload_results.rc not in [0, 1]
@@ -188,9 +219,9 @@
   become_user:                         "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+                                       export ORACLE_SID={{ '+ASM' if node_tier == 'oracle-asm' else current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl start
-  environment:                         "{{ grid_env }}"
+  environment:                         "{% if node_tier == 'oracle-asm' %}{{ grid_env }}{% else %}{{ oracle_env }}{% endif %}"
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
   register:                            listener_start_results
@@ -206,9 +237,9 @@
   become_user:                         "{% if node_tier == 'oracle-asm' %}{{ grid_user_name }}{% else %}{{ oracle_user_name }}{% endif %}"
   become:                              true
   ansible.builtin.shell: |
-                                       export ORACLE_SID={{ current_sid }}
+                                       export ORACLE_SID={{ '+ASM' if node_tier == 'oracle-asm' else current_sid }}
                                        /oracle/{{ db_path }}/{{ ora_version }}/bin/lsnrctl status
-  environment:                         "{{ grid_env }}"
+  environment:                         "{% if node_tier == 'oracle-asm' %}{{ grid_env }}{% else %}{{ oracle_env }}{% endif %}"
   args:
     chdir:                             "/oracle/{{ db_path }}/{{ ora_version }}/bin"
   register:                            listener_status

@@ -94,33 +94,6 @@
                                        - listener_start_results.rc not in [0, 1]
                                        - "'TNS-01106' not in listener_start_results.stdout"
 
-    - name:                            "4.1.3 Oracle Data Guard - Set Variables"
-      ansible.builtin.set_fact:
-        pga_temp_l4tb_std:             "{{ ((ansible_memory_mb.real.total * 0.60 ) * 0.2) | round | int }}"
-        pga_temp_l4tb_dis:             "{{ ((ansible_memory_mb.real.total * 0.80 ) * 0.2) | round | int }}"
-
-    - name:                            "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM < 4TB"
-      ansible.builtin.set_fact:
-        main_mem1:                     "{{ ansible_memory_mb.real.total }}"
-        ora_sga:                       "{{ (ansible_memory_mb.real.total * 0.60) | round | int }}"
-        ora_pga:                       "{{ [(pga_temp_l4tb_std | int), 4194304] | min }}"
-      when:
-        - ansible_memory_mb.real.total < 4194304
-
-    - name:                            "4.1.3 Oracle Data Guard - Set the SGA and PGA Sizes for RAM > 4TB"
-      ansible.builtin.set_fact:
-        ora_sga:                       "{{ (ansible_memory_mb.real.total * 0.65) | round | int }}"
-        ora_pga:                       "{{ ((ansible_memory_mb.real.total*0.65)*0.2) | round | int }}"
-      when:
-        - ansible_memory_mb.real.total > 4194304
-
-    - name:                            "4.1.3 Oracle Data Guard - Show Main Memory"
-      ansible.builtin.debug:
-          msg:
-          - "Total memory:         {{ main_mem1 }}"
-          - "sga_max_size:         {{ ora_sga }}"
-          - "pga_aggregate_target: {{ ora_pga }}"
-
     - name:                            "4.1.3 Oracle Data Guard - Prepare Secondary - Create standby initialization file"
       ansible.builtin.template:
         src:                           init_standby.ora.j2

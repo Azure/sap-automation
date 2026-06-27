@@ -15,6 +15,23 @@
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Set Memory Variables"
+  ansible.builtin.set_fact:
+    pga_temp_l4tb_dis:                 "{{ ((ansible_memory_mb.real.total * 0.80 ) * 0.2) | round | int }}"
+    main_memory:                       "{{ ansible_memory_mb.real.total }}"
+    ora_sga:                           "{{ (ansible_memory_mb.real.total * 0.60) | round | int }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Set Memory Variables"
+  ansible.builtin.set_fact:
+    ora_pga:                           "{{ [(pga_temp_l4tb_dis | int), 4194304] | min }}"
+
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Show Main Memory"
+  ansible.builtin.debug:
+    msg:
+      - "Total memory:         {{ main_memory }}"
+      - "sga_max_size:         {{ ora_sga }}"
+      - "pga_aggregate_target: {{ ora_pga }}"
+
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Show Configure check standby redo logs results"
   ansible.builtin.debug:
     var:                               srl_count.stdout_lines
@@ -67,11 +84,13 @@
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
 - name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Start Data Guard Broker on standby"
-  when:                                node_tier == "oracle-asm"
   become_user:                         "{{ oracle_user_name }}"
   become:                              true
   ansible.builtin.shell: |
                                        sqlplus -s / as sysdba <<EOF
+                                       ALTER SYSTEM SET sga_max_size={{ ora_sga }}M SCOPE=spfile;
+                                       ALTER SYSTEM SET pga_aggregate_target={{ ora_pga }}M SCOPE=spfile;
+                                       ALTER SYSTEM SET use_large_pages=only SCOPE=spfile;
                                        ALTER SYSTEM SET DG_BROKER_START = true;
                                        EXIT;
                                        EOF
@@ -81,12 +100,12 @@
   args:
     chdir:                             "/etc/sap_deployment_automation/dataguard_scripts/"
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Show Configure standby Data Guard parameters"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Show Configure standby Data Guard parameters"
   ansible.builtin.debug:
     var:                               dg_standby_config_asm.stdout_lines
     verbosity:                         2
 
-- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Post deployment on Secondary - Save configure standby Data Guard parameters"
+- name:                                "4.1.3 Oracle Data Guard - Post deployment on Secondary - Save configure standby Data Guard parameters"
   ansible.builtin.copy:
     dest:                              "/etc/sap_deployment_automation/dataguard_scripts/configure_data_guard_standby_{{ ansible_date_time.epoch }}.log"
     content:                           "{{ dg_standby_config_asm.stdout }}"

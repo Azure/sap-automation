@@ -225,10 +225,41 @@
         STAGE_SBP_OCWRU:               "{{ patch_grid_path }}/{{ bom.patch_information.SBP_OCWRU }}"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_OCWRU is defined
 
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for Database ACFS Release Update"
+      when:                            patch_grid_path is defined and bom.patch_information.SBP_ACFSRU is defined
+      block:
+
+        - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for Database ACFS Release Update"
+          when:                            patch_grid_path is defined and bom.patch_information.SBP_ACFSRU is defined
+          become:                          true
+          become_user:                     root
+          ansible.builtin.find:
+            paths:                         "{{ target_media_location }}/SBP/"
+            patterns:                      ["{{ bom.patch_information.SBP_ACFSRU }}"]
+            file_type:                     directory
+            recurse:                       true
+          register:                        acfs_patch_grid_id_directory
+
+
+        - name:                            "4.1.1 ORACLE Grid Setup - Save ACFS Release Update"
+          ansible.builtin.set_fact:
+            acfs_patch_grid_path:          "{{ acfs_patch_grid_id_directory.files[0].path }}"
+          when:                            acfs_patch_grid_id_directory.matched <= 2
+
+        - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_ACFSRU"
+          ansible.builtin.set_fact:
+            STAGE_SBP_ACFSRU:              "{{ acfs_patch_grid_path }}"
+
+        - name:                            "4.1.1 ORACLE Grid Setup - Show ACFS Release Update"
+          ansible.builtin.debug:
+            msg:                           "Patch ACFS path {{ acfs_patch_grid_path }}"
+
     - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_ACFSRU"
       ansible.builtin.set_fact:
         STAGE_SBP_ACFSRU:              "{{ patch_grid_path }}/{{ bom.patch_information.SBP_ACFSRU }}"
-      when:                            patch_grid_path is defined and bom.patch_information.SBP_ACFSRU is defined
+      when:
+        - STAGE_SBP_ACFSRU is not defined
+        - patch_grid_path is defined and bom.patch_information.SBP_ACFSRU is defined
 
     - name:                            "4.1.1 ORACLE Grid Setup - Set OneOffs"
       ansible.builtin.set_fact:

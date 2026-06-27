@@ -125,7 +125,6 @@
     block: |
         # User Specific environment
         export ORACLE_HOME=/oracle/{{ db_sid | upper }}/{{ ora_version }}
-        export ORACLE_SID={{ db_sid | upper }}
         export ORACLE_BASE=/oracle
         export LD_LIBRARY_PATH=$ORACLE_HOME/lib
         export TNS_ADMIN=$ORACLE_HOME/network/admin
@@ -144,7 +143,6 @@
     block: |
         # User Specific environment
         setenv  ORACLE_HOME /oracle/{{ db_sid | upper }}/{{ ora_version }}
-        setenv  ORACLE_SID  {{ db_sid | upper }}
         setenv  ORACLE_BASE /oracle
         setenv  LD_LIBRARY_PATH $ORACLE_HOME/lib
         setenv  TNS_ADMIN $ORACLE_HOME/network/admin
