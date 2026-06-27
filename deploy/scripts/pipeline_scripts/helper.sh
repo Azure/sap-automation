@@ -67,6 +67,7 @@ function print_banner() {
     local padding_title=$(((width - ${#title}) / 2))
     local padding_message=$(((width - ${#message}) / 2))
     local padding_secondary_message=$(((width - ${#secondary_message}) / 2))
+    local padding_tertiary_message=$(((width - ${#tertiary_message}) / 2))
 
     local centered_title
     local centered_message
@@ -105,7 +106,7 @@ function getVariableFromVariableGroup() {
 	local environment_file_name="$3"
 	local environment_variable_name="$4"
 	local variable_value
-	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root,
 	#		so change to the repository root for this command and then change back to the original directory when done.
 	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
@@ -126,7 +127,7 @@ function saveVariableInVariableGroup() {
 	local variable_name="$2"
 	local variable_value="$3"
 	local local_return_code=0
-	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root,
 	#		so change to the repository root for this command and then change back to the original directory when done.
 	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
@@ -330,7 +331,7 @@ function get_variable_group_id() {
 	local variable_group_name="$1"
 	local variable_group_id
 	var_name="$2"
-	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root, 
+	# az pipelines variable-group throws a TF401019 error if the current directory is not the repository root,
 	#		so change to the repository root for this command and then change back to the original directory when done.
 	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 

@@ -318,27 +318,6 @@ else
         git pull -q origin "$GITHUB_REF_NAME"
     fi
     output_file="readme.md"
-    now=$(date +"%d of %b %Y at %H:%M:%S")
-    {
-        printf "**SAP System Infrastructure Removal**\n\n\n" >"$output_file"
-        printf "The SAP system infrastructure defined in %s has been removed on %s. The following files have been deleted from the repository:\n\n" "$SAP_SYSTEM_TFVARS_FILENAME" "$now" >>"$output_file"
-        if [ -f "sap-parameters.yaml" ]; then
-            printf "\t sap-parameters.yaml\n" >>"$output_file"
-        fi
-        if [ -f "${SID}_hosts.yaml" ]; then
-            printf "\t ${SID}_hosts.yaml\n" >>"$output_file"
-        fi
-        if [ -f "${SID}_inventory.md" ]; then
-            printf "\t ${SID}_inventory.md\n" >>"$output_file"
-        fi
-        if [ -f "${SID}_virtual_machines.json" ]; then
-            printf "\t ${SID}_virtual_machines.json\n" >>"$output_file"
-        fi
-        if [ -d "logs" ]; then
-            printf "\t logs/ (directory)\n" >>"$output_file"
-        fi
-    }
-
 
     # Clean up untracked files and directories, including ignored files, to ensure a clean working directory
     git clean -d -f -X
@@ -377,6 +356,28 @@ else
         git add "readme.md"
         changed=1
     fi
+
+    now=$(date +"%d of %b %Y at %H:%M:%S")
+    {
+        printf "**SAP System Infrastructure Removal**\n\n\n" >"$output_file"
+        printf "The SAP system infrastructure defined in %s has been removed on %s. The following files have been deleted from the repository:\n\n" "$SAP_SYSTEM_TFVARS_FILENAME" "$now" >>"$output_file"
+        if [ -f "sap-parameters.yaml" ]; then
+            printf "\t sap-parameters.yaml\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_hosts.yaml" ]; then
+            printf "\t ${SID}_hosts.yaml\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_inventory.md" ]; then
+            printf "\t ${SID}_inventory.md\n" >>"$output_file"
+        fi
+        if [ -f "${SID}_virtual_machines.json" ]; then
+            printf "\t ${SID}_virtual_machines.json\n" >>"$output_file"
+        fi
+        if [ -d "logs" ]; then
+            printf "\t logs/ (directory)\n" >>"$output_file"
+        fi
+    }
+
 
     if [ -f "${SID}_inventory.md" ]; then
         git rm --ignore-unmatch -q "${SID}_inventory.md"
@@ -438,7 +439,8 @@ else
         if [ "$PLATFORM" == "github" ]; then
             cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
         else
-            echo "##vso[task.uploadsummary]${output_file}"
+					  sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/readme.md"
+						echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/readme.md"
         fi
     fi
 
