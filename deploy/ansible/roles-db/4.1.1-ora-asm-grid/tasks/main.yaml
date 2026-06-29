@@ -254,6 +254,7 @@
         - name:                            "4.1.1 ORACLE Grid Setup - Show ACFS Release Update"
           ansible.builtin.debug:
             msg:                           "Patch ACFS path {{ acfs_patch_grid_path }}"
+          when:                            acfs_patch_grid_path is defined
 
     - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_ACFSRU"
       ansible.builtin.set_fact:
