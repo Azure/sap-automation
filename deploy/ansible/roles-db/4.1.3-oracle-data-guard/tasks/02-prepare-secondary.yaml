@@ -28,9 +28,9 @@
         - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch' }
         - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch/standbylog' }
         - { mode: '0775', path: '/usr/sap/install/downloads/{{ sap_sid | upper }}' }
-        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogA/cntrl' }
-        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogB/cntrl' }
-        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/sapdata1/cntrl' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogA' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/origlogB' }
+        - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/sapdata1' }
         - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraflash' }
         - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch' }
         - { mode: '0775', path: '/oracle/{{ db_sid | upper }}/oraarch/{{ db_sid | upper }}arch' }
