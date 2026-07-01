@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
           egress-policy: audit
 
@@ -43,11 +43,13 @@ jobs:
 
       - name: Determine package versions
         id: versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yq_version=$(python3 -c 'import json, urllib.request; print(json.load(urllib.request.urlopen("https://api.github.com/repos/mikefarah/yq/releases/latest"))["tag_name"])')
-          echo "yq=${yq_version}" >> "$GITHUB_OUTPUT"
+          yq_version=$(gh api https://api.github.com/repos/mikefarah/yq/releases/latest | jq '.name' -r)
+          echo "yq=$yq_version" >> "$GITHUB_OUTPUT"
 
-          tf_version=$(python3 -c 'import json, re, urllib.request; versions=json.load(urllib.request.urlopen("https://releases.hashicorp.com/terraform/index.json"))["versions"]; stable=[v for v in versions if re.fullmatch(r"\d+\.\d+\.\d+", v)]; print(sorted(stable, key=lambda v: tuple(int(p) for p in v.split(".")))[-1])')
+          tf_version=$(curl -s https://releases.hashicorp.com/terraform/index.json | jq -r '.versions | keys[]' | grep -Ev 'alpha|beta|rc' | sort -V | tail -n 1)
           echo "tf=${tf_version}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -86,7 +88,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@4d991eb9b905ef189e4c376166672c3f2f230481 # v2.11.0
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
         with:
           egress-policy: audit
 
@@ -95,11 +97,13 @@ jobs:
 
       - name: Determine package versions
         id: versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yq_version=$(python3 -c 'import json, urllib.request; print(json.load(urllib.request.urlopen("https://api.github.com/repos/mikefarah/yq/releases/latest"))["tag_name"])')
-          echo "yq=${yq_version}" >> "$GITHUB_OUTPUT"
+          yq_version=$(gh api https://api.github.com/repos/mikefarah/yq/releases/latest | jq '.name' -r)
+          echo "yq=$yq_version" >> "$GITHUB_OUTPUT"
 
-          tf_version=$(python3 -c 'import json, re, urllib.request; versions=json.load(urllib.request.urlopen("https://releases.hashicorp.com/terraform/index.json"))["versions"]; stable=[v for v in versions if re.fullmatch(r"\d+\.\d+\.\d+", v)]; print(sorted(stable, key=lambda v: tuple(int(p) for p in v.split(".")))[-1])')
+          tf_version=$(curl -s https://releases.hashicorp.com/terraform/index.json | jq -r '.versions | keys[]' | grep -Ev 'alpha|beta|rc' | sort -V | tail -n 1)
           echo "tf=${tf_version}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
