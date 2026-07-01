@@ -66,6 +66,7 @@
 - name:                                "4.0.0 SAP HANA - Installation -  Set fact when sps is 08 or higher"
   ansible.builtin.set_fact:
     hana_sp08_or_higher:               "{{ manifest_hana_sp.stdout is version('080', '>=') }}"
+    hana_sp089_or_higher:              "{{ manifest_hana_sp.stdout is version('089', '>=') }}"
 
 - name:                                "4.0.0 SAP HANA SP08 or higher are not supported on RHEL 8.x or 7.x"
   ansible.builtin.fail:
@@ -78,7 +79,7 @@
 # all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | sca | sop | eml | rme | rtl | trp
 - name:                                "4.0.0 SAP HANA - Installation -  Set HANA components"
   ansible.builtin.set_fact:
-    hana_components:                   "server, lcapps, afl, vch2023"
+    hana_components:                   "server, lcapps, afl, {% if hana_sp089_or_higher %}vch2023{% else %}vch2021{% endif %}"
   when:
     - hana_sp08_or_higher
     - hana_components == 'all'

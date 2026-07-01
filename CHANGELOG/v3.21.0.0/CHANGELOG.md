@@ -18,6 +18,7 @@
 - Do not create a user profile for the 'grid' user on non-ORACLE-ASM deployments
 - Oracle HA configuration updates for non-ASM deployments
 - Delegate software download to controller for Windows deployments to facilitate storage accounts without access keys
+- Get the correct HANA components from the BoM
 
 
 ## Notes
