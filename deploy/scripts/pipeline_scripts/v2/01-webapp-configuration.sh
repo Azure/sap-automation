@@ -87,7 +87,7 @@ printf "**Configure authentication**\n" >>"$output_file"
 
 printf "\n\n" >>"$output_file"
 
-printf "az ad app update --id %s --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$APP_REGISTRATION_APP_ID" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" >>"$output_file"
+printf "az ad app update --id %s --enable-id-token-issuance true --web-home-page-url https://%s.azurewebsites.net --web-redirect-uris https://%s.azurewebsites.net/ https://%s.azurewebsites.net/.auth/login/aad/callback\n\n" "$APP_REGISTRATION_APP_ID" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" "$APP_SERVICE_NAME" >>"$output_file"
 
 printf "\n" >>"$output_file"
 printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$APP_REGISTRATION_APP_ID" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$output_file"

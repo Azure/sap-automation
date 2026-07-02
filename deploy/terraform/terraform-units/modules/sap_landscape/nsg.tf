@@ -206,7 +206,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_app" {
   access                               = "Allow"
   protocol                             = "Tcp"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 5404, 5405, 7630, 2049, 111]
+  destination_port_ranges              = [22,53,88,111,135,443,445,2049,3389,5404,5405,5985,5986,7630]
   source_address_prefixes              = compact(concat(
                                            local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
                                            local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
@@ -236,7 +236,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_web" {
   access                               = "Allow"
   protocol                             = "Tcp"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 2049, 111]
+  destination_port_ranges              = [22,53,88,111,135,443,445,2049,3389,5404,5405,5985,5986,7630]
   source_address_prefixes              = compact(concat(
                                            local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
                                            local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
@@ -267,7 +267,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
   access                               = "Allow"
   protocol                             = "*"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 443, 3389, 5985, 5986, 111, 635, 2049, 4045, 4046, 4049]
+  destination_port_ranges              = [22,53,88,111,135,443,445,635,2049,3389,4045,4046,4049,5404,5405,5985,5986,7630]
   source_address_prefixes              = compact(concat(
                                            local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
                                            local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
@@ -297,7 +297,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_db" {
   access                               = "Allow"
   protocol                             = "Tcp"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 443, 3389, 5985, 5986,111, 635, 2049, 4045, 4046, 4049, 2049, 111]
+  destination_port_ranges              = [22,53,88,111,135,443,445,2049,3389,5404,5405,5985,5986,7630]
   source_address_prefixes              = compact(concat(
                                            local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
                                            local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
@@ -327,7 +327,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_admin" {
   access                               = "Allow"
   protocol                             = "Tcp"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 443, 3389, 5985, 5986,111, 635, 2049, 4045, 4046, 4049, 2049, 111]
+  destination_port_ranges              = [22,53,88,111,135,443,445,2049,3389,5404,5405,5985,5986,7630]
   source_address_prefixes              = compact(concat(
                                            local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
                                            local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
@@ -357,7 +357,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_anf" {
   access                               = "Allow"
   protocol                             = "Tcp"
   source_port_range                    = "*"
-  destination_port_ranges              = [22, 111, 443, 635, 2049, 3389, 4045, 4046, 4049, 5985, 5986]
+  destination_port_ranges              = [22,53,88,111,135,443,445,635,2049,3389,4045,4046,4049,5404,5405,5985,5986,7630]
   source_address_prefixes              = compact(concat(
                                            local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
                                            local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],

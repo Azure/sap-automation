@@ -1,0 +1,44 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+- name:                                "3.3 BoM Processing: - Check if file {{ item.archive }} is downloaded"
+  ansible.windows.win_stat:
+    path:                              '{{ target_media_location_windows }}\{{ item.path | default("downloads") }}\{{ item.filename | default(item.archive) }}'
+  register:                            file_stat
+
+
+- name:                                "3.3 BoM Processing: - Download File {{ item.archive }}"
+  when:                                not file_stat.stat.exists
+  block:
+
+    - name:                            "3.3 BoM Processing: - Download File {{ item.archive }}"
+      ansible.builtin.get_url:
+        url:                           "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
+                                         {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
+        dest:                          "/tmp/{{ item.filename | default(item.archive) }}"
+        mode:                          "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"
+        checksum:                      "{% if item.checksum is defined %}{% if item.checksum | trim | length > 1 %}sha256:{{ item.checksum | upper }}{% endif %}{% endif %}"
+        validate_certs:                false
+      delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
+      register:                        result
+      until:                           result is succeeded
+      retries:                         2
+      delay:                           5
+
+
+    - name:                            "3.3 BoM Processing: - Copy the file to the target location"
+      ansible.windows.win_copy:
+        src:                           "{{ result.dest }}"
+        dest:                          '{{ target_media_location_windows }}\{{ item.path | default("downloads") }}\{{ item.filename | default(item.archive) }}'
+
+    - name:                            "3.3 BoM Processing: - Remove downloaded file from Ansible controller"
+      ansible.builtin.file:
+        path:                          "{{ result.dest }}"
+        state:                         absent
+      delegate_to:                     localhost
+      become:                          "{{ bom_processing_become }}"
+
+...

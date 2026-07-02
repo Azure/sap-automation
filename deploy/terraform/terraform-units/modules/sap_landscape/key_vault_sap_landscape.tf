@@ -507,7 +507,7 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                         }
   lifecycle {
     ignore_changes = [ expiration_date]
-  } 
+  }
 }
 
 data "azurerm_key_vault_secret" "sid_ppk" {
@@ -547,7 +547,7 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                           delete = "5m"
                                         }
 }
-  
+
 data "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
   depends_on                           = [

@@ -78,7 +78,7 @@
 # all | client | es | ets | lcapps | server | smartda | streaming | rdsync | xs | studio | afl | sca | sop | eml | rme | rtl | trp
 - name:                                "4.0.0 SAP HANA - Installation -  Set HANA components"
   ansible.builtin.set_fact:
-    hana_components:                   "server, lcapps, afl, vch2021"
+    hana_components:                   "server, lcapps, afl, vch2023"
   when:
     - hana_sp08_or_higher
     - hana_components == 'all'

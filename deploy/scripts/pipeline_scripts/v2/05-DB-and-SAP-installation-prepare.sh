@@ -125,13 +125,23 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
 	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
 	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+	az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
 
-	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-	tfstate_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
 fi
 
+if [ -z "$key_vault" ]; then
+	if [ -v KEYVAULT ]; then
+		key_vault=$KEYVAULT
+	else
+		echo "##vso[task.logissue type=error]Key Vault name is not defined."
+		exit 2
+	fi
+	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
+	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+	az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
 
-az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+fi
+
 
 echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
@@ -159,8 +169,6 @@ else
 	fi
 	new_parameters="${EXTRA_PARAMETERS:-''} $PIPELINE_EXTRA_PARAMETERS"
 fi
-
-az account set --subscription "$tfstate_subscription_id" --output none --only-show-errors
 
 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 echo "##vso[task.setvariable variable=HOSTS;isOutput=true]${SID}_hosts.yaml"

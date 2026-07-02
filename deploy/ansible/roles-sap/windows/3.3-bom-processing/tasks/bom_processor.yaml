@@ -109,26 +109,16 @@
     path:                              C:\resource
     state:                             directory
 
-
-- name:                                "3.3 BoM Processing: - Download Files {{ distribution_id }}"
-  ansible.windows.win_get_url:
-    url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
-                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
-    dest:                              '{{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
-    checksum:                          "{% if item.checksum is defined %}{{ item.checksum | upper }}{% endif %}"
-    checksum_algorithm:                "sha256"
-    validate_certs:                    true
-  register:                            result
-  until:                               result is succeeded
-  retries:                             2
-  delay:                               5
+- name:                                "3.3 BoM Processing: - Download files from BOM"
+  ansible.builtin.include_tasks:       "download_file.yaml"
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.download is undefined or item.download
+    - item.archive is defined
 
 #   05) Extract files - SAPCAR
 - name:                                "3.3 BoM Processing: - Extract File, SAPCAR"
-  ansible.windows.win_shell:                           '{{ target_media_location_windows }}\downloads\SAPCAR -manifest SIGNATURE.SMF -xf {{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
+  ansible.windows.win_shell:           '{{ target_media_location_windows }}\downloads\SAPCAR -manifest SIGNATURE.SMF -xf {{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
   args:
     chdir:                             '{{ target_media_location_windows }}\{{ item.extractDir }}'
     creates:                           '{ target_media_location_windows }}\{{ item.extractDir }}\{% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}'
