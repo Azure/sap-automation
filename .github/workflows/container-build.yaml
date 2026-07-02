@@ -76,7 +76,7 @@ jobs:
           docker run --rm "${{ env.IMAGE_NAME }}:validation" terraform version
           docker run --rm "${{ env.IMAGE_NAME }}:validation" ansible --version
           docker run --rm "${{ env.IMAGE_NAME }}:validation" az version
-          echo "Docker image validation successful"
+          echo "Docker image validation successful!!"
 
   push:
     if: startsWith(github.ref, 'refs/tags/')
