@@ -267,7 +267,7 @@ resource "azurerm_network_security_rule" "nsr_controlplane_storage" {
   access                               = "Allow"
   protocol                             = "*"
   source_port_range                    = "*"
-  destination_port_ranges              = [22,53,88,111,135,443,445,635,2049,3389,4045,4046,4049,5404,5405,5985,5986,7630]
+  destination_port_ranges              = [22,53,88,111,135,443,445,2049,3389,5404,5405,5985,5986,7630, 635, 4045, 4046, 4049]
   source_address_prefixes              = compact(concat(
                                            local.use_deployer ? var.deployer_tfstate.subnet_mgmt_address_prefixes : [""],
                                            local.use_deployer ? var.deployer_tfstate.subnet_bastion_address_prefixes : [""],
