@@ -271,7 +271,7 @@
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Configure HANA active/read-enabled system replication"
       when:
                                        - database_active_active | default(false)
-                                       - not (db_scale_out | default(false))
+                                       - not (database_scale_out | default(false))
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT - Configure the Active/Active netcat resource for the Load Balancer health probe"
           ansible.builtin.shell:       pcs resource create secnc_{{ db_sid | upper }}_{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
@@ -554,7 +554,7 @@
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Configure HANA active/read-enabled system replication"
       when:
                                        - database_active_active | default(false)
-                                       - not (db_scale_out | default(false))
+                                       - not (database_scale_out | default(false))
       block:
         - name:                        "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - Create Active/Active netcat resource"
           ansible.builtin.shell:       pcs resource create secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
@@ -636,7 +636,7 @@
 - name:                                "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - move SAPHanaController clone to run on Primary Node"
   when:
                                        - database_active_active | default(false)
-                                       - not (db_scale_out | default(false))
+                                       - not (database_scale_out | default(false))
                                        - is_pcmk_ver_gt_204
                                        - ansible_hostname == primary_instance_name
                                        - is_certified_for_hanasr_angi | default(false)
@@ -678,7 +678,7 @@
 - name:                                "5.5.4.1 HANA Cluster configuration - REDHAT - move SAP HANA clone to run on Primary Node"
   when:
                                        - database_active_active | default(false)
-                                       - not (db_scale_out | default(false))
+                                       - not (database_scale_out | default(false))
                                        - is_pcmk_ver_gt_204
                                        - ansible_hostname == primary_instance_name
                                        - not (is_certified_for_hanasr_angi | default(false))

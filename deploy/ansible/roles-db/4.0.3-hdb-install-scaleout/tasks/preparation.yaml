@@ -145,7 +145,7 @@
   failed_when: >-
     site1_host_keys.rc != 0 and
     site1_host_keys.stderr is not search("Connection refused") and
-    site1_host_keys.stdout | length > 0
+    site1_host_keys.stdout | length == 0
   loop:                                "{{ primary_site_hosts }}"
 
 - name:                                "4.0.3 - SAP HANA Scale-out: Get SSH host keys from secondary site hosts"
@@ -161,7 +161,7 @@
   failed_when: >-
     site2_host_keys.rc != 0 and
     site2_host_keys.stderr is not search("Connection refused") and
-    site2_host_keys.stdout | length > 0
+    site2_host_keys.stdout | length == 0
   loop:                                "{{ secondary_site_hosts }}"
 
 - name:                                "4.0.3 - SAP HANA Scale-out: Compile all host keys"

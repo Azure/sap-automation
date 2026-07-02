@@ -12,7 +12,6 @@
   ansible.builtin.set_fact:
     angi_hanasr_provider:              "{{ 'HanaSR'    if ansible_os_family | upper == 'REDHAT' else 'susHanaSR' }}"
     angi_chksrv_provider:              "{{ 'ChkSrv'    if ansible_os_family | upper == 'REDHAT' else 'susChkSrv' }}"
-    angi_hanasr_trace:                 "{{ 'hanasr'    if ansible_os_family | upper == 'REDHAT' else 'sushanasr' }}"
     angi_chksrv_trace:                 "{{ 'chksrv'    if ansible_os_family | upper == 'REDHAT' else 'suschksrv' }}"
 
 - name:                                "04.04 SAPHanaSR-angi verify - Set trace directory path"
