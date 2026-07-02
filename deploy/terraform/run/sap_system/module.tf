@@ -326,8 +326,8 @@ module "output_files" {
   authentication_type                           = try(local.application_tier.authentication.type, "key")
   configuration_settings                        = var.configuration_settings
   database                                      = local.database
-  database_shared_disks                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
-                                                    module.hdb_node.database_shared_disks) : (
+  database_shared_disks                         = concat(
+                                                    module.hdb_node.database_shared_disks,
                                                     module.anydb_node.database_shared_disks
                                                   )
   is_use_fence_kdump                            = var.use_fence_kdump

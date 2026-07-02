@@ -23,10 +23,18 @@ namespace SDAFWebApp.Controllers
             {
                 var controller = context.Controller as Controller;
                 controller.ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
-                controller.ViewBag.adoRepoUrl = String.Format("{0}_git/{1}?path=/WORKSPACES/", _configuration["CollectionUri"], _configuration["ProjectName"]);
-                controller.ViewBag.adoPipelineUrl = String.Format("{0}{1}/_build", _configuration["CollectionUri"], _configuration["ProjectName"]);
-
-
+                var devopsPlatform = (_configuration["DEVOPS_PLATFORM"] ?? "ado").ToLower();
+                controller.ViewBag.Platform = devopsPlatform;
+                if (devopsPlatform == "ado")
+                {
+                    controller.ViewBag.adoRepoUrl = String.Format("{0}_git/{1}?path=/WORKSPACES/", _configuration["CollectionUri"], _configuration["ProjectName"]);
+                    controller.ViewBag.adoPipelineUrl = String.Format("{0}{1}/_build", _configuration["CollectionUri"], _configuration["ProjectName"]);
+                }
+                else
+                {
+                    controller.ViewBag.adoRepoUrl = String.Format("{0}/{1}/tree/main/WORKSPACES/", _configuration["GITHUB_SERVER_URL"], _configuration["GITHUB_REPOSITORY"]);
+                    controller.ViewBag.adoPipelineUrl = String.Format("{0}/{1}/actions", _configuration["GITHUB_SERVER_URL"], _configuration["GITHUB_REPOSITORY"]);
+                }
             }
 
             base.OnResultExecuting(context);

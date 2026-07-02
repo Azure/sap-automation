@@ -13,6 +13,7 @@ locals {
   landscape_keyvault_names                        = var.naming.keyvault_names.WORKLOAD_ZONE
   landscape_shared_install_storage_account_name   = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_install_storage_account_name
   landscape_shared_transport_storage_account_name = var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_shared_transport_storage_account_name
+  landscape_utility_storage_account_names         = try(var.naming.storageaccount_names.WORKLOAD_ZONE.landscape_utility_storage_account_names, [])
   resource_suffixes                               = var.naming.resource_suffixes
   sid_keyvault_names                              = var.naming.keyvault_names.SDU
   virtualmachine_names                            = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME

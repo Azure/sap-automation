@@ -389,13 +389,13 @@ if [ 1 = $added ]; then
 fi
 
 # Platform-specific summary handling
-if [ -f "${WORKLOAD_ZONE_NAME}.md" ]; then
+if [ -f readme.md ]; then
 	if [ "$PLATFORM" == "devops" ]; then
-		cat "${WORKLOAD_ZONE_NAME}.md"
-		sudo cp "${WORKLOAD_ZONE_NAME}.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
+		cat "readme.md"
+		sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
 		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${WORKLOAD_ZONE_NAME}.md;]$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
 	elif [ "$PLATFORM" == "github" ]; then
-		cat "${WORKLOAD_ZONE_NAME}.md" >>$GITHUB_STEP_SUMMARY
+		cat readme.md >>$GITHUB_STEP_SUMMARY
 	fi
 fi
 

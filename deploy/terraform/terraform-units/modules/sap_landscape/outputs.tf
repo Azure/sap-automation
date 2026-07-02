@@ -306,6 +306,22 @@ output "transport_storage_account_id" {
 
 ###############################################################################
 #                                                                             #
+#                            Utility Storage                                  #
+#                                                                             #
+###############################################################################
+
+output "utility_storage_account_ids"             {
+                                                  description = "List of utility storage account IDs"
+                                                  value       = azurerm_storage_account.utility[*].id
+                                                }
+
+output "utility_storage_account_names"           {
+                                                  description = "List of utility storage account names"
+                                                  value       = azurerm_storage_account.utility[*].name
+                                                }
+
+###############################################################################
+#                                                                             #
 #                            DNS                                              #
 #                                                                             #
 ###############################################################################

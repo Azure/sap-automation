@@ -78,7 +78,7 @@
       ansible.builtin.command: >
         crm configure primitive stonith-sbd stonith:external/sbd \
         params pcmk_delay_max="15" \
-        op monitor interval="15" timeout="15"
+        op monitor interval="15" timeout="120"
 
     - name: Check the current SBD status
       ansible.builtin.shell: set -o pipefail && crm_mon -1 | grep sbd

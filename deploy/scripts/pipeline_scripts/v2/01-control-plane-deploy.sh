@@ -130,6 +130,10 @@ if [ "$PLATFORM" == "devops" ]; then
     else
         echo "##vso[task.logissue type=warning]DevOps Infrastructure Object ID not found. Please ensure the DEVOPS_OBJECT_ID variable is defined, if managed devops pools are used."
     fi
+    TF_VAR_devops_platform="ADO"
+    export TF_VAR_devops_platform
+
+
     elif [ "$PLATFORM" == "github" ]; then
     # No specific variable group setup for GitHub Actions
     # Values will be stored in GitHub Environment variables
@@ -709,6 +713,11 @@ if [ 0 -eq "$return_code" ]; then
             set_value_with_key "WEBAPP_ID" "${WEBAPP_ID}" "env"
             WEBAPP_URL_BASE=$(echo "$WEBAPP_ID" | cut -d '/' -f 9)
             set_value_with_key "WEBAPP_URL_BASE" "${WEBAPP_URL_BASE}" "env"
+            set_output_variable "HAS_WEBAPP" "true"
+            set_output_variable "APPSERVICE_NAME" "$WEBAPP_URL_BASE"
+            set_output_variable "WEBAPP_ID" "$WEBAPP_ID"
+        else
+            set_output_variable "HAS_WEBAPP" "false"
         fi
     fi
 fi
@@ -719,7 +728,7 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/${CONTROL_PLANE_NAME}.md" ]; then
         cat "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md"
         sudo cp "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md" "$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
         echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${CONTROL_PLANE_NAME}.md;]$AGENT_TEMPDIRECTORY/${CONTROL_PLANE_NAME}.md"
-        elif [ "$PLATFORM" == "github" ]; then
+    elif [ "$PLATFORM" == "github" ]; then
         cat "DEPLOYER/${DEPLOYER_FOLDERNAME}/${CONTROL_PLANE_NAME}.md" >>$GITHUB_STEP_SUMMARY
     fi
 fi

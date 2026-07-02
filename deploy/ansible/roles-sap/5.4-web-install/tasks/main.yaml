@@ -173,6 +173,16 @@
       ansible.builtin.debug:
         msg:                           "5.4 SAP Web Dispatcher Install - Installation succeeded"
 
+    - name:                            "5.4 SAP Web Dispatcher Install - Unmount /install"
+      when:
+                                       - web_installation is defined
+                                       - web_installation.rc == 0
+      ansible.posix.mount:
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
+      failed_when:                     false
+
     - name:                            "5.4 SAP Web Dispatcher Install - flag"
       when:
                                        - web_installation is defined | default(false)
@@ -191,6 +201,15 @@
                                        - web_installed.stat.exists
   ansible.builtin.debug:
     msg:                               "Web Dispatcher already installed, skipping installation"
+
+- name:                                "5.4 SAP Web Dispatcher Install - Unmount /install"
+  become:                              true
+  become_user:                         root
+  ansible.posix.mount:
+    src:                               "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+    path:                              "{{ target_media_location }}"
+    state:                             unmounted
+  failed_when:                         false
 
 ...
 # /*---------------------------------------------------------------------------8

@@ -8,11 +8,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Common;
+using Octokit;
 using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -37,6 +36,9 @@ namespace SDAFWebApp.Controllers
         private readonly string sdafControlPlaneLocation;
         private readonly string tenantId;
         private readonly string ghToken;
+        private readonly string ghOrganization;
+        private readonly string ghRepository;
+        private readonly string repoType;
         private readonly string managedIdentityClientId;
 
         private readonly Azure.Identity.DefaultAzureCredential credential;
@@ -51,6 +53,7 @@ namespace SDAFWebApp.Controllers
         {
             collectionUri = configuration["CollectionUri"];
             project = configuration["ProjectName"];
+            repoType = type;
             repositoryId = configuration["RepositoryId"];
             PAT = configuration["PAT"];
             string devops_authentication = configuration["AUTHENTICATION_TYPE"];
@@ -59,13 +62,13 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             tenantId = configuration["AZURE_TENANT_ID"];
+            string ghOrgAndRepository = configuration["GITHUB_REPOSITORY"];
 
             managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
-            ghToken = configuration.GetConnectionString("gh_Token");
 
             jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
-            if (type == "ADO")
+            if (repoType.ToLower() == "ado")
             {
                 if (devops_authentication == "PAT")
                 {
@@ -105,6 +108,32 @@ namespace SDAFWebApp.Controllers
                     new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
             }
+            else if (repoType.ToLower() == "github")
+            {
+                if (ghOrgAndRepository.Length > 0)
+                {
+                    ghOrganization = ghOrgAndRepository.Split("/")[0];
+                    ghRepository = ghOrgAndRepository.Split("/")[1];
+                    ghToken = configuration["GITHUB_PAT"];
+                }
+                else
+                {
+                    throw new ArgumentNullException("GitHub repository must be provided for GitHub operations.");
+                 
+                }
+
+                client = new HttpClient();
+
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+
+                client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SDAF", "1.0"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ghToken);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+
+            }
             else
             {
                 client = new HttpClient();
@@ -113,6 +142,8 @@ namespace SDAFWebApp.Controllers
                     new MediaTypeWithQualityHeaderValue("application/json"));
 
                 client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+
+
             }
         }
 
@@ -130,42 +161,61 @@ namespace SDAFWebApp.Controllers
         // Add or edit a file in ADO
         public async Task UpdateRepo(string path, string content)
         {
-            string getUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/refs/?filter=heads/{branch}";
-            string postUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=5.1";
-            string ooId;
-
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
-            string responseBody = await response.Content.ReadAsStringAsync();
-            HandleResponse(response, responseBody);
-
-            ooId = JsonDocument.Parse(responseBody).RootElement.GetProperty("value")[0].GetProperty("objectId").GetString();
-
-            // Dynamically retrieve path
-            string pathBase = await GetVariableFromVariableGroup(sdafGeneralId, "SDAF-General", "Deployment_Configuration_Path");
-            path = pathBase + path;
-
-            // Create request body
-            Refupdate refUpdate = new()
+            if (repoType.ToLower() == "ado")
             {
-                name = $"refs/heads/{branch}",
-                oldObjectId = ooId
-            };
-            GitRequestBody requestBody = new()
-            {
-                refUpdates = new Refupdate[] { refUpdate },
-            };
-            StringContent editContent = Helper.CreateHttpContent("edit", path, content, requestBody);
 
-            // try to edit file (if it exists)
-            HttpResponseMessage editResponse = await client.PostAsync(postUri, editContent);
+                string getUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/refs/?filter=heads/{branch}";
+                string postUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=5.1";
+                string ooId;
 
-            // add file on unsuccessful edit (because it does not exist)
-            if (!editResponse.IsSuccessStatusCode)
+                using HttpResponseMessage response = client.GetAsync(getUri).Result;
+                string responseBody = await response.Content.ReadAsStringAsync();
+                HandleResponse(response, responseBody);
+
+                ooId = JsonDocument.Parse(responseBody).RootElement.GetProperty("value")[0].GetProperty("objectId").GetString();
+
+                // Dynamically retrieve path
+                string pathBase = await GetVariableFromVariableGroup(sdafGeneralId, "SDAF-General", "Deployment_Configuration_Path");
+                path = pathBase + path;
+
+                // Create request body
+                Refupdate refUpdate = new()
+                {
+                    name = $"refs/heads/{branch}",
+                    oldObjectId = ooId
+                };
+                GitRequestBody requestBody = new()
+                {
+                    refUpdates = new Refupdate[] { refUpdate },
+                };
+                StringContent editContent = Helper.CreateHttpContent("edit", path, content, requestBody);
+
+                // try to edit file (if it exists)
+                HttpResponseMessage editResponse = await client.PostAsync(postUri, editContent);
+
+                // add file on unsuccessful edit (because it does not exist)
+                if (!editResponse.IsSuccessStatusCode)
+                {
+                    StringContent addContent = Helper.CreateHttpContent("add", path, content, requestBody);
+                    HttpResponseMessage addResponse = await client.PostAsync(postUri, addContent);
+                    string addResponseBody = await addResponse.Content.ReadAsStringAsync();
+                    HandleResponse(addResponse, addResponseBody);
+                }
+            }
+            else
             {
-                StringContent addContent = Helper.CreateHttpContent("add", path, content, requestBody);
-                HttpResponseMessage addResponse = await client.PostAsync(postUri, addContent);
-                string addResponseBody = await addResponse.Content.ReadAsStringAsync();
-                HandleResponse(addResponse, addResponseBody);
+                path = "WORKSPACES" + path;
+                var uploader = new GitHubFileUploader(ghToken, ghOrganization, ghRepository);
+                while (path.StartsWith("/"))
+                {
+                    path = path.Substring(1);
+                }
+                var changeSet = await uploader.CreateOrUpdateFileAsync(path, content, "Update file via SDAF App Service", "main");
+                string addResponseBody = System.Text.Json.JsonSerializer.Serialize(changeSet);
+                if (changeSet == null || changeSet.Content == null)
+                {
+                    throw new HttpRequestException("Failed to create or update the file on GitHub.");
+                }
             }
         }
 
@@ -187,46 +237,78 @@ namespace SDAFWebApp.Controllers
             HandleResponse(response, responseBody);
         }
 
+        // Add this method to the RestHelper class to trigger a GitHub Action workflow
+
+        public async Task TriggerGitHubWorkflow(string workflowFileName, string branch = "main", Dictionary<string, object> inputs = null)
+        {
+            var githubClient = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("SDAF"));
+            githubClient.Credentials = new Octokit.Credentials(ghToken);
+
+            var workflowDispatch = new Octokit.CreateWorkflowDispatch(branch)
+            {
+                Inputs = inputs ?? new Dictionary<string, object>()
+            };
+
+            try
+            {
+                await githubClient.Actions.Workflows.CreateDispatch(ghOrganization, ghRepository, workflowFileName, workflowDispatch);
+            }
+            catch (Octokit.ApiException ex)
+            {
+                throw new HttpRequestException($"Failed to trigger GitHub workflow: {ex.Message}");
+            }
+        }
+
         // Get an array of file names from azure sap-automation region given a directory
         public async Task<string[]> GetTemplateFileNames(string scopePath)
         {
             string getUri = $"{sampleUrl}/contents/{scopePath}?ref=main";
 
-            using HttpRequestMessage request = new(HttpMethod.Get, getUri);
-            if (!string.IsNullOrEmpty(ghToken))
+            //if (!string.IsNullOrEmpty(ghToken))
+            //{
+            //    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ghToken);
+            //    getUri += "&access_token=ghToken";
+            //}
+            try
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ghToken);
-            }
+                using HttpResponseMessage response = client.GetAsync(getUri).Result;
+                string responseBody = await response.Content.ReadAsStringAsync();
+                HandleResponse(response, responseBody);
+                List<string> fileNames = [];
 
-            using HttpResponseMessage response = await client.SendAsync(request);
-            string responseBody = await response.Content.ReadAsStringAsync();
-            HandleResponse(response, responseBody);
-
-            List<string> fileNames = [];
-
-            JsonElement values = JsonDocument.Parse(responseBody).RootElement;
-            foreach (var value in values.EnumerateArray())
-            {
-                string type = value.GetProperty("type").GetString();
-                string path = value.GetProperty("path").GetString();
-                if (type == "dir")
+                JsonElement values = JsonDocument.Parse(responseBody).RootElement;
+                foreach (var value in values.EnumerateArray())
                 {
-                    string[] subFiles = await GetTemplateFileNames(path);
-                    foreach (string subFile in subFiles)
+                    string type = value.GetProperty("type").GetString();
+                    string path = value.GetProperty("path").GetString();
+                    if (type == "dir")
                     {
-                        fileNames.Add(subFile);
+                        string[] subFiles = await GetTemplateFileNames(path);
+                        foreach (string subFile in subFiles)
+                        {
+                            fileNames.Add(subFile);
+                        }
+                    }
+                    else if (type == "file")
+                    {
+                        if (path.EndsWith(".tfvars"))
+                        {
+                            fileNames.Add(path);
+                        }
                     }
                 }
-                else if (type == "file")
-                {
-                    if (path.EndsWith(".tfvars"))
-                    {
-                        fileNames.Add(path);
-                    }
-                }
+
+                return fileNames.ToArray();
+            }
+            catch (AggregateException ex)
+            {
+                throw new HttpRequestException($"Error fetching template file names: {ex.Message}");
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpRequestException($"Error fetching template file names: {ex.Message}");
             }
 
-            return fileNames.ToArray();
         }
 
         // Get a file from azure sap-automation repository
@@ -258,54 +340,84 @@ namespace SDAFWebApp.Controllers
         // List all variable groups from azure devops
         public async Task<EnvironmentModel[]> GetVariableGroups()
         {
-            JsonElement values = await GetVariableGroupsJson();
-
-            List<EnvironmentModel> variableGroups = [];
-
-            foreach (var value in values.EnumerateArray())
+            if (repoType.ToLower() == "ado")
             {
-                EnvironmentModel environment = JsonSerializer.Deserialize<EnvironmentModel>(value.ToString());
 
-                environment.sdafControlPlaneEnvironment = sdafControlPlaneEnvironment;
-                if (!environment.name.EndsWith("-" + sdafControlPlaneEnvironment))
+                JsonElement values = await GetVariableGroupsJson();
+
+                List<EnvironmentModel> variableGroups = [];
+
+                foreach (var value in values.EnumerateArray())
                 {
-                    if (environment.name.StartsWith("SDAF-"))
+                    EnvironmentModel environment = JsonSerializer.Deserialize<EnvironmentModel>(value.ToString());
+
+                    environment.sdafControlPlaneEnvironment = sdafControlPlaneEnvironment;
+                    if (!environment.name.EndsWith("-" + sdafControlPlaneEnvironment))
                     {
-                        environment.name = environment.name.Replace("SDAF-", "");
-                        variableGroups.Add(environment);
+                        if (environment.name.StartsWith("SDAF-"))
+                        {
+                            environment.name = environment.name.Replace("SDAF-", "");
+                            variableGroups.Add(environment);
+                        }
                     }
+
                 }
 
+                return variableGroups.ToArray();
             }
-
-            return variableGroups.ToArray();
+            else
+            {
+                return [];
+            }
         }
 
         // Get a list of all variable group names for use in a dropdown
         public async Task<List<SelectListItem>> GetEnvironmentsList()
         {
-            JsonElement values = await GetVariableGroupsJson();
-
-            List<SelectListItem> variableGroups =
-      [
-                new SelectListItem { Text = "", Value = "" }
-            ];
-
-            foreach (var value in values.EnumerateArray())
+            List<SelectListItem> variableGroups = [ new SelectListItem { Text = "", Value = "" } ];
+            switch (repoType.ToLower())
             {
-                string groupName = value.GetProperty("name").ToString();
-                if (groupName.StartsWith("SDAF-"))
-                {
-                    string text = value.GetProperty("name").ToString().Replace("SDAF-", "");
-                    variableGroups.Add(new SelectListItem
+                case "github":
                     {
-                        Text = text,
-                        Value = text
-                    });
+                        var helper = new GitHubEnvironmentHelper(ghToken, ghOrganization, ghRepository);
+                        // FIX: Await the async method and use the result directly
+                        var environments = await helper.ListEnvironmentsAsync();
 
-                }
+                        foreach (var env in environments)
+                        {
+                            string groupName = env.Name;
+                            variableGroups.Add(new SelectListItem
+                            {
+                                Text = groupName,
+                                Value = groupName
+                            });
+
+                        }
+                        break;
+                    }
+                case "ado":
+                    {
+                        JsonElement values = await GetVariableGroupsJson();
+
+                        foreach (var value in values.EnumerateArray())
+                        {
+                            string groupName = value.GetProperty("name").ToString();
+                            if (groupName.StartsWith("SDAF-"))
+                            {
+                                string text = value.GetProperty("name").ToString().Replace("SDAF-", "");
+                                variableGroups.Add(new SelectListItem
+                                {
+                                    Text = text,
+                                    Value = text
+                                });
+
+                            }
+                        }
+
+                        break;
+                    }
+
             }
-
             return variableGroups;
         }
 
@@ -467,7 +579,12 @@ namespace SDAFWebApp.Controllers
                         errorMessage = "Could not find the template.";
                         break;
                     default:
+
                         errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();
+                        if (errorMessage.Contains("Resource protected by organization SAML"))
+                        {
+
+                        }
                         break;
                 }
                 throw new HttpRequestException(errorMessage);

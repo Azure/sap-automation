@@ -234,6 +234,14 @@
         msg:                           "SCS Installation succeeded"
       when:                            scs_installation.rc == 0
 
+    - name:                            "5.0.0 SAP Central Services Installation - Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
+      failed_when:                     false
+      when:                            scs_installation.rc == 0
+
     - name:                            "5.0.0 SAP Central Services Installation - Find the installationSuccesfullyFinished.dat (SAPINST)"
       ansible.builtin.find:
         paths:                         "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}/sapinst_instdir/{{ bom.product_ids.scs.replace('.', '/').replace('/ABAP', '').replace('/PD', '').replace('/JAVA', '').split(':')[1] }}/INSTALL/DISTRIBUTED/{{ scs_bom_instance_type }}/{{ instance_type }}"
@@ -262,6 +270,12 @@
   when:
     - scs_installed.stat.exists
   block:
+
+    - name:                            "5.0.0 SAP Central Services Installation - Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
 
     - name:                            "5.0.0 SAP Central Services Installation - SAP Central Services Install status"
       ansible.builtin.debug:

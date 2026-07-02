@@ -147,22 +147,22 @@ data "azurerm_key_vault_secret" "cp_tenant_id" {
 #
 
 data "azurerm_app_configuration_key" "media_path" {
-  count                  = local.infrastructure.use_application_configuration ? 1 : 0
-  configuration_store_id = local.infrastructure.application_configuration_id
+  count                  = length(var.application_configuration_id) > 0 ? 1 : 0
+  configuration_store_id = var.application_configuration_id
   key                    = format("%s_SAPMediaPath", local.control_plane_name_resolved)
   label                  = local.control_plane_name_resolved
 }
 
 data "azurerm_app_configuration_key" "credentials_vault" {
-  count                  = local.infrastructure.use_application_configuration ? 1 : 0
-  configuration_store_id = local.infrastructure.application_configuration_id
+  count                  = length(var.application_configuration_id) > 0 ? 1 : 0
+  configuration_store_id = var.application_configuration_id
   key                    = format("%s_KeyVaultResourceId", local.control_plane_name_resolved)
   label                  = local.control_plane_name_resolved
 }
 
 data "azurerm_app_configuration_key" "workload_credentials_vault" {
-  count                  = local.infrastructure.use_application_configuration ? 1 : 0
-  configuration_store_id = local.infrastructure.application_configuration_id
+  count                  = length(var.application_configuration_id) > 0 ? 1 : 0
+  configuration_store_id = var.application_configuration_id
   key                    = format("%s_KeyVaultResourceId", local.workload_zone_name_resolved)
   label                  = local.workload_zone_name_resolved
 }

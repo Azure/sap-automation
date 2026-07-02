@@ -119,6 +119,14 @@ resource "azurerm_windows_web_app" "webapp" {
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access)): (
                                                   format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
                                                  )
+    "GITHUB_PAT"                               = var.use_private_endpoint ? (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/%s-GH-PAT/)", local.keyvault_names.user_access,  upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name)))): (
+                                                  format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/%s-GH-PAT/)", local.keyvault_names.user_access,  upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name)))
+                                                 )
+    "DEVOPS_PLATFORM"                         = var.infrastructure.devops.platform
+    "GITHUB_SERVER_URL"                       = var.infrastructure.devops.server_url
+    "GITHUB_API_URL"                          = var.infrastructure.devops.api_url
+    "GITHUB_REPOSITORY"                       = var.infrastructure.devops.repository
     "CONTROLPLANE_ENV"                        = var.infrastructure.environment
     "CONTROLPLANE_LOC"                        = var.naming_new.location_short
     "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name))
@@ -130,22 +138,24 @@ resource "azurerm_windows_web_app" "webapp" {
     connection_string_names                    = ["sa_tfstate_conn_str"]
   }
 
-  auth_settings_v2 {
-    auth_enabled                               = length(var.app_service.app_registration_id) > 0
-    unauthenticated_action                     = "RedirectToLoginPage"
-    default_provider                           = "AzureActiveDirectory"
-    active_directory_v2 {
-      client_id                                = length(var.app_service.app_registration_id) > 0 ? var.app_service.app_registration_id : null
-      tenant_auth_endpoint                     = "https://login.microsoftonline.com/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
-      www_authentication_disabled              = false
-      client_secret_setting_name               = "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"
-      allowed_applications                     = length(var.app_service.app_registration_id) > 0 ? [var.app_service.app_registration_id] : []
-      allowed_audiences                        = []
-      allowed_groups                           = []
-      allowed_identities                       = []
-    }
-    login {
-      token_store_enabled = false
+  dynamic "auth_settings_v2" {
+    for_each = length(var.app_service.app_registration_id) > 0 ? [1] : []
+    content {
+      auth_enabled                               = true
+      unauthenticated_action                     = "RedirectToLoginPage"
+      default_provider                           = "AzureActiveDirectory"
+      active_directory_v2 {
+        client_id                                = var.app_service.app_registration_id
+        tenant_auth_endpoint                     = "https://login.microsoftonline.com/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
+        www_authentication_disabled              = false
+        allowed_applications                     = [var.app_service.app_registration_id]
+        allowed_audiences                        = []
+        allowed_groups                           = []
+        allowed_identities                       = []
+      }
+      login {
+        token_store_enabled = false
+      }
     }
   }
 
@@ -185,34 +195,8 @@ resource "azurerm_windows_web_app" "webapp" {
 
   lifecycle                                  {
     ignore_changes                              = [
-                                                    zip_deploy_file,
-                                                    tags
+                                                    zip_deploy_file
                                                   ]
                                              }
 
 }
-
-
-# Set up Vnet integration for webapp and storage account interaction
-resource "azurerm_app_service_virtual_network_swift_connection" "webapp_vnet_connection" {
-  count          = var.app_service.use ? 1 : 0
-  app_service_id = azurerm_windows_web_app.webapp[0].id
-  subnet_id      = var.infrastructure.virtual_network.management.subnet_webapp.exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
-}
-
-
-# resource "azurerm_role_assignment" "app_service_contributor" {
-#   provider             = azurerm.main
-#   count                = var.app_service.use && var.deployer.add_system_assigned_identity ? var.deployer_vm_count : 0
-#   scope                = azurerm_windows_web_app.webapp[0].id
-#   role_definition_name = "Website Contributor"
-#   principal_id         = azurerm_linux_virtual_machine.deployer[count.index].identity[0].principal_id
-# }
-
-# resource "azurerm_role_assignment" "app_service_contributor_msi" {
-#   provider             = azurerm.main
-#   count                = var.app_service.use ? 1 : 0
-#   scope                = azurerm_windows_web_app.webapp[0].id
-#   role_definition_name = "Website Contributor"
-#   principal_id         = azurerm_user_assigned_identity.deployer.principal_id
-# }

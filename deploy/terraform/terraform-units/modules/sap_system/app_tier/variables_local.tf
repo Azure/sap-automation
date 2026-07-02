@@ -342,7 +342,7 @@ locals {
                                                local.resource_suffixes.scs_clst_feip
                                              )
                                              subnet_id = local.enable_deployment ? (
-                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? (
                                                  data.azurerm_subnet.subnet_sap_app[0].id) : (
                                                  azurerm_subnet.subnet_sap_app[0].id
                                                )) : (
@@ -364,7 +364,7 @@ locals {
                                                local.resource_suffixes.scs_fs_feip
                                              )
                                              subnet_id = local.enable_deployment ? (
-                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? (
                                                  data.azurerm_subnet.subnet_sap_app[0].id) : (
                                                  azurerm_subnet.subnet_sap_app[0].id
                                                )) : (

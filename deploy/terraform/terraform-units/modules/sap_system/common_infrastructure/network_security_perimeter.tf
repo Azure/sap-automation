@@ -16,7 +16,7 @@ data "azurerm_network_security_perimeter_profile" "profile" {
 
 resource "azurerm_network_security_perimeter_association" "sapmnt" {
   provider                               = azurerm.deployer
-  count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? 1 : 0
+  count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) && try(var.application_tier.use_AFS_for_sapmnt, false) && local.app_tier_os != "WINDOWS" ? 1 : 0
   name                                   = length(var.azure_files_sapmnt_id) > 0 ? (
                                                      data.azurerm_storage_account.sapmnt[0].name) : (
                                                      try(azurerm_storage_account.sapmnt[0].name, "")

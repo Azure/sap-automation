@@ -1186,19 +1186,6 @@ function sdaf_installer() {
 
         fi
 
-        now=$(date)
-        cat <<EOF >"${WORKLOAD_ZONE_NAME}".md
-
-Workload zone $WORKLOAD_ZONE_NAME was successfully deployed.
-
-Deployed on: "${now}"
-
-**Deployment details**
-
-Workload zone name: $WORKLOAD_ZONE_NAME
-Keyvault name:      ${workloadkeyvault}
-
-EOF
 
     fi
 

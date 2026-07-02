@@ -37,7 +37,7 @@ locals {
   tfstate_storage_account_subscription_id          = local.parsed_id["subscription_id"]
   tfstate_storage_account_resource_group_name      = local.parsed_id["resource_group_name"]
   tfstate_storage_account_name        = local.parsed_id["resource_name"]
-  tfstate_container_name              = module.sap_namegenerator.naming.resource_suffixes.tfstate
+  tfstate_container_name              = "tfstate"
 
   // Retrieve the arm_id of deployer's Key Vault
   spn_key_vault_arm_id               = trimspace(coalesce(

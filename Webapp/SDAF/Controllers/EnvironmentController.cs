@@ -72,11 +72,11 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Edit")]
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> EditAsync(int id)
         {
             try
             {
-                EnvironmentModel environment = restHelper.GetVariableGroup(id).Result;
+                EnvironmentModel environment = await restHelper.GetVariableGroup(id);
                 return View(environment);
             }
             catch (Exception e)

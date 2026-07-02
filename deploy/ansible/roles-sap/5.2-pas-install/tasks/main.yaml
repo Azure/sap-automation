@@ -333,6 +333,14 @@
         msg:                           "PAS Installation succeeded"
       when:                            pas_installation.rc == 0
 
+    - name:                            "5.2 Primary Application Server Installation - Unmount /install"
+      when:                            pas_installation.rc == 0
+      ansible.posix.mount:
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
+      failed_when:                     false
+
     - name:                            "5.2 Primary Application Server Installation - Cleanup ini file {{ ansible_hostname }}"
       ansible.builtin.file:
         path:                          "{{ dir_params }}/{{ sap_inifile }}"
@@ -387,6 +395,12 @@
     - name:                            "5.2 Primary Application Server Installation - Set return value"
       ansible.builtin.set_fact:
         pas_already_installed:         true
+
+    - name:                            "5.2 Primary Application Server Installation - Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
 
     - name:                            "5.2 Primary Application Server Installation - Calculate the virtual host name"
       ansible.builtin.set_fact:

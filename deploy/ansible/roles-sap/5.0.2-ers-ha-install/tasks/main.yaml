@@ -218,6 +218,15 @@
         ers_installation_succeeded:    true
       when:                            ers_installation.rc == 0
 
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
+      failed_when:                     false
+      when:                            ers_installation.rc == 0
+
+
     - name:                            "5.0.2. CS Install High availability installation - ERS - Create the installation flag file"
       ansible.builtin.file:
         path:                          "/etc/sap_deployment_automation/{{ sid_to_be_deployed.sid | upper }}/sap_deployment_ers.txt"
@@ -238,6 +247,14 @@
     - name:                            "5.0.2. CS Install High availability installation - ERS - Set return value"
       ansible.builtin.set_fact:
         ers_already_installed:         true
+
+    - name:                            "5.0.2. CS Install High availability installation - ERS - Unmount /install"
+      ansible.posix.mount:
+        src:                           "{{ (usr_sap_install_mountpoint ~ '/' ~ bom_base_name) if (usr_sap_install_mountpoint is defined and (usr_sap_install_mountpoint | length > 0)) else (usr_sap_install_mount_point | default(omit)) }}"
+        path:                          "{{ target_media_location }}"
+        state:                         unmounted
+
+
   when:
     - "'ers' in supported_tiers"
     - ers_installed.stat.exists

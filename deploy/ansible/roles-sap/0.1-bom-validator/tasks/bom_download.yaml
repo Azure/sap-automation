@@ -138,15 +138,9 @@
     that:
       - proceed
     success_msg: |-
-                                        Download for file {{ bom_media_entry.archive }}:  ENABLED
-
-                                        Downloading...
-                                        proceed:  {{ proceed }}
+                                        Downloading file {{ bom_media_entry.archive }}...
     fail_msg: |-
-                                        Download for file {{ bom_media_entry.archive }}:  DISABLED
-
-                                        Skipping download...
-                                        proceed:  {{ proceed }}
+                                        Skipping download for file {{ bom_media_entry.archive }}
   failed_when:                          false
 # Step: 04 - END
 # -----------------------------------+-----------------------------------------8

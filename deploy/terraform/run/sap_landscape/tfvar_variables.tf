@@ -1092,6 +1092,31 @@ variable "utility_vm_nic_ips"                      {
                                                      default     = []
                                                    }
 
+#########################################################################################
+#                                                                                       #
+#  Utility Storage Accounts                                                             #
+#                                                                                       #
+#########################################################################################
+
+variable "utility_storage_accounts"                {
+                                                     description = "List of utility storage account configurations for the workload zone"
+                                                     type = list(object({
+                                                       name                     = optional(string, "")
+                                                       account_kind             = optional(string, "FileStorage")
+                                                       account_tier             = optional(string, "Premium")
+                                                       account_replication_type = optional(string, "LRS")
+                                                       file_shares = optional(list(object({
+                                                         name     = optional(string, "")
+                                                         quota    = optional(number, 128)
+                                                         protocol = optional(string, "NFS")
+                                                       })), [])
+                                                       blob_containers = optional(list(object({
+                                                         name = optional(string, "")
+                                                       })), [])
+                                                     }))
+                                                     default     = []
+                                                   }
+
 variable "patch_mode"                           {
                                                   description = "If defined, define the patch mode for the virtual machines"
                                                   default     = "ImageDefault"
