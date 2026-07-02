@@ -308,9 +308,267 @@
       delay:                           10
       until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
-  when: ansible_hostname == primary_instance_name
+  when:
+    - ansible_hostname == primary_instance_name
+    - not (is_certified_for_hanasr_angi | default(false))
 
-# End of HANA clustering resources
+# End of HANA classic clustering resources
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | RHEL ANGI (SAPHanaController) scale-out cluster resource configuration     |
+# | HANA Pacemaker cluster configuration - ANGI resource agents (Scale-out)    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.8 HANA Pacemaker Scale-out - ANGI - Configure Pacemaker cluster with ANGI resource agents"
+  when:
+    - ansible_hostname == primary_instance_name
+    - is_certified_for_hanasr_angi | default(false)
+  block:
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Compute HANA node count (excluding majority-maker)"
+      ansible.builtin.set_fact:
+        hana_node_count:               "{{ groups[(sap_sid | upper) ~ '_DB'] | length }}"
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Get the cluster maintenance mode status"
+      ansible.builtin.shell: >-
+                                       {{ pcs_check_maintenance_mode }}
+      register:                        get_status_maintenance_mode
+      changed_when:                    false
+      ignore_errors:                   true
+      failed_when:                     false
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Set the cluster maintenance mode"
+      when: >-
+                                       get_status_maintenance_mode.stdout is not search('maintenance-mode') or
+                                       get_status_maintenance_mode.stdout is search('maintenance-mode: false') or
+                                       get_status_maintenance_mode.stdout is search('maintenance-mode=false')
+      ansible.builtin.shell:           pcs property set maintenance-mode=true
+
+    # Resource defaults
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Set resource defaults"
+      ansible.builtin.shell:           pcs resource defaults update resource-stickiness=1000 migration-threshold=50
+      register:                        resource_defaults
+      failed_when:                     resource_defaults.rc > 1
+
+    # SAPHanaTopology clone
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Create SAPHanaTopology clone resource"
+      ansible.builtin.shell: >
+                                       pcs resource create rsc_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       ocf:heartbeat:SAPHanaTopology
+                                       SID={{ db_sid | upper }}
+                                       InstanceNumber={{ db_instance_number }}
+                                       op start timeout=600
+                                       op stop timeout=300
+                                       op monitor interval=30 timeout=300
+                                       clone cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       meta clone-node-max=1 interleave=true --future
+      register:                        sap_hana_topology
+      failed_when:                     sap_hana_topology.rc > 1
+
+    # SAPHanaController promotable
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Create SAPHanaController promotable resource"
+      ansible.builtin.shell: >
+                                       pcs resource create rsc_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       ocf:heartbeat:SAPHanaController
+                                       SID={{ db_sid | upper }}
+                                       InstanceNumber={{ db_instance_number }}
+                                       PREFER_SITE_TAKEOVER=true
+                                       DUPLICATE_PRIMARY_TIMEOUT=7200
+                                       AUTOMATED_REGISTER=true
+                                       op stop timeout=3600
+                                       op monitor interval=59 role=Promoted timeout=700
+                                       op monitor interval=61 role=Unpromoted timeout=700
+                                       meta priority=100
+                                       promotable cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       meta clone-node-max=1 interleave=true --future
+      register:                        sap_hana_controller
+      failed_when:                     sap_hana_controller.rc > 1
+
+    # SAPHanaFilesystem clone
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Create SAPHanaFilesystem clone resource"
+      ansible.builtin.shell: >
+                                       pcs resource create rsc_SAPHanaFilesystem_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       ocf:heartbeat:SAPHanaFilesystem
+                                       SID={{ db_sid | upper }}
+                                       InstanceNumber={{ db_instance_number }}
+                                       ON_FAIL_ACTION="fence"
+                                       op start interval=0 timeout=10
+                                       op stop interval=0 timeout=20
+                                       op monitor interval=120 timeout=120
+                                       clone cln_SAPHanaFilesystem_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       meta clone-node-max=1 interleave=true --future
+      register:                        sap_hana_filesystem
+      failed_when:                     sap_hana_filesystem.rc > 1
+
+    # Clone-max for scale-out when majority-maker present
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Set clone-max for resources"
+      when:                            majority_maker | length > 0
+      block:
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Set clone-max on SAPHanaTopology"
+          ansible.builtin.shell:       pcs resource update cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }} meta clone-max={{ hana_node_count }}
+          register:                    update_topo
+          failed_when:                 update_topo.rc > 1
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Set clone-max on SAPHanaController"
+          ansible.builtin.shell:       pcs resource update cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} meta clone-max={{ hana_node_count }}
+          register:                    update_con
+          failed_when:                 update_con.rc > 1
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Set clone-max on SAPHanaFilesystem"
+          ansible.builtin.shell:       pcs resource update cln_SAPHanaFilesystem_{{ db_sid | upper }}_HDB{{ db_instance_number }} meta clone-max={{ hana_node_count }}
+          register:                    update_fil
+          failed_when:                 update_fil.rc > 1
+
+    # Order constraint
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Configure order constraint"
+      ansible.builtin.shell: >
+                                       pcs constraint order
+                                       cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       then cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       symmetrical=false
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+
+    # VIP and health probe resources
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Create netcat resource for Load Balancer health probe"
+      ansible.builtin.shell:           pcs resource create rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=625{{ db_instance_number }}
+      register:                        netcat
+      failed_when:                     netcat.rc > 1
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Create Virtual IP resource"
+      ansible.builtin.shell:           pcs resource create rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} IPaddr2 ip="{{ database_loadbalancer_ip }}"
+      register:                        vip
+      failed_when:                     vip.rc > 1
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Create Virtual IP group resource"
+      ansible.builtin.shell: >
+                                       pcs resource group add g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rsc_nc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+      register:                        vip_g
+      failed_when:                     vip_g.rc > 1
+
+    # VIP colocation with score=4000
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Configure VIP colocation constraint"
+      ansible.builtin.shell: >
+                                       pcs constraint colocation add
+                                       g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       with promoted cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} 4000
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+
+    # Majority-maker location constraint
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Ensure SAPHana resources avoid running on majority maker"
+      when:                            majority_maker | length > 0
+      ansible.builtin.shell: >
+                                       pcs constraint location add avoid-{{ majority_maker }}
+                                       regexp%.*SAPHana.* {{ majority_maker }} -- -INFINITY resource-discovery=never
+      register:                        mm_location
+      failed_when:                     mm_location.rc > 1
+
+    # IP resource avoids majority maker
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Ensure IP resource avoids majority maker"
+      when:                            majority_maker | length > 0
+      ansible.builtin.shell: >
+                                       pcs constraint location g_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       avoids {{ majority_maker }} --force
+      register:                        vip_mm_location
+      failed_when:                     vip_mm_location.rc > 1
+
+    # NFS constraints for ANGI
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Configure NFS filesystem constraints"
+      ansible.builtin.shell: >
+                                       pcs constraint location cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rule resource-discovery=never score=-INFINITY hana_nfs_s1_active ne true and hana_nfs_s2_active ne true --force
+      register:                        nfs_constraint
+      failed_when:                     nfs_constraint.rc > 1
+
+    # Alert-fencing for scale-out
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Configure alert-fencing"
+      block:
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Create SAPHanaSR-alert-fencing alert"
+          ansible.builtin.shell: >
+                                       pcs alert create id=alert-hana-1
+                                       path=/usr/bin/SAPHanaSR-alert-fencing
+                                       options alert_uptime_threshold=300
+          register:                    alert_fencing
+          failed_when:                 alert_fencing.rc > 1
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Configure alert-fencing select filters"
+          ansible.builtin.shell: >
+                                       cibadmin --modify --scope alerts
+                                       --xml-text '<alert id="alert-hana-1"><select><select_nodes /><select_fencing /></select></alert>'
+          register:                    alert_select
+          failed_when:                 alert_select.rc > 1
+
+    # Active/Active (read-enabled) for scale-out ANGI
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Configure active/read-enabled system replication"
+      when:
+                                       - database_active_active | default(false)
+      block:
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Create Active/Active netcat resource"
+          ansible.builtin.shell:       pcs resource create secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }} azure-lb port=626{{ db_instance_number }}
+          register:                    sec_netcat
+          failed_when:                 sec_netcat.rc > 1
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Create Active/Active Virtual IP resource"
+          ansible.builtin.shell:       pcs resource create secvip_{{ db_sid | upper }}_HDB{{ db_instance_number }} IPaddr2 ip="{{ database_active_active_loadbalancer_ip }}"
+          register:                    sec_vip
+          failed_when:                 sec_vip.rc > 1
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Create Active/Active Virtual IP group"
+          ansible.builtin.shell: >
+                                       pcs resource group add g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       secnc_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       secvip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+          register:                    sec_vip_g
+          failed_when:                 sec_vip_g.rc > 1
+
+        # Secondary VIP uses location constraint rules
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Configure secondary VIP location constraint (DEMOTED)"
+          ansible.builtin.shell: >
+                                       pcs constraint location g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rule score=INFINITY
+                                       master-rsc_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} eq 100
+                                       and hana_{{ db_sid | lower }}_clone_state eq DEMOTED
+          register:                    sec_constraint
+          failed_when:                 sec_constraint.rc > 1
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - ANGI - Configure secondary VIP location constraint (PROMOTED)"
+          ansible.builtin.shell: >
+                                       pcs constraint location g_secip_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+                                       rule score=2000
+                                       master-rsc_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }} eq 150
+                                       and hana_{{ db_sid | lower }}_clone_state eq PROMOTED
+          register:                    sec_constraint
+          failed_when:                 sec_constraint.rc > 1
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Disable Maintenance mode"
+      ansible.builtin.shell:           pcs property set maintenance-mode=false
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Pause to give cluster time to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       "180"
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Cleanup any stale cluster resource"
+      ansible.builtin.shell:           pcs resource cleanup
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Wait until cluster has stabilized"
+      ansible.builtin.shell:           set -o pipefail && pcs status | grep '^  \* Online:'
+      register:                        cluster_stable_check
+      retries:                         12
+      delay:                           10
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in cluster_stable_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in cluster_stable_check.stdout"
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - ANGI - Verify cluster resources are started"
+      ansible.builtin.shell:           set -o pipefail && pcs resource status | grep '\* Started:'
+      register:                        hana_cluster_resource_check
+      retries:                         12
+      delay:                           10
+      until:                           "(primary_instance_name + ' ' + secondary_instance_name) in hana_cluster_resource_check.stdout or (secondary_instance_name + ' ' + primary_instance_name) in hana_cluster_resource_check.stdout"
+
+# End of HANA ANGI clustering resources
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

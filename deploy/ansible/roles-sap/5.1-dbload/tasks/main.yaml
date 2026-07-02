@@ -395,7 +395,7 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        dbload_results
-      async:                           7200
+      async:                           "{{ dbload_async_timeout | default(14400) }}"
       poll:                            0
 
     - name:                            "5.1 Database Load  - Wait for asynchronous job to end"
@@ -405,7 +405,7 @@
             jid:                       "{{ dbload_results.ansible_job_id }}"
           register:                    job_result
           until:                       job_result.finished | bool
-          retries:                     "{% if dbload_retry_count is defined %}{{ dbload_retry_count | int }}{% else %}120{% endif %}"
+          retries:                     "{{ dbload_retry_count | default(240) | int }}"
           delay:                       60
           when:                        dbload_results.ansible_job_id is defined
 

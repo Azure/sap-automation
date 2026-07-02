@@ -433,4 +433,112 @@
         - name:                        "[Rescue] 5.5.3 HANA Pacemaker - Retry shared hook verification"
           ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
 
+# /*---------------------------------------------------------------------------8
+# |  RHEL ANGI hook configuration (sap-hana-ha package)                        |
 # +------------------------------------4--------------------------------------*/
+
+- name:                                "5.5.3 HANA Pacemaker - Implement the RHEL ANGI HA/DR provider hooks on RHEL 9.4+"
+  when:
+                                       - hana_version_ok
+                                       - use_hanasr_angi | default(false)
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - ansible_os_family | upper == "REDHAT"
+  block:
+    - name:                            "5.5.3 HANA Pacemaker - Display RHEL ANGI validation summary"
+      ansible.builtin.debug:
+        msg: |
+                                       HANA and RHEL ANGI Hook Requirements Validation Summary:
+
+                                       Current System State:
+                                       - HANA Version:                    {{ hana_major_version }}.0 SPS {{ hana_sps_level }}
+                                       - sap-hana-ha Version:             {{ saphanaSR_angi_version }}
+                                       - RHEL Version:                    {{ ansible_distribution_version }}
+
+    - name:                            "5.5.3 HANA Pacemaker - Stop HANA System on both nodes [RHEL ANGI]"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.command:         "{{ sapcontrol_command }} -function StopSystem {{ db_sid | upper }}"
+      failed_when:                     false
+      changed_when:                    false
+      register:                        hana_system_stopped
+
+    - name:                            "5.5.3 HANA Pacemaker - Wait 2 minutes for SAP system to stop [RHEL ANGI]"
+      ansible.builtin.wait_for:
+        timeout:                       120
+        delay:                         10
+
+    - name:                            "5.5.3 HANA Pacemaker - Adjust global.ini on each cluster node [RHEL ANGI]"
+      ansible.builtin.blockinfile:
+        path:                          /hana/shared/{{ db_sid | upper }}/global/hdb/custom/config/global.ini
+        block: |
+                                       [ha_dr_provider_hanasr]
+                                       provider = HanaSR
+                                       path = /usr/share/sap-hana-ha/
+                                       execution_order = 1
+
+                                       [ha_dr_provider_chksrv]
+                                       provider = ChkSrv
+                                       path = /usr/share/sap-hana-ha/
+                                       execution_order = 2
+                                       action_on_lost = stop
+
+                                       [trace]
+                                       ha_dr_hanasr = info
+                                       ha_dr_chksrv = info
+
+    - name:                            "5.5.3 HANA Pacemaker - Create sudoers file for RHEL ANGI"
+      ansible.builtin.template:
+        src:                           "20-saphana-rhel-angi.j2"
+        dest:                          "/etc/sudoers.d/20-saphana"
+        mode:                          "0440"
+        owner:                         root
+        group:                         root
+
+    - name:                            "5.5.3 HANA Pacemaker - Start HANA System [RHEL ANGI]"
+      block:
+        - name:                        "5.5.3 HANA Pacemaker - Start HANA System on both nodes [RHEL ANGI]"
+          ansible.builtin.command:     "{{ sapcontrol_command }} -function StartSystem"
+          become:                      true
+          become_user:                 "{{ db_sid | lower }}adm"
+          register:                    hana_system_started
+          failed_when:                 hana_system_started.rc not in [0, 3]
+          changed_when:                hana_system_started.rc == 0
+
+        - name:                        "5.5.3 HANA Pacemaker - Display start status [RHEL ANGI]"
+          ansible.builtin.debug:
+            msg:                       "SAP System start command executed successfully"
+          when:                        hana_system_started.rc == 0
+
+      rescue:
+        - name:                        "5.5.3 HANA Pacemaker - Handle HANA System start failure [RHEL ANGI]"
+          when:                        hana_system_started.rc not in [0, 3]
+          ansible.builtin.fail:
+            msg: |
+                                       Failed to start SAP system:
+                                       Return code: {{ hana_system_started.rc }}
+                                       stdout: {{ hana_system_started.stdout }}
+                                       stderr: {{ hana_system_started.stderr }}
+
+
+    - name:                           "5.5.3 HANA Pacemaker - Start HANA Database [RHEL ANGI]"
+      ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
+
+    - name:                            "5.5.3 HANA Pacemaker - Pause to give HANA replication time to stabilize [RHEL ANGI]"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ hsr_status_report_wait_in_s }}"
+
+    - name:                            "5.5.3 HANA Pacemaker - Verify RHEL ANGI hook configuration"
+      when:                            inventory_hostname == primary_instance_name
+      block:
+        - name:                        "5.5.3 HANA Pacemaker - Run shared hook verification [RHEL ANGI]"
+          ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
+      rescue:
+        - name:                        "[Rescue] 5.5.3 HANA Pacemaker - Pause to give HANA replication time to stabilize [RHEL ANGI]"
+          ansible.builtin.wait_for:
+            timeout:                   "{{ rescue_hsr_status_report_wait_in_s }}"
+
+        - name:                        "[Rescue] 5.5.3 HANA Pacemaker - Retry shared hook verification [RHEL ANGI]"
+          ansible.builtin.include_tasks: ../../../roles-misc/0.4-helpers/tasks/04.04-angi-hook-verify.yml
+
+# +------------------------------------4--------------------------------------*/
+...

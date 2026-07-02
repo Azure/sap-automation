@@ -184,11 +184,9 @@
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Wait for /hana/shared to become available on all participating nodes"
       block:
-        - name:                        Wait for /hana/shared to be mounted
+        - name:                        "5.8 HANA Pacemaker Scale-out - Sleep to allow Pacemaker to mount /hana/shared"
           ansible.builtin.wait_for:
-            path:                      /hana/shared
-            state:                     present
-            timeout:                   300
+            timeout:                   60
 
         - name:                        "5.8 HANA Pacemaker Scale-out - Check if /hana/shared is mounted"
           ansible.builtin.shell: >
@@ -202,6 +200,9 @@
             msg:                       "Critical failure : /hana/shared is not mounted"
           when:                        hana_shared_mounted.rc > 0
 
+    - name:                            "5.8 HANA Pacemaker Scale-out - Start HANA on primary and secondary nodes"
+      when:                            ansible_hostname in [ primary_instance_name , secondary_instance_name ]
+      block:
         - name:                        "5.8 HANA Pacemaker Scale-out - Start HANA System on both nodes"
           become_user:                 "{{ db_sid | lower }}adm"
           become:                      true
@@ -247,9 +248,9 @@
       failed_when:                      res_stickiness.rc > 0
       changed_when:                     false
 
-    - name:                             "5.8 HANA Pacemaker Scale-out - Set migration threshold value to 5000"
+    - name:                             "5.8 HANA Pacemaker Scale-out - Set migration threshold value to 50"
       ansible.builtin.shell: >
-                                        pcs resource defaults update migration-threshold=5000
+                                        pcs resource defaults update migration-threshold=50
       register:                         mig_threshold
       failed_when:                      mig_threshold.rc > 0
       changed_when:                     false

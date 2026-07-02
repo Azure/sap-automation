@@ -53,6 +53,14 @@
 
 - name:                                "5.5.5 HANA Pacemaker configuration - Verify that the hook script is working as expected"
   block:
+    - name:                            "5.5.5 HANA Pacemaker configuration - Set hook trace pattern based on deployment type"
+      ansible.builtin.set_fact:
+        hook_trace_pattern:            "{{
+                                         'ha_dr_hanasr' if (ansible_os_family | upper == 'REDHAT' and is_certified_for_hanasr_angi | default(false))
+                                         else 'ha_dr_sushanasr' if (ansible_os_family | upper == 'SUSE' and is_certified_for_hanasr_angi | default(false))
+                                         else 'ha_dr_SAPHanaSR'
+                                       }}"
+
     - name:                            "5.5.5 HANA Pacemaker configuration - Verify the hook Installation"
       become_user:                     "{{ db_sid | lower }}adm"
       become:                          true
@@ -60,7 +68,7 @@
                                        set -o pipefail
                                        IFS=' '
                                        get_saphanasr_rc=$(grep ha_dr_ nameserver_* | \
-                                           awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
+                                           awk '/{{ hook_trace_pattern }}.*crm_attribute/ \
                                            { printf "%s ",$16 }')
                                        read -a saphanasr_status <<< ${get_saphanasr_rc}
                                        echo "${saphanasr_status[-1]}"
@@ -80,7 +88,7 @@
                                        set -o pipefail
                                        IFS=' '
                                        get_saphanasr_rc=$(grep ha_dr_ nameserver_* | \
-                                           awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
+                                           awk '/{{ hook_trace_pattern }}.*crm_attribute/ \
                                            { printf "%s ",$16 }')
                                        read -a saphanasr_status <<< ${get_saphanasr_rc}
                                        echo "${saphanasr_status[-1]}"
@@ -94,7 +102,7 @@
 
     - name:                            "5.5.5 HANA Pacemaker configuration - set_fact (saphanasr)"
       ansible.builtin.set_fact:
-        hsr_result:                    saphanasr.stdout
+        hsr_result:                    "{{ saphanasr.stdout }}"
 
     - name:                            "5.5.5 HANA Pacemaker configuration - Show HSR Hook verification result"
       ansible.builtin.debug:

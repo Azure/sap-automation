@@ -481,8 +481,8 @@ $$use_fence_kdump_size_gb_scs$$
 # Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster
 $$use_fence_kdump_lun_scs$$
 
-# If true, the SAP HANA SR cluster will be configured with SAP HANA SR - An Next Generation Interface
-$$use_sles_saphanasr_angi$$
+# If true, the SAP HANA SR cluster will be configured with SAP HANA SR - A Next Generation Interface (supported on SLES and RHEL)
+$$use_saphanasr_angi$$
 
 #########################################################################################
 #                                                                                       #

@@ -245,7 +245,7 @@ resource "local_file" "sap-parameters_yml" {
                                             )
               is_use_simple_mount         = var.use_simple_mount
               is_use_fence_kdump          = var.is_use_fence_kdump
-              is_use_sles_hanasr_angi     = var.database.database_hana_use_saphanasr_angi
+              is_use_hanasr_angi          = var.database.database_hana_use_saphanasr_angi
               iscsi_server_list           = concat(local.iscsi_scs_servers, local.iscsi_db_servers, local.iscsi_observer_servers)
               kv_name                     = lower(local.key_vault_name),
               NFS_provider                = var.NFS_provider

@@ -47,3 +47,71 @@
                                        SAPHanaSR-angi version: {{ saphanaSR_angi_version | default('0.0.0') }}
     success_msg:                       "SAPHanaSR-angi requirements are met"
   register:                            angi_hook_check
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Check if RHEL distribution supports ANGI (sap-hana-ha)"
+  when:
+                                       - ansible_os_family | upper == "REDHAT"
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.set_fact:
+    is_certified_for_hanasr_angi:      >-
+                                       {{ (ansible_distribution_version is version('9.4', '>=')) | default(false)
+                                       }}
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Display RHEL ANGI certification status"
+  when:
+                                       - ansible_os_family | upper == "REDHAT"
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.debug:
+    msg:
+                                       - "RHEL version:                    {{ ansible_distribution_version }}"
+                                       - "Distribution:                    {{ ansible_distribution }}"
+                                       - "Is certified for ANGI:           {{ is_certified_for_hanasr_angi | default(false) }}"
+                                       - "Uses ANGI:                       {{ use_hanasr_angi | default(false) }}"
+                                       - "sap-hana-ha version:             {{ saphanaSR_angi_version | default('0.0.0') }}"
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Validate RHEL ANGI requirements"
+  when:
+                                       - ansible_os_family | upper == "REDHAT"
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - use_hanasr_angi | default(false)
+  ansible.builtin.assert:
+    that:
+                                       - "hdb_version is defined"
+                                       - "hdb_version[0:2] == '2.'"
+                                       - "saphanaSR_angi_version | default('0.0.0') is version('0.0.0', '>')"
+    fail_msg:                          >-
+                                       RHEL ANGI (sap-hana-ha) requirements not met.
+                                       HANA version must be 2.x and sap-hana-ha package must be installed.
+                                       Required: RHEL 9.4 or higher (Current: {{ ansible_distribution_version }}).
+                                       Current HANA version: {{ hdb_version | default('unknown') }},
+                                       sap-hana-ha version: {{ saphanaSR_angi_version | default('0.0.0') }}
+    success_msg:                       "RHEL ANGI (sap-hana-ha) requirements are met"
+  register:                            angi_hook_check_rhel
+
+# /*---------------------------------------------------------------------------8
+# | Fail explicitly when ANGI is requested but the OS version is not supported |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Fail if ANGI requested but SUSE version is not certified"
+  when:
+                                       - ansible_os_family | upper == "SUSE"
+                                       - use_hanasr_angi | default(false)
+                                       - not (is_certified_for_hanasr_angi | default(false))
+  ansible.builtin.fail:
+    msg:                               >-
+                                       ANGI (SAPHanaSR-angi) was requested (use_hanasr_angi=true) but is not supported
+                                       on {{ ansible_distribution }} {{ ansible_distribution_version }}.
+                                       Minimum required: SLES for SAP Applications 15 SP4.
+                                       Either upgrade the OS or set use_hanasr_angi=false to use classic SAPHanaSR.
+
+- name:                                "04.03 SAPHanaSR-angi pre-checks - Fail if ANGI requested but RHEL version is not certified"
+  when:
+                                       - ansible_os_family | upper == "REDHAT"
+                                       - use_hanasr_angi | default(false)
+                                       - not (is_certified_for_hanasr_angi | default(false))
+  ansible.builtin.fail:
+    msg:                               >-
+                                       ANGI (sap-hana-ha) was requested (use_hanasr_angi=true) but is not supported
+                                       on {{ ansible_distribution }} {{ ansible_distribution_version }}.
+                                       Minimum required: RHEL 9.4.
+                                       Either upgrade the OS or set use_hanasr_angi=false to use classic resource agents.

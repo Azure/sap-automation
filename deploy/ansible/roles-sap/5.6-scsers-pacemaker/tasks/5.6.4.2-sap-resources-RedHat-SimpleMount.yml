@@ -1,0 +1,242 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+# RHEL Clustering - Deploy ASCS/ERS SAP cluster resources (Simple Mount)
+# Uses ocf:heartbeat:SAPStartSrv + ocf:heartbeat:SAPInstance.
+# NFS filesystems are mounted statically — no Filesystem cluster resources.
+# Azure ref: https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-rhel-nfs-simple-mount
+
+# [1] Create the SAP cluster resources
+# If using enqueue server 1 architecture (ENSA1), define the resources as follows:
+
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - Debug ENSA variables"
+  ansible.builtin.debug:
+    msg:
+      - "ENSA1: {{ ensa1 | default('ENSA1 NOT DEFINED') }}"
+      - "ENSA2: {{ ensa2 | default('ENSA2 NOT DEFINED') }}"
+      - "Primary instance: {{ primary_instance_name }}"
+      - "Current host: {{ inventory_hostname }}"
+
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Cluster Configuration after Install"
+  when:
+    - inventory_hostname == primary_instance_name
+    - ensa1 | default(false)
+  block:
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Enable Maintenance mode for the cluster"
+      ansible.builtin.shell:           pcs property set maintenance-mode=true
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Create SAPStartSrv ASCS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPStartSrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:heartbeat:SAPStartSrv \
+                                       InstanceName={{ instance_name }} \
+                                       --group g-{{ sap_sid | upper }}_{{ instance_type | upper }} \
+                                       op monitor interval=0 timeout=20 enabled=0
+      register:                        ascs_sapstartsrv
+      failed_when:                     ascs_sapstartsrv.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Create SAPInstance ASCS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPInstance_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:heartbeat:SAPInstance \
+                                       InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
+                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true \
+                                       meta resource-stickiness=5000 migration-threshold=1 failure-timeout=60 \
+                                       --group g-{{ sap_sid | upper }}_{{ instance_type | upper }} \
+                                       op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
+                                       op start interval=0 timeout=600 op stop interval=0 timeout=600
+      register:                        ascs_sapinstance
+      failed_when:                     ascs_sapinstance.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Create SAPStartSrv ERS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPStartSrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:heartbeat:SAPStartSrv \
+                                       InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
+                                       --group g-{{ sap_sid | upper }}_ERS \
+                                       op monitor interval=0 timeout=20 enabled=0
+      register:                        ers_sapstartsrv
+      failed_when:                     ers_sapstartsrv.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Create SAPInstance ERS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPInstance_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:heartbeat:SAPInstance \
+                                       InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
+                                       START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
+                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true IS_ERS=true \
+                                       --group g-{{ sap_sid | upper }}_ERS \
+                                       op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
+                                       op start interval=0 timeout=600 op stop interval=0 timeout=600
+      register:                        ers_sapinstance
+      failed_when:                     ers_sapinstance.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Configure Co-location Constraints"
+      ansible.builtin.shell: |
+                                       pcs constraint colocation add g-{{ sap_sid | upper }}_ERS with g-{{ sap_sid | upper }}_{{ instance_type | upper }} -5000 id=col_sap_{{ sap_sid | upper }}_no_both
+                                       pcs constraint location g-{{ sap_sid | upper }}_{{ instance_type | upper }} rule score=2000 runs_ers_{{ sap_sid | upper }} eq 1
+                                       pcs constraint order start g-{{ sap_sid | upper }}_{{ instance_type | upper }} then stop g-{{ sap_sid | upper }}_ERS symmetrical=false kind=Optional id=ord_sap_{{ sap_sid | upper }}_first_start_ascs
+      register:                        co_location
+      failed_when:                     co_location.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA1 - Bring Primary node online"
+      ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
+
+# Use the following if using ENSA2
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Cluster Configuration after Install"
+  when:
+    - inventory_hostname == primary_instance_name
+    - ensa2 | default(false)
+  block:
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Enable Maintenance mode for the cluster"
+      ansible.builtin.shell:           pcs property set maintenance-mode=true
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Set the priority fencing delay"
+      ansible.builtin.shell:           pcs property set priority-fencing-delay=30
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Create SAPStartSrv ASCS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPStartSrv_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:heartbeat:SAPStartSrv \
+                                       InstanceName={{ instance_name }} \
+                                       --group g-{{ sap_sid | upper }}_{{ instance_type | upper }} \
+                                       op monitor interval=0 timeout=20 enabled=0
+      register:                        ascs_sapstartsrv
+      failed_when:                     ascs_sapstartsrv.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Create SAPInstance ASCS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPInstance_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} ocf:heartbeat:SAPInstance \
+                                       InstanceName={{ instance_name }} START_PROFILE="{{ start_profile_path }}" \
+                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true \
+                                       meta resource-stickiness=5000 priority=100 \
+                                       --group g-{{ sap_sid | upper }}_{{ instance_type | upper }} \
+                                       op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
+                                       op start interval=0 timeout=600 op stop interval=0 timeout=600
+      register:                        ascs_sapinstance
+      failed_when:                     ascs_sapinstance.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Create SAPStartSrv ERS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPStartSrv_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:heartbeat:SAPStartSrv \
+                                       InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
+                                       --group g-{{ sap_sid | upper }}_ERS \
+                                       op monitor interval=0 timeout=20 enabled=0
+      register:                        ers_sapstartsrv
+      failed_when:                     ers_sapstartsrv.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Create SAPInstance ERS resource"
+      ansible.builtin.shell:   >
+                                       pcs resource create rsc_SAPInstance_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} ocf:heartbeat:SAPInstance \
+                                       InstanceName={{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }} \
+                                       START_PROFILE="/sapmnt/{{ sap_sid | upper }}/profile/{{ sap_sid | upper }}_ERS{{ ers_instance_number }}_{{ ers_virtual_hostname }}" \
+                                       AUTOMATIC_RECOVER=false MINIMAL_PROBE=true IS_ERS=true\
+                                       meta priority=10 \
+                                       --group g-{{ sap_sid | upper }}_ERS \
+                                       op monitor interval=20 on-fail=restart timeout={{ clus_sap_mon_timeout | int }} \
+                                       op start interval=0 timeout=600 op stop interval=0 timeout=600
+      register:                        ers_sapinstance
+      failed_when:                     ers_sapinstance.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Configure Co-location Constraints"
+      ansible.builtin.shell: |
+                                       pcs constraint colocation add g-{{ sap_sid | upper }}_ERS with g-{{ sap_sid | upper }}_{{ instance_type | upper }} -5000 id=col_sap_{{ sap_sid | upper }}_no_both
+                                       pcs constraint order start g-{{ sap_sid | upper }}_{{ instance_type | upper }} then stop g-{{ sap_sid | upper }}_ERS symmetrical=false kind=Optional id=ord_sap_{{ sap_sid | upper }}_first_start_ascs
+      register:                        co_location
+      failed_when:                     co_location.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ENSA2 - Bring Primary node online"
+      ansible.builtin.shell:           pcs node unstandby {{ primary_instance_name }}
+
+# ANF specific: Adjust NFS monitor timeouts to account for ANF NFS 4.1 response times
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ANF NFS timeout adjustment"
+  when:
+    - inventory_hostname == primary_instance_name
+    - NFS_provider == 'ANF'
+  block:
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ANF - Adjust ASCS monitor timeout"
+      ansible.builtin.shell:   >
+                                       pcs resource update rsc_SAPInstance_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} \
+                                       op monitor timeout=105 interval=20 on-fail=restart
+      register:                        ascs_anf_timeout
+      failed_when:                     ascs_anf_timeout.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - ANF - Adjust ERS monitor timeout"
+      ansible.builtin.shell:   >
+                                       pcs resource update rsc_SAPInstance_{{ sap_sid | upper }}_ERS{{ ers_instance_number }} \
+                                       op monitor timeout=105 interval=20 on-fail=restart
+      register:                        ers_anf_timeout
+      failed_when:                     ers_anf_timeout.rc > 1
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Pacemaker two-node cluster priority settings (ENSA1 only)                 |
+# | ENSA2 sets priority-fencing-delay=30 and resource priorities earlier;     |
+# | this block handles ENSA1 with pacemaker > 2.0.4.                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - Check if the pacemaker package version is greater than pacemaker-2.0.4"
+  when:                                ansible_distribution_major_version in ["9", "10"]
+  ansible.builtin.set_fact:
+    is_pcmk_ver_gt_204:                "{{ ansible_facts.packages['pacemaker'][0].version is version('2.0.4', '>') | default(false) }}"
+
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - Set properties for two node clusters"
+  when:
+    - inventory_hostname == primary_instance_name
+    - is_pcmk_ver_gt_204 | default(false)
+    - ensa1 | default(false)
+  block:
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - set resource defaults 'priority'"
+      ansible.builtin.shell:           "pcs resource defaults{% if pcs_update_cmd | default('') %} {{ pcs_update_cmd }}{% endif %} priority=1"
+      register:                        update_priority
+      failed_when:                     update_priority.rc > 1
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - set ASCS/SCS default 'priority' to 10"
+      ansible.builtin.shell:           pcs resource update rsc_SAPInstance_{{ sap_sid | upper }}_{{ instance_type | upper }}{{ scs_instance_number }} meta priority=10
+      register:                        update_priority_sapinstance
+
+    - name:                            "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - set priority-fencing-delay"
+      ansible.builtin.shell:           pcs property set priority-fencing-delay=15s
+      register:                        constraint
+      failed_when:                     constraint.rc > 1
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - BEGIN                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - Systemd-Based SAP Startup Framework"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.7-config-systemd-sap-start.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.6.7-config-systemd-sap-start"
+  when:
+    - is_rhel_82_or_newer is defined
+    - is_rhel_82_or_newer | default(false)
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Systemd-Based SAP Startup Framework - END                                  |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+# +------------------------------------4---------------------------------------*|
+# | 5.6.6-validate.yml - Validate the SAP ASCS/SCS and ERS resources            |
+# | These are common tasks                                                      |
+# +------------------------------------+---------------------------------------*|
+
+- name:                                "5.6.4.2 SCS/ERS Pacemaker - SAP Resources - REDHAT - SimpleMount - Post-install: reboot, maintenance-off, wait, validate, flag"
+  ansible.builtin.include_tasks:
+    file:                              "5.6.4.2-sap-resources-RedHat-post-install.yml"
+    apply:
+      become:                          true
+      become_user:                     root
+      tags:
+        - "5.6.4.2-sap-resources-post-install"
+
+
+# End of SAP Resources cluster configuration
+...

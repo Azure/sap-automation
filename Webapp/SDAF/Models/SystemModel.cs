@@ -475,6 +475,9 @@ namespace SDAFWebApp.Models
 
         public string database_cluster_disk_type { get; set; } = "Premium_ZRS";
 
+        public bool? use_saphanasr_angi { get; set; }
+
+        [Obsolete("Use use_saphanasr_angi instead")]
         public bool? use_sles_saphanasr_angi { get; set; }
 
         /*---------------------------------------------------------------------------8

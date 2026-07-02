@@ -155,6 +155,7 @@
                                        - ansible_os_family | upper == "REDHAT"
                                        - ansible_hostname == primary_instance_name
                                        - database_scale_out
+                                       - not (is_certified_for_hanasr_angi | default(false))
   block:
     - name:                            "5.8 HANA Pacemaker Scale-out - Verify the hook Installation (REDHAT)"
       become_user:                     "{{ db_sid | lower }}adm"
@@ -187,6 +188,146 @@
       until:                           saphanasr.stdout is search("SOK")
       retries:                         "{{ hsr_replication_retry_count }}"
       delay:                           "{{ hsr_replication_retry_delay }}"
+
+- name:                                "5.8.5 HANA Pacemaker Scale-out [angi] - Verify that the hook script is working as expected (Scale Out) for RHEL"
+  when:
+                                       - ansible_os_family | upper == "REDHAT"
+                                       - ansible_hostname == primary_instance_name
+                                       - database_scale_out
+                                       - is_certified_for_hanasr_angi | default(false)
+                                       - use_hanasr_angi | default(false)
+  block:
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify the hook Installation (RHEL ANGI)"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell: |
+                                       set -o pipefail
+                                       awk '/ha_dr_hanasr.*crm_attribute/ \
+                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
+      args:
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
+      register:                        saphanasr
+      until:                           saphanasr.stdout is search("SOK")
+      retries:                         "{{ hsr_replication_retry_count }}"
+      delay:                           "{{ hsr_replication_retry_delay }}"
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify HanaSR hook loaded (RHEL)"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    grep "HADR.*load.*HanaSR" nameserver_*.trc | tail -3
+      args:
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
+      register:                        saphanasr_load
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show HanaSR hook load status (RHEL)"
+      ansible.builtin.debug:
+        var:                           saphanasr_load.stdout_lines
+        verbosity:                     2
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify ChkSrv hook loaded (RHEL)"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    egrep '(LOST:|STOP:|START:|DOWN:|init|load|fail)' nameserver_chksrv.trc | tail -5
+      args:
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
+      register:                        chksrv_status
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show ChkSrv hook status (RHEL)"
+      ansible.builtin.debug:
+        var:                           chksrv_status.stdout_lines
+        verbosity:                     2
+
+  rescue:
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out [angi] - Pause to give HANA replication time to stabilize (RHEL)"
+      ansible.builtin.wait_for:
+        timeout:                       "{{ rescue_hsr_status_report_wait_in_s }}"
+
+    - name:                            "[Rescue] 5.8.5 HANA Pacemaker Scale-out [angi] - Verify the hook Installation (RHEL ANGI)"
+      become_user:                     "{{ db_sid | lower }}adm"
+      become:                          true
+      ansible.builtin.shell: |
+                                    set -o pipefail
+                                    grep HanaSR.*init nameserver_*.trc | tail -3
+      args:
+        chdir:                         /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name].virtual_host }}/trace
+      register:                        saphanasr
+      until:                           saphanasr.stdout is search("HanaSR.init")
+      retries:                         10
+      delay:                           30
+
+- name:                                "5.8.5 HANA Pacemaker Scale-out [angi] - Verify cluster topology (Scale Out) for RHEL"
+  when:
+                                      - ansible_os_family | upper == "REDHAT"
+                                      - ansible_hostname == primary_instance_name
+                                      - database_scale_out
+                                      - is_certified_for_hanasr_angi | default(false)
+                                      - use_hanasr_angi | default(false)
+  block:
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify SAPHanaController resource exists"
+      ansible.builtin.shell:           set -o pipefail && pcs resource status cln_SAPHanaController_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+      register:                        con_status
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show SAPHanaController status"
+      ansible.builtin.debug:
+        var:                           con_status.stdout_lines
+        verbosity:                     2
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify SAPHanaTopology resource exists"
+      ansible.builtin.shell:           set -o pipefail && pcs resource status cln_SAPHanaTopology_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+      register:                        top_status
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show SAPHanaTopology status"
+      ansible.builtin.debug:
+        var:                           top_status.stdout_lines
+        verbosity:                     2
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify SAPHanaFilesystem resource exists"
+      ansible.builtin.shell:           set -o pipefail && pcs resource status cln_SAPHanaFilesystem_{{ db_sid | upper }}_HDB{{ db_instance_number }}
+      register:                        fil_status
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show SAPHanaFilesystem status"
+      ansible.builtin.debug:
+        var:                           fil_status.stdout_lines
+        verbosity:                     2
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Verify alert-fencing is configured"
+      ansible.builtin.shell:           set -o pipefail && pcs alert config | grep SAPHanaSR-alert-fencing
+      register:                        alert_status
+      changed_when:                    false
+      failed_when:                     false
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Show alert-fencing status"
+      ansible.builtin.debug:
+        var:                           alert_status.stdout_lines
+        verbosity:                     2
+
+    - name:                            "5.8.5 HANA Pacemaker Scale-out [angi] - Assert ANGI cluster resources are configured"
+      ansible.builtin.assert:
+        that:
+                                      - "con_status.rc == 0"
+                                      - "top_status.rc == 0"
+                                      - "fil_status.rc == 0"
+        fail_msg:                      >-
+                                      RHEL ANGI cluster topology verification failed.
+                                      SAPHanaController rc={{ con_status.rc }},
+                                      SAPHanaTopology rc={{ top_status.rc }},
+                                      SAPHanaFilesystem rc={{ fil_status.rc }}.
+                                      One or more ANGI resources are missing from the cluster.
+        success_msg:                   "All RHEL ANGI cluster resources (Controller, Topology, Filesystem) are present"
 
 - name:                                "5.8.5 HANA Pacemaker Scale-out - flag"
   ansible.builtin.file:
