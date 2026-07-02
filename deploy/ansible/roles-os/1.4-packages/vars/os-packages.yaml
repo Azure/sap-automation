@@ -172,6 +172,7 @@ packages:
     # --------------------------- End - Packages required for HANA ------------------------------------------8
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'compat-sap-c++-10',                            node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'compat-sap-c++-11',                            node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'expect',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'krb5-libs',                                    node_tier: 'all',            state: 'present' }
