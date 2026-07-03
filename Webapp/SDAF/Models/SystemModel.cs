@@ -477,7 +477,7 @@ namespace SDAFWebApp.Models
 
         public bool? use_saphanasr_angi { get; set; }
 
-        [Obsolete("Use use_saphanasr_angi instead")]
+        //[Obsolete("Use use_saphanasr_angi instead")]
         public bool? use_sles_saphanasr_angi { get; set; }
 
         /*---------------------------------------------------------------------------8
