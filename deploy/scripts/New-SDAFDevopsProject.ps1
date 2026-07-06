@@ -729,7 +729,7 @@ if ($general_group_id.Length -eq 0) {
                                       --variables ANSIBLE_HOST_KEY_CHECKING=false          `
                                                   Deployment_Configuration_Path=WORKSPACES `
                                                   Branch=main                              `
-                                                  tf_version="1.15.5"                      `
+                                                  tf_version="1.15.7"                      `
                                                   ansible_core_version="2.16.18"           `
                                                   S-Username=$SUserName                    `
                                                   S-Password=$SPassword                    `

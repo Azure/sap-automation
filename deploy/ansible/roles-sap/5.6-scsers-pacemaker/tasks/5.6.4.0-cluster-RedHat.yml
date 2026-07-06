@@ -102,6 +102,27 @@
       changed_when:                    false
       when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - wait until ASCS VIP resource has come online (RHEL 7)"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource show | grep vip_{{ sap_sid | upper }}_{{ instance_type | upper }}
+      register:                        ascs_vip_status
+      until:                           ascs_vip_status.stdout is search ('Started')
+      retries:                         15
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - wait until ASCS VIP resource has come online (RHEL 8/9/10)"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource status | grep vip_{{ sap_sid | upper }}_{{ instance_type | upper }}
+      register:                        ascs_vip_status
+      until:                           ascs_vip_status.stdout is search ('Started')
+      retries:                         15
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version in ["8", "9", "10"]
 
     - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - Central Services - Check if NFS mount /usr/sap/{{ sap_sid | upper }}/SYS is available before proceeding"
       ansible.builtin.shell: >-
@@ -243,6 +264,28 @@
       register:                        ers_fs_resource_status
       until:                           ers_fs_resource_status.stdout is search ('Started')
       retries:                         10
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version in ["8", "9", "10"]
+
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - wait until ERS VIP resource has come online (RHEL 7)"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource show | grep vip_{{ sap_sid | upper }}_ERS
+      register:                        ers_vip_status
+      until:                           ers_vip_status.stdout is search ('Started')
+      retries:                         15
+      delay:                           30
+      changed_when:                    false
+      when:                            ansible_distribution_major_version == "7"
+
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - ERS - wait until ERS VIP resource has come online (RHEL 8/9/10)"
+      ansible.builtin.shell: >-
+                                       set -o pipefail;
+                                       pcs resource status | grep vip_{{ sap_sid | upper }}_ERS
+      register:                        ers_vip_status
+      until:                           ers_vip_status.stdout is search ('Started')
+      retries:                         15
       delay:                           30
       changed_when:                    false
       when:                            ansible_distribution_major_version in ["8", "9", "10"]

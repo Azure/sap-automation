@@ -61,12 +61,12 @@
         PATH:                          /usr/bin:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}:/usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/exe
         SAPSYSTEMNAME:                 "{{ db_sid | upper }}"
 
-    # - name:                            "04.01 Start HANA - Wait for indexserver process to become available"
-    #   when:                            is_hana_running.rc != 3
-    #   ansible.builtin.wait_for:
-    #     port:                          "3{{ db_instance_number }}15"
-    #     host:                          "{{ ansible_hostname }}"
-    #     timeout:                       "{{ hana_stop_start_timeout_in_seconds }}"
+    - name:                            "04.01 Start HANA - Wait for indexserver SQL port to become available"
+      when:                            is_hana_running.rc != 3
+      ansible.builtin.wait_for:
+        port:                          "3{{ db_instance_number }}15"
+        host:                          "{{ ansible_hostname }}"
+        timeout:                       "{{ hana_stop_start_timeout_in_seconds }}"
 
     - name:                            "04.01 Start HANA - Validate HANA is running  on {{ ansible_hostname }}"
       become_user:                     "{{ db_sid | lower }}adm"

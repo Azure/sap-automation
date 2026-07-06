@@ -1698,9 +1698,18 @@
         "Display": 3
       },
       {
+        "Name": "use_saphanasr_angi",
+        "Required": false,
+        "Description": "If true, the SAP HANA SR cluster will be configured with SAP HANA SR - A Next Generation Interface (supported on SLES and RHEL)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "use_sles_saphanasr_angi",
         "Required": false,
-        "Description": "If true, the SAP HANA SR cluster will be configured with SAP HANA SR - An Next Generation Interface",
+        "Description": "Deprecated: Use use_saphanasr_angi instead. Retained for backward compatibility.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",

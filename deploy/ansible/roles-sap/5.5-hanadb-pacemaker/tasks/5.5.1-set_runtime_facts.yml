@@ -104,6 +104,8 @@
         saphanaSR_angi_version:        "{{
                                          ansible_facts.packages['SAPHanaSR-angi'][0].version
                                          if ansible_os_family | upper == 'SUSE' and 'SAPHanaSR-angi' in ansible_facts.packages
+                                         else ansible_facts.packages['sap-hana-ha'][0].version
+                                         if ansible_os_family | upper == 'REDHAT' and 'sap-hana-ha' in ansible_facts.packages
                                          else '0.0.0'
                                        }}"
 
@@ -154,6 +156,25 @@
           ansible.builtin.set_fact:
             saphanaSR_version:         "{{ ansible_facts.packages['SAPHanaSR'][0].version if 'SAPHanaSR' in ansible_facts.packages else '0.0.0' }}"
             saphanaSR_angi_version:    "{{ ansible_facts.packages['SAPHanaSR-angi'][0].version if 'SAPHanaSR-angi' in ansible_facts.packages else '0.0.0' }}"
+
+    - name:                            "5.5.1 HANA Pacemaker - Install sap-hana-ha package if not installed - [RHEL ANGI]"
+      when:
+        - saphanaSR_angi_version == '0.0.0'
+        - use_hanasr_angi | default(false)
+        - ansible_os_family | upper == 'REDHAT'
+      block:
+        - name:                        "5.5.1 HANA Pacemaker - Install sap-hana-ha package"
+          ansible.builtin.dnf:
+            name:                      "sap-hana-ha"
+            state:                     present
+
+        - name:                        "5.5.1 HANA Pacemaker - Refresh package facts after sap-hana-ha install"
+          ansible.builtin.package_facts:
+            manager:                   rpm
+
+        - name:                        "5.5.1 HANA Pacemaker - Update package versions after sap-hana-ha install"
+          ansible.builtin.set_fact:
+            saphanaSR_angi_version:    "{{ ansible_facts.packages['sap-hana-ha'][0].version if 'sap-hana-ha' in ansible_facts.packages else '0.0.0' }}"
 
     - name:                            "5.5.1 HANA Pacemaker - Capture the Hana DB version"
       ansible.builtin.set_fact:

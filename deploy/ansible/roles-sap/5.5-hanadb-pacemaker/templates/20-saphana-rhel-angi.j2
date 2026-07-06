@@ -1,0 +1,6 @@
+{# Copyright (c) Microsoft Corporation.
+ # Licensed under the MIT License.
+#}
+# Needed for HanaSR HA/DR provider hook (RHEL ANGI)
+Defaults:{{ db_sid | lower }}adm !requiretty
+{{ db_sid | lower }}adm ALL=(ALL) NOPASSWD: /usr/sbin/crm_attribute -n hana_*

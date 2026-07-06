@@ -73,8 +73,6 @@
                                        - "SAPHanaSR version:                  {{ saphanaSR_version }}"
 
 - name:                                "5.5.2 HANA Pacemaker - SAPHanaSR-angi pre-checks"
-  when:
-                                       - ansible_os_family | upper == "SUSE"
   ansible.builtin.include_tasks:       ../../../roles-misc/0.4-helpers/tasks/04.03-angi-pre-checks.yml
 
 - name:                                "5.5.2 HANA Pacemaker - Check SAP HANA version requirements"
