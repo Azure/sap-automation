@@ -27,10 +27,14 @@ data "azurerm_key_vault_secret" "client_id"       {
                                                     key_vault_id = var.spn_keyvault_id
                                                   }
 
-ephemeral "azurerm_key_vault_secret" "client_secret"   {
+data "azurerm_key_vault_secret" "client_secret"   {
                                                     count        = var.use_spn ? 1 : 0
                                                     name         = format("%s-client-secret", upper(local.environment_name))
                                                     key_vault_id = var.spn_keyvault_id
+
+                                                    timeouts {
+                                                      read = "1m"
+                                                    }
                                                   }
 
 data "azurerm_key_vault_secret" "tenant_id"       {

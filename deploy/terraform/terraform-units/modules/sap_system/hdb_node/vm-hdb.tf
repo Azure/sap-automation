@@ -3,7 +3,7 @@
 
 data "azurerm_subnet" "storage" {
   provider                             = azurerm.main
-  count                                = length(var.storage_subnet_id) > 0 ? 1 : 0
+  count                                = (var.infrastructure.virtual_networks.sap.subnet_storage.exists || var.infrastructure.virtual_networks.sap.subnet_storage.exists_in_workload) ? 1 : 0
   name                                 = split("/", var.storage_subnet_id)[10]
   resource_group_name                  = split("/", var.storage_subnet_id)[4]
   virtual_network_name                 = split("/", var.storage_subnet_id)[8]
@@ -160,8 +160,11 @@ resource "azurerm_network_interface" "nics_dbnodes_storage" {
                        length(try(var.database_vm_storage_nic_ips[count.index], "")) > 0 ? (
                          var.database_vm_storage_nic_ips[count.index]) : (
                          cidrhost(
-                           data.azurerm_subnet.storage[0].address_prefixes[0],
-                           tonumber(count.index) + local.hdb_ip_offsets.hdb_scaleout_vm
+                           (var.infrastructure.virtual_networks.sap.subnet_storage.exists || var.infrastructure.virtual_networks.sap.subnet_storage.exists_in_workload) ? (
+                             data.azurerm_subnet.storage[0].address_prefixes[0]) : (
+                             var.infrastructure.virtual_networks.sap.subnet_storage.prefix
+                           ),
+                           tonumber(count.index) + local.hdb_ip_offsets.hdb_storage_vm
                          )
                        )
 

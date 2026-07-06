@@ -1,0 +1,129 @@
+---
+name: terraform-checks
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    types: [ 'opened', 'reopened', 'synchronize' ]
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: 'terraform validate'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+      with:
+        terraform_version: "1.13.5"
+        terraform_wrapper: false
+
+    - name: Validate each root module
+      run: |
+        set -e
+        for dir in deploy/terraform/bootstrap/sap_deployer deploy/terraform/bootstrap/sap_library \
+                   deploy/terraform/run/sap_deployer deploy/terraform/run/sap_landscape \
+                   deploy/terraform/run/sap_library deploy/terraform/run/sap_system; do
+          echo "::group::validate $dir"
+          (cd "$dir" && terraform init -backend=false && terraform validate)
+          echo "::endgroup::"
+        done
+
+  tflint:
+    name: 'tflint scan'
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@90f302c255ef959cbfb4bd10581afecdb7ece3e6 # v4.1.1
+      with:
+        tflint_version: v0.63.1
+
+    - name: Init TFLint
+      run: tflint --init
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run TFLint
+      run: tflint --chdir=deploy/terraform --recursive --minimum-failure-severity=error
+
+  checkov:
+    name: 'checkov scan'
+    needs: tflint
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 #v6.2.0
+      with:
+        python-version: '3.11'
+
+    - name: Install Checkov
+      run: pip install checkov
+
+    - name: Run Checkov (Terraform static scan)
+      continue-on-error: true
+      run: checkov -d deploy/terraform --framework terraform --compact
+
+  terraform-test:
+    name: 'terraform test'
+    needs: checkov
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - deploy/terraform/run/sap_deployer
+          - deploy/terraform/bootstrap/sap_deployer
+          - deploy/terraform/bootstrap/sap_library
+          - deploy/terraform/run/sap_system
+          - deploy/terraform/run/sap_library
+          - deploy/terraform/run/sap_landscape
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+      with:
+        terraform_version: "1.13.5"
+        terraform_wrapper: false
+
+    - name: Run terraform test
+      run: |
+        cd ${{ matrix.module }}
+        terraform init -backend=false
+        terraform test
