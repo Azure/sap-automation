@@ -135,13 +135,15 @@ jobs:
         cat /tmp/terraform-test.log
 
         if [ "$exit_code" -ne 0 ]; then
-          if [ "${{ matrix.module }}" = "deploy/terraform/run/sap_system" ]; then.
-            error_lines=$(grep -c '^Error:' /tmp/terraform-test.log || true)
-            known_lines=$(grep -c 'No ephemeral resource types in mock providers' /tmp/terraform-test.log || true)
-            if [ "$error_lines" -gt 0 ] && [ "$error_lines" = "$known_lines" ]; then
-              echo "::warning::terraform test failed only due to the known upstream limitation hashicorp/terraform#38608 (mock_provider cannot mock ephemeral resources). Treating as an allowed failure for run/sap_system."
-              exit 0
-            fi
-          fi
+          case "${{ matrix.module }}" in
+            deploy/terraform/run/sap_deployer|deploy/terraform/run/sap_landscape|deploy/terraform/run/sap_library|deploy/terraform/run/sap_system|deploy/terraform/bootstrap/sap_library)
+              error_lines=$(grep -c '^Error:' /tmp/terraform-test.log || true)
+              known_lines=$(grep -c 'No ephemeral resource types in mock providers' /tmp/terraform-test.log || true)
+              if [ "$error_lines" -gt 0 ] && [ "$error_lines" = "$known_lines" ]; then
+                echo "::warning::terraform test failed only due to the known upstream limitation hashicorp/terraform#38608 (mock_provider cannot mock ephemeral resources). Treating as an allowed failure for ${{ matrix.module }}."
+                exit 0
+              fi
+              ;;
+          esac
           exit "$exit_code"
         fi
