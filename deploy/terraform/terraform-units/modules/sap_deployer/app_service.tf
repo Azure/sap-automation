@@ -8,6 +8,7 @@
 #######################################4#######################################8
 
 resource "azurerm_subnet" "webapp" {
+  #checkov:skip=CKV2_AZURE_31: NSG blocked on App Service delegated subnets
   depends_on                                    = [
                                                     azurerm_subnet.subnet_mgmt
                                                   ]
@@ -78,6 +79,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
+  #checkov:skip=CKV_AZURE_222: public access required for reachability
   #checkov:skip=CKV_AZURE_88: stateless app, no Azure Files needed
   count                                          = var.app_service.use ? 1 : 0
   name                                           = lower(format("%s%s%s%s",

@@ -49,6 +49,7 @@ resource "azurerm_network_interface" "observer" {
 #######################################4#######################################8
 
 resource "azurerm_linux_virtual_machine" "observer" {
+  #checkov:skip=CKV_AZURE_50: observer has no monitoring agent by design
   provider                             = azurerm.main
   count                                = var.use_observer ? 1 : 0
   depends_on                           = [var.anchor_vm]

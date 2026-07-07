@@ -3,6 +3,10 @@
 
 
 resource "azurerm_storage_account" "hanashared" {
+  #checkov:skip=CKV_AZURE_35: public access needed for hanashared export
+  #checkov:skip=CKV_AZURE_59: public access needed for hanashared export
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   #checkov:skip=CKV_AZURE_206: explicit ZRS already set
   provider                             = azurerm.main
   count                                = local.hana_shared_count

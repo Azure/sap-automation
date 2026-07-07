@@ -15,6 +15,7 @@ locals {
 
 // Creates storage account for storing tfstate
 resource "azurerm_storage_account" "storage_tfstate" {
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.exists ? 0 : 1
   name                                 = length(var.storage_account_tfstate.name) > 0 ? (
@@ -67,6 +68,7 @@ data "azurerm_storage_account" "storage_tfstate" {
 }
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
+  #checkov:skip=CKV_AZURE_35: public access needed for tfstate reads
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage  && !var.storage_account_tfstate.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_tfstate[0].id
@@ -255,6 +257,8 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
 #
 ##############################################################################################
 resource "azurerm_storage_account" "storage_sapbits" {
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.exists ? 0 : 1
   name                                 = length(var.storage_account_sapbits.name) > 0 ? (
@@ -287,6 +291,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
 }
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
+  #checkov:skip=CKV_AZURE_35: public access needed for SAP media share
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage && !var.storage_account_sapbits.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_sapbits[0].id

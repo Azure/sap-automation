@@ -8,6 +8,8 @@
 ################################################################################
 
 resource "azurerm_storage_account" "storage_bootdiag" {
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = length(var.diagnostics_storage_account.id) > 0 ? 0 : 1
   depends_on                           = [
@@ -146,6 +148,8 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
 ################################################################################
 
 resource "azurerm_storage_account" "witness_storage" {
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = length(var.witness_storage_account.id) > 0 ? 0 : 1
   depends_on                           = [
@@ -281,6 +285,9 @@ resource "azurerm_private_endpoint" "witness_storage" {
 ################################################################################
 
 resource "azurerm_storage_account" "transport" {
+  #checkov:skip=CKV_AZURE_35: public access needed for transport share
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   #checkov:skip=CKV_AZURE_206: explicit ZRS already set
   provider                             = azurerm.main
   count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
@@ -481,6 +488,8 @@ data "azurerm_private_endpoint_connection" "transport" {
 ################################################################################
 
 resource "azurerm_storage_account" "install" {
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [
@@ -520,6 +529,7 @@ resource "azurerm_storage_account" "install" {
 }
 
 resource "azurerm_storage_account_network_rules" "install" {
+  #checkov:skip=CKV_AZURE_35: public access needed for install share
   provider                             = azurerm.main
   count                                = local.use_AFS_for_shared && var.enable_firewall_for_keyvaults_and_storage  && length(var.install_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [

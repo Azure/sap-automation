@@ -168,6 +168,7 @@ resource "azurerm_network_interface_security_group_association" "iscsi" {
 
 // Manages Linux Virtual Machine for iSCSI
 resource "azurerm_linux_virtual_machine" "iscsi" {
+  #checkov:skip=CKV_AZURE_50: monitoring via monitoring_extension_iscsi_lnx
   provider                             = azurerm.main
   count                                = local.iscsi_count
   name                                 = format("%s%s%s%s%s",

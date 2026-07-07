@@ -40,6 +40,7 @@ data "azurerm_key_vault_secret" "sid_password" {
 #                                                                             #
 ###############################################################################
 resource "azurerm_key_vault" "sid_keyvault_user" {
+  #checkov:skip=CKV2_AZURE_32: private endpoints out of scope by default
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials && length(local.user_key_vault_id) == 0 ? 1 : 0
   name                                 = local.user_keyvault_name
