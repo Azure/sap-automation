@@ -4,8 +4,14 @@ name: terraform-checks
 on:
   push:
     branches: [ 'main' ]
+    paths:
+      - 'deploy/terraform/**'
+      - '.github/workflows/terraform-checks.yml'
   pull_request:
     types: [ 'opened', 'reopened', 'synchronize' ]
+    paths:
+      - 'deploy/terraform/**'
+      - '.github/workflows/terraform-checks.yml'
   merge_group:
   workflow_dispatch:
 
@@ -124,26 +130,40 @@ jobs:
         terraform_version: "1.13.5"
         terraform_wrapper: false
 
+    - name: Apply CI-only ephemeral-to-data test swap
+      # terraform test's mock_provider cannot mock ephemeral resources (hashicorp/terraform#38608),
+      # so a handful of modules' provider configs — which read a client_secret from an `ephemeral`
+      # key vault secret — can never plan under a mocked provider. `data` and `ephemeral` sources
+      # share an identical schema for azurerm_key_vault_secret, so this step rewrites the *checked-out
+      # runner copy only* (never committed, never pushed) from `ephemeral` to `data` before the test
+      # run, letting the real assertions execute. Production code is untouched.
+      run: |
+        case "${{ matrix.module }}" in
+          deploy/terraform/run/sap_deployer|deploy/terraform/run/sap_landscape|deploy/terraform/run/sap_library|deploy/terraform/run/sap_system|deploy/terraform/bootstrap/sap_library)
+            sed -i 's/ephemeral "azurerm_key_vault_secret"/data "azurerm_key_vault_secret"/' ${{ matrix.module }}/imports.tf
+            sed -i 's/ephemeral\.azurerm_key_vault_secret\./data.azurerm_key_vault_secret./g' ${{ matrix.module }}/providers.tf ${{ matrix.module }}/variables_local.tf
+            ;;
+        esac
+
     - name: Run terraform test
+      # GitHub Actions' default bash shell runs with `-eo pipefail`, so a non-zero
+      # exit from `terraform test` fails this step even though its output is piped to tee.
       run: |
         cd ${{ matrix.module }}
         terraform init -backend=false
-        set +e
-        terraform test -no-color > /tmp/terraform-test.log 2>&1
-        exit_code=$?
-        set -e
-        cat /tmp/terraform-test.log
+        terraform test -no-color | tee /tmp/terraform-test.log
 
-        if [ "$exit_code" -ne 0 ]; then
-          case "${{ matrix.module }}" in
-            deploy/terraform/run/sap_deployer|deploy/terraform/run/sap_landscape|deploy/terraform/run/sap_library|deploy/terraform/run/sap_system|deploy/terraform/bootstrap/sap_library)
-              error_lines=$(grep -c '^Error:' /tmp/terraform-test.log || true)
-              known_lines=$(grep -c 'No ephemeral resource types in mock providers' /tmp/terraform-test.log || true)
-              if [ "$error_lines" -gt 0 ] && [ "$error_lines" = "$known_lines" ]; then
-                echo "::warning::terraform test failed only due to the known upstream limitation hashicorp/terraform#38608 (mock_provider cannot mock ephemeral resources). Treating as an allowed failure for ${{ matrix.module }}."
-                exit 0
-              fi
-              ;;
-          esac
-          exit "$exit_code"
+    - name: Publish terraform test summary
+      if: always()
+      run: |
+        result_line=$(grep -oE '[0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?' /tmp/terraform-test.log | tail -1)
+        status="✅ passed"
+        if ! grep -q '^Success!' /tmp/terraform-test.log; then
+          status="❌ failed"
         fi
+        {
+          echo "### terraform test — ${{ matrix.module }}"
+          echo ""
+          echo "**Status:** $status — ${result_line:-no result line found}"
+          echo ""
+        } >> "$GITHUB_STEP_SUMMARY"
