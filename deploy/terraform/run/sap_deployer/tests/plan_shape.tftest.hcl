@@ -200,13 +200,6 @@ override_data {
 }
 
 override_data {
-  target = data.azurerm_key_vault_secret.client_secret
-  values = {
-    value = "diagnostic-secret-value"
-  }
-}
-
-override_data {
   target = data.azurerm_key_vault_secret.tenant_id
   values = {
     value = "99999999-9999-9999-9999-999999999999"

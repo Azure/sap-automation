@@ -288,13 +288,6 @@ run "spn_enabled_retrieves_control_plane_credentials_and_service_principal" {
   }
 
   override_data {
-    target = data.azurerm_key_vault_secret.client_secret
-    values = {
-      value = "diagnostic-client-secret"
-    }
-  }
-
-  override_data {
     target = data.azurerm_key_vault_secret.tenant_id
     values = {
       value = "77777777-7777-7777-7777-777777777777"
