@@ -7,8 +7,8 @@
 #                                                                              #
 #######################################4#######################################8
 
-
 resource "azurerm_app_configuration" "app_config" {
+  #checkov:skip=CKV_AZURE_186: no CMK infrastructure provisioned
   provider                              = azurerm.main
   count                                 = var.app_config_service.deploy ? length(var.app_config_service.id) > 0 ? 0 : 1 : 0
   name                                  = local.app_config_name

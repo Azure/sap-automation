@@ -206,6 +206,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
 
 // Creates the storage container inside the storage account for sapsystem
 resource "azurerm_storage_container" "storagecontainer_tfstate" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 0 : 1
   depends_on                           = [
@@ -232,6 +233,7 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
 }
 
 resource "azurerm_storage_container" "storagecontainer_tfvars" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   depends_on                           = [
                                            azurerm_private_endpoint.storage_tfstate,
@@ -388,6 +390,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
 
 // Creates the storage container inside the storage account for SAP bits
 resource "azurerm_storage_container" "storagecontainer_sapbits" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 0 : 1
   depends_on                           = [

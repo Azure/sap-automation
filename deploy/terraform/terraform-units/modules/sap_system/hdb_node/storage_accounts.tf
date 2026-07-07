@@ -3,6 +3,7 @@
 
 
 resource "azurerm_storage_account" "hanashared" {
+  #checkov:skip=CKV_AZURE_206: explicit ZRS already set
   provider                             = azurerm.main
   count                                = local.hana_shared_count
   name                                 = substr(replace(

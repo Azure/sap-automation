@@ -437,10 +437,10 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 // Using TF tls to generate SSH key pair for iscsi devices and store in user KV
 resource "tls_private_key" "iscsi" {
   count                                = (
-                                           var.key_vault.user.exists
-                                           && local.enable_iscsi_auth_key
-                                           && !local.iscsi_key_exist
-                                           && try(file(var.authentication.path_to_public_key), null) == null
+                                           var.key_vault.user.exists &&
+                                           local.enable_iscsi_auth_key &&
+                                           !local.iscsi_key_exist &&
+                                           try(file(var.authentication.path_to_public_key), null) == null
                                          ) ? 1 : 0
   algorithm                            = "RSA"
   rsa_bits                             = 2048

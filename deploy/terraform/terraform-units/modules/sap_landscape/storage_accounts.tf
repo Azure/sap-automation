@@ -281,6 +281,7 @@ resource "azurerm_private_endpoint" "witness_storage" {
 ################################################################################
 
 resource "azurerm_storage_account" "transport" {
+  #checkov:skip=CKV_AZURE_206: explicit ZRS already set
   provider                             = azurerm.main
   count                                = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? 1 : 0
   depends_on                           = [

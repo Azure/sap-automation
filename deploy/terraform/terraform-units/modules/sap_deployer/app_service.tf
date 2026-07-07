@@ -59,6 +59,8 @@ data "azurerm_subnet" "webapp" {
 
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
+  #checkov:skip=CKV_AZURE_212: default B1 SKU, single instance
+  #checkov:skip=CKV_AZURE_225: default B1 SKU, no zone redundancy
   count                                         = var.app_service.use ? 1 : 0
   name                                          = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.app_service_plan,
@@ -76,6 +78,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
+  #checkov:skip=CKV_AZURE_88: stateless app, no Azure Files needed
   count                                          = var.app_service.use ? 1 : 0
   name                                           = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.app_service_plan,
@@ -90,6 +93,8 @@ resource "azurerm_windows_web_app" "webapp" {
   https_only                                     = true
   webdeploy_publish_basic_authentication_enabled = false
   ftp_publish_basic_authentication_enabled       = false
+  client_certificate_enabled                     = true
+  client_certificate_mode                        = "Optional"
 
   # auth_settings {
   #   enabled          = true
@@ -176,6 +181,22 @@ resource "azurerm_windows_web_app" "webapp" {
         current_stack  = "dotnet"
         dotnet_version = "v9.0"
       }
+    ftps_state                        = "Disabled"
+    health_check_eviction_time_in_min = 2
+    health_check_path                 = "/"
+    http2_enabled                     = true
+  }
+
+  logs {
+    detailed_error_messages = true
+    failed_request_tracing  = true
+
+    http_logs {
+      file_system {
+        retention_in_days = 7
+        retention_in_mb   = 35
+      }
+    }
   }
 
   key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id

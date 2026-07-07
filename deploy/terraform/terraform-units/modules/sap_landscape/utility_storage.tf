@@ -143,6 +143,7 @@ resource "azurerm_storage_share" "utility" {
 ################################################################################
 
 resource "azurerm_storage_container" "utility" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   count                                = length(local.utility_blob_containers)
 

@@ -16,6 +16,16 @@ jobs:
   validate:
     name: 'terraform validate'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - deploy/terraform/bootstrap/sap_deployer
+          - deploy/terraform/bootstrap/sap_library
+          - deploy/terraform/run/sap_deployer
+          - deploy/terraform/run/sap_landscape
+          - deploy/terraform/run/sap_library
+          - deploy/terraform/run/sap_system
     steps:
     - name: Harden Runner
       uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -31,20 +41,14 @@ jobs:
         terraform_version: "1.13.5"
         terraform_wrapper: false
 
-    - name: Validate each root module
+    - name: Validate root module
       run: |
-        set -e
-        for dir in deploy/terraform/bootstrap/sap_deployer deploy/terraform/bootstrap/sap_library \
-                   deploy/terraform/run/sap_deployer deploy/terraform/run/sap_landscape \
-                   deploy/terraform/run/sap_library deploy/terraform/run/sap_system; do
-          echo "::group::validate $dir"
-          (cd "$dir" && terraform init -backend=false && terraform validate)
-          echo "::endgroup::"
-        done
+        cd ${{ matrix.module }}
+        terraform init -backend=false
+        terraform validate
 
   tflint:
     name: 'tflint scan'
-    needs: validate
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
@@ -70,7 +74,6 @@ jobs:
 
   checkov:
     name: 'checkov scan'
-    needs: tflint
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
@@ -95,7 +98,6 @@ jobs:
 
   terraform-test:
     name: 'terraform test'
-    needs: checkov
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -126,4 +128,20 @@ jobs:
       run: |
         cd ${{ matrix.module }}
         terraform init -backend=false
-        terraform test
+        set +e
+        terraform test -no-color > /tmp/terraform-test.log 2>&1
+        exit_code=$?
+        set -e
+        cat /tmp/terraform-test.log
+
+        if [ "$exit_code" -ne 0 ]; then
+          if [ "${{ matrix.module }}" = "deploy/terraform/run/sap_system" ]; then.
+            error_lines=$(grep -c '^Error:' /tmp/terraform-test.log || true)
+            known_lines=$(grep -c 'No ephemeral resource types in mock providers' /tmp/terraform-test.log || true)
+            if [ "$error_lines" -gt 0 ] && [ "$error_lines" = "$known_lines" ]; then
+              echo "::warning::terraform test failed only due to the known upstream limitation hashicorp/terraform#38608 (mock_provider cannot mock ephemeral resources). Treating as an allowed failure for run/sap_system."
+              exit 0
+            fi
+          fi
+          exit "$exit_code"
+        fi
