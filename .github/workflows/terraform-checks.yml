@@ -101,6 +101,40 @@ jobs:
     - name: Run Checkov (Terraform static scan)
       run: checkov -d deploy/terraform --framework terraform --compact
 
+  terraform-docs:
+    name: 'terraform-docs drift check'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Install terraform-docs
+      run: |
+        curl -sSLo /tmp/terraform-docs.tar.gz https://terraform-docs.io/dl/v0.24.0/terraform-docs-v0.24.0-linux-amd64.tar.gz
+        tar -xzf /tmp/terraform-docs.tar.gz -C /tmp terraform-docs
+        chmod +x /tmp/terraform-docs
+        echo "/tmp" >> "$GITHUB_PATH"
+
+    - name: Generate terraform-docs for reusable modules
+      run: |
+        config="deploy/terraform/terraform-units/modules/.terraform-docs.yml"
+        for module in deploy/terraform/terraform-units/modules/*/ deploy/terraform/terraform-units/modules/sap_system/*/; do
+          compgen -G "${module}*.tf" > /dev/null || continue
+          terraform-docs -c "$config" markdown "${module%/}"
+        done
+
+    - name: Fail if generated docs are out of date
+      run: |
+        if ! git diff --exit-code -- deploy/terraform/terraform-units/modules; then
+          echo "::error::terraform-docs output is out of date. Run terraform-docs locally and commit the updated README.md files."
+          exit 1
+        fi
+
   terraform-test:
     name: 'terraform test'
     runs-on: ubuntu-latest
