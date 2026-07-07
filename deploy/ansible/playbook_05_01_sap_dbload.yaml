@@ -57,6 +57,30 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
+# |              Ensure HANA is running before DB Load                         |
+# |              Targets only the HANA master node (_DB[0])                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               "{{ sap_sid | upper }}_DB[0]"
+  name:                                "Database load playbook - Ensure HANA is started"
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml
+
+  tasks:
+
+    - name:                            "Database load playbook - Start HANA on master before DB load"
+      when:
+        - platform == 'HANA'
+        - ansible_os_family != "Windows"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.4-helpers
+        tasks_from:                    04.01-start_hana.yml
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
 # |                      Playbook for SAP DB Load                              |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/

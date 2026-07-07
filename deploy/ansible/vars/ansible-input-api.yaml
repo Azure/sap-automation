@@ -76,7 +76,8 @@ hana_components:                       "all"
 
 instance_type:                         "ASCS"
 
-dbload_retry_count:                    120
+dbload_retry_count:                    240
+dbload_async_timeout:                  14400
 
 single_server:                         false
 

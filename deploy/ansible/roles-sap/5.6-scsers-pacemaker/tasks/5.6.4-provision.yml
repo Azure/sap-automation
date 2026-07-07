@@ -73,7 +73,7 @@
   when:
     - not scs_is_installed or not ers_is_installed
     - use_simple_mount
-    - ansible_os_family | upper == "SUSE"
+    - ansible_os_family != "RedHat" or ansible_distribution_major_version | int >= 9
 
 - name:                                "5.6.4 SCS/ERS Pacemaker - Check if already installed"
   become:                              true
@@ -140,6 +140,7 @@
             - "5.6.4.2-sap-resources-simplemount"
       when:
         - use_simple_mount
+        - ansible_os_family != "RedHat" or ansible_distribution_major_version | int >= 9
 
     # - name:                            "5.6.4 SCSERS - SAP resources"
     #   ansible.builtin.include_tasks:

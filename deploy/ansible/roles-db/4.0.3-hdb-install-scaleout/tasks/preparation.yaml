@@ -142,7 +142,10 @@
   ansible.builtin.command:             "ssh-keyscan -t rsa {{ item }}"
   register:                            site1_host_keys
   changed_when:                        false
-  failed_when:                         site1_host_keys.rc != 0 and site1_host_keys.stderr is not search("Connection refused")
+  failed_when: >-
+    site1_host_keys.rc != 0 and
+    site1_host_keys.stderr is not search("Connection refused") and
+    site1_host_keys.stdout | length == 0
   loop:                                "{{ primary_site_hosts }}"
 
 - name:                                "4.0.3 - SAP HANA Scale-out: Get SSH host keys from secondary site hosts"
@@ -155,7 +158,10 @@
   ansible.builtin.command:             "ssh-keyscan -t rsa {{ item }}"
   register:                            site2_host_keys
   changed_when:                        false
-  failed_when:                         site2_host_keys.rc != 0 and site2_host_keys.stderr is not search("Connection refused")
+  failed_when: >-
+    site2_host_keys.rc != 0 and
+    site2_host_keys.stderr is not search("Connection refused") and
+    site2_host_keys.stdout | length == 0
   loop:                                "{{ secondary_site_hosts }}"
 
 - name:                                "4.0.3 - SAP HANA Scale-out: Compile all host keys"
@@ -247,3 +253,34 @@
                                        - "SSH connectivity test completed successfully"
                                        - "Tested connections from {{ primary_instance_name }} to all cluster nodes"
                                        - "Results: {{ ssh_test_results.results | map(attribute='stdout') | list }}"
+
+
+- name:                                "4.0.3 - SAP HANA Scale-out: Test SSH connectivity from secondary site primary to its worker nodes"
+  become:                              true
+  become_user:                         root
+  when:
+                                       - secondary_site_hosts is defined
+                                       - secondary_site_hosts | length > 1
+                                       - cluster_private_key is defined
+                                       - inventory_hostname == secondary_site_hosts | first
+  ansible.builtin.command:
+    cmd:                               "ssh -o ConnectTimeout=10 -o BatchMode=yes {{ item }} 'echo SSH_OK'"
+  register:                            secondary_ssh_test_results
+  changed_when:                        false
+  failed_when:
+                                       - secondary_ssh_test_results.rc != 0
+                                       - "'SSH_OK' not in secondary_ssh_test_results.stdout"
+  loop:                                "{{ secondary_site_hosts[1:] }}"
+
+
+- name:                                "4.0.3 - SAP HANA Scale-out: Display secondary SSH connectivity test results"
+  when:
+                                       - secondary_site_hosts is defined
+                                       - secondary_site_hosts | length > 1
+                                       - inventory_hostname == secondary_site_hosts | first
+                                       - secondary_ssh_test_results is defined
+  ansible.builtin.debug:
+    msg:
+                                       - "Secondary site SSH connectivity test completed successfully"
+                                       - "Tested connections from {{ inventory_hostname }} to secondary site worker nodes"
+                                       - "Results: {{ secondary_ssh_test_results.results | map(attribute='stdout') | list }}"

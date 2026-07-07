@@ -108,32 +108,32 @@ provider "azapi" {
   use_msi         = var.use_spn ? false : true
 }
 
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    external = {
-      source = "hashicorp/external"
-    }
-    local = {
-      source = "hashicorp/local"
-    }
-    random = {
-      source = "hashicorp/random"
-    }
-    null = {
-      source = "hashicorp/null"
-    }
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "3.8.0"
-    }
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "4.76.0"
-    }
-    azapi = {
-      source  = "azure/azapi"
-      version = "2.7.0"
-    }
-  }
-}
+terraform                              {
+                                         required_version = ">= 1.0"
+                                         required_providers {
+                                                              external = {
+                                                                           source = "hashicorp/external"
+                                                                         }
+                                                              local    = {
+                                                                           source = "hashicorp/local"
+                                                                         }
+                                                              random   = {
+                                                                           source = "hashicorp/random"
+                                                                         }
+                                                              null =     {
+                                                                           source = "hashicorp/null"
+                                                                         }
+                                                              azuread =  {
+                                                                           source  = "hashicorp/azuread"
+                                                                           version = "3.8.0"
+                                                                         }
+                                                              azurerm =  {
+                                                                           source  = "hashicorp/azurerm"
+                                                                           version = "4.80.0"
+                                                                         }
+                                                              azapi =    {
+                                                                           source  = "azure/azapi"
+                                                                           version = "2.7.0"
+                                                                         }
+                                                            }
+                                       }

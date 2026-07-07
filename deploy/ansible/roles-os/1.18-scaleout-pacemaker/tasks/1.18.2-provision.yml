@@ -119,6 +119,7 @@
         state:                         present
       when:
         - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
+        - not (use_hanasr_angi | default(false))
 
 
 # SSH access between nodes is only required on SUSE for crm_clustering

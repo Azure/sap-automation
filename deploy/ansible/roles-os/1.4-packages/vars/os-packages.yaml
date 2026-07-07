@@ -74,7 +74,6 @@ packages:
     - { tier: 'ha',     package: 'pcs',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'pacemaker',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'nmap',                                         node_tier: 'all',            state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'acl',                                          node_tier: 'hana',           state: 'present' }
@@ -172,6 +171,7 @@ packages:
     # --------------------------- End - Packages required for HANA ------------------------------------------8
     - { tier: 'sapos',  package: 'autofs',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'compat-sap-c++-10',                            node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'compat-sap-c++-11',                            node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'csh',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'expect',                                       node_tier: 'all',            state: 'present' }
     - { tier: 'sapos',  package: 'krb5-libs',                                    node_tier: 'all',            state: 'present' }
@@ -196,7 +196,6 @@ packages:
     - { tier: 'ha',     package: 'pacemaker',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'nmap',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'all',            state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     # ------------------------- End - Packages required for Clustering ----------------------------------------8
@@ -336,7 +335,6 @@ packages:
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'db2',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'observer',       state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     # ------------------------- End - Packages required for Clustering --------------------------------------8
@@ -437,7 +435,6 @@ packages:
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'db2',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'observer',       state: 'present' }
-    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     # ------------------------- End - Packages required for Clustering --------------------------------------8

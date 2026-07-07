@@ -1,4 +1,4 @@
-# Release Notes: SDAF 3.20.0.0
+# Release Notes: SDAF 3.21.0.0
 
 ## Functional Differences
 
@@ -20,5 +20,11 @@
 - Delegate software download to controller for Windows deployments to facilitate storage accounts without access keys
 - Get the correct HANA components from the BoM
 
+### 5. ANGI (SAP HANA SR) cross-platform support and validation:
+- Added a new parameter use_saphanasr_angi to enable SAP HANA SR ANGI for both SLES and RHEL
+- Enhanced ANGI pre-checks and validation to support RHEL
+- Generalized ANGI hook verification logic to dynamically select provider names and trace files based on OS family
+
+### 6. Simple-mount support for the RedHat based SCS/ERS clusters with shared storage 
 
 ## Notes

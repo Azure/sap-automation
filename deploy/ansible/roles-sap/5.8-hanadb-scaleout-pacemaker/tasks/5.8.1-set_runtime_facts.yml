@@ -173,4 +173,94 @@
 # |                                   END                                     |
 # +------------------------------------4--------------------------------------*/
 
+# /*---------------------------------------------------------------------------8
+# |  RHEL ANGI (sap-hana-ha) package detection and installation logic          |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                "5.8 HANA Pacemaker Scale-out - RHEL ANGI package management"
+  when:
+                                       - node_tier == 'hana'
+                                       - ansible_os_family | upper == "REDHAT"
+  block:
+    - name:                            "5.8 HANA Pacemaker Scale-out - Generate list of deployed packages on current host [RHEL]"
+      ansible.builtin.package_facts:
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Get sap-hana-ha package version [RHEL ANGI]"
+      ansible.builtin.set_fact:
+        saphanaSR_angi_version:        "{{ ansible_facts.packages['sap-hana-ha'][0].version | default('0.0.0') }}"
+      when:
+                                       - ansible_facts.packages['sap-hana-ha'] is defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set default sap-hana-ha version if not installed [RHEL ANGI]"
+      ansible.builtin.set_fact:
+        saphanaSR_angi_version:        "0.0.0"
+      when:
+                                       - ansible_facts.packages['sap-hana-ha'] is not defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Get resource-agents-sap-hana package version [RHEL classic]"
+      ansible.builtin.set_fact:
+        saphanaSR_version:             "{{ ansible_facts.packages['resource-agents-sap-hana'][0].version | default('0.0.0') }}"
+      when:
+                                       - ansible_facts.packages['resource-agents-sap-hana'] is defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set default resource-agents-sap-hana version if not installed [RHEL classic]"
+      ansible.builtin.set_fact:
+        saphanaSR_version:             "0.0.0"
+      when:
+                                       - ansible_facts.packages['resource-agents-sap-hana'] is not defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Display RHEL package versions"
+      ansible.builtin.debug:
+        msg:
+                                       - "resource-agents-sap-hana version: {{ saphanaSR_version | default('0.0.0') }}"
+                                       - "sap-hana-ha version:              {{ saphanaSR_angi_version | default('0.0.0') }}"
+                                       - "use_hanasr_angi:                  {{ use_hanasr_angi | default(false) }}"
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Install sap-hana-ha package [RHEL ANGI]"
+      when:
+                                       - use_hanasr_angi | default(false)
+                                       - saphanaSR_angi_version == "0.0.0"
+      block:
+        # TODO: remove these two removal tasks once db_install playbook (1.18-scaleout-pacemaker)
+        # is fixed to skip resource-agents-sap-hana-scaleout when use_hanasr_angi is true
+        - name:                        "5.8 HANA Pacemaker Scale-out - Remove conflicting resource-agents-sap-hana-scaleout [RHEL ANGI]"
+          ansible.builtin.dnf:
+            name:                      resource-agents-sap-hana-scaleout
+            state:                     absent
+          when:
+                                       - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is defined
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Remove conflicting resource-agents-sap-hana [RHEL ANGI]"
+          ansible.builtin.dnf:
+            name:                      resource-agents-sap-hana
+            state:                     absent
+          when:
+                                       - ansible_facts.packages['resource-agents-sap-hana'] is defined
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Install sap-hana-ha"
+          ansible.builtin.dnf:
+            name:                      sap-hana-ha
+            state:                     present
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Refresh package facts after sap-hana-ha install [RHEL]"
+          ansible.builtin.package_facts:
+
+        - name:                        "5.8 HANA Pacemaker Scale-out - Update sap-hana-ha version after install [RHEL]"
+          ansible.builtin.set_fact:
+            saphanaSR_angi_version:    "{{ ansible_facts.packages['sap-hana-ha'][0].version | default('0.0.0') }}"
+          when:
+                                       - ansible_facts.packages['sap-hana-ha'] is defined
+
+    - name:                            "5.8 HANA Pacemaker Scale-out - Install resource-agents-sap-hana package [RHEL classic]"
+      when:
+                                       - not (use_hanasr_angi | default(false))
+                                       - saphanaSR_version == "0.0.0"
+      ansible.builtin.dnf:
+        name:                          resource-agents-sap-hana
+        state:                         present
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                     |
+# +------------------------------------4--------------------------------------*/
+
 ...
