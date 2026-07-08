@@ -15,7 +15,7 @@
         setDataFromResource();
         retainFormValues();
         getEnvironments(
-            @(string.Equals((string)ViewBag.IsPipelineDeployment, "true", StringComparison.OrdinalIgnoreCase)),
+            @(string.Equals((string)ViewBag.IsPipelineDeployment, "true", StringComparison.OrdinalIgnoreCase) ? "true" : "false"),
             @Html.Raw(JsonSerializer.Serialize((string)ViewBag.Platform))
         );
 
