@@ -776,7 +776,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         exit $return_value
     else
 		    return_value=$?
-        echo "Script failed with exit code $?"
+        echo "Script failed with exit code $return_value"
         exit $return_value
     fi
 
