@@ -73,7 +73,6 @@ from azure.identity import (
 )
 from azure.keyvault.secrets import SecretClient
 from azure.core.exceptions import HttpResponseError
-import requests
 import time
 import logging
 

@@ -397,7 +397,6 @@ def create_azure_service_principal(user_data):
         ]
 
         # Try to assign roles
-        roles_assigned = False
         roles_failed = []
 
         for role_name in recommended_roles:
@@ -419,7 +418,6 @@ def create_azure_service_principal(user_data):
                 role_result = run_az_command(role_assignment_args, capture_output=True, text=True)
                 if role_result.returncode == 0:
                     print(f"✓ Successfully assigned {role_name} role.")
-                    roles_assigned = True
                 else:
                     print(f"✗ Failed to assign {role_name} role.")
                     roles_failed.append(role_name)

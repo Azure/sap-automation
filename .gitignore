@@ -100,3 +100,11 @@ __pycache__
 
 docs/projects/*
 docs/adr/*
+
+# Python test coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.pytest_cache/

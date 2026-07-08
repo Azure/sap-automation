@@ -310,7 +310,7 @@ function getEnvironments(isPipelineDeployment, platform) {
 
 // populate a dropdown with data
 function populateAzureDropdownData(id, data) {
-    for (i = 0; i < data.length; i++) {
+    for (var i = 0; i < data.length; i++) {
         $("#" + id).append($("<option />").val(data[i].value).text(data[i].text));
     }
 }
@@ -338,7 +338,7 @@ function setCurrentValue(id) {
 
 // populate an input parameter that accepts lists as data
 function populateListData(id, data) {
-    for (j = 0; j < data.length; j++) {
+    for (var j = 0; j < data.length; j++) {
         if ($("#" + id + " option[value='" + data[j] + "']").length <= 0) {
             $("#" + id).append($("<option />").val(data[j]).text(data[j]));
         }
@@ -366,7 +366,7 @@ function resetDropdowns(ids) {
 function setDataFromResource() {
     if (model["subscription"] == null || model["network_arm_id"] == null) {
         var alreadySetArmId = null;
-        for (i = 3; i < azureResourceIds.length; i++) {
+        for (var i = 3; i < azureResourceIds.length; i++) {
             var currArmId = azureResourceIds[i];
             if (model[currArmId] != null) {
                 alreadySetArmId = model[currArmId];
@@ -702,7 +702,7 @@ function toggleDisableViaCheckbox(checkbox, id) {
 }
 
 function toggleDisableViaNInputs(inputList, id) {
-    for (i = 0; i < inputList.length; i++) {
+    for (var i = 0; i < inputList.length; i++) {
         var input = inputList[i];
         if ($("#" + input).val()) continue;
         else break;

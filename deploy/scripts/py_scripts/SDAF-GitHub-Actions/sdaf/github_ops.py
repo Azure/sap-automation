@@ -215,7 +215,7 @@ def trigger_github_workflow(user_data, workflow_id):
         try:
             error_details = response.json()
             logger.error("Details: %s", error_details)
-        except:
+        except Exception:
             logger.error("Response: %s", response.text)
         return False
     else:
@@ -227,6 +227,6 @@ def trigger_github_workflow(user_data, workflow_id):
         try:
             error_details = response.json()
             logger.error("Error details: %s", error_details)
-        except:
+        except Exception:
             logger.error("Response: %s", response.text)
         return False

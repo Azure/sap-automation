@@ -19,7 +19,6 @@ Integration: Called from within 2.4-hosts-file role
 import ipaddress
 from typing import Dict, List, Optional, Any
 
-
 DB_TIERS = {"hana", "oracle", "oracle-asm", "db2", "sybase"}
 SCALE_OUT_DB_TIERS = {"hana"}
 
@@ -256,7 +255,6 @@ class FilterModule:
         is_target_host_db_vm = self._is_scale_out_db_host(supported_tiers)
         default_virtual_host = host_vars.get("virtual_host")
 
-
         # Determine if we need to apply network isolation filtering
         apply_filtering = (
             not is_current_host_db_vm
@@ -413,37 +411,24 @@ class FilterModule:
         """Determine suffix for database scale-out IP addresses."""
         try:
             ip_obj = ipaddress.ip_address(ip_address)
-
-            # Check database subnet (use -hsr for HA, -hana for non-HA)
-            if network_config["subnet_cidr_db"]:
-                try:
-                    db_network = ipaddress.ip_network(
-                        network_config["subnet_cidr_db"], strict=False
-                    )
-                    if ip_obj in db_network:
-                        return (
-                            "-hsr" if config["database_high_availability"] else "-hana"
-                        )
-                except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
-                    pass
-
-            # Check storage subnet (use -inter for HA, -storage for non-HA)
-            if network_config["subnet_cidr_storage"]:
-                try:
-                    storage_network = ipaddress.ip_network(
-                        network_config["subnet_cidr_storage"], strict=False
-                    )
-                    if ip_obj in storage_network:
-                        return (
-                            "-inter"
-                            if config["database_high_availability"]
-                            else "-storage"
-                        )
-                except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
-                    pass
-
         except ipaddress.AddressValueError:
-            pass
+            return None
+
+        subnet_checks = [
+            (network_config["subnet_cidr_db"], "-hsr", "-hana"),
+            (network_config["subnet_cidr_storage"], "-inter", "-storage"),
+        ]
+        for subnet_cidr, ha_suffix, non_ha_suffix in subnet_checks:
+            if not subnet_cidr:
+                continue
+            try:
+                subnet_network = ipaddress.ip_network(subnet_cidr, strict=False)
+            except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
+                continue
+            if ip_obj in subnet_network:
+                return (
+                    ha_suffix if config["database_high_availability"] else non_ha_suffix
+                )
 
         return None
 
@@ -478,7 +463,7 @@ class FilterModule:
                     continue
 
         except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
-            pass
+            return primary_ip
 
         # Fallback to primary IP if no client subnet IP found
         return primary_ip

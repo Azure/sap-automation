@@ -80,7 +80,6 @@ from azure.identity import (
 )
 from azure.appconfiguration import AzureAppConfigurationClient
 import time
-import requests
 
 display = Display()
 
@@ -203,6 +202,8 @@ class AzureAppConfigHelper:
                     raise AnsibleError(
                         f"Failed to fetch configuration after {max_retries} attempts: {str(e)}"
                     )
+
+        return None
 
 
 class LookupModule(LookupBase):
