@@ -109,7 +109,7 @@ resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPLibraryStorageAccountId", var.deployer.control_plane_name)
   label                                = var.deployer.control_plane_name
-  value                                = var.storage_account_tfstate.exists ? (
+  value                                = var.storage_account_sapbits.exists ? (
                                                             data.azurerm_storage_account.storage_sapbits[0].id) : (
                                                             try(azurerm_storage_account.storage_sapbits[0].id, "")
                                                           )

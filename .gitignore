@@ -96,3 +96,5 @@ __pycache__
 
 .idea/
 
+.copilot-tracking/*
+.copilot-tools/*

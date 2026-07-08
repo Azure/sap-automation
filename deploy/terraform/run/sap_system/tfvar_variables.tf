@@ -599,12 +599,12 @@ variable "database_vm_image"                    {
                                                   description = "Virtual machine image to use for the database server"
                                                   default = {
                                                               "os_type"         = "LINUX"
-                                                              "source_image_id" = ""
-                                                              "publisher"       = ""
-                                                              "offer"           = ""
-                                                              "sku"             = ""
-                                                              "version"         = ""
-                                                              "type"            = "custom"
+                                                              "source_image_id" = null
+                                                              "publisher"       = null
+                                                              "offer"           = null
+                                                              "sku"             = null
+                                                              "version"         = null
+                                                              "type"            = "marketplace"
                                                             }
                                                 }
 
@@ -1016,11 +1016,11 @@ variable "application_server_image"             {
                                                   description = "Virtual machine image to use for the application server"
                                                   default = {
                                                               "os_type"         = "LINUX"
-                                                              "source_image_id" = ""
-                                                              "publisher"       = ""
-                                                              "offer"           = ""
-                                                              "sku"             = ""
-                                                              "version"         = ""
+                                                              "source_image_id" = null
+                                                              "publisher"       = null
+                                                              "offer"           = null
+                                                              "sku"             = null
+                                                              "version"         = null
                                                             }
                                                  }
 

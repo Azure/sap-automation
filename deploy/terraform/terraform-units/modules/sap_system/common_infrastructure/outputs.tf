@@ -170,6 +170,23 @@ output "subnet_cidr_storage"                   {
                                                                    )
                                                  }
 
+output "admin_tier_resource_creation_counts"     {
+                                                   description = "Cardinality (creation count) of admin-tier network resources for terraform test diagnostics. 1 = created (greenfield), 0 = looked up (brownfield)."
+                                                   value = {
+                                                     subnet = length(azurerm_subnet.admin)
+                                                     nsg    = length(azurerm_network_security_group.admin)
+                                                   }
+                                                 }
+
+output "database_tier_resource_creation_counts"  {
+                                                   description = "Cardinality (creation count) of database/storage-tier network resources for terraform test diagnostics. Storage tier has no dedicated NSG resource."
+                                                   value = {
+                                                     database_subnet = length(azurerm_subnet.db)
+                                                     database_nsg    = length(azurerm_network_security_group.db)
+                                                     storage_subnet  = length(azurerm_subnet.storage)
+                                                   }
+                                                 }
+
 output "route_table_id"                          {
                                                    description = "Azure resource ID of the route table"
                                                    value       = try(var.landscape_tfstate.route_table_id, "")

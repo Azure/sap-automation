@@ -84,6 +84,16 @@ output "app_subnet_netmask"            {
                                                        )
                                        }
 
+output "app_tier_resource_creation_counts" {
+                                         description = "Cardinality (creation count) of app-tier network resources for terraform test diagnostics. 1 = created (greenfield), 0 = looked up (brownfield)."
+                                         value = {
+                                           app_subnet = length(azurerm_subnet.subnet_sap_app)
+                                           web_subnet = length(azurerm_subnet.subnet_sap_web)
+                                           app_nsg    = length(azurerm_network_security_group.nsg_app)
+                                           web_nsg    = length(azurerm_network_security_group.nsg_web)
+                                         }
+                                       }
+
 output "scs_vm_ids"                    {
                                          description = "SCS virtual machine resource IDs"
                                          value       = local.enable_deployment ? (

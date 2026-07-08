@@ -149,6 +149,26 @@ output "app_vm_ids"                    {
                                          value       = module.app_tier.app_vm_ids
                                        }
 
+output "app_subnet_netmask"            {
+                                         description = "Application subnet netmask; test-observable proof of whether the module created its own application subnet (greenfield) or looked up an existing one (brownfield)."
+                                         value       = module.app_tier.app_subnet_netmask
+                                       }
+
+output "app_tier_resource_creation_counts" {
+                                         description = "App tier resource creation cardinality (see terraform-units/modules/sap_system/app_tier/outputs.tf)"
+                                         value       = module.app_tier.app_tier_resource_creation_counts
+                                       }
+
+output "admin_tier_resource_creation_counts" {
+                                         description = "Admin tier resource creation cardinality (see terraform-units/modules/sap_system/common_infrastructure/outputs.tf)"
+                                         value       = module.common_infrastructure.admin_tier_resource_creation_counts
+                                       }
+
+output "database_tier_resource_creation_counts" {
+                                         description = "Database/storage tier resource creation cardinality (see terraform-units/modules/sap_system/common_infrastructure/outputs.tf)"
+                                         value       = module.common_infrastructure.database_tier_resource_creation_counts
+                                       }
+
 output "scs_vm_ids" {
                                          description = "Virtual Machine IDs for the Central Services servers"
                                          value       = module.app_tier.scs_vm_ids

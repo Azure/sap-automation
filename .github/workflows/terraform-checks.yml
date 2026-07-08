@@ -1,0 +1,202 @@
+---
+name: terraform-checks
+
+on:
+  push:
+    branches: ["main", "development", "release/*", "hotfix/*"]
+    paths:
+      - 'deploy/terraform/**'
+      - '.github/workflows/terraform-checks.yml'
+  pull_request:
+    types: [ 'opened', 'reopened', 'synchronize' ]
+    paths:
+      - 'deploy/terraform/**'
+      - '.github/workflows/terraform-checks.yml'
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: 'terraform validate'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - deploy/terraform/bootstrap/sap_deployer
+          - deploy/terraform/bootstrap/sap_library
+          - deploy/terraform/run/sap_deployer
+          - deploy/terraform/run/sap_landscape
+          - deploy/terraform/run/sap_library
+          - deploy/terraform/run/sap_system
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+      with:
+        terraform_version: "1.13.5"
+        terraform_wrapper: false
+
+    - name: Validate root module
+      run: |
+        cd ${{ matrix.module }}
+        terraform init -backend=false
+        terraform validate
+
+  tflint:
+    name: 'tflint scan'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@90f302c255ef959cbfb4bd10581afecdb7ece3e6 # v4.1.1
+      with:
+        tflint_version: v0.63.1
+
+    - name: Init TFLint
+      run: tflint --init
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Run TFLint
+      run: tflint --chdir=deploy/terraform --recursive --minimum-failure-severity=error
+
+  checkov:
+    name: 'checkov scan'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup Python
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 #v6.2.0
+      with:
+        python-version: '3.11'
+
+    - name: Install Checkov
+      run: pip install checkov
+
+    - name: Run Checkov (Terraform static scan)
+      run: checkov -d deploy/terraform --framework terraform --compact
+
+  terraform-docs:
+    name: 'terraform-docs drift check'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Install terraform-docs
+      run: |
+        curl -sSLo /tmp/terraform-docs.tar.gz https://terraform-docs.io/dl/v0.24.0/terraform-docs-v0.24.0-linux-amd64.tar.gz
+        tar -xzf /tmp/terraform-docs.tar.gz -C /tmp terraform-docs
+        chmod +x /tmp/terraform-docs
+        echo "/tmp" >> "$GITHUB_PATH"
+
+    - name: Generate terraform-docs for reusable modules
+      run: |
+        config="deploy/terraform/terraform-units/modules/.terraform-docs.yml"
+        for module in deploy/terraform/terraform-units/modules/*/ deploy/terraform/terraform-units/modules/sap_system/*/; do
+          compgen -G "${module}*.tf" > /dev/null || continue
+          terraform-docs -c "$config" markdown "${module%/}"
+        done
+
+    - name: Fail if generated docs are out of date
+      run: |
+        if ! git diff --exit-code -- deploy/terraform/terraform-units/modules; then
+          echo "::error::terraform-docs output is out of date. Run terraform-docs locally and commit the updated README.md files."
+          exit 1
+        fi
+
+  terraform-test:
+    name: 'terraform test'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - deploy/terraform/run/sap_deployer
+          - deploy/terraform/bootstrap/sap_deployer
+          - deploy/terraform/bootstrap/sap_library
+          - deploy/terraform/run/sap_system
+          - deploy/terraform/run/sap_library
+          - deploy/terraform/run/sap_landscape
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+      with:
+        terraform_version: "1.13.5"
+        terraform_wrapper: false
+
+    - name: Apply CI-only ephemeral-to-data test swap
+      # terraform test's mock_provider cannot mock ephemeral resources (hashicorp/terraform#38608),
+      # so a handful of modules' provider configs — which read a client_secret from an `ephemeral`
+      # key vault secret — can never plan under a mocked provider. `data` and `ephemeral` sources
+      # share an identical schema for azurerm_key_vault_secret, so this step rewrites the *checked-out
+      # runner copy only* (never committed, never pushed) from `ephemeral` to `data` before the test
+      # run, letting the real assertions execute. Production code is untouched.
+      run: |
+        case "${{ matrix.module }}" in
+          deploy/terraform/run/sap_deployer|deploy/terraform/run/sap_landscape|deploy/terraform/run/sap_library|deploy/terraform/run/sap_system|deploy/terraform/bootstrap/sap_library)
+            sed -i 's/ephemeral "azurerm_key_vault_secret"/data "azurerm_key_vault_secret"/' ${{ matrix.module }}/imports.tf
+            sed -i 's/ephemeral\.azurerm_key_vault_secret\./data.azurerm_key_vault_secret./g' ${{ matrix.module }}/providers.tf ${{ matrix.module }}/variables_local.tf
+            ;;
+        esac
+
+    - name: Run terraform test
+      # GitHub Actions' default bash shell runs with `-eo pipefail`, so a non-zero
+      # exit from `terraform test` fails this step even though its output is piped to tee.
+      run: |
+        cd ${{ matrix.module }}
+        terraform init -backend=false
+        terraform test -no-color | tee /tmp/terraform-test.log
+
+    - name: Publish terraform test summary
+      if: always()
+      run: |
+        result_line=$(grep -oE '[0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?' /tmp/terraform-test.log | tail -1)
+        status="✅ passed"
+        if ! grep -q '^Success!' /tmp/terraform-test.log; then
+          status="❌ failed"
+        fi
+        {
+          echo "### terraform test — ${{ matrix.module }}"
+          echo ""
+          echo "**Status:** $status — ${result_line:-no result line found}"
+          echo ""
+        } >> "$GITHUB_STEP_SUMMARY"

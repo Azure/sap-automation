@@ -408,6 +408,7 @@ resource "azurerm_windows_virtual_machine" "web" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "web" {
+  #checkov:skip=CKV_AZURE_251: disk export via private endpoint not used
   provider                             = azurerm.main
   count                                = local.enable_deployment ? length(local.web_data_disks) : 0
   name                                 = format("%s%s%s%s%s",
