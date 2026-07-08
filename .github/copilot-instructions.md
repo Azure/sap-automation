@@ -19,6 +19,41 @@ The Webapp subdirectory has its own
 apply only when working under `Webapp/`; this file covers the rest of the repo
 and general cross-cutting rules.
 
+## Strict requirement: follow official best practices
+
+For every technology in this repo, changes must follow the **official best
+practices from that technology's own documentation** — not conventions
+inferred from blog posts, Stack Overflow, or general training knowledge.
+Concretely:
+
+- **Terraform / HashiCorp**: follow the official
+  [Terraform documentation](https://developer.hashicorp.com/terraform/docs)
+  and [Terraform language style guide](https://developer.hashicorp.com/terraform/language/style)
+  for module structure, resource design, and testing (`terraform test`)
+  patterns, reconciled with this repo's documented conventions below.
+- **AzureRM / AzAPI providers**: follow the
+  [AzureRM provider docs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+  and [AzAPI provider docs](https://registry.terraform.io/providers/Azure/azapi/latest/docs)
+  for resource arguments and upgrade guidance.
+- **Ansible**: follow the official
+  [Ansible best practices guide](https://docs.ansible.com/ansible/latest/tips_tricks/ansible_tips_tricks.html)
+  and [ansible-lint documentation](https://ansible.readthedocs.io/projects/lint/).
+- **Python**: follow [PEP 8](https://peps.python.org/pep-0008/) and the
+  official [Black documentation](https://black.readthedocs.io/) for
+  formatting, and official [pytest](https://docs.pytest.org/) /
+  [pytest-cov](https://pytest-cov.readthedocs.io/) docs for test/coverage
+  conventions.
+- **.NET / ASP.NET Core**: follow official
+  [Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/) guidance.
+- **Azure services**: follow official Azure best practices — when Azure MCP
+  tools are available (see `Webapp/.github/copilot-instructions.md`), invoke
+  `azmcp_bestpractices_get` before generating Azure-related code.
+
+When a claim about "what the docs say" matters, verify it by fetching and
+reading the actual current documentation page rather than relying on memory
+or a search-result snippet — do not assert a documented value or practice
+without a direct quote from the source.
+
 ## Tech stack
 
 - **Terraform** (`deploy/terraform/`) — Azure infrastructure. Providers:
@@ -109,9 +144,30 @@ editing `.tf` files by hand, match the surrounding alignment style.
   checking the skip list first.
 - Preserve the existing SUSE Pacemaker self-key authorization pattern; it's a
   required part of the SLES 16 implementation — don't remove it.
-- The only existing Python test suite is
-  `deploy/ansible/roles-sap-os/2.4-hosts-file/filter_plugins/test_sap_hosts_filters.py`
-  (`pytest ... -v`). There are no Molecule tests.
+- There are no Molecule tests. Python-level tests for Ansible filter/lookup
+  plugins live under the top-level `tests/` tree — see Python testing below.
+
+## Python testing (`tests/`)
+
+All Python code in the repo — Ansible `filter_plugins`/`lookup_plugins` and
+the `deploy/scripts/py_scripts/` CLIs — is tested with **pytest**, with test
+files collected in a top-level `tests/` directory that **mirrors the source
+tree** (tests are not colocated with the source they test).
+
+When adding or modifying a Python file anywhere in `deploy/`, add or update
+its corresponding test under `tests/deploy/<same relative path>/test_<name>.py`
+rather than colocating the test next to the source.
+
+- **Formatting**: all Python files (source and tests) must be formatted with
+  **black** before committing:
+  ```bash
+  black deploy/ tests/
+  ```
+- **Coverage**: a minimum of **85% code coverage** is required. Run tests with
+  coverage and verify the threshold before proposing changes:
+  ```bash
+  pytest tests/ -v --cov=deploy --cov-report=term-missing --cov-fail-under=85
+  ```
 
 ## Web application (`Webapp/`)
 
