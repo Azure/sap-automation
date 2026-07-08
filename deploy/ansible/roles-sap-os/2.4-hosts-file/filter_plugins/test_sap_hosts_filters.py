@@ -113,6 +113,7 @@ class TestBasicHostEntry:
         result_str = "\n".join(result)
 
         assert "172.234.2.12" in result_str
+        # codeql[py/incomplete-url-substring-sanitization]: false positive — this is a test assertion checking hostname presence in generated hosts-file output, not URL sanitization logic.
         assert "shascs00lbbe.noeu.sdaf.contoso.net" in result_str
         assert "shascs00lbbe" in result_str
 

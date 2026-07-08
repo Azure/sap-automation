@@ -179,25 +179,33 @@ class AzureKeyVaultHelper:
         :param secret_name: The secret name (optionally with version, e.g., secret_name/version).
         :return: The secret value.
         """
+        redacted_name = secret_name[:4] + "***" if len(secret_name) > 4 else "***"
         try:
             display.v(
-                f"Fetching secret: {secret_name} from {self.vault_url} using {type(self.credential).__name__}"
+                f"Fetching secret from {self.vault_url} using {type(self.credential).__name__}"
             )
             logger.info(
-                f"Fetching secret: {secret_name} from {self.vault_url} using {type(self.credential).__name__}"
+                "Fetching secret from %s using %s",
+                self.vault_url,
+                type(self.credential).__name__,
             )
             secret = self.client.get_secret(secret_name)
-            display.v(f"Successfully fetched secret: {secret_name}")
-            logger.info(f"Successfully fetched secret: {secret_name}")
+            display.v(f"Successfully fetched secret from {self.vault_url}")
+            logger.info("Successfully fetched secret from %s", self.vault_url)
             return secret.value
         except Exception as e:
             display.error(
-                f"Failed to fetch secret {secret_name} from {self.vault_url}. Error: {str(e)}"
+                f"Failed to fetch secret {redacted_name} from {self.vault_url}. Error: {str(e)}"
             )
             logger.error(
-                f"Failed to fetch secret {secret_name} from {self.vault_url}. Error: {str(e)}"
+                "Failed to fetch secret %s from %s. Error: %s",
+                redacted_name,
+                self.vault_url,
+                str(e),
             )
-            raise AnsibleError(f"Failed to fetch secret {secret_name}: {str(e)}")
+            raise AnsibleError(
+                f"Failed to fetch secret {redacted_name} from {self.vault_url}: {str(e)}"
+            )
 
 
 class LookupModule(LookupBase):

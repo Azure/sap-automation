@@ -1,3 +1,4 @@
+import logging
 import sys
 import json
 from github import Github, GithubException
@@ -10,6 +11,7 @@ def main():
     """
     Main execution flow of the GitHub Repository/Environment/Secrets setup script.
     """
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     ui.display_instructions()
     ui.check_prerequisites()
 

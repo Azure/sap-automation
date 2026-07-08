@@ -80,6 +80,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Upload")]
         public async Task<IActionResult> UploadAsync(FileUploadModel fileUpload, string sourceController)
         {

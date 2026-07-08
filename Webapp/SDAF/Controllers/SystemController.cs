@@ -246,6 +246,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Deploy")]
         public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
@@ -382,6 +383,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Install")]
         public async Task<IActionResult> InstallConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
