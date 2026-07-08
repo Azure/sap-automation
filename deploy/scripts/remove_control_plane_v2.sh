@@ -182,7 +182,7 @@ function parse_arguments() {
                 shift
             ;;
             --github)
-                approve_parameter="--auto-approve;ado=1"
+                approve_parameter="--auto-approve"
                 shift
             ;;
             -g | --keep_agent)

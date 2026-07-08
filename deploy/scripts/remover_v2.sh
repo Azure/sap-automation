@@ -761,7 +761,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     if [[ "${DEBUG:-false}" == 'true' ]]; then
         # Enable debugging
         # Exit on error
-        set -euox pipefail
+        set -euxo pipefail
         echo "Environment variables:"
         printenv | sort
     fi

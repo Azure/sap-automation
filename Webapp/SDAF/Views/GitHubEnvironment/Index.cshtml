@@ -4,11 +4,7 @@
     ViewBag.Title = "GitHub Environments";
 }
 
-<script>
-    window.onload = function() {
-        $('.notificationContainer').delay(6000).fadeOut();
-    }
-</script>
+@* Notification auto-dismiss is handled in wwwroot/js/site.js *@
 
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
@@ -19,20 +15,28 @@
     <h2>Existing environments</h2>
 </div>
 
-<div class="notificationContainer" role="status" style="@(TempData["success"]==null ? "display: none;" : "display: flex; background: rgb(223, 246, 221);")">
-    <div class="notificationInner">
-        <span class="notificationText">
-            @TempData["success"]
-        </span>
+@if (TempData["success"] != null)
+{
+    <div class="notificationContainer alert-success" role="alert" data-timeout="5000">
+        <div class="notificationInner">
+            <span class="notificationText">@TempData["success"]</span>
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
-</div>
-<div class="notificationContainer" role="status" style="@(TempData["error"]==null ? "display: none;" : "display: flex; background: rgb(253, 231, 233);")">
-    <div class="notificationInner">
-        <span class="notificationText">
-            @TempData["error"]
-        </span>
+}
+@if (TempData["error"] != null)
+{
+    <div class="notificationContainer alert-danger" role="alert" data-timeout="10000">
+        <div class="notificationInner">
+            <span class="notificationText">@TempData["error"]</span>
+            <button type="button" class="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
-</div>
+}
 
 <div class="cards">
     @foreach (var environment in Model)

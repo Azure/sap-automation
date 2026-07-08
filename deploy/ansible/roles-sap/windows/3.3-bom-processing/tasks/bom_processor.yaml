@@ -121,7 +121,7 @@
   ansible.windows.win_shell:           '{{ target_media_location_windows }}\downloads\SAPCAR -manifest SIGNATURE.SMF -xf {{ target_media_location_windows }}\{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}\{% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}'
   args:
     chdir:                             '{{ target_media_location_windows }}\{{ item.extractDir }}'
-    creates:                           '{ target_media_location_windows }}\{{ item.extractDir }}\{% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}'
+    creates:                           '{{ target_media_location_windows }}\{{ item.extractDir }}\{% if item.creates is defined %}{{ item.creates }}{% else %}NOT_DEFINED{% endif %}'
   loop:                                "{{ bom.materials.media | flatten(levels=1) }}"
   when:
     - item.extract is not undefined
