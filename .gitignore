@@ -100,7 +100,7 @@ __pycache__
 .copilot-tracking/*
 .copilot-tools/*
 
-# octance files
+# octane files
 docs/projects/*
 docs/adr/*
 
