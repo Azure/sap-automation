@@ -4,12 +4,7 @@
 ViewBag.Title = "Create GitHub environment";
 }
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script type="text/javascript">
-    window.onload = function () {
-        $('.notificationContainer').delay(6000).fadeOut();
-    }
-
     var submitting = false;
     window.onbeforeunload = function () {
         if (!submitting) {

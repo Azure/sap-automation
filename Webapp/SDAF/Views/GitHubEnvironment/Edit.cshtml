@@ -4,12 +4,7 @@
     ViewBag.Title = "Edit environment";
 }
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script type="text/javascript">
-    window.onload = function () {
-        $('.notificationContainer').delay(6000).fadeOut();
-    }
-</script>
+@* Notification behavior is handled globally in wwwroot/js/site.js *@
 
 <fluent-breadcrumb>
     <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
