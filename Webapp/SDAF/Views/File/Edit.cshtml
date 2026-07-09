@@ -4,7 +4,6 @@
     ViewBag.Title = "Edit file";
     string sourceController = ViewBag.SourceController;
     bool isImagesFile = false;
-    int type = ViewBag.Type;
     string filePattern = "VM-Images.json";
     if (ViewBag.Type==1)
     {
@@ -19,7 +18,9 @@
         isImagesFile = ViewBag.IsImagesFile;
     }
     catch
-    {}
+    {
+        // ViewBag.IsImagesFile may be unset for non-images files; default to false and continue.
+    }
     
     string language = (isImagesFile) ? "language-json" : "language-hcl";
 }

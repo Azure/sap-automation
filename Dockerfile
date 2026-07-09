@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azurelinux/base/core:3.0
+FROM mcr.microsoft.com/azurelinux/base/core:3.0@sha256:0cdd0c6a200fc2b5d6da711c34228126034bd428650b43dfb7e378214e6f2d32
 
 ARG TF_VERSION=1.15.7
 ARG YQ_VERSION=v4.42.1
@@ -78,14 +78,14 @@ RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment && \
 # Install Python dependencies and Ansible
 RUN pip3 install --no-cache-dir \
     ansible-core==${ANSIBLE_VERSION} \
-    argcomplete \
-    jmespath \
-    netaddr \
-    pywinrm \
+    argcomplete==3.5.3 \
+    jmespath==1.0.1 \
+    netaddr==1.3.0 \
+    pywinrm==0.5.0 \
     setuptools==68.2.2 \
     wheel==0.42.0 \
-    chmod \
-    pyyaml
+    chmod==1.0.3 \
+    pyyaml==6.0.2
 
 RUN useradd -m -s /bin/bash azureadm && \
     usermod -aG sudo azureadm && \

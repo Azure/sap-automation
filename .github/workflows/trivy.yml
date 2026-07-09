@@ -8,15 +8,16 @@ on:
   workflow_dispatch:
 
 
-permissions:
-  actions: read
-  contents: read
-  security-events: write
+permissions: {}
 
 jobs:
   build:
     name: 'trivy scan'
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     steps:
     - name: Harden Runner
       uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
