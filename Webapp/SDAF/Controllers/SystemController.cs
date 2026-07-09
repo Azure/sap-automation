@@ -6,6 +6,7 @@ using SDAFWebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -26,17 +27,19 @@ namespace SDAFWebApp.Controllers
         private FormViewModel<SystemModel> systemView;
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
+        private readonly ILogger<SystemController> _logger;
 
         private ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
         private readonly string platform;
 
-        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
+        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration, ILogger<SystemController> logger)
         {
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
+            _logger = logger;
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             systemView = SetViewData();
@@ -101,10 +104,9 @@ namespace SDAFWebApp.Controllers
             {
                 s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
             }
-            catch
+            catch (Exception e)
             {
-                // Best-effort save; ignore failure and continue with default naming/sizing behavior.
-
+                _logger?.LogWarning(e, "Failed to deserialize system {Id} in partition {PartitionKey}", id, partitionKey);
             }
             if (s == null) return null;
             try
@@ -112,10 +114,9 @@ namespace SDAFWebApp.Controllers
                 AppFile file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
                 s.name_override_file = id + "_custom_naming.json";
             }
-            catch
+            catch (Exception e)
             {
-                // Best-effort save; ignore failure and continue with default naming/sizing behavior.
-
+                _logger?.LogInformation(e, "No custom naming file found for system {Id}; using default naming", id);
             }
 
             try
@@ -124,10 +125,9 @@ namespace SDAFWebApp.Controllers
                 s.custom_disk_sizes_filename = id + "_custom_sizes.json";
                 s.database_size = "Custom";
             }
-            catch
+            catch (Exception e)
             {
-                // Best-effort save; ignore failure and continue with default naming/sizing behavior.
-
+                _logger?.LogInformation(e, "No custom sizes file found for system {Id}; using default sizing", id);
             }
 
             return s;
@@ -270,10 +270,9 @@ namespace SDAFWebApp.Controllers
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch
+                catch (Exception e)
                 {
-                    // Best-effort save; ignore failure and continue with default naming/sizing behavior.
-
+                    _logger?.LogWarning(e, "Failed to save custom naming file for system {Id}; continuing with default naming", id);
                 }
 
                 try
@@ -289,10 +288,9 @@ namespace SDAFWebApp.Controllers
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch
+                catch (Exception e)
                 {
-                    // Best-effort save; ignore failure and continue with default naming/sizing behavior.
-
+                    _logger?.LogWarning(e, "Failed to save custom sizes file for system {Id}; continuing with default sizing", id);
                 }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
