@@ -39,3 +39,15 @@ jobs:
       - name: Run ansible-lint
         run: |
           ansible-lint deploy/ansible -c .ansible-lint
+
+      - name: Install Python test dependencies
+        run: |
+          pip install -r requirements-test.txt
+
+      - name: Check Black formatting
+        run: |
+          black --check tests/
+
+      - name: Run Python tests with coverage
+        run: |
+          python -m pytest
