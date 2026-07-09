@@ -19,9 +19,8 @@ namespace SDAFWebApp.Controllers
 
         public override void OnResultExecuting(ResultExecutingContext context)
         {
-            if (context.Controller is Controller)
+            if (context.Controller is Controller controller)
             {
-                var controller = context.Controller as Controller;
                 controller.ViewBag.IsPipelineDeployment = _configuration["IS_PIPELINE_DEPLOYMENT"];
                 var devopsPlatform = (_configuration["DEVOPS_PLATFORM"] ?? "ado").ToLowerInvariant();
                 if (devopsPlatform == "ado")
