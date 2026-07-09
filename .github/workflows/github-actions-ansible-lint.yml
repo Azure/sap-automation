@@ -46,7 +46,7 @@ jobs:
 
       - name: Check Black formatting
         run: |
-          black --check tests/
+          black --check tests/ deploy/
 
       - name: Run Python tests with coverage
         run: |
