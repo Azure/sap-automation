@@ -80,6 +80,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Upload")]
         public async Task<IActionResult> UploadAsync(FileUploadModel fileUpload, string sourceController)
         {
@@ -408,6 +409,7 @@ namespace SDAFWebApp.Controllers
                 AppFile file = (isImagesFile) ? await GetImagesFile(fileName, 0, GetPartitionKey(id)) : await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
                 if (file == null) return NotFound();
 
+                // FileStreamResult takes ownership of the stream and disposes it after writing the response.
                 var stream = new MemoryStream(file.Content);
                 return new FileStreamResult(stream, new MediaTypeHeaderValue("text/plain"))
                 {

@@ -9,12 +9,12 @@ if [ ! -f "/etc/profile.d/deploy_server.sh" ]; then
 	pip3 uninstall -y ansible-core --verbose
 
 	pip3 install ansible-core=="${ansible_core_version:-2.16.14}" \
-		argcomplete \
-		'pywinrm>=0.3.0' \
-		netaddr \
-		wheel \
-		pywinrm[credssp] \
-		setuptools --force
+		argcomplete==3.5.3 \
+		'pywinrm==0.5.0' \
+		netaddr==1.3.0 \
+		wheel==0.42.0 \
+		'pywinrm[credssp]==0.5.0' \
+		setuptools==68.2.2 --force
 	ansible-galaxy collection install --force ansible.windows ansible.posix ansible.utils community.windows microsoft.ad community.general==11.4.1
 	ansible --version
 else
