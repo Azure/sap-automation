@@ -33,7 +33,7 @@ public class GitHubActionsService
         };
 
         var json = JsonConvert.SerializeObject(requestBody);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync(url, content);
         return response.IsSuccessStatusCode; // Returns 204 No Content on success
