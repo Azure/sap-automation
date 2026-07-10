@@ -211,7 +211,6 @@ namespace SDAFWebApp.Controllers
                     path = path.Substring(1);
                 }
                 var changeSet = await uploader.CreateOrUpdateFileAsync(path, content, "Update file via SDAF App Service", "main");
-                string addResponseBody = System.Text.Json.JsonSerializer.Serialize(changeSet);
                 if (changeSet == null || changeSet.Content == null)
                 {
                     throw new HttpRequestException("Failed to create or update the file on GitHub.");
@@ -230,7 +229,7 @@ namespace SDAFWebApp.Controllers
             string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1";
 
             string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), jsonSerializerOptions);
-            StringContent content = new(requestJson, Encoding.UTF8, "application/json");
+            using StringContent content = new(requestJson, Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.PostAsync(postUri, content);
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -477,6 +476,7 @@ namespace SDAFWebApp.Controllers
                 }
                 return value;
             }
+            // Intentional fallback: swallow lookup failures and return the default workspace name.
             catch
             {
                 return "WORKSPACES";
@@ -507,7 +507,7 @@ namespace SDAFWebApp.Controllers
                 };
 
             string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), jsonSerializerOptions);
-            StringContent content = new(requestJson, Encoding.ASCII, "application/json");
+            using StringContent content = new(requestJson, Encoding.ASCII, "application/json");
 
             HttpResponseMessage response = await client.PostAsync(postUri, content);
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -558,7 +558,7 @@ namespace SDAFWebApp.Controllers
 
             // Make the put call
             string requestJson = JsonConvert.SerializeObject(dynamicEnvironment, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-            StringContent content = new(requestJson, Encoding.ASCII, "application/json");
+            using StringContent content = new(requestJson, Encoding.ASCII, "application/json");
 
             HttpResponseMessage putResponse = await client.PutAsync(uri, content);
             string putResponseBody = await putResponse.Content.ReadAsStringAsync();
@@ -581,10 +581,6 @@ namespace SDAFWebApp.Controllers
                     default:
 
                         errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();
-                        if (errorMessage.Contains("Resource protected by organization SAML"))
-                        {
-
-                        }
                         break;
                 }
                 throw new HttpRequestException(errorMessage);
