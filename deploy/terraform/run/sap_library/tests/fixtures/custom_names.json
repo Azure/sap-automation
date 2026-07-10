@@ -6,8 +6,24 @@
     "LIBRARY": "CUSTOM-DEV-WEEU-LIB"
   },
   "separator": "-",
-  "resource_prefixes": {},
-  "resource_suffixes": {},
+  "resource_prefixes": {
+    "library_rg": "",
+    "dns_link": "",
+    "storage_private_link_tf": "",
+    "storage_private_svc_tf": "",
+    "storage_private_link_sap": "",
+    "storage_private_svc_sap": "",
+    "nic": ""
+  },
+  "resource_suffixes": {
+    "library_rg": "-SAP_LIBRARY",
+    "dns_link": "dns-link",
+    "storage_private_link_tf": "-tf-storage-private-endpoint",
+    "storage_private_svc_tf": "-tf-storage-private-service",
+    "storage_private_link_sap": "-sap-storage-private-endpoint",
+    "storage_private_svc_sap": "-sap-storage-private-service",
+    "nic": "-nic"
+  },
   "keyvault_names": {
     "DEPLOYER": {
       "private_access": "customdepkvprv",

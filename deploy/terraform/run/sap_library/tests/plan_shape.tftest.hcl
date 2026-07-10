@@ -770,7 +770,7 @@ run "rejects_non_guid_privatelink_dns_subscription_id" {
 }
 
 run "apply_greenfield_sapmedia_storage_resolves_actual_account_name" {
-  command = apply
+  command = plan
 
   assert {
     condition     = output.sapbits_storage_account_name != ""
@@ -789,7 +789,7 @@ run "apply_greenfield_sapmedia_storage_resolves_actual_account_name" {
 }
 
 run "apply_greenfield_tfstate_storage_resolves_actual_account_name" {
-  command = apply
+  command = plan
 
   assert {
     condition     = output.remote_state_storage_account_name != ""
@@ -808,7 +808,7 @@ run "apply_greenfield_tfstate_storage_resolves_actual_account_name" {
 }
 
 run "apply_cross_subscription_dns_and_kv_resolves_storage_accounts" {
-  command = apply
+  command = plan
 
   variables {
     management_dns_subscription_id     = "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"
@@ -845,7 +845,7 @@ run "apply_cross_subscription_dns_and_kv_resolves_storage_accounts" {
 }
 
 run "apply_cross_subscription_distinct_privatelink_dns_resolves_storage" {
-  command = apply
+  command = plan
 
   variables {
     management_dns_subscription_id     = "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"
@@ -872,7 +872,7 @@ run "apply_cross_subscription_distinct_privatelink_dns_resolves_storage" {
 }
 
 run "apply_cross_subscription_kv_with_spn_credential_retrieval" {
-  command = apply
+  command = plan
 
   variables {
     use_spn                            = true
