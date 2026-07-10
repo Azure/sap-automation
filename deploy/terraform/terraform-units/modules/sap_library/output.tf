@@ -70,7 +70,10 @@ output "sapbits_sa_resource_group_name"          {
 
 output "storagecontainer_sapbits_name"           {
                                                    description = "SAP Bits container name"
-                                                   value       = var.storage_account_sapbits.file_share.name
+                                                   value       = var.storage_account_sapbits.sapbits_blob_container.is_existing ? (
+                                                                    data.azurerm_storage_container.storagecontainer_sapbits[0].name) : (
+                                                                    azurerm_storage_container.storagecontainer_sapbits[0].name
+                                                                  )
                                                  }
 
 output "random_id"                               {

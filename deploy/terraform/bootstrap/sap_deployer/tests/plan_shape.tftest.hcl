@@ -514,6 +514,13 @@ run "deployer_public_ip_enabled_plans_public_ip_resource" {
     deployer_count            = 1
   }
 
+  override_resource {
+    target = module.sap_deployer.azurerm_public_ip.deployer[0]
+    values = {
+      ip_address = "10.20.30.40"
+    }
+  }
+
   assert {
     condition     = length(module.sap_deployer.deployer_public_ip_address) > 0
     error_message = "When deployer_enable_public_ip is true, bootstrap/sap_deployer must plan at least one public IP address for the deployer VM."

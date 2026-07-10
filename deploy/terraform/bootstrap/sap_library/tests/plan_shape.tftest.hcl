@@ -227,7 +227,7 @@ run "private_link_zones_created_when_flag_is_true" {
     management_dns_subscription_id               = "00000000-0000-0000-0000-000000000000"
     management_dns_resourcegroup_name            = "rg-dns"
     privatelink_dns_subscription_id              = "00000000-0000-0000-0000-000000000000"
-    privatelink_dns_resourcegroup_name           = "rg-dns"
+    privatelink_dns_resourcegroup_name           = ""
   }
 
   override_data {

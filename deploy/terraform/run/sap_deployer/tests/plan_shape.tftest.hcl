@@ -13,11 +13,11 @@ mock_provider "azurerm" {
   mock_resource "azurerm_firewall" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/azureFirewalls/fw-mock"
-      ip_configuration = [{
+      ip_configuration = {
         name                 = "fw-ipconfig-mock"
         subnet_id            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock/subnets/AzureFirewallSubnet"
         public_ip_address_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/publicIPAddresses/fwpip-mock"
-      }]
+      }
     }
   }
   mock_resource "azurerm_key_vault" {

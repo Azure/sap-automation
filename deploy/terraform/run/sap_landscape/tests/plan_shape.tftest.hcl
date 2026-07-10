@@ -785,18 +785,10 @@ run "utility_vm_count_drives_windows_vm_names" {
 }
 
 run "diagnostics_storage_account_greenfield_creates_account" {
-  command = plan
+  command = apply
 
   variables {
     diagnostics_storage_account_arm_id = ""
-  }
-
-  override_resource {
-    target = module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]
-    values = {
-      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Storage/storageAccounts/stdiagmock"
-      name = "stdiagmock"
-    }
   }
 
   assert {
