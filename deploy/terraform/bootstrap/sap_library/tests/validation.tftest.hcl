@@ -5,20 +5,28 @@
 # bootstrap/sap_library/tfvar_variables.tf. Each validated variable gets a
 # positive-path plan run and a negative-path expect_failures run.
 
-mock_provider "azurerm" {}
 mock_provider "azurerm" {
-  alias = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "deployer"
+  alias           = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "dnsmanagement"
+  alias           = "deployer"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "privatelinkdnsmanagement"
+  alias           = "dnsmanagement"
+  override_during = plan
 }
-mock_provider "azuread" {}
+mock_provider "azurerm" {
+  alias           = "privatelinkdnsmanagement"
+  override_during = plan
+}
+mock_provider "azuread" {
+  override_during = plan
+}
 
 override_data {
   target = data.azurerm_client_config.current
@@ -45,18 +53,18 @@ override_data {
 }
 
 variables {
-  environment                               = "DEV"
-  location                                  = "westeurope"
-  subscription_id                           = "00000000-0000-0000-0000-000000000000"
-  use_spn                                   = false
-  resourcegroup_name                        = "rg-bootstrap-library"
-  deployer_statefile_foldername             = "."
-  use_deployer                              = false
-  use_private_endpoint                      = false
+  environment                                  = "DEV"
+  location                                     = "westeurope"
+  subscription_id                              = "00000000-0000-0000-0000-000000000000"
+  use_spn                                      = false
+  resourcegroup_name                           = "rg-bootstrap-library"
+  deployer_statefile_foldername                = "."
+  use_deployer                                 = false
+  use_private_endpoint                         = false
   register_storage_accounts_keyvaults_with_dns = false
-  create_privatelink_dns_zones              = false
-  management_network_id                     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
-  spn_keyvault_id                           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
+  create_privatelink_dns_zones                 = false
+  management_network_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
+  spn_keyvault_id                              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
 }
 
 run "baseline_variables_are_accepted" {

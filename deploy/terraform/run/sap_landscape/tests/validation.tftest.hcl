@@ -1,11 +1,33 @@
-mock_provider "azurerm" {}
-mock_provider "azurerm" { alias = "workload" }
-mock_provider "azurerm" { alias = "deployer" }
-mock_provider "azurerm" { alias = "dnsmanagement" }
-mock_provider "azurerm" { alias = "privatelinkdnsmanagement" }
-mock_provider "azurerm" { alias = "peering" }
-mock_provider "azuread" {}
-mock_provider "azapi" { alias = "api" }
+mock_provider "azurerm" {
+  override_during = plan
+}
+mock_provider "azurerm" {
+  alias           = "workload"
+  override_during = plan
+}
+mock_provider "azurerm" {
+  alias           = "deployer"
+  override_during = plan
+}
+mock_provider "azurerm" {
+  alias           = "dnsmanagement"
+  override_during = plan
+}
+mock_provider "azurerm" {
+  alias           = "privatelinkdnsmanagement"
+  override_during = plan
+}
+mock_provider "azurerm" {
+  alias           = "peering"
+  override_during = plan
+}
+mock_provider "azuread" {
+  override_during = plan
+}
+mock_provider "azapi" {
+  alias           = "api"
+  override_during = plan
+}
 
 override_data {
   target = data.azurerm_client_config.current
@@ -201,7 +223,6 @@ variables {
   }
 }
 
-# Exhaustive validation coverage for every validation block in tfvar_variables.tf.
 run "valid_environment" {
   command = plan
 
@@ -215,7 +236,6 @@ run "valid_environment" {
   }
 }
 
-# Expects exact validation error_message: The 'environment' variable must be specified and at most 5 characters long.
 run "invalid_environment" {
   command = plan
 
@@ -240,7 +260,6 @@ run "valid_subscription_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'subscription_id' variable must be a correct subscription ID.
 run "invalid_subscription_id" {
   command = plan
 
@@ -265,7 +284,6 @@ run "valid_management_subscription_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'management_subscription_id' variable must be a correct subscription ID.
 run "invalid_management_subscription_id" {
   command = plan
 
@@ -290,7 +308,6 @@ run "valid_resourcegroup_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'resourcegroup_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_resourcegroup_arm_id" {
   command = plan
 
@@ -315,7 +332,6 @@ run "valid_network_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'network_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_network_arm_id" {
   command = plan
 
@@ -340,7 +356,6 @@ run "valid_network_flow_timeout_in_minutes" {
   }
 }
 
-# Expects exact validation error_message: The flow timeout in minutes must be between 4 and 30 if set.
 run "invalid_network_flow_timeout_in_minutes" {
   command = plan
 
@@ -365,7 +380,6 @@ run "valid_admin_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'admin_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_admin_subnet_arm_id" {
   command = plan
 
@@ -390,7 +404,6 @@ run "valid_admin_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'admin_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_admin_subnet_nsg_arm_id" {
   command = plan
 
@@ -415,7 +428,6 @@ run "valid_db_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'db_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_db_subnet_arm_id" {
   command = plan
 
@@ -440,7 +452,6 @@ run "valid_db_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'db_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_db_subnet_nsg_arm_id" {
   command = plan
 
@@ -465,7 +476,6 @@ run "valid_app_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'app_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_app_subnet_arm_id" {
   command = plan
 
@@ -490,7 +500,6 @@ run "valid_app_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'app_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_app_subnet_nsg_arm_id" {
   command = plan
 
@@ -515,7 +524,6 @@ run "valid_web_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'web_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_web_subnet_arm_id" {
   command = plan
 
@@ -540,7 +548,6 @@ run "valid_web_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'web_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_web_subnet_nsg_arm_id" {
   command = plan
 
@@ -565,7 +572,6 @@ run "valid_storage_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'storage_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_storage_subnet_arm_id" {
   command = plan
 
@@ -590,7 +596,6 @@ run "valid_storage_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'storage_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_storage_subnet_nsg_arm_id" {
   command = plan
 
@@ -615,7 +620,6 @@ run "valid_anf_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'anf_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_anf_subnet_arm_id" {
   command = plan
 
@@ -640,7 +644,6 @@ run "valid_anf_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'anf_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_anf_subnet_nsg_arm_id" {
   command = plan
 
@@ -665,7 +668,6 @@ run "valid_ams_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'ams_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_ams_subnet_arm_id" {
   command = plan
 
@@ -690,7 +692,6 @@ run "valid_ams_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'ams_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_ams_subnet_nsg_arm_id" {
   command = plan
 
@@ -715,7 +716,6 @@ run "valid_user_keyvault_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'user_keyvault_id' variable must be a correct Azure resource identifier.
 run "invalid_user_keyvault_id" {
   command = plan
 
@@ -740,7 +740,6 @@ run "valid_spn_keyvault_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'spn_keyvault_id' variable must be a correct Azure resource identifier.
 run "invalid_spn_keyvault_id" {
   command = plan
 
@@ -765,7 +764,6 @@ run "valid_keyvault_private_endpoint_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'keyvault_private_endpoint_id' variable must be a correct Azure resource identifier.
 run "invalid_keyvault_private_endpoint_id" {
   command = plan
 
@@ -790,7 +788,6 @@ run "valid_user_assigned_identity_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'user_assigned_identity_id' variable must be a correct Azure resource identifier.
 run "invalid_user_assigned_identity_id" {
   command = plan
 
@@ -815,7 +812,6 @@ run "valid_diagnostics_storage_account_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'diagnostics_storage_account_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_diagnostics_storage_account_arm_id" {
   command = plan
 
@@ -840,7 +836,6 @@ run "valid_witness_storage_account_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'witness_storage_account_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_witness_storage_account_arm_id" {
   command = plan
 
@@ -865,7 +860,6 @@ run "valid_transport_storage_account_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'transport_storage_account_id' variable must be a correct Azure resource identifier.
 run "invalid_transport_storage_account_id" {
   command = plan
 
@@ -890,7 +884,6 @@ run "valid_transport_private_endpoint_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'transport_private_endpoint_id' variable must be a correct Azure resource identifier.
 run "invalid_transport_private_endpoint_id" {
   command = plan
 
@@ -915,7 +908,6 @@ run "valid_install_storage_account_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'install_storage_account_id' variable must be a correct Azure resource identifier.
 run "invalid_install_storage_account_id" {
   command = plan
 
@@ -940,7 +932,6 @@ run "valid_install_private_endpoint_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'install_private_endpoint_id' variable must be a correct Azure resource identifier.
 run "invalid_install_private_endpoint_id" {
   command = plan
 
@@ -965,7 +956,6 @@ run "valid_management_dns_subscription_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'management_dns_subscription_id' variable must be a correct subscription ID.
 run "invalid_management_dns_subscription_id" {
   command = plan
 
@@ -990,7 +980,6 @@ run "valid_privatelink_dns_subscription_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'privatelink_dns_subscription_id' variable must be a correct subscription ID.
 run "invalid_privatelink_dns_subscription_id" {
   command = plan
 
@@ -1015,7 +1004,6 @@ run "valid_privatelink_file_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'privatelink_file_id' variable must be a correct Azure resource identifier.
 run "invalid_privatelink_file_id" {
   command = plan
 
@@ -1040,7 +1028,6 @@ run "valid_privatelink_storage_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'privatelink_storage_id' variable must be a correct Azure resource identifier.
 run "invalid_privatelink_storage_id" {
   command = plan
 
@@ -1065,7 +1052,6 @@ run "valid_privatelink_keyvault_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'privatelink_keyvault_id' variable must be a correct Azure resource identifier.
 run "invalid_privatelink_keyvault_id" {
   command = plan
 
@@ -1090,7 +1076,6 @@ run "valid_ANF_account_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'ANF_account_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_ANF_account_arm_id" {
   command = plan
 
@@ -1115,7 +1100,6 @@ run "valid_iscsi_subnet_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'iscsi_subnet_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_iscsi_subnet_arm_id" {
   command = plan
 
@@ -1140,7 +1124,6 @@ run "valid_iscsi_subnet_nsg_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'iscsi_subnet_nsg_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_iscsi_subnet_nsg_arm_id" {
   command = plan
 
@@ -1165,7 +1148,6 @@ run "valid_ams_laws_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'ams_laws_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_ams_laws_arm_id" {
   command = plan
 
@@ -1190,7 +1172,6 @@ run "valid_nat_gateway_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'nat_gateway_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_nat_gateway_arm_id" {
   command = plan
 
@@ -1215,7 +1196,6 @@ run "valid_nat_gateway_public_ip_arm_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'nat_gateway_public_ip_arm_id' variable must be a correct Azure resource identifier.
 run "invalid_nat_gateway_public_ip_arm_id" {
   command = plan
 
@@ -1240,7 +1220,6 @@ run "valid_tfstate_resource_id" {
   }
 }
 
-# Expects exact validation error_message: The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format.
 run "invalid_tfstate_resource_id" {
   command = plan
 
@@ -1265,7 +1244,6 @@ run "valid_additional_network_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'additional_network_id' variable must be a correct Azure resource identifier.
 run "invalid_additional_network_id" {
   command = plan
 
@@ -1290,7 +1268,6 @@ run "valid_additional_subnet_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'additional_subnet_id' variable must be a correct Azure resource identifier.
 run "invalid_additional_subnet_id" {
   command = plan
 
@@ -1315,7 +1292,6 @@ run "valid_spn_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'spn_id' variable must be a correct service principal ID.
 run "invalid_spn_id" {
   command = plan
 
@@ -1340,7 +1316,6 @@ run "valid_application_configuration_id" {
   }
 }
 
-# Expects exact validation error_message: If specified the 'application_configuration_id' variable must be a correct Azure resource identifier.
 run "invalid_application_configuration_id" {
   command = plan
 

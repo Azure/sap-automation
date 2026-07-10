@@ -83,6 +83,6 @@ data "azurerm_key_vault_secret" "tenant_id" {
 }
 // Import current service principal
 data "azuread_service_principal" "sp"             {
-                                                    count        = local.use_spn ? 1 : 0
+                                                    count        = local.use_spn && local.retrieve_cp_credentials ? 1 : 0
                                                     client_id    = data.azurerm_key_vault_secret.client_id[0].value
                                                   }

@@ -1,17 +1,25 @@
-mock_provider "azurerm" {}
 mock_provider "azurerm" {
-  alias = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "dnsmanagement"
+  alias           = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "privatelinkdnsmanagement"
+  alias           = "dnsmanagement"
+  override_during = plan
+}
+mock_provider "azurerm" {
+  alias           = "privatelinkdnsmanagement"
+  override_during = plan
 }
 mock_provider "azapi" {
-  alias = "restapi"
+  alias           = "restapi"
+  override_during = plan
 }
-mock_provider "azuread" {}
+mock_provider "azuread" {
+  override_during = plan
+}
 
 override_data {
   target = module.sap_deployer.data.azurerm_subscription.primary
@@ -65,11 +73,11 @@ override_data {
 override_data {
   target = module.sap_deployer.data.azurerm_subnet.subnet_mgmt
   values = {
-    id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/deployer"
-    name                = "deployer"
-    resource_group_name = "rg-net"
+    id                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/deployer"
+    name                 = "deployer"
+    resource_group_name  = "rg-net"
     virtual_network_name = "vnet-existing"
-    address_prefixes    = ["10.50.1.0/24"]
+    address_prefixes     = ["10.50.1.0/24"]
   }
 }
 
@@ -129,12 +137,12 @@ override_data {
 override_data {
   target = module.sap_deployer.data.azurerm_storage_account.deployer
   values = {
-    id                    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-diag/providers/Microsoft.Storage/storageAccounts/diagstore"
-    name                  = "diagstore"
-    resource_group_name   = "rg-diag"
-    primary_blob_endpoint = "https://diagstore.blob.core.windows.net/"
+    id                            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-diag/providers/Microsoft.Storage/storageAccounts/diagstore"
+    name                          = "diagstore"
+    resource_group_name           = "rg-diag"
+    primary_blob_endpoint         = "https://diagstore.blob.core.windows.net/"
     public_network_access_enabled = true
-    tags                  = {
+    tags = {
       Component = "deployer"
       Role      = "control-plane"
     }
@@ -156,31 +164,31 @@ override_data {
 override_data {
   target = module.sap_deployer.data.azurerm_user_assigned_identity.deployer
   values = {
-    id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-id/providers/Microsoft.ManagedIdentity/userAssignedIdentities/deployer-uai"
-    name         = "deployer-uai"
+    id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-id/providers/Microsoft.ManagedIdentity/userAssignedIdentities/deployer-uai"
+    name                = "deployer-uai"
     resource_group_name = "rg-id"
-    principal_id = "66666666-6666-6666-6666-666666666666"
-    client_id    = "77777777-7777-7777-7777-777777777777"
-    tenant_id    = "00000000-0000-0000-0000-000000000000"
+    principal_id        = "66666666-6666-6666-6666-666666666666"
+    client_id           = "77777777-7777-7777-7777-777777777777"
+    tenant_id           = "00000000-0000-0000-0000-000000000000"
   }
 }
 
 variables {
-  environment                             = "DEV"
-  location                                = "westeurope"
-  subscription_id                         = "00000000-0000-0000-0000-000000000000"
-  resourcegroup_name                      = "rg-deployer"
-  management_network_logical_name         = "MGMT1"
-  management_network_name                 = "vnet-mgmt"
-  management_network_address_space        = "10.0.0.0/16"
-  management_subnet_name                  = "AzureDeployerSubnet"
-  management_subnet_address_prefix        = "10.0.0.0/24"
-  tfstate_resource_id                     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-tfstate/providers/Microsoft.Storage/storageAccounts/tfstatesa"
-  use_private_endpoint                    = false
-  deployer_enable_public_ip               = true
-  deployer_assign_resource_permissions    = false
+  environment                              = "DEV"
+  location                                 = "westeurope"
+  subscription_id                          = "00000000-0000-0000-0000-000000000000"
+  resourcegroup_name                       = "rg-deployer"
+  management_network_logical_name          = "MGMT1"
+  management_network_name                  = "vnet-mgmt"
+  management_network_address_space         = "10.0.0.0/16"
+  management_subnet_name                   = "AzureDeployerSubnet"
+  management_subnet_address_prefix         = "10.0.0.0/24"
+  tfstate_resource_id                      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-tfstate/providers/Microsoft.Storage/storageAccounts/tfstatesa"
+  use_private_endpoint                     = false
+  deployer_enable_public_ip                = true
+  deployer_assign_resource_permissions     = false
   deployer_assign_subscription_permissions = false
-  use_spn                                 = false
+  use_spn                                  = false
   tags = {
     Component = "deployer"
     Role      = "control-plane"
@@ -201,9 +209,9 @@ run "accepts_infrastructure_region" {
   command = plan
 
   variables {
-  infrastructure = {
-    region = "northeurope"
-  }
+    infrastructure = {
+      region = "northeurope"
+    }
   }
 }
 
@@ -212,9 +220,9 @@ run "rejects_infrastructure_region" {
   command = plan
 
   variables {
-  infrastructure = {
-    region = "   "
-  }
+    infrastructure = {
+      region = "   "
+    }
   }
 
   expect_failures = [
@@ -227,9 +235,9 @@ run "accepts_infrastructure_environment" {
   command = plan
 
   variables {
-  infrastructure = {
-    environment = "QAS"
-  }
+    infrastructure = {
+      environment = "QAS"
+    }
   }
 }
 
@@ -238,9 +246,9 @@ run "rejects_infrastructure_environment" {
   command = plan
 
   variables {
-  infrastructure = {
-    environment = ""
-  }
+    infrastructure = {
+      environment = ""
+    }
   }
 
   expect_failures = [
@@ -253,16 +261,16 @@ run "accepts_infrastructure_management_vnet_arm_id" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-brownfield"
-        subnet_mgmt = {
-          prefix = "10.50.1.0/24"
+    infrastructure = {
+      virtual_network = {
+        management = {
+          arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-brownfield"
+          subnet_mgmt = {
+            prefix = "10.50.1.0/24"
+          }
         }
       }
     }
-  }
   }
 }
 
@@ -271,15 +279,15 @@ run "rejects_infrastructure_management_vnet_arm_id" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        subnet_mgmt = {
-          prefix = "10.50.1.0/24"
+    infrastructure = {
+      virtual_network = {
+        management = {
+          subnet_mgmt = {
+            prefix = "10.50.1.0/24"
+          }
         }
       }
     }
-  }
   }
 
   expect_failures = [
@@ -292,16 +300,16 @@ run "accepts_infrastructure_management_vnet_address_space" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        address_space = "10.50.0.0/16"
-        subnet_mgmt = {
-          prefix = "10.50.1.0/24"
+    infrastructure = {
+      virtual_network = {
+        management = {
+          address_space = "10.50.0.0/16"
+          subnet_mgmt = {
+            prefix = "10.50.1.0/24"
+          }
         }
       }
     }
-  }
   }
 }
 
@@ -310,17 +318,17 @@ run "rejects_infrastructure_management_vnet_address_space" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        arm_id        = ""
-        address_space = ""
-        subnet_mgmt = {
-          prefix = "10.50.1.0/24"
+    infrastructure = {
+      virtual_network = {
+        management = {
+          arm_id        = ""
+          address_space = ""
+          subnet_mgmt = {
+            prefix = "10.50.1.0/24"
+          }
         }
       }
     }
-  }
   }
 
   expect_failures = [
@@ -333,16 +341,16 @@ run "accepts_infrastructure_management_subnet_arm_id" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        address_space = "10.50.0.0/16"
-        subnet_mgmt = {
-          arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-brownfield/subnets/deployer"
+    infrastructure = {
+      virtual_network = {
+        management = {
+          address_space = "10.50.0.0/16"
+          subnet_mgmt = {
+            arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-brownfield/subnets/deployer"
+          }
         }
       }
     }
-  }
   }
 }
 
@@ -351,14 +359,14 @@ run "rejects_infrastructure_management_subnet_arm_id" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        address_space = "10.50.0.0/16"
-        subnet_mgmt = {}
+    infrastructure = {
+      virtual_network = {
+        management = {
+          address_space = "10.50.0.0/16"
+          subnet_mgmt   = {}
+        }
       }
     }
-  }
   }
 
   expect_failures = [
@@ -371,16 +379,16 @@ run "accepts_infrastructure_management_subnet_prefix" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        address_space = "10.50.0.0/16"
-        subnet_mgmt = {
-          prefix = "10.50.1.0/24"
+    infrastructure = {
+      virtual_network = {
+        management = {
+          address_space = "10.50.0.0/16"
+          subnet_mgmt = {
+            prefix = "10.50.1.0/24"
+          }
         }
       }
     }
-  }
   }
 }
 
@@ -389,17 +397,17 @@ run "rejects_infrastructure_management_subnet_prefix" {
   command = plan
 
   variables {
-  infrastructure = {
-    virtual_network = {
-      management = {
-        address_space = "10.50.0.0/16"
-        subnet_mgmt = {
-          arm_id = ""
-          prefix = ""
+    infrastructure = {
+      virtual_network = {
+        management = {
+          address_space = "10.50.0.0/16"
+          subnet_mgmt = {
+            arm_id = ""
+            prefix = ""
+          }
         }
       }
     }
-  }
   }
 
   expect_failures = [
@@ -412,11 +420,11 @@ run "accepts_authentication_object" {
   command = plan
 
   variables {
-  authentication = {
-    username            = "opsadmin"
-    path_to_public_key  = ""
-    path_to_private_key = ""
-  }
+    authentication = {
+      username            = "opsadmin"
+      path_to_public_key  = ""
+      path_to_private_key = ""
+    }
   }
 }
 
@@ -425,7 +433,7 @@ run "rejects_authentication_object" {
   command = plan
 
   variables {
-  authentication = {}
+    authentication = {}
   }
 
   expect_failures = [
@@ -438,9 +446,9 @@ run "accepts_authentication_username" {
   command = plan
 
   variables {
-  authentication = {
-    username = "deployadmin"
-  }
+    authentication = {
+      username = "deployadmin"
+    }
   }
 }
 
@@ -449,9 +457,9 @@ run "rejects_authentication_username" {
   command = plan
 
   variables {
-  authentication = {
-    username = ""
-  }
+    authentication = {
+      username = ""
+    }
   }
 
   expect_failures = [
@@ -464,9 +472,9 @@ run "accepts_key_vault_keyvault_id_for_deployment_credentials" {
   command = plan
 
   variables {
-  key_vault = {
-    keyvault_id_for_deployment_credentials = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-deployment"
-  }
+    key_vault = {
+      keyvault_id_for_deployment_credentials = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-deployment"
+    }
   }
 }
 
@@ -475,9 +483,9 @@ run "rejects_key_vault_keyvault_id_for_deployment_credentials" {
   command = plan
 
   variables {
-  key_vault = {
-    keyvault_id_for_deployment_credentials = "not-a-valid-resource-id"
-  }
+    key_vault = {
+      keyvault_id_for_deployment_credentials = "not-a-valid-resource-id"
+    }
   }
 
   expect_failures = [
@@ -490,7 +498,7 @@ run "accepts_environment" {
   command = plan
 
   variables {
-  environment = "QAS"
+    environment = "QAS"
   }
 }
 
@@ -499,7 +507,7 @@ run "rejects_environment" {
   command = plan
 
   variables {
-  environment = "TOOLONG"
+    environment = "TOOLONG"
   }
 
   expect_failures = [
@@ -512,7 +520,7 @@ run "accepts_subscription_id" {
   command = plan
 
   variables {
-  subscription_id = "11111111-1111-1111-1111-111111111111"
+    subscription_id = "11111111-1111-1111-1111-111111111111"
   }
 }
 
@@ -521,7 +529,7 @@ run "rejects_subscription_id" {
   command = plan
 
   variables {
-  subscription_id = "short-guid"
+    subscription_id = "short-guid"
   }
 
   expect_failures = [
@@ -534,7 +542,7 @@ run "accepts_resourcegroup_arm_id" {
   command = plan
 
   variables {
-  resourcegroup_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing"
+    resourcegroup_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing"
   }
 }
 
@@ -543,7 +551,7 @@ run "rejects_resourcegroup_arm_id" {
   command = plan
 
   variables {
-  resourcegroup_arm_id = "not-a-valid-resource-id"
+    resourcegroup_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -556,7 +564,7 @@ run "accepts_management_network_arm_id" {
   command = plan
 
   variables {
-  management_network_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing"
+    management_network_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing"
   }
 }
 
@@ -565,7 +573,7 @@ run "rejects_management_network_arm_id" {
   command = plan
 
   variables {
-  management_network_arm_id = "not-a-valid-resource-id"
+    management_network_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -578,7 +586,7 @@ run "accepts_management_network_flow_timeout_in_minutes" {
   command = plan
 
   variables {
-  management_network_flow_timeout_in_minutes = 10
+    management_network_flow_timeout_in_minutes = 10
   }
 }
 
@@ -587,7 +595,7 @@ run "rejects_management_network_flow_timeout_in_minutes" {
   command = plan
 
   variables {
-  management_network_flow_timeout_in_minutes = 2
+    management_network_flow_timeout_in_minutes = 2
   }
 
   expect_failures = [
@@ -600,7 +608,7 @@ run "accepts_management_subnet_arm_id" {
   command = plan
 
   variables {
-  management_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/deployer"
+    management_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/deployer"
   }
 }
 
@@ -609,7 +617,7 @@ run "rejects_management_subnet_arm_id" {
   command = plan
 
   variables {
-  management_subnet_arm_id = "not-a-valid-resource-id"
+    management_subnet_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -622,7 +630,7 @@ run "accepts_management_firewall_subnet_arm_id" {
   command = plan
 
   variables {
-  management_firewall_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/AzureFirewallSubnet"
+    management_firewall_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/AzureFirewallSubnet"
   }
 }
 
@@ -631,7 +639,7 @@ run "rejects_management_firewall_subnet_arm_id" {
   command = plan
 
   variables {
-  management_firewall_subnet_arm_id = "not-a-valid-resource-id"
+    management_firewall_subnet_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -644,7 +652,7 @@ run "accepts_management_bastion_subnet_arm_id" {
   command = plan
 
   variables {
-  management_bastion_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/AzureBastionSubnet"
+    management_bastion_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/AzureBastionSubnet"
   }
 }
 
@@ -653,7 +661,7 @@ run "rejects_management_bastion_subnet_arm_id" {
   command = plan
 
   variables {
-  management_bastion_subnet_arm_id = "not-a-valid-resource-id"
+    management_bastion_subnet_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -666,7 +674,7 @@ run "accepts_webapp_subnet_arm_id" {
   command = plan
 
   variables {
-  webapp_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/AzureWebappSubnet"
+    webapp_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/AzureWebappSubnet"
   }
 }
 
@@ -675,7 +683,7 @@ run "rejects_webapp_subnet_arm_id" {
   command = plan
 
   variables {
-  webapp_subnet_arm_id = "not-a-valid-resource-id"
+    webapp_subnet_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -688,7 +696,7 @@ run "accepts_management_subnet_nsg_arm_id" {
   command = plan
 
   variables {
-  management_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/networkSecurityGroups/nsg-deployer"
+    management_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/networkSecurityGroups/nsg-deployer"
   }
 }
 
@@ -697,7 +705,7 @@ run "rejects_management_subnet_nsg_arm_id" {
   command = plan
 
   variables {
-  management_subnet_nsg_arm_id = "not-a-valid-resource-id"
+    management_subnet_nsg_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -710,7 +718,7 @@ run "accepts_spn_keyvault_id" {
   command = plan
 
   variables {
-  spn_keyvault_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-spn"
+    spn_keyvault_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-spn"
   }
 }
 
@@ -719,7 +727,7 @@ run "rejects_spn_keyvault_id" {
   command = plan
 
   variables {
-  spn_keyvault_id = "not-a-valid-resource-id"
+    spn_keyvault_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -732,7 +740,7 @@ run "accepts_user_keyvault_id" {
   command = plan
 
   variables {
-  user_keyvault_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-user"
+    user_keyvault_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-user"
   }
 }
 
@@ -741,7 +749,7 @@ run "rejects_user_keyvault_id" {
   command = plan
 
   variables {
-  user_keyvault_id = "not-a-valid-resource-id"
+    user_keyvault_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -754,7 +762,7 @@ run "accepts_deployer_diagnostics_account_arm_id" {
   command = plan
 
   variables {
-  deployer_diagnostics_account_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-diag/providers/Microsoft.Storage/storageAccounts/diagstore"
+    deployer_diagnostics_account_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-diag/providers/Microsoft.Storage/storageAccounts/diagstore"
   }
 }
 
@@ -763,7 +771,7 @@ run "rejects_deployer_diagnostics_account_arm_id" {
   command = plan
 
   variables {
-  deployer_diagnostics_account_arm_id = "not-a-valid-resource-id"
+    deployer_diagnostics_account_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -776,7 +784,7 @@ run "accepts_tfstate_resource_id" {
   command = plan
 
   variables {
-  tfstate_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-state/providers/Microsoft.Storage/storageAccounts/stateacct"
+    tfstate_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-state/providers/Microsoft.Storage/storageAccounts/stateacct"
   }
 }
 
@@ -785,7 +793,7 @@ run "rejects_tfstate_resource_id" {
   command = plan
 
   variables {
-  tfstate_resource_id = "not-a-valid-resource-id"
+    tfstate_resource_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -798,7 +806,7 @@ run "accepts_spn_id" {
   command = plan
 
   variables {
-  spn_id = "22222222-2222-2222-2222-222222222222"
+    spn_id = "22222222-2222-2222-2222-222222222222"
   }
 }
 
@@ -807,7 +815,7 @@ run "rejects_spn_id" {
   command = plan
 
   variables {
-  spn_id = "short-guid"
+    spn_id = "short-guid"
   }
 
   expect_failures = [
@@ -820,7 +828,7 @@ run "accepts_management_dns_subscription_id" {
   command = plan
 
   variables {
-  management_dns_subscription_id = "33333333-3333-3333-3333-333333333333"
+    management_dns_subscription_id = "33333333-3333-3333-3333-333333333333"
   }
 }
 
@@ -829,7 +837,7 @@ run "rejects_management_dns_subscription_id" {
   command = plan
 
   variables {
-  management_dns_subscription_id = "short-guid"
+    management_dns_subscription_id = "short-guid"
   }
 
   expect_failures = [
@@ -842,7 +850,7 @@ run "accepts_privatelink_dns_subscription_id" {
   command = plan
 
   variables {
-  privatelink_dns_subscription_id = "44444444-4444-4444-4444-444444444444"
+    privatelink_dns_subscription_id = "44444444-4444-4444-4444-444444444444"
   }
 }
 
@@ -851,7 +859,7 @@ run "rejects_privatelink_dns_subscription_id" {
   command = plan
 
   variables {
-  privatelink_dns_subscription_id = "short-guid"
+    privatelink_dns_subscription_id = "short-guid"
   }
 
   expect_failures = [
@@ -864,7 +872,7 @@ run "accepts_agent_subnet_arm_id" {
   command = plan
 
   variables {
-  agent_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/agent"
+    agent_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/agent"
   }
 }
 
@@ -873,7 +881,7 @@ run "rejects_agent_subnet_arm_id" {
   command = plan
 
   variables {
-  agent_subnet_arm_id = "not-a-valid-resource-id"
+    agent_subnet_arm_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -886,7 +894,7 @@ run "accepts_app_registration_app_id" {
   command = plan
 
   variables {
-  app_registration_app_id = "55555555-5555-5555-5555-555555555555"
+    app_registration_app_id = "55555555-5555-5555-5555-555555555555"
   }
 }
 
@@ -895,7 +903,7 @@ run "rejects_app_registration_app_id" {
   command = plan
 
   variables {
-  app_registration_app_id = "short-guid"
+    app_registration_app_id = "short-guid"
   }
 
   expect_failures = [
@@ -908,7 +916,7 @@ run "accepts_user_assigned_identity_id" {
   command = plan
 
   variables {
-  user_assigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-id/providers/Microsoft.ManagedIdentity/userAssignedIdentities/deployer-uai"
+    user_assigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-id/providers/Microsoft.ManagedIdentity/userAssignedIdentities/deployer-uai"
   }
 }
 
@@ -917,7 +925,7 @@ run "rejects_user_assigned_identity_id" {
   command = plan
 
   variables {
-  user_assigned_identity_id = "not-a-valid-resource-id"
+    user_assigned_identity_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [
@@ -930,7 +938,7 @@ run "accepts_network_security_perimeter_id" {
   command = plan
 
   variables {
-  network_security_perimeter_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sec/providers/Microsoft.Network/networkSecurityPerimeters/nsp-deployer"
+    network_security_perimeter_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sec/providers/Microsoft.Network/networkSecurityPerimeters/nsp-deployer"
   }
 }
 
@@ -939,7 +947,7 @@ run "rejects_network_security_perimeter_id" {
   command = plan
 
   variables {
-  network_security_perimeter_id = "not-a-valid-resource-id"
+    network_security_perimeter_id = "not-a-valid-resource-id"
   }
 
   expect_failures = [

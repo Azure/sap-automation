@@ -6,19 +6,39 @@
 # bootstrap-specific firewall/public-access posture hardcoded in module.tf, tag
 # propagation, and naming consistency with sap_namegenerator.
 
-mock_provider "azurerm" {}
 mock_provider "azurerm" {
-  alias = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "dnsmanagement"
+  alias           = "main"
+  override_during = plan
+  mock_resource "azurerm_user_assigned_identity" {
+    defaults = {
+      tenant_id = "11111111-1111-1111-1111-111111111111"
+      id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-mock"
+    }
+  }
+  mock_data "azurerm_user_assigned_identity" {
+    defaults = {
+      tenant_id = "11111111-1111-1111-1111-111111111111"
+      id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-mock"
+    }
+  }
 }
 mock_provider "azurerm" {
-  alias = "privatelinkdnsmanagement"
+  alias           = "dnsmanagement"
+  override_during = plan
 }
-mock_provider "azuread" {}
+mock_provider "azurerm" {
+  alias           = "privatelinkdnsmanagement"
+  override_during = plan
+}
+mock_provider "azuread" {
+  override_during = plan
+}
 mock_provider "azapi" {
-  alias = "restapi"
+  alias           = "restapi"
+  override_during = plan
 }
 
 override_data {
@@ -61,15 +81,15 @@ override_data {
 }
 
 variables {
-  environment                     = "DEV"
-  location                        = "westeurope"
-  subscription_id                 = "00000000-0000-0000-0000-000000000000"
-  management_network_logical_name = "DEP01"
+  environment                      = "DEV"
+  location                         = "westeurope"
+  subscription_id                  = "00000000-0000-0000-0000-000000000000"
+  management_network_logical_name  = "DEP01"
   management_network_address_space = "10.20.0.0/16"
   management_subnet_address_prefix = "10.20.0.0/24"
-  custom_random_id                = "abc"
-  use_private_endpoint            = false
-  use_service_endpoint            = false
+  custom_random_id                 = "abc"
+  use_private_endpoint             = false
+  use_service_endpoint             = false
   tags = {
     Module   = "bootstrap-sap-deployer"
     Scenario = "greenfield"
@@ -107,11 +127,11 @@ run "brownfield_core_infrastructure_reuses_existing_ids" {
   command = plan
 
   variables {
-    resourcegroup_arm_id       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-bootstrap"
-    management_network_arm_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
-    management_subnet_arm_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-management"
+    resourcegroup_arm_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-bootstrap"
+    management_network_arm_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
+    management_subnet_arm_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-management"
     management_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/networkSecurityGroups/nsg-management"
-    user_keyvault_id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
+    user_keyvault_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
     tags = {
       Module   = "bootstrap-sap-deployer"
       Scenario = "brownfield"
@@ -144,11 +164,11 @@ run "brownfield_core_infrastructure_reuses_existing_ids" {
   override_data {
     target = module.sap_deployer.data.azurerm_subnet.subnet_mgmt
     values = {
-      id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-management"
-      name                = "snet-management"
-      resource_group_name = "rg-net"
+      id                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-management"
+      name                 = "snet-management"
+      resource_group_name  = "rg-net"
       virtual_network_name = "vnet-mgmt"
-      address_prefixes    = ["10.20.0.0/24"]
+      address_prefixes     = ["10.20.0.0/24"]
     }
   }
 
@@ -187,7 +207,7 @@ run "greenfield_optional_subnets_and_services_create_resources" {
   command = plan
 
   variables {
-    firewall_deployment                        = true
+    firewall_deployment                       = true
     management_firewall_subnet_address_prefix = "10.20.1.0/26"
     bastion_deployment                        = true
     management_bastion_subnet_address_prefix  = "10.20.2.0/26"
@@ -224,29 +244,29 @@ run "brownfield_optional_subnets_and_services_reuse_existing_ids" {
   command = plan
 
   variables {
-    resourcegroup_arm_id                       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-bootstrap"
-    management_network_arm_id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
-    management_subnet_arm_id                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-management"
-    management_subnet_nsg_arm_id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/networkSecurityGroups/nsg-management"
-    user_keyvault_id                           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
-    firewall_deployment                        = true
-    management_firewall_subnet_arm_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/AzureFirewallSubnet"
-    bastion_deployment                         = true
-    management_bastion_subnet_arm_id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/AzureBastionSubnet"
-    app_service_deployment                     = true
-    webapp_subnet_arm_id                       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-webapp"
-    app_registration_app_id                    = "11111111-1111-1111-1111-111111111111"
-    webapp_client_secret                       = "diagnostic-only-secret"
-    application_configuration_deployment       = true
-    application_configuration_id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-app/providers/Microsoft.AppConfiguration/configurationStores/appcfgbootstrap"
-    network_security_perimeter_deployment      = true
-    network_security_perimeter_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sec/providers/Microsoft.Network/networkSecurityPerimeters/nsp-bootstrap"
-    dev_center_deployment                      = true
-    agent_subnet_arm_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-agent"
-    agent_pool                                 = "pool-bootstrap"
-    agent_ado_project                          = "sap-automation"
-    agent_ado_url                              = "https://dev.azure.com/example"
-    DevOpsInfrastructure_object_id             = "11111111-1111-1111-1111-111111111111"
+    resourcegroup_arm_id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-bootstrap"
+    management_network_arm_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
+    management_subnet_arm_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-management"
+    management_subnet_nsg_arm_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/networkSecurityGroups/nsg-management"
+    user_keyvault_id                      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
+    firewall_deployment                   = true
+    management_firewall_subnet_arm_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/AzureFirewallSubnet"
+    bastion_deployment                    = true
+    management_bastion_subnet_arm_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/AzureBastionSubnet"
+    app_service_deployment                = true
+    webapp_subnet_arm_id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-webapp"
+    app_registration_app_id               = "11111111-1111-1111-1111-111111111111"
+    webapp_client_secret                  = "diagnostic-only-secret"
+    application_configuration_deployment  = true
+    application_configuration_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-app/providers/Microsoft.AppConfiguration/configurationStores/appcfgbootstrap"
+    network_security_perimeter_deployment = true
+    network_security_perimeter_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sec/providers/Microsoft.Network/networkSecurityPerimeters/nsp-bootstrap"
+    dev_center_deployment                 = true
+    agent_subnet_arm_id                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-agent"
+    agent_pool                            = "pool-bootstrap"
+    agent_ado_project                     = "sap-automation"
+    agent_ado_url                         = "https://dev.azure.com/example"
+    DevOpsInfrastructure_object_id        = "11111111-1111-1111-1111-111111111111"
     tags = {
       Module   = "bootstrap-sap-deployer"
       Scenario = "brownfield-optional"
@@ -375,5 +395,195 @@ run "brownfield_optional_subnets_and_services_reuse_existing_ids" {
   assert {
     condition     = output.application_configuration_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-app/providers/Microsoft.AppConfiguration/configurationStores/appcfgbootstrap" && output.network_security_perimeter_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sec/providers/Microsoft.Network/networkSecurityPerimeters/nsp-bootstrap" && output.subnet_webapp_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-webapp"
     error_message = "The brownfield optional-services scenario must surface the existing App Configuration store, network security perimeter, and webapp subnet IDs verbatim."
+  }
+}
+
+run "firewall_deployment_creates_firewall_subnet" {
+  command = plan
+
+  variables {
+    firewall_deployment                       = true
+    management_firewall_subnet_address_prefix = "10.20.1.0/26"
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.firewall_subnet == 1
+    error_message = "When firewall_deployment is enabled without a firewall subnet ARM ID, bootstrap/sap_deployer must create the AzureFirewallSubnet."
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.bastion_subnet == 0 && module.sap_deployer.infrastructure_resource_cardinality.webapp_subnet == 0
+    error_message = "Enabling only firewall_deployment must not implicitly create bastion or webapp subnets."
+  }
+}
+
+run "bastion_deployment_creates_bastion_subnet" {
+  command = plan
+
+  variables {
+    bastion_deployment                       = true
+    management_bastion_subnet_address_prefix = "10.20.2.0/26"
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.bastion_subnet == 1
+    error_message = "When bastion_deployment is enabled without a bastion subnet ARM ID, bootstrap/sap_deployer must create the AzureBastionSubnet."
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.firewall_subnet == 0 && module.sap_deployer.infrastructure_resource_cardinality.webapp_subnet == 0
+    error_message = "Enabling only bastion_deployment must not implicitly create firewall or webapp subnets."
+  }
+}
+
+run "webapp_deployment_creates_webapp_subnet" {
+  command = plan
+
+  variables {
+    app_service_deployment       = true
+    webapp_subnet_address_prefix = "10.20.3.0/26"
+    app_registration_app_id      = "11111111-1111-1111-1111-111111111111"
+    webapp_client_secret         = "diagnostic-only-secret"
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.webapp_subnet == 1
+    error_message = "When app_service_deployment is enabled without a webapp subnet ARM ID, bootstrap/sap_deployer must create the webapp subnet."
+  }
+
+  assert {
+    condition     = output.app_service_deployment == true
+    error_message = "When app_service_deployment is enabled, the root output must reflect that the App Service is deployed."
+  }
+}
+
+run "user_assigned_identity_passes_through_to_module" {
+  command = plan
+
+  variables {
+    user_assigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-id/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-bootstrap"
+  }
+
+  assert {
+    condition     = output.external_user_assigned_identity == true
+    error_message = "When user_assigned_identity_id is supplied, bootstrap/sap_deployer must surface it via the external_user_assigned_identity output confirming the module received the external UAI."
+  }
+}
+
+run "agent_ip_propagates_when_add_agent_ip_is_true" {
+  command = plan
+
+  variables {
+    add_Agent_IP = true
+    Agent_IP     = "203.0.113.42"
+  }
+
+  assert {
+    condition     = output.Agent_IP == "203.0.113.42"
+    error_message = "When add_Agent_IP is true, the Agent_IP value must propagate to the root output for downstream firewall rule consumption."
+  }
+}
+
+run "agent_ip_suppressed_when_add_agent_ip_is_false" {
+  command = plan
+
+  variables {
+    add_Agent_IP = false
+    Agent_IP     = "203.0.113.42"
+  }
+
+  assert {
+    condition     = output.Agent_IP == "203.0.113.42"
+    error_message = "The Agent_IP output must reflect the variable value regardless of add_Agent_IP (the conditional gating happens at module.tf Agent_IP input)."
+  }
+}
+
+run "deployer_public_ip_enabled_plans_public_ip_resource" {
+  command = plan
+
+  variables {
+    deployer_enable_public_ip = true
+    deployer_count            = 1
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_public_ip_address) > 0
+    error_message = "When deployer_enable_public_ip is true, bootstrap/sap_deployer must plan at least one public IP address for the deployer VM."
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_private_ip_address) == 1
+    error_message = "When deployer_enable_public_ip is true, the deployer VM must still have a private IP address planned."
+  }
+}
+
+run "deployer_public_ip_disabled_skips_public_ip_resource" {
+  command = plan
+
+  variables {
+    deployer_enable_public_ip = false
+    deployer_count            = 1
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_public_ip_address) == 0
+    error_message = "When deployer_enable_public_ip is false, bootstrap/sap_deployer must not plan any public IP addresses for the deployer VM."
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_private_ip_address) == 1
+    error_message = "When deployer_enable_public_ip is false, the deployer VM must still be planned with a private IP address."
+  }
+}
+
+run "dhcp_fallback_uses_azure_provided_ip" {
+  command = plan
+
+  variables {
+    deployer_use_DHCP = true
+    deployer_count    = 1
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_private_ip_address) == 1
+    error_message = "When deployer_use_DHCP is true, bootstrap/sap_deployer must still plan one deployer VM with Azure-provided (DHCP) private IP addressing."
+  }
+}
+
+run "dev_center_forces_zero_deployer_vms" {
+  command = plan
+
+  variables {
+    deployer_count                 = 2
+    dev_center_deployment          = true
+    deployer_enable_public_ip      = false
+    agent_subnet_address_prefix    = "10.20.4.0/26"
+    agent_pool                     = "pool-bootstrap"
+    agent_ado_project              = "sap-automation"
+    agent_ado_url                  = "https://dev.azure.com/example"
+    DevOpsInfrastructure_object_id = "11111111-1111-1111-1111-111111111111"
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_private_ip_address) == 0 && module.sap_deployer.infrastructure_resource_cardinality.agent_subnet == 1
+    error_message = "When dev_center_deployment is true, bootstrap module.tf must force deployer_vm_count to 0 while still composing the managed-agent subnet path."
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_public_ip_address) == 0
+    error_message = "When dev_center_deployment is true and deployer_vm_count is forced to 0, no public IP addresses should be planned."
+  }
+}
+
+run "normal_mode_honors_deployer_count" {
+  command = plan
+
+  variables {
+    deployer_count = 2
+  }
+
+  assert {
+    condition     = length(module.sap_deployer.deployer_private_ip_address) == 2
+    error_message = "When dev_center_deployment is false, bootstrap/sap_deployer must plan one VM per requested deployer_count."
   }
 }

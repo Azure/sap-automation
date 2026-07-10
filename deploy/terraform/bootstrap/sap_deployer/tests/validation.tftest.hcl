@@ -5,19 +5,27 @@
 # bootstrap/sap_deployer/tfvar_variables.tf. Each validated variable gets a
 # positive-path plan run and a negative-path expect_failures run.
 
-mock_provider "azurerm" {}
 mock_provider "azurerm" {
-  alias = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "dnsmanagement"
+  alias           = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "privatelinkdnsmanagement"
+  alias           = "dnsmanagement"
+  override_during = plan
 }
-mock_provider "azuread" {}
+mock_provider "azurerm" {
+  alias           = "privatelinkdnsmanagement"
+  override_during = plan
+}
+mock_provider "azuread" {
+  override_during = plan
+}
 mock_provider "azapi" {
-  alias = "restapi"
+  alias           = "restapi"
+  override_during = plan
 }
 
 override_data {
@@ -31,19 +39,19 @@ override_data {
 }
 
 variables {
-  environment                         = "DEV"
-  location                            = "westeurope"
-  subscription_id                     = "00000000-0000-0000-0000-000000000000"
-  resourcegroup_name                  = "rg-bootstrap-deployer"
-  management_network_name             = "vnet-mgmt"
-  management_network_logical_name     = "DEP01"
-  management_network_address_space    = "10.20.0.0/16"
-  management_subnet_name              = "snet-management"
-  management_subnet_address_prefix    = "10.20.0.0/24"
-  management_dns_subscription_id      = "00000000-0000-0000-0000-000000000000"
-  privatelink_dns_subscription_id     = "00000000-0000-0000-0000-000000000000"
-  use_private_endpoint                = false
-  use_service_endpoint                = false
+  environment                      = "DEV"
+  location                         = "westeurope"
+  subscription_id                  = "00000000-0000-0000-0000-000000000000"
+  resourcegroup_name               = "rg-bootstrap-deployer"
+  management_network_name          = "vnet-mgmt"
+  management_network_logical_name  = "DEP01"
+  management_network_address_space = "10.20.0.0/16"
+  management_subnet_name           = "snet-management"
+  management_subnet_address_prefix = "10.20.0.0/24"
+  management_dns_subscription_id   = "00000000-0000-0000-0000-000000000000"
+  privatelink_dns_subscription_id  = "00000000-0000-0000-0000-000000000000"
+  use_private_endpoint             = false
+  use_service_endpoint             = false
 }
 
 run "baseline_variables_are_accepted" {
@@ -324,10 +332,10 @@ run "accepts_valid_user_keyvault_id" {
   override_data {
     target = module.sap_deployer.data.azurerm_key_vault.kv_user
     values = {
-      id                          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
-      name                        = "kv-bootstrap"
+      id                            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-bootstrap"
+      name                          = "kv-bootstrap"
       public_network_access_enabled = true
-      tags                        = {}
+      tags                          = {}
     }
   }
 

@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
-# Scenario Category 2 (variable validation coverage) for every validation block
+# Scenario Category (variable validation coverage) for every validation block
 # declared directly on run/sap_library inputs. This module currently declares 13
 # validation blocks across tfvar_variables.tf (research originally said 12, but
 # direct inspection shows an additional validation on management_network_id).
@@ -11,20 +11,28 @@
 # real `plan` under mocked azurerm/azuread providers so provider-defined
 # functions such as provider::azurerm::parse_resource_id() are available.
 
-mock_provider "azurerm" {}
 mock_provider "azurerm" {
-  alias = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "deployer"
+  alias           = "main"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "dnsmanagement"
+  alias           = "deployer"
+  override_during = plan
 }
 mock_provider "azurerm" {
-  alias = "privatelinkdnsmanagement"
+  alias           = "dnsmanagement"
+  override_during = plan
 }
-mock_provider "azuread" {}
+mock_provider "azurerm" {
+  alias           = "privatelinkdnsmanagement"
+  override_during = plan
+}
+mock_provider "azuread" {
+  override_during = plan
+}
 
 override_data {
   target = data.azurerm_client_config.current
@@ -50,39 +58,39 @@ override_data {
   target = data.terraform_remote_state.deployer
   values = {
     outputs = {
-      environment                            = "DEP01"
-      application_configuration_id           = ""
-      control_plane_name                     = "DEP01"
-      deployer_kv_user_arm_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-deployer"
-      network_security_perimeter_deployment  = false
-      deployer_msi_id                        = ""
-      additional_network_id                  = ""
-      vnet_mgmt_id                           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
-      subnet_mgmt_id                         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-mgmt"
-      subnet_webapp_id                       = ""
-      deployer_public_ip_address             = ""
+      environment                                          = "DEP01"
+      application_configuration_id                         = ""
+      control_plane_name                                   = "DEP01"
+      deployer_kv_user_arm_id                              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-deployer"
+      network_security_perimeter_deployment                = false
+      deployer_msi_id                                      = ""
+      additional_network_id                                = ""
+      vnet_mgmt_id                                         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
+      subnet_mgmt_id                                       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-mgmt"
+      subnet_webapp_id                                     = ""
+      deployer_public_ip_address                           = ""
       subnets_to_add_to_firewall_for_keyvaults_and_storage = []
       enable_firewall_for_keyvaults_and_storage            = false
-      set_secret_expiry                      = false
-      network_security_access_mode           = "Learning"
-      network_security_perimeter_id          = ""
+      set_secret_expiry                                    = false
+      network_security_access_mode                         = "Learning"
+      network_security_perimeter_id                        = ""
     }
   }
 }
 
 variables {
-  environment                               = "DEV"
-  location                                  = "westeurope"
-  subscription_id                           = "00000000-0000-0000-0000-000000000000"
-  use_deployer                              = true
-  deployer_tfstate_key                      = "DEP01.terraform.tfstate"
-  use_spn                                   = false
-  custom_random_id                          = "abc"
-  tfstate_resource_id                       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-tfstate/providers/Microsoft.Storage/storageAccounts/tfstatesa"
-  use_private_endpoint                      = false
+  environment                                  = "DEV"
+  location                                     = "westeurope"
+  subscription_id                              = "00000000-0000-0000-0000-000000000000"
+  use_deployer                                 = true
+  deployer_tfstate_key                         = "DEP01.terraform.tfstate"
+  use_spn                                      = false
+  custom_random_id                             = "abc"
+  tfstate_resource_id                          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-tfstate/providers/Microsoft.Storage/storageAccounts/tfstatesa"
+  use_private_endpoint                         = false
   register_storage_accounts_keyvaults_with_dns = false
-  create_privatelink_dns_zones              = false
-  public_network_access_enabled             = false
+  create_privatelink_dns_zones                 = false
+  public_network_access_enabled                = false
 }
 
 run "baseline_variables_are_accepted" {
@@ -460,10 +468,10 @@ run "remote_state_toggle_off_skips_deployer_state_lookup" {
   command = plan
 
   variables {
-    use_deployer                        = false
-    deployer_tfstate_key                = ""
-    spn_keyvault_id                     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-manual"
-    management_network_id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
+    use_deployer          = false
+    deployer_tfstate_key  = ""
+    spn_keyvault_id       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-manual"
+    management_network_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
   }
 
   assert {
@@ -476,7 +484,7 @@ run "remote_state_toggle_on_reads_deployer_state_lookup" {
   command = plan
 
   variables {
-    use_deployer       = true
+    use_deployer         = true
     deployer_tfstate_key = "DEP01.terraform.tfstate"
   }
 

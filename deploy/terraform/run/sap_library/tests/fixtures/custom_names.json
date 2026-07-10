@@ -1,0 +1,54 @@
+{
+  "prefix": {
+    "DEPLOYER": "CUSTOM-DEV-WEEU-MGMT1",
+    "SDU": "CUSTOM-DEV-WEEU-SDU",
+    "WORKLOAD_ZONE": "CUSTOM-DEV-WEEU-WZ",
+    "LIBRARY": "CUSTOM-DEV-WEEU-LIB"
+  },
+  "separator": "-",
+  "resource_prefixes": {},
+  "resource_suffixes": {},
+  "keyvault_names": {
+    "DEPLOYER": {
+      "private_access": "customdepkvprv",
+      "user_access": "customdepkvusr"
+    },
+    "LIBRARY": {
+      "private_access": "customlibkvprv",
+      "user_access": "customlibkvusr"
+    },
+    "SDU": {
+      "private_access": "customsdukvprv",
+      "user_access": "customsdukvusr"
+    },
+    "WORKLOAD_ZONE": {
+      "private_access": "customwzkvprv",
+      "user_access": "customwzkvusr"
+    }
+  },
+  "storageaccount_names": {
+    "DEPLOYER": "customdeploysa",
+    "SDU": "customsdusa",
+    "WORKLOAD_ZONE": {
+      "landscape_storageaccount_name": "customwzsa",
+      "witness_storageaccount_name": "customwitnesssa",
+      "landscape_shared_transport_storage_account_name": "customtransportsa",
+      "landscape_shared_install_storage_account_name": "custominstallsa",
+      "landscape_utility_storage_account_names": []
+    },
+    "LIBRARY": {
+      "library_storageaccount_name": "customlibsapbits",
+      "terraformstate_storageaccount_name": "customlibtfstate"
+    }
+  },
+  "availabilityset_names": {
+    "app": [],
+    "db": [],
+    "scs": [],
+    "web": []
+  },
+  "ppg_names": [],
+  "virtualmachine_names": {
+    "DEPLOYER": []
+  }
+}

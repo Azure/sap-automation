@@ -1,0 +1,93 @@
+{
+  "prefix": {
+    "DEPLOYER": "CUSTOM-DEV-WEEU-MGMT1",
+    "SDU": "CUSTOM-DEV-WEEU-SDU",
+    "WORKLOAD_ZONE": "CUSTOM-DEV-WEEU-WZ",
+    "LIBRARY": "CUSTOM-DEV-WEEU-LIB"
+  },
+  "separator": "-",
+  "resource_prefixes": {
+    "admin_nic": "",
+    "admin_subnet": "",
+    "admin_subnet_nsg": "",
+    "agent_subnet": "",
+    "ams_subnet": "",
+    "anf_subnet": "",
+    "anf_subnet_nsg": "",
+    "ansible": "",
+    "app_alb": "",
+    "app_asg": "",
+    "app_avset": "",
+    "app_service_plan": "",
+    "app_subnet": "",
+    "app_subnet_nsg": "",
+    "appconfig_private_link": "",
+    "appconfig_private_svc": "",
+    "appconfig_link": "",
+    "bastion_host": "",
+    "bastion_pip": "",
+    "deployer_rg": "",
+    "deployer_subnet": "",
+    "deployer_subnet_nsg": "",
+    "dev_center": "",
+    "firewall": "",
+    "firewall_rule_app": "",
+    "fw_route": "",
+    "keyvault_private_link": "",
+    "keyvault_private_svc": "",
+    "msi": "",
+    "nic": "",
+    "osdisk": "",
+    "pip": "",
+    "routetable": "",
+    "vm": "",
+    "vnet": ""
+  },
+  "resource_suffixes": {
+    "admin_nic": "-admin-nic",
+    "admin_subnet": "-admin-subnet",
+    "admin_subnet_nsg": "-adminSubnet-nsg",
+    "agent_subnet": "-agent-subnet",
+    "app_service_plan": "-app-service-plan",
+    "appconfig_private_link": "-appconfig-pl",
+    "appconfig_private_svc": "-appconfig-ps",
+    "bastion_host": "-bastion-host",
+    "bastion_pip": "-bastion-pip",
+    "deployer_rg": "-INFRASTRUCTURE",
+    "deployer_subnet": "-deployment-subnet",
+    "deployer_subnet_nsg": "-deployment-nsg",
+    "dev_center": "-dev-center",
+    "firewall": "-fw",
+    "firewall_rule_app": "-fw-rule",
+    "fw_route": "-fw-route",
+    "keyvault_private_link": "-kv-pl",
+    "keyvault_private_svc": "-kv-ps",
+    "msi": "-msi",
+    "nic": "-nic",
+    "osdisk": "-OsDisk",
+    "pip": "-pip",
+    "routetable": "-route-table",
+    "vm": "-vm",
+    "vnet": "-vnet",
+    "webapp_url": "-webapp"
+  },
+  "keyvault_names": {
+    "DEPLOYER": {
+      "private_access": "customkvprv",
+      "user_access": "customkvusr"
+    }
+  },
+  "storageaccount_names": {
+    "DEPLOYER": "customdeploysa"
+  },
+  "availabilityset_names": {
+    "app": [],
+    "db": [],
+    "scs": [],
+    "web": []
+  },
+  "ppg_names": [],
+  "virtualmachine_names": {
+    "DEPLOYER": ["customdeployer00"]
+  }
+}

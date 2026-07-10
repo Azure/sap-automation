@@ -273,3 +273,44 @@ output "subscription_id_used"          {
                                          value       = length(var.subscription_id) > 0 ? var.subscription_id : data.azurerm_key_vault_secret.subscription_id[0].value
                                          sensitive   = true
                                        }
+
+
+###############################################################################
+#                                                                             #
+#                    Test-observable content outputs                           #
+#                                                                             #
+###############################################################################
+
+output "hosts_file_content"            {
+                                         description = "Raw content of the generated Ansible inventory hosts YAML file (for plan-time test assertions)"
+                                         sensitive   = true
+                                         value       = module.output_files.hosts_file_content
+                                       }
+
+output "sap_parameters_content"        {
+                                         description = "Raw content of the generated sap-parameters YAML file (for plan-time test assertions)"
+                                         sensitive   = true
+                                         value       = module.output_files.sap_parameters_content
+                                       }
+
+
+###############################################################################
+#                                                                             #
+#                   Cross-subscription resolution outputs                     #
+#                                                                             #
+###############################################################################
+
+output "resolved_deployer_subscription_id" {
+                                         description = "Subscription ID resolved from the SPN key vault ARM ID coalesce() chain"
+                                         value       = local.deployer_subscription_id
+                                       }
+
+output "resolved_management_dns_subscription_id" {
+                                         description = "Management DNS subscription ID resolved from var/landscape coalesce() chain"
+                                         value       = local.dns_settings.management_dns_subscription_id
+                                       }
+
+output "resolved_privatelink_dns_subscription_id" {
+                                         description = "Private Link DNS subscription ID resolved from var/landscape fallback chain"
+                                         value       = local.dns_settings.privatelink_dns_subscription_id
+                                       }

@@ -228,7 +228,7 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
-                                           storage_account_name = var.storage_account_tfstate.exists > 0 ? (
+                                           storage_account_name = var.storage_account_tfstate.exists ? (
                                              data.azurerm_storage_account.storage_tfstate[0].name) : (
                                              azurerm_storage_account.storage_tfstate[0].name
                                            )
@@ -415,7 +415,7 @@ data "azurerm_storage_container" "storagecontainer_sapbits" {
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-                                           storage_account_name = !var.storage_account_sapbits.exists ? (
+                                           storage_account_name = var.storage_account_sapbits.exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].name) : (
                                              azurerm_storage_account.storage_sapbits[0].name
                                            )
