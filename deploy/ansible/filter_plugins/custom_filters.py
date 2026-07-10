@@ -12,34 +12,53 @@ import traceback
 # of the tuple (valid_tags). Tags are used to capture the context in
 # which the filter had been called.
 regex_to_error_msgs = [
-    (r'(.*)A secret with(.*)-sid-sshkey was not found in this key vault. If you recently deleted this secret you may be able to recover it using the correct recovery command.(.*)',
-        'INSTALL:0015:Secret <SID>-sid-sshkey not found in key vault.',
-        {}),
-    (r'(.*)A secret with(.*)deployer-kv-name was not found in this key vault. If you recently deleted this secret you may be able to recover it using the correct recovery command.(.*)',
-        'INSTALL:0016:Secret deployer-kv-name not found in key vault.',
-        {}),
-    (r'(.*)Failed to download(.*)',
-        'INSTALL:0017:Update OS Packages has failed for host. Please ensure you have outbound connectivity to the right endpoints.',
-        {'task_tag=update_os_packages'}),
-    (r'(.*)non-zero return code(.*)',
-        'INSTALL:0018:Zypper registration has failed on host. Please ensure you have outbound connectivity to the right endpoints.',
-        {'task_tag=zypper_registration'}),
-    (r'(.*)Zypper run command failed with return code 7(.*)',
-        'INSTALL:0019:Update OS Packages has failed for host since zypper was locked by another process.',
-        {'task_tag=update_os_package'}),
-    (r'([\s\d\w\D\W]*)Connect to message server([\s\w\d\W\D]*)Make sure that the message server is started([\s\w\d\W\D]*)',
-        'INSTALL:0020:DB Load failure, unable to connect to message server.',
-        {'task_tag=dbload', 'failure=messageserver_offline'}),
-    (r'([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)',
-        'INSTALL:0021:DB Load failure, database is offline.',
-        {'task_tag=dbload', 'failure=db_offline'}),
-    (r'([\s\d\w\D\W]*)Connect to message server([\s\w\d\W\D]*)Make sure that the message server is started([\s\w\d\W\D]*)',
-        'INSTALL:0024:PAS Install failed, unable to connect to message server.',
-        {'task_tag=pasinstall', 'failure=messageserver_offline'}),
-    (r'([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)',
-        'INSTALL:0025:PAS Install failed, database is offline.',
-        {'task_tag=pasinstall', 'failure=db_offline'})
+    (
+        r"(.*)A secret with(.*)-sid-sshkey was not found in this key vault. If you recently deleted this secret you may be able to recover it using the correct recovery command.(.*)",
+        "INSTALL:0015:Secret <SID>-sid-sshkey not found in key vault.",
+        {},
+    ),
+    (
+        r"(.*)A secret with(.*)deployer-kv-name was not found in this key vault. If you recently deleted this secret you may be able to recover it using the correct recovery command.(.*)",
+        "INSTALL:0016:Secret deployer-kv-name not found in key vault.",
+        {},
+    ),
+    (
+        r"(.*)Failed to download(.*)",
+        "INSTALL:0017:Update OS Packages has failed for host. Please ensure you have outbound connectivity to the right endpoints.",
+        {"task_tag=update_os_packages"},
+    ),
+    (
+        r"(.*)non-zero return code(.*)",
+        "INSTALL:0018:Zypper registration has failed on host. Please ensure you have outbound connectivity to the right endpoints.",
+        {"task_tag=zypper_registration"},
+    ),
+    (
+        r"(.*)Zypper run command failed with return code 7(.*)",
+        "INSTALL:0019:Update OS Packages has failed for host since zypper was locked by another process.",
+        {"task_tag=update_os_package"},
+    ),
+    (
+        r"([\s\d\w\D\W]*)Connect to message server([\s\w\d\W\D]*)Make sure that the message server is started([\s\w\d\W\D]*)",
+        "INSTALL:0020:DB Load failure, unable to connect to message server.",
+        {"task_tag=dbload", "failure=messageserver_offline"},
+    ),
+    (
+        r"([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)",
+        "INSTALL:0021:DB Load failure, database is offline.",
+        {"task_tag=dbload", "failure=db_offline"},
+    ),
+    (
+        r"([\s\d\w\D\W]*)Connect to message server([\s\w\d\W\D]*)Make sure that the message server is started([\s\w\d\W\D]*)",
+        "INSTALL:0024:PAS Install failed, unable to connect to message server.",
+        {"task_tag=pasinstall", "failure=messageserver_offline"},
+    ),
+    (
+        r"([\s\d\w\D\W]*)Make sure the database is online([\s\w\d\W\D]*)",
+        "INSTALL:0025:PAS Install failed, database is offline.",
+        {"task_tag=pasinstall", "failure=db_offline"},
+    ),
 ]
+
 
 # Takes a dictionary and converts it into a set of
 # tokes of the format key=value. This set is the token list
@@ -49,8 +68,8 @@ def convert_kwargs_to_tags(kwargs):
         return set()
     try:
         tokens = set()
-        for key,value in kwargs.items():
-            token = key.strip()+"="+value.strip()
+        for key, value in kwargs.items():
+            token = key.strip() + "=" + value.strip()
             tokens.add(token)
         return tokens
     except Exception as ex:
@@ -68,6 +87,7 @@ def convert_kwargs_to_tags(kwargs):
 # kwargs:  tags passed through the ansible code while
 #          calling the filter
 
+
 def try_get_error_code(message, *args, **kwargs):
     try:
         tags = set()
@@ -75,11 +95,11 @@ def try_get_error_code(message, *args, **kwargs):
             tags = args[0]
         print(f"tags got from caller function = {tags}")
         tag_list = convert_kwargs_to_tags(kwargs)
-        tag_list=tag_list.union(tags)
+        tag_list = tag_list.union(tags)
         print(f"tag_list = {tag_list}")
-        for (matcher, op_message, valid_tags) in regex_to_error_msgs:
+        for matcher, op_message, valid_tags in regex_to_error_msgs:
             if not valid_tags:
-                valid_tags=set()
+                valid_tags = set()
             print(f"valid_tags = {valid_tags}")
             if not isinstance(message, str):
                 print(f"Warning: message is not a string, got {type(message)}: {message}")
@@ -93,8 +113,10 @@ def try_get_error_code(message, *args, **kwargs):
                     print(f"tag_list: {tag_list} is a subset of {valid_tags}")
                     return op_message
                 else:
-                    print(f"Invalid tag list. Valid tags = {valid_tags}, "+
-                        f"supplied tag list = {tag_list}")
+                    print(
+                        f"Invalid tag list. Valid tags = {valid_tags}, "
+                        + f"supplied tag list = {tag_list}"
+                    )
             else:
                 print("regular expression could not be matched.")
     except Exception as ex:
@@ -104,6 +126,7 @@ def try_get_error_code(message, *args, **kwargs):
         traceback.print_exc()
 
     return message
+
 
 # TODO: Instead of always looking at result_obj["results"]
 #       parameterize this using tags so that other properties of the
@@ -117,6 +140,7 @@ def try_get_error_code(message, *args, **kwargs):
 # kwargs:     Tags passed in from ansible code while calling the
 #             filter
 
+
 def try_get_error_code_results(result_obj, *args, **kwargs):
     try:
         tags = convert_kwargs_to_tags(kwargs)
@@ -124,7 +148,7 @@ def try_get_error_code_results(result_obj, *args, **kwargs):
         # Segment doing the error handling for different task_tag s
         results = result_obj["results"]
         for result in results:
-            print(f'result item = {result}')
+            print(f"result item = {result}")
             if not isinstance(result, dict) or "msg" not in result:
                 print(f"Warning: result is not a dict or missing 'msg' key: {result}")
                 continue
@@ -145,21 +169,21 @@ def try_get_error_code_results(result_obj, *args, **kwargs):
         traceback.print_exc()
     return result_obj
 
+
 class FilterModule(object):
 
     # Custom filter plugins.
 
     def filters(self):
         return {
-            'try_get_error_code': try_get_error_code,
-            'try_get_error_code_results': try_get_error_code_results
+            "try_get_error_code": try_get_error_code,
+            "try_get_error_code_results": try_get_error_code_results,
         }
 
 
-
-#-------------------------------------------------------
+# -------------------------------------------------------
 # Test code that can be commented out after development
-#-------------------------------------------------------
+# -------------------------------------------------------
 # result = {
 #     "results": [
 #         {

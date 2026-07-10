@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 import logging
 import requests
 import json
@@ -20,9 +23,7 @@ def add_repository_variables(github_client, repo_full_name, variables):
     for variable_name, variable_value in variables.items():
         # Skip empty values
         if variable_value is None or variable_value == "":
-            logger.info(
-                "Skipping variable %s because it has an empty value.", variable_name
-            )
+            logger.info("Skipping variable %s because it has an empty value.", variable_name)
             continue
 
         try:
@@ -61,19 +62,13 @@ def add_environment_secrets(github_client, repo_full_name, environment_name, sec
 
         try:
             environment.create_secret(secret_name, secret_value)
-            logger.info(
-                "Secret added to environment %s in %s", environment_name, repo_full_name
-            )
+            logger.info("Secret added to environment %s in %s", environment_name, repo_full_name)
         except Exception as e:
-            logger.error(
-                "Error adding secret to environment %s: %s", environment_name, str(e)
-            )
+            logger.error("Error adding secret to environment %s: %s", environment_name, str(e))
             logger.info("Continuing with other secrets...")
 
 
-def add_environment_variables(
-    github_client, repo_full_name, environment_name, variables
-):
+def add_environment_variables(github_client, repo_full_name, environment_name, variables):
     """
     Add variables to a specific environment in the repository.
 
@@ -89,9 +84,7 @@ def add_environment_variables(
     for variable_name, variable_value in variables.items():
         # GitHub API doesn't allow empty values for variables
         if variable_value is None or variable_value == "":
-            logger.info(
-                "Skipping variable %s because it has an empty value.", variable_name
-            )
+            logger.info("Skipping variable %s because it has an empty value.", variable_name)
             continue
 
         try:
@@ -141,10 +134,7 @@ def trigger_github_workflow(user_data, workflow_id):
         )
 
         # Try to construct ID from components
-        if all(
-            user_data.get(k)
-            for k in ["identity_name", "subscription_id", "resource_group"]
-        ):
+        if all(user_data.get(k) for k in ["identity_name", "subscription_id", "resource_group"]):
             constructed_id = (
                 f"/subscriptions/{user_data['subscription_id']}/"
                 f"resourceGroups/{user_data['resource_group']}/"
@@ -165,9 +155,7 @@ def trigger_github_workflow(user_data, workflow_id):
             "control_plane_name": user_data["control_plane_name"],
             "use_msi": "true" if user_data.get("use_managed_identity") else "false",
             "msi_id": (
-                user_data.get("identity_id", "")
-                if user_data.get("use_managed_identity")
-                else ""
+                user_data.get("identity_id", "") if user_data.get("use_managed_identity") else ""
             ),
             "use_webapp": "true" if user_data.get("use_webapp") else "false",
         }
@@ -206,9 +194,7 @@ def trigger_github_workflow(user_data, workflow_id):
             workflow_id,
             user_data["repo_name"],
         )
-        logger.error(
-            "Verify the workflow file exists and the repository name is correct."
-        )
+        logger.error("Verify the workflow file exists and the repository name is correct.")
         return False
     elif response.status_code == 422:
         logger.error("Invalid workflow inputs or repository configuration.")
