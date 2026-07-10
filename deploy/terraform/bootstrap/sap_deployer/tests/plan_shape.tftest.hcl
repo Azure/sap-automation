@@ -464,6 +464,14 @@ run "user_assigned_identity_passes_through_to_module" {
     user_assigned_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-id/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-bootstrap"
   }
 
+  override_data {
+    target = module.sap_deployer.data.azurerm_user_assigned_identity.deployer[0]
+    values = {
+      tenant_id = "11111111-1111-1111-1111-111111111111"
+      id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-mock"
+    }
+  }
+
   assert {
     condition     = output.external_user_assigned_identity == true
     error_message = "When user_assigned_identity_id is supplied, bootstrap/sap_deployer must surface it via the external_user_assigned_identity output confirming the module received the external UAI."

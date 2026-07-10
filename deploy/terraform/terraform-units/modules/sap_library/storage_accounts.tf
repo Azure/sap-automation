@@ -139,7 +139,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                      content {
                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
+                                               private_dns_zone_ids = [local.use_local_privatelink_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                              }
                                    }
 
@@ -197,7 +197,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.application_configuration_deployment ? 1 : 0)
                                      content {
                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
+                                               private_dns_zone_ids = [local.use_local_privatelink_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
                                              }
                                    }
 
@@ -382,7 +382,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                       for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                       content {
                                                 name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
+                                                private_dns_zone_ids = [local.use_local_privatelink_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                               }
 
                                     }
@@ -435,7 +435,7 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
 
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !local.use_local_private_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
@@ -450,7 +450,7 @@ data "azurerm_private_dns_zone" "storage" {
 
 data "azurerm_private_dns_zone" "table" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !local.use_local_private_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.table_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,

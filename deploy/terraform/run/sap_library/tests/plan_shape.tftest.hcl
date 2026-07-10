@@ -504,7 +504,7 @@ run "sapmedia_blob_container_existing_skips_creation" {
   }
 
   assert {
-    condition     = module.sap_library.storagecontainer_sapbits_name == "sapbits-existing"
+    condition     = module.sap_library.data.azurerm_storage_container.storagecontainer_sapbits[0].name == "sapbits-existing"
     error_message = "When library_sapmedia_blob_container_is_existing=true, the module must use the existing container name rather than creating a new one."
   }
 

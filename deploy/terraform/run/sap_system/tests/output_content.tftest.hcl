@@ -212,6 +212,17 @@ override_data {
   }
 }
 
+# Brownfield app_tier fetches the existing subnet via a data source; without a
+# realistic address_prefixes value, netmask/CIDR outputs and NIC private IP
+# computation error with "collection has no elements" once resolved (under
+# apply, or once mock_resource realism is required for downstream parsing).
+override_data {
+  target = module.app_tier.data.azurerm_subnet.subnet_sap_app
+  values = {
+    address_prefixes = ["10.10.2.0/24"]
+  }
+}
+
 
 run "spike_hosts_file_content_accessible_at_plan_time" {
   command = apply

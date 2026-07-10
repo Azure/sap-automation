@@ -395,6 +395,13 @@ run "greenfield_firewall_subnet_creates_resource" {
     firewall_deployment = true
   }
 
+  override_resource {
+    target = module.sap_deployer.azurerm_subnet.firewall[0]
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock/subnets/AzureFirewallSubnet"
+    }
+  }
+
   assert {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.firewall_subnet == 1
     error_message = "When firewall_deployment is enabled without a firewall subnet ARM ID, sap_deployer must create the AzureFirewallSubnet."
