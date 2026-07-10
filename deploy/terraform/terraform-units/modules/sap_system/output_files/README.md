@@ -151,6 +151,9 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_hosts_file_content"></a> [hosts\_file\_content](#output\_hosts\_file\_content) | Raw content of the generated Ansible inventory hosts YAML file (for plan-time test assertions) |
+| <a name="output_sap_parameters_content"></a> [sap\_parameters\_content](#output\_sap\_parameters\_content) | Raw content of the generated sap-parameters YAML file (for plan-time test assertions) |
 
 <!-- END_TF_DOCS -->
