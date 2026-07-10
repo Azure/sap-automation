@@ -7,11 +7,13 @@ on:
     paths:
       - 'deploy/terraform/**'
       - '.github/workflows/terraform-checks.yml'
+      - '.tflint.hcl'
   pull_request:
     types: [ 'opened', 'reopened', 'synchronize' ]
     paths:
       - 'deploy/terraform/**'
       - '.github/workflows/terraform-checks.yml'
+      - '.tflint.hcl'
   merge_group:
   workflow_dispatch:
 
@@ -76,7 +78,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run TFLint
-      run: tflint --chdir=deploy/terraform --recursive --minimum-failure-severity=error
+      run: tflint --chdir=deploy/terraform --config="${GITHUB_WORKSPACE}/.tflint.hcl" --recursive --minimum-failure-severity=error
 
   checkov:
     name: 'checkov scan'
@@ -179,8 +181,12 @@ jobs:
         esac
 
     - name: Run terraform test
-      # GitHub Actions' default bash shell runs with `-eo pipefail`, so a non-zero
-      # exit from `terraform test` fails this step even though its output is piped to tee.
+      # The unspecified default shell on Linux runners is `bash -e {0}` (no
+      # pipefail), so a non-zero exit from `terraform test` would be masked by
+      # `tee`'s own exit code (usually 0). Explicitly requesting `shell: bash`
+      # switches to `bash --noprofile --norc -eo pipefail {0}`, ensuring the
+      # step fails when `terraform test` fails.
+      shell: bash
       run: |
         cd ${{ matrix.module }}
         terraform init -backend=false

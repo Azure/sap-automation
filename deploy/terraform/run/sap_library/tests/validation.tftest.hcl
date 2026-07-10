@@ -2,9 +2,8 @@
 # Licensed under the MIT License.
 #
 # Scenario Category (variable validation coverage) for every validation block
-# declared directly on run/sap_library inputs. This module currently declares 13
-# validation blocks across tfvar_variables.tf (research originally said 12, but
-# direct inspection shows an additional validation on management_network_id).
+# declared directly on run/sap_library inputs. This module declares 13
+# validation blocks across tfvar_variables.tf, including one on management_network_id.
 #
 # The file-level fixture keeps plan-time behavior simple (no private endpoints,
 # no DNS registration, no App Configuration by default) while still running a

@@ -26,7 +26,7 @@ variable "codename"                              {
 variable "location"                              {
                                                    description = "Defines the Azure location where the resources will be deployed"
                                                    validation {
-                                                     condition     = length(var.location) > 0
+                                                     condition     = length(trimspace(var.location)) > 0
                                                      error_message = "The location variable must be specified"
                                                    }
                                                    type        = string

@@ -147,7 +147,7 @@ locals {
                                          }
 
   db_os                             = {
-                                        source_image_id                 = var.database_vm_image.source_image_id == null ? "" : var.database_vm_image.source_image_id
+                                        source_image_id                 = try(var.database_vm_image.source_image_id, null) == null ? "" : var.database_vm_image.source_image_id
                                         publisher                       = coalesce(var.database_vm_image.publisher,        "SUSE")
                                         offer                           = coalesce(var.database_vm_image.offer,            "sles-sap-15-sp5")
                                         sku                             = coalesce(var.database_vm_image.sku,              "gen2")
@@ -159,7 +159,7 @@ locals {
                                         #                                   )
                                         os_type                         = (try(length(var.database_vm_image.source_image_id), 0) == 0                                           # - if true
                                                                           ) ? (                                                                                               # - then
-                                                                            (upper(coalesce(var.database_vm_image.publisher, "UNSET")) == "MICROSOFTWINDOWSSERVER"             # --  if true
+                                                                            (upper(coalesce(try(var.database_vm_image.publisher, null), "UNSET")) == "MICROSOFTWINDOWSSERVER"             # --  if true
                                                                             ) ? (                                                                                             # --  then
                                                                               "WINDOWS"
                                                                             ) : (                                                                                             # --  else
@@ -284,19 +284,19 @@ locals {
   web_tags                          = var.webdispatcher_server_tags
 
   app_os = {
-    source_image_id                 = var.application_server_image.source_image_id == null ? "" : var.application_server_image.source_image_id
+    source_image_id                 = try(var.application_server_image.source_image_id, null) == null ? "" : var.application_server_image.source_image_id
     publisher                       = coalesce(var.application_server_image.publisher,       "SUSE")
     offer                           = coalesce(var.application_server_image.offer,           "sles-sap-15-sp5")
     sku                             = coalesce(var.application_server_image.sku,             "gen2")
     version                         = coalesce(var.application_server_image.version,         "latest")
-    type                            = try(var.database_vm_image.type,                   "marketplace")
+    type                            = try(var.application_server_image.type,                 "marketplace")
     # os_type = length(var.application_server_image.source_image_id) == 0 ? (
     #   upper(var.application_server_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.application_server_image.os_type, "LINUX") : (
     #   length(var.application_server_image.os_type) == 0 ? "LINUX" : var.application_server_image.os_type
     # )
     os_type                         = (try(length(var.application_server_image.source_image_id), 0) == 0                                 # - if true
                                       ) ? (                                                                                               # - then
-                                        (upper(coalesce(var.application_server_image.publisher, "UNSET")) == "MICROSOFTWINDOWSSERVER"     # --  if true
+                                        (upper(coalesce(try(var.application_server_image.publisher, null), "UNSET")) == "MICROSOFTWINDOWSSERVER"     # --  if true
                                         ) ? (                                                                                             # --  then
                                           "WINDOWS"
                                         ) : (                                                                                             # --  else
