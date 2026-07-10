@@ -90,9 +90,7 @@ class AzureKeyVaultHelper:
     credential selection, and secret retrieval.
     """
 
-    def __init__(
-        self, vault_url, client_id=None, client_secret=None, tenant_id=None, timeout=5
-    ):
+    def __init__(self, vault_url, client_id=None, client_secret=None, tenant_id=None, timeout=5):
         """
         Initialize the helper with the provided Key Vault URL and credentials.
         :param vault_url: The base URL for Azure Key Vault.
@@ -116,9 +114,7 @@ class AzureKeyVaultHelper:
         :return: A responsive URL string.
         """
         public_url = vault_url
-        private_url = vault_url.replace(
-            ".vault.azure.net", ".privatelink.vault.azure.net"
-        )
+        private_url = vault_url.replace(".vault.azure.net", ".privatelink.vault.azure.net")
 
         for url in [private_url, public_url]:
             attempts = 3
@@ -134,17 +130,11 @@ class AzureKeyVaultHelper:
                     logger.info(f"Using responsive URL: {url}")
                     return url
                 except HttpResponseError as e:
-                    display.v(
-                        f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}"
-                    )
-                    logger.warning(
-                        f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}"
-                    )
+                    display.v(f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}")
+                    logger.warning(f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}")
                 except Exception as e:
                     display.v(f"Attempt {attempt + 1}: URL {url} not responsive: {e}")
-                    logger.error(
-                        f"Attempt {attempt + 1}: URL {url} not responsive: {e}"
-                    )
+                    logger.error(f"Attempt {attempt + 1}: URL {url} not responsive: {e}")
                 time.sleep(delay)
                 delay *= 2  # exponential backoff
 
@@ -225,9 +215,7 @@ class LookupModule(LookupBase):
             raise AnsibleError("Failed to get a valid vault url.")
 
         # Initialize the helper with the provided timeout value.
-        helper = AzureKeyVaultHelper(
-            vault_url, client_id, client_secret, tenant_id, timeout
-        )
+        helper = AzureKeyVaultHelper(vault_url, client_id, client_secret, tenant_id, timeout)
         ret = []
 
         for term in terms:
