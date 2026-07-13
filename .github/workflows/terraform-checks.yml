@@ -73,7 +73,7 @@ jobs:
         tflint_version: v0.63.1
 
     - name: Init TFLint
-      run: tflint --init
+      run: tflint --init --config="${GITHUB_WORKSPACE}/.tflint.hcl"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

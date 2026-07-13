@@ -34,7 +34,7 @@ jobs:
         ignore-unfixed: true
         scan-ref: .
         format: 'sarif'
-        scanners: 'vuln,secret'
+        scanners: 'vuln,secret,config'
         output: report-fs.sarif
 
     - name: Upload Trivy report (fs) GitHub Security
@@ -42,18 +42,3 @@ jobs:
       with:
         sarif_file: report-fs.sarif
         category: 'fs'
-
-    - name: Run Trivy vulnerability scanner (Terraform config)
-      uses: aquasecurity/trivy-action@c07df6fec6fa692e6fd1200d50aaa1fdd66f03c8 # 0.34.2
-      with:
-        scan-type: 'config'
-        scan-ref: './deploy/terraform'
-        format: 'sarif'
-        scanners: 'config'
-        output: report-tf.sarif
-
-    - name: Upload Trivy report (terraform config) GitHub Security
-      uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-      with:
-        sarif_file: report-tf.sarif
-        category: 'terraform-config'

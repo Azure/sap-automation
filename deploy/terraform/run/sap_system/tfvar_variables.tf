@@ -1714,5 +1714,3 @@ variable "workload_zone_name"                   {
                                                   description = "The name of the workload zone"
                                                   default     = ""
                                                 }
-
-

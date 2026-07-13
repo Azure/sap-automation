@@ -14,7 +14,7 @@ resource "azurerm_public_ip" "ng_pip" {
                                          )
   idle_timeout_in_minutes              = local.nat_gateway_idle_timeout_in_minutes
   zones                                = local.nat_gateway_public_ip_zones
-  ip_tags                              = try(length(var.infrastructure.nat_gateway.ip_tags,"") > 0 ? var.infrastructure.nat_gateway.ip_tags : null, null)
+  ip_tags                              = try(length(var.infrastructure.nat_gateway.ip_tags) > 0 ? var.infrastructure.nat_gateway.ip_tags : null, null)
   tags                                 = var.infrastructure.tags
   allocation_method                    = "Static"
   sku                                  = "Standard"

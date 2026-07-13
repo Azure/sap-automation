@@ -1,14 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
-# Scenario Category (variable validation coverage) for every validation block
-# declared directly on run/sap_library inputs. This module declares 13
-# validation blocks across tfvar_variables.tf, including one on management_network_id.
-#
-# The file-level fixture keeps plan-time behavior simple (no private endpoints,
-# no DNS registration, no App Configuration by default) while still running a
-# real `plan` under mocked azurerm/azuread providers so provider-defined
-# functions such as provider::azurerm::parse_resource_id() are available.
+# Validation tests for run/sap_library input variables under mocked providers.
 
 mock_provider "azurerm" {
 }
