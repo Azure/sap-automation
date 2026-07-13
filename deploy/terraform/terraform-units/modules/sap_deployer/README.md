@@ -213,12 +213,15 @@ No modules.
 | <a name="output_deployer_keyvault_user_arm_id"></a> [deployer\_keyvault\_user\_arm\_id](#output\_deployer\_keyvault\_user\_arm\_id) | Azure resource ID of the deployer key vault |
 | <a name="output_deployer_private_ip_address"></a> [deployer\_private\_ip\_address](#output\_deployer\_private\_ip\_address) | Deployer private IP Addresses |
 | <a name="output_deployer_public_ip_address"></a> [deployer\_public\_ip\_address](#output\_deployer\_public\_ip\_address) | Deployer Public IP Address |
+| <a name="output_deployer_public_ip_created_count"></a> [deployer\_public\_ip\_created\_count](#output\_deployer\_public\_ip\_created\_count) | Diagnostic count of created deployer public IP resources |
 | <a name="output_deployer_system_assigned_identity"></a> [deployer\_system\_assigned\_identity](#output\_deployer\_system\_assigned\_identity) | Deployer System Assigned Identity |
 | <a name="output_deployer_uai"></a> [deployer\_uai](#output\_deployer\_uai) | Deployer User Assigned Identity |
+| <a name="output_deployer_uai_created_count"></a> [deployer\_uai\_created\_count](#output\_deployer\_uai\_created\_count) | Diagnostic count of created deployer user-assigned identity resources |
 | <a name="output_deployer_user_assigned_identity"></a> [deployer\_user\_assigned\_identity](#output\_deployer\_user\_assigned\_identity) | Deployer System Assigned Identity |
 | <a name="output_diagnostics_account_id"></a> [diagnostics\_account\_id](#output\_diagnostics\_account\_id) | Diagnostics Storage Account ID |
 | <a name="output_diagnostics_storage_info"></a> [diagnostics\_storage\_info](#output\_diagnostics\_storage\_info) | Diagnostics storage account tags and network security posture for terraform test diagnostics |
 | <a name="output_extension_ids"></a> [extension\_ids](#output\_extension\_ids) | Virtual machine extension id |
+| <a name="output_firewall_created_count"></a> [firewall\_created\_count](#output\_firewall\_created\_count) | Diagnostic count of created Azure Firewall resources |
 | <a name="output_firewall_id"></a> [firewall\_id](#output\_firewall\_id) | Firewall ID |
 | <a name="output_firewall_ip"></a> [firewall\_ip](#output\_firewall\_ip) | Firewall private IP address |
 | <a name="output_infrastructure_resource_cardinality"></a> [infrastructure\_resource\_cardinality](#output\_infrastructure\_resource\_cardinality) | Cardinality (creation count) of core infrastructure resources for terraform test diagnostics. 1 = created (greenfield), 0 = looked up (brownfield). |

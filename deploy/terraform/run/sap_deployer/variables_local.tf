@@ -35,8 +35,21 @@ locals {
                                            local.vnet_mgmt_name
                                          )
 
-  custom_names                         = length(var.name_override_file) > 0 ? (
+  custom_names_raw                     = length(var.name_override_file) > 0 ? (
                                            jsondecode(file(format("%s/%s", path.cwd, var.name_override_file)))) : (
+                                           null
+                                         )
+
+  custom_names                         = length(var.name_override_file) > 0 ? (
+                                           merge(local.custom_names_raw, {
+                                             availabilityset_names = {
+                                               for key, value in local.custom_names_raw.availabilityset_names : key => tolist(value)
+                                             }
+                                             ppg_names = tolist(local.custom_names_raw.ppg_names)
+                                             virtualmachine_names = {
+                                               for key, value in local.custom_names_raw.virtualmachine_names : key => tolist(value)
+                                             }
+                                           })) : (
                                            null
                                          )
 

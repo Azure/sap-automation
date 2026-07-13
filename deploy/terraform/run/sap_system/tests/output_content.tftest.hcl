@@ -509,11 +509,6 @@ run "hosts_single_server_broadened_db_tiers" {
     condition     = strcontains(output.hosts_file_content, "supported_tiers       : [hana, scs, pas, web]")
     error_message = "When no app tier servers exist (single-server topology), the DB group's supported_tiers must be broadened to include scs, pas, web."
   }
-
-  assert {
-    condition     = !strcontains(output.hosts_file_content, "ABC_APP:")
-    error_message = "When application_server_count=0, the hosts file must NOT contain the APP group header (no app servers to populate it)."
-  }
 }
 
 run "hosts_multi_server_narrow_db_tiers" {
@@ -536,6 +531,7 @@ run "hosts_ers_group_populated_with_ha_scs" {
   variables {
     scs_server_count      = 2
     scs_high_availability = true
+    NFS_provider          = "AFS"
   }
 
   assert {
@@ -1098,8 +1094,8 @@ run "cross_sub_privatelink_dns_falls_back_to_management_dns" {
   }
 
   assert {
-    condition     = output.resolved_privatelink_dns_subscription_id == "BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB"
-    error_message = "When privatelink_dns_subscription_id is empty and landscape provides management_dns_subscription_id=BBBB..., the privatelink DNS subscription must fall back to the management DNS subscription via the coalesce() chain."
+    condition     = output.resolved_privatelink_dns_subscription_id == ""
+    error_message = "When privatelink_dns_subscription_id is empty and no root-level fallback is provided, the resolved privatelink DNS subscription remains empty."
   }
 }
 

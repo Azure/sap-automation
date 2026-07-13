@@ -78,7 +78,19 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Run TFLint
-      run: tflint --chdir=deploy/terraform --config="${GITHUB_WORKSPACE}/.tflint.hcl" --recursive --minimum-failure-severity=error
+      run: |
+        modules=(
+          deploy/terraform/bootstrap/sap_deployer
+          deploy/terraform/bootstrap/sap_library
+          deploy/terraform/run/sap_deployer
+          deploy/terraform/run/sap_landscape
+          deploy/terraform/run/sap_library
+          deploy/terraform/run/sap_system
+        )
+
+        for module in "${modules[@]}"; do
+          tflint --chdir="$module" --config="${GITHUB_WORKSPACE}/.tflint.hcl" --minimum-failure-severity=error
+        done
 
   checkov:
     name: 'checkov scan'

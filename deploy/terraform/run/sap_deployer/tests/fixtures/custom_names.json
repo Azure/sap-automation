@@ -81,12 +81,12 @@
     "DEPLOYER": "customdeploysa"
   },
   "availabilityset_names": {
-    "app": [],
-    "db": [],
-    "scs": [],
-    "web": []
+    "app": ["custom-app-avset"],
+    "db": ["custom-db-avset"],
+    "scs": ["custom-scs-avset"],
+    "web": ["custom-web-avset"]
   },
-  "ppg_names": [],
+  "ppg_names": ["custom-ppg"],
   "virtualmachine_names": {
     "DEPLOYER": ["customdeployer00"]
   }

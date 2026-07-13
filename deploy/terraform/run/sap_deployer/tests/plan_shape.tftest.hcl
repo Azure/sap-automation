@@ -1,12 +1,42 @@
 mock_provider "azurerm" {
+  mock_resource "azurerm_resource_group" {
+    defaults = {
+      id       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock"
+      name     = "rg-mock"
+      location = "westeurope"
+    }
+  }
   mock_resource "azurerm_virtual_network" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock"
+      name = "vnet-mock"
     }
   }
   mock_resource "azurerm_subnet" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock/subnets/subnet-mock"
+      name = "subnet-mock"
+    }
+  }
+  mock_resource "azurerm_network_security_group" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/networkSecurityGroups/nsg-mock"
+      name = "nsg-mock"
+    }
+  }
+  mock_resource "azurerm_network_interface" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/networkInterfaces/nic-mock"
+      name = "nic-mock"
+    }
+  }
+  mock_resource "azurerm_user_assigned_identity" {
+    defaults = {
+      id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-mock"
+      name         = "uai-mock"
+      tenant_id    = "11111111-1111-1111-1111-111111111111"
+      client_id    = "22222222-2222-2222-2222-222222222222"
+      principal_id = "33333333-3333-3333-3333-333333333333"
     }
   }
   mock_resource "azurerm_firewall" {
@@ -34,6 +64,68 @@ mock_provider "azurerm" {
 }
 mock_provider "azurerm" {
   alias           = "main"
+  mock_resource "azurerm_resource_group" {
+    defaults = {
+      id       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock"
+      name     = "rg-mock"
+      location = "westeurope"
+    }
+  }
+  mock_resource "azurerm_virtual_network" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock"
+      name = "vnet-mock"
+    }
+  }
+  mock_resource "azurerm_subnet" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock/subnets/subnet-mock"
+      name = "subnet-mock"
+    }
+  }
+  mock_resource "azurerm_network_security_group" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/networkSecurityGroups/nsg-mock"
+      name = "nsg-mock"
+    }
+  }
+  mock_resource "azurerm_network_interface" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/networkInterfaces/nic-mock"
+      name = "nic-mock"
+    }
+  }
+  mock_resource "azurerm_user_assigned_identity" {
+    defaults = {
+      id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-mock"
+      name         = "uai-mock"
+      tenant_id    = "11111111-1111-1111-1111-111111111111"
+      client_id    = "22222222-2222-2222-2222-222222222222"
+      principal_id = "33333333-3333-3333-3333-333333333333"
+    }
+  }
+  mock_resource "azurerm_firewall" {
+    defaults = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/azureFirewalls/fw-mock"
+      ip_configuration = {
+        name                 = "fw-ipconfig-mock"
+        subnet_id            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock/subnets/AzureFirewallSubnet"
+        public_ip_address_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/publicIPAddresses/fwpip-mock"
+      }
+    }
+  }
+  mock_resource "azurerm_key_vault" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.KeyVault/vaults/kv-mock"
+      name = "kv-mock"
+    }
+  }
+  mock_resource "azurerm_public_ip" {
+    defaults = {
+      id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/publicIPAddresses/pip-mock"
+      ip_address = "203.0.113.10"
+    }
+  }
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
@@ -1019,6 +1111,54 @@ run "rejects_malformed_privatelink_dns_subscription_id" {
 
 run "apply_greenfield_key_vault_resolves_arm_id" {
   command = apply
+
+  override_resource {
+    target = module.sap_deployer.azurerm_resource_group.deployer[0]
+    values = {
+      id       = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock"
+      name     = "rg-mock"
+      location = "westeurope"
+    }
+  }
+
+  override_resource {
+    target = module.sap_deployer.azurerm_user_assigned_identity.deployer[0]
+    values = {
+      id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-mock"
+      name         = "uai-mock"
+      tenant_id    = "11111111-1111-1111-1111-111111111111"
+      client_id    = "22222222-2222-2222-2222-222222222222"
+      principal_id = "33333333-3333-3333-3333-333333333333"
+    }
+  }
+
+  override_resource {
+    target = module.sap_deployer.azurerm_network_security_group.nsg_mgmt[0]
+    values = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/networkSecurityGroups/nsg-mock"
+      name = "nsg-mock"
+    }
+  }
+
+  override_resource {
+    target = module.sap_deployer.azurerm_network_interface.deployer[0]
+    values = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/networkInterfaces/nic-mock"
+      name = "nic-mock"
+    }
+  }
+
+  override_resource {
+    target = module.sap_deployer.azurerm_linux_virtual_machine.deployer[0]
+    values = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Compute/virtualMachines/vm-mock"
+      name = "vm-mock"
+      identity = {
+        principal_id = "33333333-3333-3333-3333-333333333333"
+        tenant_id    = "11111111-1111-1111-1111-111111111111"
+      }
+    }
+  }
 
   assert {
     condition     = output.deployer_kv_user_arm_id != null && output.deployer_kv_user_arm_id != ""

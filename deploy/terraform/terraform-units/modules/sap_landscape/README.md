@@ -310,12 +310,14 @@ No modules.
 | <a name="output_privatelink_keyvault_id"></a> [privatelink\_keyvault\_id](#output\_privatelink\_keyvault\_id) | Private DNS Zone ID for the keyvault resources |
 | <a name="output_privatelink_storage_id"></a> [privatelink\_storage\_id](#output\_privatelink\_storage\_id) | Private DNS Zone ID for the storage resources |
 | <a name="output_random_id"></a> [random\_id](#output\_random\_id) | Random ID |
+| <a name="output_resolved_iscsi_nic_ips"></a> [resolved\_iscsi\_nic\_ips](#output\_resolved\_iscsi\_nic\_ips) | Resolved iSCSI NIC IP input list for terraform test diagnostics. |
 | <a name="output_route_table_id"></a> [route\_table\_id](#output\_route\_table\_id) | Azure resource identifier for the route table |
 | <a name="output_saptransport_path"></a> [saptransport\_path](#output\_saptransport\_path) | Path to the SAP transport volume |
 | <a name="output_sid_password_secret_name"></a> [sid\_password\_secret\_name](#output\_sid\_password\_secret\_name) | Azure Keyvault secret name for the password |
 | <a name="output_sid_private_key_secret_name"></a> [sid\_private\_key\_secret\_name](#output\_sid\_private\_key\_secret\_name) | Azure Keyvault secret name for the Private key |
 | <a name="output_sid_public_key_secret_name"></a> [sid\_public\_key\_secret\_name](#output\_sid\_public\_key\_secret\_name) | Azure Keyvault secret name for the Public key |
 | <a name="output_sid_username_secret_name"></a> [sid\_username\_secret\_name](#output\_sid\_username\_secret\_name) | Azure Keyvault secret name for the username |
+| <a name="output_storage_account_counts"></a> [storage\_account\_counts](#output\_storage\_account\_counts) | Cardinality of workload-zone storage account resources for terraform test diagnostics. |
 | <a name="output_storage_bootdiag_endpoint"></a> [storage\_bootdiag\_endpoint](#output\_storage\_bootdiag\_endpoint) | Diagnostics storage account's private endpoint's Azure resource identifier |
 | <a name="output_storage_nsg_id"></a> [storage\_nsg\_id](#output\_storage\_nsg\_id) | Azure resource identifier for the storage subnet network security group |
 | <a name="output_storage_subnet_id"></a> [storage\_subnet\_id](#output\_storage\_subnet\_id) | Azure resource identifier for the storage subnet |
