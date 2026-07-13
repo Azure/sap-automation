@@ -103,6 +103,7 @@ __pycache__
 # octane files
 docs/projects/*
 docs/adr/*
+docs/contributing/*
 
 # Python test coverage artifacts
 .coverage

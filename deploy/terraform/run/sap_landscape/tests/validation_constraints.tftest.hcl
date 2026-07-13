@@ -215,558 +215,7 @@ variables {
   }
 }
 
-run "valid_environment" {
-  command = plan
 
-  variables {
-    environment = "DEV1"
-  }
-
-  assert {
-    condition     = can(regex("^DEV1-", output.workload_zone_name))
-    error_message = "A valid environment value must flow into workload_zone_name."
-  }
-}
-
-run "invalid_environment" {
-  command = plan
-
-  variables {
-    environment = "TOO-LONG"
-  }
-
-  expect_failures = [
-    var.environment,
-  ]
-}
-run "valid_subscription_id" {
-  command = plan
-
-  variables {
-    subscription_id = "00000000-0000-0000-0000-000000000000"
-  }
-
-  assert {
-    condition     = output.workload_zone_name == "DEV-WEEU-SAP01"
-    error_message = "A valid subscription_id must not block planning."
-  }
-}
-
-run "invalid_subscription_id" {
-  command = plan
-
-  variables {
-    subscription_id = "short-guid"
-  }
-
-  expect_failures = [
-    var.subscription_id,
-  ]
-}
-run "valid_management_subscription_id" {
-  command = plan
-
-  variables {
-    management_subscription_id = "00000000-0000-0000-0000-000000000000"
-  }
-
-  assert {
-    condition     = output.workload_zone_name == "DEV-WEEU-SAP01"
-    error_message = "A valid management_subscription_id must not block planning."
-  }
-}
-
-run "invalid_management_subscription_id" {
-  command = plan
-
-  variables {
-    management_subscription_id = "short-guid"
-  }
-
-  expect_failures = [
-    var.management_subscription_id,
-  ]
-}
-run "valid_resourcegroup_arm_id" {
-  command = plan
-
-  variables {
-    resourcegroup_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev"
-  }
-
-  assert {
-    condition     = output.created_resource_group_name == "rg-sap-dev"
-    error_message = "A valid resourcegroup_arm_id must drive brownfield RG reuse."
-  }
-}
-
-run "invalid_resourcegroup_arm_id" {
-  command = plan
-
-  variables {
-    resourcegroup_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.resourcegroup_arm_id,
-  ]
-}
-run "valid_network_arm_id" {
-  command = plan
-
-  variables {
-    network_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01"
-  }
-
-  assert {
-    condition     = output.vnet_sap_arm_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01"
-    error_message = "A valid network_arm_id must be surfaced through vnet_sap_arm_id."
-  }
-}
-
-run "invalid_network_arm_id" {
-  command = plan
-
-  variables {
-    network_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.network_arm_id,
-  ]
-}
-run "valid_network_flow_timeout_in_minutes" {
-  command = plan
-
-  variables {
-    network_flow_timeout_in_minutes = 10
-  }
-
-  assert {
-    condition     = output.vnet_sap_arm_id != ""
-    error_message = "A valid network_flow_timeout_in_minutes must not block planning."
-  }
-}
-
-run "invalid_network_flow_timeout_in_minutes" {
-  command = plan
-
-  variables {
-    network_flow_timeout_in_minutes = 3
-  }
-
-  expect_failures = [
-    var.network_flow_timeout_in_minutes,
-  ]
-}
-run "valid_admin_subnet_arm_id" {
-  command = plan
-
-  variables {
-    admin_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/admin"
-  }
-
-  assert {
-    condition     = output.admin_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/admin"
-    error_message = "A valid admin_subnet_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_admin_subnet_arm_id" {
-  command = plan
-
-  variables {
-    admin_subnet_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.admin_subnet_arm_id,
-  ]
-}
-run "valid_admin_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    admin_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-admin"
-  }
-
-  assert {
-    condition     = output.admin_nsg_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-admin"
-    error_message = "A valid admin_subnet_nsg_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_admin_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    admin_subnet_nsg_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.admin_subnet_nsg_arm_id,
-  ]
-}
-run "valid_db_subnet_arm_id" {
-  command = plan
-
-  variables {
-    db_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/db"
-  }
-
-  assert {
-    condition     = output.db_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/db"
-    error_message = "A valid db_subnet_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_db_subnet_arm_id" {
-  command = plan
-
-  variables {
-    db_subnet_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.db_subnet_arm_id,
-  ]
-}
-run "valid_db_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    db_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-db"
-  }
-
-  assert {
-    condition     = output.db_nsg_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-db"
-    error_message = "A valid db_subnet_nsg_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_db_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    db_subnet_nsg_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.db_subnet_nsg_arm_id,
-  ]
-}
-run "valid_app_subnet_arm_id" {
-  command = plan
-
-  variables {
-    app_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/app"
-  }
-
-  assert {
-    condition     = output.app_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/app"
-    error_message = "A valid app_subnet_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_app_subnet_arm_id" {
-  command = plan
-
-  variables {
-    app_subnet_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.app_subnet_arm_id,
-  ]
-}
-run "valid_app_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    app_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-app"
-  }
-
-  assert {
-    condition     = output.app_nsg_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-app"
-    error_message = "A valid app_subnet_nsg_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_app_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    app_subnet_nsg_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.app_subnet_nsg_arm_id,
-  ]
-}
-run "valid_web_subnet_arm_id" {
-  command = plan
-
-  variables {
-    web_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/web"
-  }
-
-  assert {
-    condition     = output.web_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/web"
-    error_message = "A valid web_subnet_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_web_subnet_arm_id" {
-  command = plan
-
-  variables {
-    web_subnet_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.web_subnet_arm_id,
-  ]
-}
-run "valid_web_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    web_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-web"
-  }
-
-  assert {
-    condition     = output.web_nsg_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-web"
-    error_message = "A valid web_subnet_nsg_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_web_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    web_subnet_nsg_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.web_subnet_nsg_arm_id,
-  ]
-}
-run "valid_storage_subnet_arm_id" {
-  command = plan
-
-  variables {
-    storage_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/storage"
-  }
-
-  assert {
-    condition     = output.storage_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/storage"
-    error_message = "A valid storage_subnet_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_storage_subnet_arm_id" {
-  command = plan
-
-  variables {
-    storage_subnet_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.storage_subnet_arm_id,
-  ]
-}
-run "valid_storage_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    storage_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-storage"
-  }
-
-  assert {
-    condition     = output.storage_nsg_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-storage"
-    error_message = "A valid storage_subnet_nsg_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_storage_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    storage_subnet_nsg_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.storage_subnet_nsg_arm_id,
-  ]
-}
-run "valid_anf_subnet_arm_id" {
-  command = plan
-
-  variables {
-    anf_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/anf"
-  }
-
-  assert {
-    condition     = output.workload_zone_name == "DEV-WEEU-SAP01"
-    error_message = "A valid anf_subnet_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_anf_subnet_arm_id" {
-  command = plan
-
-  variables {
-    anf_subnet_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.anf_subnet_arm_id,
-  ]
-}
-run "valid_anf_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    anf_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-anf"
-  }
-
-  assert {
-    condition     = output.workload_zone_name == "DEV-WEEU-SAP01"
-    error_message = "A valid anf_subnet_nsg_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_anf_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    anf_subnet_nsg_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.anf_subnet_nsg_arm_id,
-  ]
-}
-run "valid_ams_subnet_arm_id" {
-  command = plan
-
-  variables {
-    ams_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/ams"
-  }
-
-  assert {
-    condition     = output.ams_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/ams"
-    error_message = "A valid ams_subnet_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_ams_subnet_arm_id" {
-  command = plan
-
-  variables {
-    ams_subnet_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.ams_subnet_arm_id,
-  ]
-}
-run "valid_ams_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    ams_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-ams"
-  }
-
-  assert {
-    condition     = output.workload_zone_name == "DEV-WEEU-SAP01"
-    error_message = "A valid ams_subnet_nsg_arm_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_ams_subnet_nsg_arm_id" {
-  command = plan
-
-  variables {
-    ams_subnet_nsg_arm_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.ams_subnet_nsg_arm_id,
-  ]
-}
-run "valid_user_keyvault_id" {
-  command = plan
-
-  variables {
-    user_keyvault_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.KeyVault/vaults/kv-sap-user"
-  }
-
-  assert {
-    condition     = output.landscape_key_vault_user_arm_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.KeyVault/vaults/kv-sap-user"
-    error_message = "A valid user_keyvault_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_user_keyvault_id" {
-  command = plan
-
-  variables {
-    user_keyvault_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.user_keyvault_id,
-  ]
-}
-run "valid_spn_keyvault_id" {
-  command = plan
-
-  variables {
-    spn_keyvault_id = ""
-  }
-
-  assert {
-    condition     = output.workload_zone_name == "DEV-WEEU-SAP01"
-    error_message = "A valid spn_keyvault_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_spn_keyvault_id" {
-  command = plan
-
-  variables {
-    spn_keyvault_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.spn_keyvault_id,
-  ]
-}
-run "valid_keyvault_private_endpoint_id" {
-  command = plan
-
-  variables {
-    keyvault_private_endpoint_id = ""
-  }
-
-  assert {
-    condition     = output.workload_zone_name == "DEV-WEEU-SAP01"
-    error_message = "A valid keyvault_private_endpoint_id value must keep the baseline plan healthy."
-  }
-}
-
-run "invalid_keyvault_private_endpoint_id" {
-  command = plan
-
-  variables {
-    keyvault_private_endpoint_id = "not-a-valid-value"
-  }
-
-  expect_failures = [
-    var.keyvault_private_endpoint_id,
-  ]
-}
 run "valid_user_assigned_identity_id" {
   command = plan
 
@@ -791,6 +240,7 @@ run "invalid_user_assigned_identity_id" {
     var.user_assigned_identity_id,
   ]
 }
+
 run "valid_diagnostics_storage_account_arm_id" {
   command = plan
 
@@ -815,6 +265,7 @@ run "invalid_diagnostics_storage_account_arm_id" {
     var.diagnostics_storage_account_arm_id,
   ]
 }
+
 run "valid_witness_storage_account_arm_id" {
   command = plan
 
@@ -839,6 +290,7 @@ run "invalid_witness_storage_account_arm_id" {
     var.witness_storage_account_arm_id,
   ]
 }
+
 run "valid_transport_storage_account_id" {
   command = plan
 
@@ -863,6 +315,7 @@ run "invalid_transport_storage_account_id" {
     var.transport_storage_account_id,
   ]
 }
+
 run "valid_transport_private_endpoint_id" {
   command = plan
 
@@ -887,6 +340,7 @@ run "invalid_transport_private_endpoint_id" {
     var.transport_private_endpoint_id,
   ]
 }
+
 run "valid_install_storage_account_id" {
   command = plan
 
@@ -911,6 +365,7 @@ run "invalid_install_storage_account_id" {
     var.install_storage_account_id,
   ]
 }
+
 run "valid_install_private_endpoint_id" {
   command = plan
 
@@ -935,6 +390,7 @@ run "invalid_install_private_endpoint_id" {
     var.install_private_endpoint_id,
   ]
 }
+
 run "valid_management_dns_subscription_id" {
   command = plan
 
@@ -959,6 +415,7 @@ run "invalid_management_dns_subscription_id" {
     var.management_dns_subscription_id,
   ]
 }
+
 run "valid_privatelink_dns_subscription_id" {
   command = plan
 
@@ -983,6 +440,7 @@ run "invalid_privatelink_dns_subscription_id" {
     var.privatelink_dns_subscription_id,
   ]
 }
+
 run "valid_privatelink_file_id" {
   command = plan
 
@@ -1007,6 +465,7 @@ run "invalid_privatelink_file_id" {
     var.privatelink_file_id,
   ]
 }
+
 run "valid_privatelink_storage_id" {
   command = plan
 
@@ -1031,6 +490,7 @@ run "invalid_privatelink_storage_id" {
     var.privatelink_storage_id,
   ]
 }
+
 run "valid_privatelink_keyvault_id" {
   command = plan
 
@@ -1055,6 +515,7 @@ run "invalid_privatelink_keyvault_id" {
     var.privatelink_keyvault_id,
   ]
 }
+
 run "valid_ANF_account_arm_id" {
   command = plan
 
@@ -1079,6 +540,7 @@ run "invalid_ANF_account_arm_id" {
     var.ANF_account_arm_id,
   ]
 }
+
 run "valid_iscsi_subnet_arm_id" {
   command = plan
 
@@ -1103,6 +565,7 @@ run "invalid_iscsi_subnet_arm_id" {
     var.iscsi_subnet_arm_id,
   ]
 }
+
 run "valid_iscsi_subnet_nsg_arm_id" {
   command = plan
 
@@ -1127,6 +590,7 @@ run "invalid_iscsi_subnet_nsg_arm_id" {
     var.iscsi_subnet_nsg_arm_id,
   ]
 }
+
 run "valid_ams_laws_arm_id" {
   command = plan
 
@@ -1151,6 +615,7 @@ run "invalid_ams_laws_arm_id" {
     var.ams_laws_arm_id,
   ]
 }
+
 run "valid_nat_gateway_arm_id" {
   command = plan
 
@@ -1175,6 +640,7 @@ run "invalid_nat_gateway_arm_id" {
     var.nat_gateway_arm_id,
   ]
 }
+
 run "valid_nat_gateway_public_ip_arm_id" {
   command = plan
 
@@ -1199,6 +665,7 @@ run "invalid_nat_gateway_public_ip_arm_id" {
     var.nat_gateway_public_ip_arm_id,
   ]
 }
+
 run "valid_tfstate_resource_id" {
   command = plan
 
@@ -1223,6 +690,7 @@ run "invalid_tfstate_resource_id" {
     var.tfstate_resource_id,
   ]
 }
+
 run "valid_additional_network_id" {
   command = plan
 
@@ -1247,6 +715,7 @@ run "invalid_additional_network_id" {
     var.additional_network_id,
   ]
 }
+
 run "valid_additional_subnet_id" {
   command = plan
 
@@ -1271,6 +740,7 @@ run "invalid_additional_subnet_id" {
     var.additional_subnet_id,
   ]
 }
+
 run "valid_spn_id" {
   command = plan
 
@@ -1295,6 +765,7 @@ run "invalid_spn_id" {
     var.spn_id,
   ]
 }
+
 run "valid_application_configuration_id" {
   command = plan
 

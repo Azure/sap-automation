@@ -16,6 +16,12 @@ on:
       - '.tflint.hcl'
   merge_group:
   workflow_dispatch:
+    inputs:
+      full_run:
+        description: 'Run all tests sequentially per module (no per-file sharding)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -149,19 +155,54 @@ jobs:
           exit 1
         fi
 
-  terraform-test:
-    name: 'terraform test'
+  generate-matrix:
+    name: 'generate test matrix'
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build.outputs.matrix }}
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Build matrix from shard manifests
+      id: build
+      shell: bash
+      run: |
+        full_run="${{ inputs.full_run }}"
+
+        if [[ "$full_run" == "true" ]]; then
+          # Full-run mode: one entry per module, no test_file (runs all tests sequentially)
+          matrix=$(jq -n '{include: [
+            {"module": "deploy/terraform/run/sap_deployer", "test_file": ""},
+            {"module": "deploy/terraform/bootstrap/sap_deployer", "test_file": ""},
+            {"module": "deploy/terraform/bootstrap/sap_library", "test_file": ""},
+            {"module": "deploy/terraform/run/sap_system", "test_file": ""},
+            {"module": "deploy/terraform/run/sap_library", "test_file": ""},
+            {"module": "deploy/terraform/run/sap_landscape", "test_file": ""}
+          ]}')
+        else
+          # Sharded mode: one entry per module/test-file from shard manifests
+          matrix=$(find deploy/terraform -path '*/tests/shard-manifest.json' -print0 \
+            | xargs -0 jq -s '[.[] | .module as $mod | .shards[] | {module: $mod, test_file: .file}]
+              | {include: .}')
+        fi
+
+        echo "matrix<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$matrix" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
+
+  terraform-test:
+    name: "terraform test (${{ matrix.module }}${{ matrix.test_file && format(' / {0}', matrix.test_file) || '' }})"
+    runs-on: ubuntu-latest
+    needs: [generate-matrix]
     strategy:
       fail-fast: false
-      matrix:
-        module:
-          - deploy/terraform/run/sap_deployer
-          - deploy/terraform/bootstrap/sap_deployer
-          - deploy/terraform/bootstrap/sap_library
-          - deploy/terraform/run/sap_system
-          - deploy/terraform/run/sap_library
-          - deploy/terraform/run/sap_landscape
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
     - name: Harden Runner
       uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
@@ -176,6 +217,14 @@ jobs:
       with:
         terraform_version: "1.13.5"
         terraform_wrapper: false
+
+    - name: Cache Terraform providers
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      with:
+        path: ${{ matrix.module }}/.terraform/providers
+        key: tf-providers-${{ hashFiles(format('{0}/.terraform.lock.hcl', matrix.module)) }}-1.13.5
+        restore-keys: |
+          tf-providers-${{ hashFiles(format('{0}/.terraform.lock.hcl', matrix.module)) }}-
 
     - name: Apply CI-only ephemeral-to-data test swap
       # terraform test's mock_provider cannot mock ephemeral resources (hashicorp/terraform#38608),
@@ -201,8 +250,20 @@ jobs:
       shell: bash
       run: |
         cd ${{ matrix.module }}
+        SECONDS=0
         terraform init -backend=false
-        terraform test -no-color | tee /tmp/terraform-test.log
+        init_duration=$SECONDS
+        echo "::notice title=⏱ init duration (${{ matrix.module }})::${init_duration}s"
+
+        SECONDS=0
+        filter_arg=""
+        if [[ -n "${{ matrix.test_file }}" ]]; then
+          filter_arg="-filter=tests/${{ matrix.test_file }}"
+        fi
+        terraform test ${filter_arg} -no-color | tee /tmp/terraform-test.log
+        test_duration=$SECONDS
+        echo "::notice title=⏱ test duration (${{ matrix.module }}${{ matrix.test_file && format(' / {0}', matrix.test_file) || '' }})::${test_duration}s"
+        echo "::notice title=⏱ total duration (${{ matrix.module }}${{ matrix.test_file && format(' / {0}', matrix.test_file) || '' }})::$((init_duration + test_duration))s"
 
     - name: Publish terraform test summary
       if: always()
@@ -213,8 +274,82 @@ jobs:
           status="❌ failed"
         fi
         {
-          echo "### terraform test — ${{ matrix.module }}"
+          echo "### terraform test — ${{ matrix.module }}${{ matrix.test_file && format(' / {0}', matrix.test_file) || '' }}"
           echo ""
           echo "**Status:** $status — ${result_line:-no result line found}"
           echo ""
         } >> "$GITHUB_STEP_SUMMARY"
+
+  coverage-gate:
+    name: 'terraform test coverage gate'
+    runs-on: ubuntu-latest
+    needs: [terraform-test]
+    if: always()
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+      with:
+        egress-policy: audit
+
+    - name: Checkout code
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+    - name: Verify all test files are covered by shard manifests
+      shell: bash
+      run: |
+        exit_code=0
+
+        # Collect all .tftest.hcl files under deploy/terraform/*/*/tests/
+        mapfile -t actual_files < <(find deploy/terraform -path '*/tests/*.tftest.hcl' \
+          | sed 's|^\(deploy/terraform/[^/]*/[^/]*\)/tests/\(.*\)|\1 \2|' \
+          | sort)
+
+        # Collect all files declared in shard manifests
+        mapfile -t manifest_files < <(find deploy/terraform -path '*/tests/shard-manifest.json' -print0 \
+          | xargs -0 jq -r '.module as $mod | .shards[] | "\($mod) \(.file)"' \
+          | sort)
+
+        # Compare: every actual file must appear in manifests
+        uncovered=()
+        for entry in "${actual_files[@]}"; do
+          found=false
+          for mentry in "${manifest_files[@]}"; do
+            if [[ "$entry" == "$mentry" ]]; then
+              found=true
+              break
+            fi
+          done
+          if [[ "$found" == "false" ]]; then
+            uncovered+=("$entry")
+          fi
+        done
+
+        if [[ ${#uncovered[@]} -gt 0 ]]; then
+          echo "::error::The following test files are NOT covered by any shard-manifest.json:"
+          for f in "${uncovered[@]}"; do
+            echo "  - $f"
+          done
+          exit_code=1
+        fi
+
+        # Validate manifest total_runs vs actual run-block counts
+        for manifest in $(find deploy/terraform -path '*/tests/shard-manifest.json'); do
+          module_dir=$(jq -r '.module' "$manifest")
+          declared_total=$(jq -r '.total_runs' "$manifest")
+          actual_total=$(grep -c '^\s*run "' "${module_dir}"/tests/*.tftest.hcl 2>/dev/null | awk -F: '{s+=$NF} END{print s+0}')
+          if [[ "$declared_total" != "$actual_total" ]]; then
+            echo "::error::Manifest ${manifest}: declared total_runs=${declared_total} but actual count=${actual_total}"
+            exit_code=1
+          fi
+        done
+
+        # Fail the gate if any shard job failed
+        if [[ "${{ needs.terraform-test.result }}" != "success" ]]; then
+          echo "::error::One or more terraform-test shard jobs failed."
+          exit_code=1
+        fi
+
+        if [[ $exit_code -eq 0 ]]; then
+          echo "✅ All test files are covered by shard manifests and all shards passed."
+        fi
+        exit $exit_code
