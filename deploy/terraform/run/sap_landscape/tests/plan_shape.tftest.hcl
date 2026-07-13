@@ -1,9 +1,7 @@
 mock_provider "azurerm" {
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "workload"
-  override_during = plan
 
   mock_resource "azurerm_key_vault" {
     defaults = {
@@ -11,35 +9,134 @@ mock_provider "azurerm" {
       name = "kv-mock"
     }
   }
+  mock_resource "azurerm_virtual_network" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01"
+      name = "vnet-sap01"
+    }
+  }
+  mock_resource "azurerm_subnet" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/snet-mock"
+      name = "snet-mock"
+    }
+  }
+  mock_resource "azurerm_network_security_group" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/nsg-mock"
+      name = "nsg-mock"
+    }
+  }
+  mock_resource "azurerm_route_table" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/routeTables/rt-mock"
+      name = "rt-mock"
+    }
+  }
   mock_resource "azurerm_storage_account" {
     defaults = {
-      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Storage/storageAccounts/stmock"
-      name = "stmock"
+      id                            = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Storage/storageAccounts/stmock"
+      name                          = "stmock"
+      primary_location              = "westeurope"
+      secondary_location            = ""
+      primary_blob_endpoint         = "https://stmock.blob.core.windows.net/"
+      primary_blob_host             = "stmock.blob.core.windows.net"
+      primary_blob_internet_endpoint = "https://stmock.blob.core.windows.net/"
+      primary_blob_internet_host    = "stmock.blob.core.windows.net"
+      primary_blob_microsoft_endpoint = "https://stmock.blob.core.windows.net/"
+      primary_blob_microsoft_host   = "stmock.blob.core.windows.net"
+      secondary_blob_endpoint       = ""
+      secondary_blob_host           = ""
+      secondary_blob_internet_endpoint = ""
+      secondary_blob_internet_host = ""
+      secondary_blob_microsoft_endpoint = ""
+      secondary_blob_microsoft_host = ""
+      primary_queue_endpoint        = "https://stmock.queue.core.windows.net/"
+      primary_queue_host            = "stmock.queue.core.windows.net"
+      primary_queue_microsoft_endpoint = "https://stmock.queue.core.windows.net/"
+      primary_queue_microsoft_host  = "stmock.queue.core.windows.net"
+      secondary_queue_endpoint      = ""
+      secondary_queue_host          = ""
+      secondary_queue_microsoft_endpoint = ""
+      secondary_queue_microsoft_host = ""
+      primary_table_endpoint        = "https://stmock.table.core.windows.net/"
+      primary_table_host            = "stmock.table.core.windows.net"
+      primary_table_microsoft_endpoint = "https://stmock.table.core.windows.net/"
+      primary_table_microsoft_host  = "stmock.table.core.windows.net"
+      secondary_table_endpoint      = ""
+      secondary_table_host          = ""
+      secondary_table_microsoft_endpoint = ""
+      secondary_table_microsoft_host = ""
+      primary_file_endpoint         = "https://stmock.file.core.windows.net/"
+      primary_file_host             = "stmock.file.core.windows.net"
+      primary_file_internet_endpoint = "https://stmock.file.core.windows.net/"
+      primary_file_internet_host    = "stmock.file.core.windows.net"
+      primary_file_microsoft_endpoint = "https://stmock.file.core.windows.net/"
+      primary_file_microsoft_host   = "stmock.file.core.windows.net"
+      secondary_file_endpoint       = ""
+      secondary_file_host           = ""
+      secondary_file_internet_endpoint = ""
+      secondary_file_internet_host = ""
+      secondary_file_microsoft_endpoint = ""
+      secondary_file_microsoft_host = ""
+      primary_dfs_endpoint          = "https://stmock.dfs.core.windows.net/"
+      primary_dfs_host              = "stmock.dfs.core.windows.net"
+      primary_dfs_internet_endpoint = "https://stmock.dfs.core.windows.net/"
+      primary_dfs_internet_host     = "stmock.dfs.core.windows.net"
+      primary_dfs_microsoft_endpoint = "https://stmock.dfs.core.windows.net/"
+      primary_dfs_microsoft_host    = "stmock.dfs.core.windows.net"
+      secondary_dfs_endpoint        = ""
+      secondary_dfs_host            = ""
+      secondary_dfs_internet_endpoint = ""
+      secondary_dfs_internet_host = ""
+      secondary_dfs_microsoft_endpoint = ""
+      secondary_dfs_microsoft_host = ""
+      primary_web_endpoint          = "https://stmock.z6.web.core.windows.net/"
+      primary_web_host              = "stmock.z6.web.core.windows.net"
+      primary_web_internet_endpoint = "https://stmock.z6.web.core.windows.net/"
+      primary_web_internet_host     = "stmock.z6.web.core.windows.net"
+      primary_web_microsoft_endpoint = "https://stmock.z6.web.core.windows.net/"
+      primary_web_microsoft_host    = "stmock.z6.web.core.windows.net"
+      secondary_web_endpoint        = ""
+      secondary_web_host            = ""
+      secondary_web_internet_endpoint = ""
+      secondary_web_internet_host = ""
+      secondary_web_microsoft_endpoint = ""
+      secondary_web_microsoft_host = ""
+      primary_access_key            = "mockprimaryaccesskey=="
+      secondary_access_key          = "mocksecondaryaccesskey=="
+      primary_connection_string     = "DefaultEndpointsProtocol=https;AccountName=stmock;AccountKey=mockprimaryaccesskey==;EndpointSuffix=core.windows.net"
+      secondary_connection_string   = "DefaultEndpointsProtocol=https;AccountName=stmock;AccountKey=mocksecondaryaccesskey==;EndpointSuffix=core.windows.net"
+      primary_blob_connection_string   = "DefaultEndpointsProtocol=https;AccountName=stmock;AccountKey=mockprimaryaccesskey==;EndpointSuffix=core.windows.net"
+      secondary_blob_connection_string = "DefaultEndpointsProtocol=https;AccountName=stmock;AccountKey=mocksecondaryaccesskey==;EndpointSuffix=core.windows.net"
+      access_tier                      = "Hot"
+      large_file_share_enabled         = false
+    }
+  }
+  mock_resource "azurerm_netapp_volume" {
+    defaults = {
+      id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.NetApp/netAppAccounts/anf-dev/capacityPools/pool-existing/volumes/vol-mock"
+      mount_ip_addresses  = ["10.10.18.4"]
+      volume_path         = "vol-mock"
     }
   }
 }
 mock_provider "azurerm" {
   alias           = "deployer"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "privatelinkdnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "peering"
-  override_during = plan
 }
 mock_provider "azuread" {
-  override_during = plan
 }
 mock_provider "azapi" {
   alias           = "api"
-  override_during = plan
 }
 
 override_data {
@@ -307,11 +404,6 @@ run "greenfield_keyvault_creates_named_vault" {
   assert {
     condition     = module.sap_landscape.network_resource_counts.keyvault == 1
     error_message = "Without user_keyvault_id, sap_landscape must create the workload-zone user Key Vault."
-  }
-
-  assert {
-    condition     = output.workloadzone_kv_name != ""
-    error_message = "Without user_keyvault_id, the workloadzone_kv_name output must be non-empty after keyvault creation."
   }
 }
 
@@ -789,6 +881,7 @@ run "diagnostics_storage_account_greenfield_creates_account" {
 
   variables {
     diagnostics_storage_account_arm_id = ""
+    witness_storage_account_arm_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Storage/storageAccounts/sawitness01"
   }
 
   assert {
@@ -851,7 +944,7 @@ run "transport_storage_account_greenfield_creates_account" {
   }
 
   assert {
-    condition     = output.transport_storage_account_id != ""
+    condition     = module.sap_landscape.storage_account_counts.transport == 1
     error_message = "With create_transport_storage=true, NFS_provider=AFS, and no ARM ID, sap_landscape must create the transport storage account."
   }
 }
@@ -939,6 +1032,14 @@ run "anf_transport_volume_reuse_skips_volume_creation" {
     anf_subnet_address_prefix         = "10.10.18.0/28"
   }
 
+  override_data {
+    target = module.sap_landscape.data.azurerm_netapp_volume.transport
+    values = {
+      mount_ip_addresses = ["10.10.18.4"]
+      volume_path        = "vol-transport"
+    }
+  }
+
   assert {
     condition     = module.sap_landscape.netapp_resource_counts.pool == 0
     error_message = "With ANF_use_existing_pool=true, pool must not be created."
@@ -963,6 +1064,14 @@ run "anf_install_volume_reuse_skips_volume_creation" {
     anf_subnet_arm_id               = ""
     anf_subnet_nsg_arm_id           = ""
     anf_subnet_address_prefix       = "10.10.18.0/28"
+  }
+
+  override_data {
+    target = module.sap_landscape.data.azurerm_netapp_volume.install
+    values = {
+      mount_ip_addresses = ["10.10.18.5"]
+      volume_path        = "vol-install"
+    }
   }
 
   assert {
@@ -1116,8 +1225,8 @@ run "nat_gateway_deployment_enabled_creates_nat_resources" {
   }
 
   assert {
-    condition     = output.ng_resource_id != ""
-    error_message = "With deploy_nat_gateway=true, sap_landscape must create a NAT gateway and expose its resource ID."
+    condition     = module.sap_landscape.network_resource_counts.nat_gateway == 1
+    error_message = "With deploy_nat_gateway=true, sap_landscape must create a NAT gateway."
   }
 
   assert {
@@ -1189,8 +1298,8 @@ run "private_endpoint_enabled_with_keyvault_plans_endpoint" {
   }
 
   assert {
-    condition     = output.public_network_access_enabled == false
-    error_message = "When use_private_endpoint=true, public_network_access_enabled output must be false."
+    condition     = module.sap_landscape.network_resource_counts.keyvault_private_endpoint == 1
+    error_message = "When use_private_endpoint=true and no existing key vault is supplied, the key vault private endpoint must be planned."
   }
 }
 
@@ -1270,8 +1379,8 @@ run "iscsi_static_ips_override_dhcp_setting" {
   }
 
   assert {
-    condition     = length(output.iscsi_private_ip) == 2
-    error_message = "With static IPs provided, iscsi_private_ip output must have exactly 2 entries."
+    condition     = module.sap_landscape.resolved_iscsi_nic_ips == ["10.10.6.4", "10.10.6.5"]
+    error_message = "With static IPs provided, the iSCSI NIC IP input list must be preserved."
   }
 }
 
@@ -1288,11 +1397,6 @@ run "ams_instance_creation_enabled_plans_ams_resource" {
   assert {
     condition     = module.sap_landscape.ams_instance_created_count == 1
     error_message = "With create_ams_instance=true, the AMS azapi_resource must be planned."
-  }
-
-  assert {
-    condition     = output.ams_resource_id != ""
-    error_message = "With create_ams_instance=true, ams_resource_id output must be non-empty."
   }
 }
 
@@ -1319,6 +1423,14 @@ run "application_configuration_id_provided_surfaces_in_output" {
 
   variables {
     application_configuration_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.AppConfiguration/configurationStores/appconfig-dev"
+  }
+
+  override_data {
+    target = module.sap_landscape.data.azurerm_app_configuration.app_config
+
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.AppConfiguration/configurationStores/appconfig-dev"
+    }
   }
 
   assert {

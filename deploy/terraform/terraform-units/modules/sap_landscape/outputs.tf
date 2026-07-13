@@ -781,6 +781,8 @@ output "network_resource_counts"                    {
                                                        iscsi_nsg               = length(azurerm_network_security_group.iscsi)
                                                        ams_subnet              = length(azurerm_subnet.ams)
                                                        utility_storage_account = length(azurerm_storage_account.utility)
+                                                       nat_gateway             = length(azurerm_nat_gateway.ng)
+                                                       keyvault_private_endpoint = length(azurerm_private_endpoint.kv_user)
                                                      }
                                                     }
 
@@ -807,6 +809,16 @@ output "dns_link_counts"                            {
                                                      }
                                                     }
 
+output "storage_account_counts"                     {
+                                                     description = "Cardinality of workload-zone storage account resources for terraform test diagnostics."
+                                                     value = {
+                                                      diagnostics = length(azurerm_storage_account.storage_bootdiag)
+                                                      witness     = length(azurerm_storage_account.witness_storage)
+                                                      transport   = length(azurerm_storage_account.transport)
+                                                      install     = length(azurerm_storage_account.install)
+                                                     }
+                                                    }
+
 output "ams_instance_created_count"                 {
                                                      description = "Number of AMS instances created by this module"
                                                      value       = length(azapi_resource.ams_instance)
@@ -815,6 +827,11 @@ output "ams_instance_created_count"                 {
 output "iscsi_vm_count"                             {
                                                      description = "Number of iSCSI VMs created by this module"
                                                      value       = length(azurerm_linux_virtual_machine.iscsi)
+                                                    }
+
+output "resolved_iscsi_nic_ips"                     {
+                                                     description = "Resolved iSCSI NIC IP input list for terraform test diagnostics."
+                                                     value       = local.iscsi_nic_ips
                                                     }
 
 output "utility_vm_count"                           {
@@ -826,4 +843,3 @@ output "utility_vm_computer_names"                  {
                                                      description = "Planned utility VM computer names"
                                                      value       = concat(azurerm_windows_virtual_machine.utility_vm[*].computer_name, azurerm_linux_virtual_machine.utility_vm[*].computer_name)
                                                     }
-

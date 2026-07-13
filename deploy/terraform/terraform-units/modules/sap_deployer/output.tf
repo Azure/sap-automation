@@ -405,6 +405,21 @@ output "app_configuration_created_count" {
   value       = length(azurerm_app_configuration.app_config)
 }
 
+output "deployer_public_ip_created_count" {
+  description = "Diagnostic count of created deployer public IP resources"
+  value       = length(azurerm_public_ip.deployer)
+}
+
+output "deployer_uai_created_count" {
+  description = "Diagnostic count of created deployer user-assigned identity resources"
+  value       = length(azurerm_user_assigned_identity.deployer)
+}
+
+output "firewall_created_count" {
+  description = "Diagnostic count of created Azure Firewall resources"
+  value       = length(azurerm_firewall.firewall)
+}
+
 output "network_security_perimeter_created_count" {
   description = "Diagnostic count of created network security perimeters (discrete optional feature; retained standalone for the same reason as app_configuration_created_count)"
   value       = length(azurerm_network_security_perimeter.perimeter)

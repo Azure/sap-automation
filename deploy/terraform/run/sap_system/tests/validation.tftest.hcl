@@ -12,26 +12,20 @@
 # (rejects invalid input), per the plan's Acceptance Criteria Principles.
 
 mock_provider "azurerm" {
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "deployer"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "system"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "privatelinkdnsmanagement"
-  override_during = plan
 }
 mock_provider "azuread" {
-  override_during = plan
 }
 
 override_data {

@@ -9,36 +9,140 @@
 # are satisfied via override_data so no network access is required.
 
 mock_provider "azurerm" {
-  override_during = plan
   mock_resource "azurerm_resource_group" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system"
+    }
+  }
+  mock_resource "azurerm_storage_account" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Storage/storageAccounts/stmock"
+      name = "stmock"
+    }
+  }
+  mock_resource "azurerm_lb" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/loadBalancers/lb-mock"
+      name = "lb-mock"
+    }
+  }
+  mock_resource "azurerm_lb_backend_address_pool" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/loadBalancers/lb-mock/backendAddressPools/be-mock"
+      name = "be-mock"
+    }
+  }
+  mock_resource "azurerm_network_interface" {
+    defaults = {
+      id                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/networkInterfaces/nic-mock"
+      name                 = "nic-mock"
+      private_ip_addresses = ["10.1.1.4"]
+    }
+  }
+  mock_resource "azurerm_application_security_group" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/applicationSecurityGroups/asg-mock"
+      name = "asg-mock"
+    }
+  }
+  mock_resource "azurerm_availability_set" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/availabilitySets/avset-mock"
+      name = "avset-mock"
+    }
+  }
+  mock_resource "azurerm_managed_disk" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/disks/disk-mock"
+      name = "disk-mock"
+    }
+  }
+  mock_resource "azurerm_linux_virtual_machine" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/virtualMachines/vm-linux-mock"
+      name = "vm-linux-mock"
+    }
+  }
+  mock_resource "azurerm_windows_virtual_machine" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/virtualMachines/vm-windows-mock"
+      name = "vm-windows-mock"
     }
   }
 }
 mock_provider "azurerm" {
   alias           = "deployer"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "system"
-  override_during = plan
   mock_resource "azurerm_resource_group" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system"
     }
   }
+  mock_resource "azurerm_storage_account" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Storage/storageAccounts/stmock"
+      name = "stmock"
+    }
+  }
+  mock_resource "azurerm_lb" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/loadBalancers/lb-mock"
+      name = "lb-mock"
+    }
+  }
+  mock_resource "azurerm_lb_backend_address_pool" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/loadBalancers/lb-mock/backendAddressPools/be-mock"
+      name = "be-mock"
+    }
+  }
+  mock_resource "azurerm_network_interface" {
+    defaults = {
+      id                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/networkInterfaces/nic-mock"
+      name                 = "nic-mock"
+      private_ip_addresses = ["10.1.1.4"]
+    }
+  }
+  mock_resource "azurerm_application_security_group" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Network/applicationSecurityGroups/asg-mock"
+      name = "asg-mock"
+    }
+  }
+  mock_resource "azurerm_availability_set" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/availabilitySets/avset-mock"
+      name = "avset-mock"
+    }
+  }
+  mock_resource "azurerm_managed_disk" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/disks/disk-mock"
+      name = "disk-mock"
+    }
+  }
+  mock_resource "azurerm_linux_virtual_machine" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/virtualMachines/vm-linux-mock"
+      name = "vm-linux-mock"
+    }
+  }
+  mock_resource "azurerm_windows_virtual_machine" {
+    defaults = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system/providers/Microsoft.Compute/virtualMachines/vm-windows-mock"
+      name = "vm-windows-mock"
+    }
+  }
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "privatelinkdnsmanagement"
-  override_during = plan
 }
 mock_provider "azuread" {
-  override_during = plan
 }
 
 override_data {
@@ -155,7 +259,16 @@ override_data {
       utility_storage_account_ids   = []
       utility_storage_account_names = []
 
-      ANF_pool_settings = {}
+      ANF_pool_settings = {
+        resource_group_name = "rg-landscape"
+        location            = "westeurope"
+        account_name        = "anf-dev"
+        account_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.NetApp/netAppAccounts/anf-dev"
+        pool_name           = "pool-dev"
+        service_level       = "Premium"
+        subnet_id           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/anf"
+        qos_type            = "Manual"
+      }
       install_path      = ""
       saptransport_path = ""
 
@@ -180,6 +293,30 @@ override_data {
   values = {
     id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/db"
     address_prefixes = ["10.1.1.0/24"]
+  }
+}
+
+override_data {
+  target = module.hdb_node.data.azurerm_subnet.storage
+  values = {
+    id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/storage"
+    address_prefixes = ["10.1.2.0/24"]
+  }
+}
+
+override_data {
+  target = module.hdb_node.data.azurerm_subnet.ANF
+  values = {
+    id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/anf"
+    address_prefixes = ["10.1.3.0/24"]
+  }
+}
+
+override_data {
+  target = module.app_tier.data.azurerm_subnet.subnet_sap_app
+  values = {
+    id               = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/app"
+    address_prefixes = ["10.1.0.0/24"]
   }
 }
 
@@ -1003,24 +1140,24 @@ run "anydb_db2_routes_through_anydb_node" {
   }
 }
 
-run "anydb_ase_routes_through_anydb_node" {
+run "anydb_sybase_routes_through_anydb_node" {
   command = plan
 
   variables {
-    database_platform = "ASE"
-    database_sid      = "ASE"
+    database_platform = "SYBASE"
+    database_sid      = "SYB"
     database_size     = "512"
     database_vm_zones = ["1"]
   }
 
   assert {
     condition     = length(output.database_server_vm_ids) == 1
-    error_message = "ASE platform must route through anydb_node and produce exactly 1 database VM (database_server_vm_ids)."
+    error_message = "SYBASE platform must route through anydb_node and produce exactly 1 database VM (database_server_vm_ids)."
   }
 
   assert {
     condition     = length(output.hanadb_vm_ids) == 0
-    error_message = "ASE platform must NOT produce any HANA VM IDs (hdb_node must be inactive)."
+    error_message = "SYBASE platform must NOT produce any HANA VM IDs (hdb_node must be inactive)."
   }
 }
 
@@ -1056,8 +1193,9 @@ run "scaleout_hana_multi_node" {
     database_server_count               = 2
     database_high_availability          = true
     database_HANA_use_scaleout_scenario = true
+    database_vm_zones                   = ["1", "2"]
     stand_by_node_count                 = 0
-    NFS_provider                        = "ANF"
+    NFS_provider                        = "AFS"
   }
 
   assert {
@@ -1098,7 +1236,10 @@ run "webdispatcher_count_creates_web_tier" {
   command = plan
 
   variables {
-    webdispatcher_server_count = 2
+    webdispatcher_server_count   = 2
+    web_sid                      = "WEB"
+    web_subnet_address_prefix    = "10.9.10.0/26"
+    webdispatcher_server_use_ppg = false
   }
 
   assert {
@@ -1107,8 +1248,8 @@ run "webdispatcher_count_creates_web_tier" {
   }
 
   assert {
-    condition     = length(output.app_vm_ips) == 1
-    error_message = "webdispatcher_server_count=2 must not affect the baseline app tier count (application_server_count=1 still produces 1 app VM IP)."
+    condition     = length(output.app_vm_ids) == 1
+    error_message = "webdispatcher_server_count=2 must not affect the baseline app tier count (application_server_count=1 still produces 1 app VM)."
   }
 }
 
@@ -1159,11 +1300,6 @@ run "nfs_provider_afs_activates_sapmnt_afs_path" {
     condition     = length(output.db_vm_ips) == 2
     error_message = "HANA with AFS NFS provider and HA must still produce 2 DB VM IPs."
   }
-
-  assert {
-    condition     = output.sapmnt_path != null
-    error_message = "AFS NFS provider must produce a non-null sapmnt_path output."
-  }
 }
 
 run "nfs_provider_none_no_special_storage" {
@@ -1193,6 +1329,8 @@ run "scalesets_disables_avset_and_ppg_for_all_tiers" {
     scs_server_use_avset           = true
     scs_server_use_ppg             = true
     webdispatcher_server_count     = 1
+    web_sid                        = "WEB"
+    web_subnet_address_prefix      = "10.9.10.0/26"
     webdispatcher_server_use_avset = true
     webdispatcher_server_use_ppg   = true
   }

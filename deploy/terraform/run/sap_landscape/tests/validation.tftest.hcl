@@ -1,32 +1,24 @@
 mock_provider "azurerm" {
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "workload"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "deployer"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "privatelinkdnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "peering"
-  override_during = plan
 }
 mock_provider "azuread" {
-  override_during = plan
 }
 mock_provider "azapi" {
   alias           = "api"
-  override_during = plan
 }
 
 override_data {

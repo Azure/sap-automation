@@ -8,26 +8,20 @@
 # - tag propagation and naming consistency against sap_namegenerator outputs
 
 mock_provider "azurerm" {
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "main"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "deployer"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "privatelinkdnsmanagement"
-  override_during = plan
 }
 mock_provider "azuread" {
-  override_during = plan
 }
 
 override_data {

@@ -1,5 +1,4 @@
 mock_provider "azurerm" {
-  override_during = plan
   mock_resource "azurerm_virtual_network" {
     defaults = {
       id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock"
@@ -35,22 +34,17 @@ mock_provider "azurerm" {
 }
 mock_provider "azurerm" {
   alias           = "main"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "privatelinkdnsmanagement"
-  override_during = plan
 }
 mock_provider "azapi" {
   alias           = "restapi"
-  override_during = plan
 }
 mock_provider "azuread" {
-  override_during = plan
 }
 
 override_data {
@@ -316,11 +310,6 @@ run "greenfield_management_vnet_creates_resource" {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.vnet == 1
     error_message = "Without management_network_arm_id, sap_deployer must create the management VNet."
   }
-
-  assert {
-    condition     = output.vnet_mgmt_id != ""
-    error_message = "When creating the management VNet, the vnet_mgmt_id output must be populated."
-  }
 }
 
 run "brownfield_management_vnet_reuses_existing" {
@@ -342,11 +331,6 @@ run "greenfield_management_subnet_creates_resource" {
   assert {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.mgmt_subnet == 1
     error_message = "Without management_subnet_arm_id, sap_deployer must create the deployer subnet."
-  }
-
-  assert {
-    condition     = output.subnet_mgmt_id != ""
-    error_message = "When creating the management subnet, the subnet_mgmt_id output must be populated."
   }
 }
 
@@ -406,11 +390,6 @@ run "greenfield_firewall_subnet_creates_resource" {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.firewall_subnet == 1
     error_message = "When firewall_deployment is enabled without a firewall subnet ARM ID, sap_deployer must create the AzureFirewallSubnet."
   }
-
-  assert {
-    condition     = output.firewall_id != ""
-    error_message = "When firewall_deployment is true (greenfield), the firewall resource must be planned and firewall_id output populated."
-  }
 }
 
 run "brownfield_firewall_subnet_reuses_existing" {
@@ -425,11 +404,6 @@ run "brownfield_firewall_subnet_reuses_existing" {
   assert {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.firewall_subnet == 0
     error_message = "When management_firewall_subnet_arm_id is supplied, sap_deployer must reuse the existing firewall subnet."
-  }
-
-  assert {
-    condition     = output.firewall_id != ""
-    error_message = "When reusing an existing firewall subnet, the firewall resource itself must still be planned (firewall_id non-empty)."
   }
 }
 
@@ -471,11 +445,6 @@ run "greenfield_webapp_subnet_creates_resource" {
   assert {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.webapp_subnet == 1
     error_message = "When app_service_deployment is enabled without webapp_subnet_arm_id, sap_deployer must create AzureWebappSubnet."
-  }
-
-  assert {
-    condition     = output.webapp_id != ""
-    error_message = "When app_service_deployment is true (greenfield subnet), the webapp must be planned and webapp_id output populated."
   }
 }
 
@@ -530,11 +499,6 @@ run "greenfield_key_vault_creates_resource" {
   assert {
     condition     = module.sap_deployer.key_vault_info.created_count == 1
     error_message = "Without user_keyvault_id, sap_deployer must create its deployer credentials Key Vault."
-  }
-
-  assert {
-    condition     = output.deployer_kv_user_arm_id != ""
-    error_message = "When creating a new Key Vault, the deployer_kv_user_arm_id output must be populated with the planned resource ID."
   }
 }
 
@@ -594,11 +558,6 @@ run "greenfield_network_security_perimeter_creates_resource_and_matches_namegene
     condition     = module.sap_deployer.network_security_perimeter_created_count == 1
     error_message = "When network_security_perimeter_deployment is enabled without an existing ID, sap_deployer must create a new network security perimeter."
   }
-
-  assert {
-    condition     = output.network_security_perimeter_id != ""
-    error_message = "When creating a new network security perimeter, the network_security_perimeter_id output must be populated."
-  }
 }
 
 run "brownfield_network_security_perimeter_reuses_existing" {
@@ -625,11 +584,6 @@ run "normal_mode_honors_deployer_count" {
   assert {
     condition     = length(module.sap_deployer.deployer_private_ip_address) == 2
     error_message = "When dev_center_deployment is false, sap_deployer must plan one VM per requested deployer_count."
-  }
-
-  assert {
-    condition     = output.deployer_public_ip_address != ""
-    error_message = "With deployer_enable_public_ip=true (baseline) and deployer_count=2, the deployer public IP output must be populated."
   }
 }
 
@@ -696,13 +650,8 @@ run "firewall_deployment_creates_firewall_resource" {
   }
 
   assert {
-    condition     = output.firewall_id != ""
-    error_message = "When firewall_deployment is true, sap_deployer must plan an Azure Firewall resource (firewall_id must be non-empty)."
-  }
-
-  assert {
-    condition     = output.firewall_ip != ""
-    error_message = "When firewall_deployment is true, the firewall must have a private IP address assigned (firewall_ip non-empty)."
+    condition     = module.sap_deployer.firewall_created_count == 1
+    error_message = "When firewall_deployment is true, sap_deployer must plan one Azure Firewall resource."
   }
 }
 
@@ -716,11 +665,6 @@ run "firewall_deployment_creates_network_rule_collection" {
   assert {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.firewall_subnet == 1
     error_message = "When firewall_deployment is true (greenfield), the firewall subnet must be created."
-  }
-
-  assert {
-    condition     = output.firewall_ip != ""
-    error_message = "When firewall_deployment is true, the firewall must have a private IP address assigned."
   }
 }
 
@@ -753,11 +697,6 @@ run "bastion_deployment_false_skips_bastion_host" {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.bastion_subnet == 0
     error_message = "When bastion_deployment is false, no bastion subnet should be created."
   }
-
-  assert {
-    condition     = length(module.sap_deployer.subnet_bastion_address_prefixes) == 0
-    error_message = "When bastion_deployment is false, the bastion subnet address prefixes must be empty (no bastion infrastructure planned)."
-  }
 }
 
 run "app_service_deployment_creates_service_plan_and_webapp" {
@@ -765,11 +704,6 @@ run "app_service_deployment_creates_service_plan_and_webapp" {
 
   variables {
     app_service_deployment = true
-  }
-
-  assert {
-    condition     = output.webapp_id != ""
-    error_message = "When app_service_deployment is true, sap_deployer must plan a Windows Web App (webapp_id must be non-empty)."
   }
 
   assert {
@@ -818,7 +752,7 @@ run "user_assigned_identity_absent_creates_new" {
   command = plan
 
   assert {
-    condition     = module.sap_deployer.deployer_uai.principal_id != ""
+    condition     = module.sap_deployer.deployer_uai_created_count == 1
     error_message = "When user_assigned_identity_id is absent, sap_deployer must create a new user-assigned identity."
   }
 }

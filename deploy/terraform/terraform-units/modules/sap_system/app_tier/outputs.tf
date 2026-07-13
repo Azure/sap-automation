@@ -91,6 +91,9 @@ output "app_tier_resource_creation_counts" {
                                            web_subnet = length(azurerm_subnet.subnet_sap_web)
                                            app_nsg    = length(azurerm_network_security_group.nsg_app)
                                            web_nsg    = length(azurerm_network_security_group.nsg_web)
+                                           app_avset  = length(azurerm_availability_set.app)
+                                           scs_avset  = length(azurerm_availability_set.scs)
+                                           web_avset  = length(azurerm_availability_set.web)
                                          }
                                        }
 

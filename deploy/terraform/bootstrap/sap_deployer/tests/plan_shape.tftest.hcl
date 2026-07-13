@@ -7,11 +7,9 @@
 # propagation, and naming consistency with sap_namegenerator.
 
 mock_provider "azurerm" {
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "main"
-  override_during = plan
   mock_resource "azurerm_user_assigned_identity" {
     defaults = {
       tenant_id = "11111111-1111-1111-1111-111111111111"
@@ -27,18 +25,14 @@ mock_provider "azurerm" {
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
-  override_during = plan
 }
 mock_provider "azurerm" {
   alias           = "privatelinkdnsmanagement"
-  override_during = plan
 }
 mock_provider "azuread" {
-  override_during = plan
 }
 mock_provider "azapi" {
   alias           = "restapi"
-  override_during = plan
 }
 
 override_data {
@@ -468,7 +462,7 @@ run "user_assigned_identity_passes_through_to_module" {
     target = module.sap_deployer.data.azurerm_user_assigned_identity.deployer[0]
     values = {
       tenant_id = "11111111-1111-1111-1111-111111111111"
-      id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-mock"
+      id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-id/providers/Microsoft.ManagedIdentity/userAssignedIdentities/uai-bootstrap"
     }
   }
 
@@ -522,7 +516,7 @@ run "deployer_public_ip_enabled_plans_public_ip_resource" {
   }
 
   assert {
-    condition     = length(module.sap_deployer.deployer_public_ip_address) > 0
+    condition     = module.sap_deployer.deployer_public_ip_created_count == 1
     error_message = "When deployer_enable_public_ip is true, bootstrap/sap_deployer must plan at least one public IP address for the deployer VM."
   }
 
