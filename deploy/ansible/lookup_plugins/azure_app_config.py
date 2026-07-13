@@ -111,9 +111,7 @@ class AzureAppConfigHelper:
         self.client = AzureAppConfigurationClient(
             base_url=appconfig_url, credential=self.credential
         )
-        display.v(
-            f"Initialized AzureAppConfigHelper with appconfig_url: {appconfig_url}"
-        )
+        display.v(f"Initialized AzureAppConfigHelper with appconfig_url: {appconfig_url}")
 
     def get_credential(self, client_id, client_secret, tenant_id):
         """
@@ -154,9 +152,7 @@ class AzureAppConfigHelper:
                 display.v(
                     "No explicit credentials provided, falling back to DefaultAzureCredential"
                 )
-                return DefaultAzureCredential(
-                    exclude_shared_token_cache_credential=True
-                )
+                return DefaultAzureCredential(exclude_shared_token_cache_credential=True)
         except Exception as e:
             display.error(f"Failed to initialize Azure credentials: {str(e)}")
             raise AnsibleError(f"Authentication configuration error: {str(e)}")
@@ -179,9 +175,7 @@ class AzureAppConfigHelper:
                     f"with label: {config_label or 'None'}"
                 )
 
-                config = self.client.get_configuration_setting(
-                    key=config_key, label=config_label
-                )
+                config = self.client.get_configuration_setting(key=config_key, label=config_label)
 
                 if not config:
                     display.warning(f"No configuration found for key: {config_key}")
@@ -233,9 +227,7 @@ class LookupModule(LookupBase):
                 timeout=timeout,
             )
         except Exception as e:
-            raise AnsibleError(
-                f"Failed to initialize Azure App Configuration client: {str(e)}"
-            )
+            raise AnsibleError(f"Failed to initialize Azure App Configuration client: {str(e)}")
 
         # Process configuration keys
         results = []
@@ -252,8 +244,6 @@ class LookupModule(LookupBase):
                 display.error(f"Failed to fetch key {term}: {str(e)}")
 
         if failed_keys:
-            raise AnsibleError(
-                f"Failed to fetch the following keys: {', '.join(failed_keys)}"
-            )
+            raise AnsibleError(f"Failed to fetch the following keys: {', '.join(failed_keys)}")
 
         return results
