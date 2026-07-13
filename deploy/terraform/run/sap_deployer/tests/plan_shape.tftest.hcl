@@ -1178,6 +1178,26 @@ run "apply_greenfield_firewall_resolves_ip" {
     firewall_deployment = true
   }
 
+  override_resource {
+    target = module.sap_deployer.azurerm_subnet.firewall[0]
+    values = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Network/virtualNetworks/vnet-mock/subnets/AzureFirewallSubnet"
+      name = "AzureFirewallSubnet"
+    }
+  }
+
+  override_resource {
+    target = module.sap_deployer.azurerm_linux_virtual_machine.deployer[0]
+    values = {
+      id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock/providers/Microsoft.Compute/virtualMachines/vm-mock"
+      name = "vm-mock"
+      identity = {
+        principal_id = "33333333-3333-3333-3333-333333333333"
+        tenant_id    = "11111111-1111-1111-1111-111111111111"
+      }
+    }
+  }
+
   assert {
     condition     = output.firewall_ip != null && output.firewall_ip != ""
     error_message = "After apply with firewall_deployment=true, the firewall_ip output must be a genuinely resolved non-empty string."
