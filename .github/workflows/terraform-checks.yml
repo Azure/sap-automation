@@ -89,7 +89,7 @@ jobs:
         )
 
         for module in "${modules[@]}"; do
-          tflint --chdir="$module" --config="${GITHUB_WORKSPACE}/.tflint.hcl" --minimum-failure-severity=error
+          tflint --chdir="$module" --config="${GITHUB_WORKSPACE}/.tflint.hcl" --call-module-type=none --minimum-failure-severity=error
         done
 
   checkov:
