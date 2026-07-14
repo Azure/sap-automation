@@ -81,6 +81,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 resource "azurerm_windows_web_app" "webapp" {
   #checkov:skip=CKV_AZURE_222: public access required for reachability
   #checkov:skip=CKV_AZURE_88: stateless app, no Azure Files needed
+  #checkov:skip=CKV_AZURE_213: Easy Auth redirects unauthenticated probes and no anonymous health endpoint exists
   count                                          = var.app_service.use ? 1 : 0
   name                                           = lower(format("%s%s%s%s",
                                                     var.naming.resource_prefixes.app_service_plan,
