@@ -126,9 +126,6 @@ resource "azurerm_key_vault_secret" "auth_username" {
                                          )
   tags                                 = var.tags
 
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
 }
 
 // Store the password in KV when authentication type is password
@@ -145,9 +142,6 @@ resource "azurerm_key_vault_secret" "auth_password" {
                                          )
   tags                                 = var.tags
 
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
 }
 
 // Using TF tls to generate SSH key pair and store in user KV
@@ -174,9 +168,6 @@ resource "azurerm_key_vault_secret" "sdu_private_key" {
                                          )
   tags                                 = var.tags
 
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
 }
 
 resource "azurerm_key_vault_secret" "sdu_public_key" {
@@ -192,7 +183,4 @@ resource "azurerm_key_vault_secret" "sdu_public_key" {
                                          )
   tags                                 = var.tags
 
-  lifecycle {
-    ignore_changes = [ expiration_date]
-  }
 }
