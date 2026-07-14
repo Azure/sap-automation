@@ -341,18 +341,13 @@ override_data {
 }
 
 
-run "spike_hosts_file_content_accessible_at_plan_time" {
+run "hosts_default_topology_content" {
   command = apply
 
   assert {
     condition     = strcontains(output.hosts_file_content, "ABC_DB:")
-    error_message = "Feasibility spike FAILED: local_file.ansible_inventory_new_yml.content must be a concrete string after apply containing the SID-prefixed DB group header (ABC_DB:). If this fails, content tests are infeasible with mock_provider."
+    error_message = "The default hosts file must contain the SID-prefixed DB group header."
   }
-}
-
-
-run "hosts_hana_platform_uses_hana_hostnames" {
-  command = apply
 
   assert {
     condition     = strcontains(output.hosts_file_content, "node_tier             : hana")
@@ -362,6 +357,46 @@ run "hosts_hana_platform_uses_hana_hostnames" {
   assert {
     condition     = !strcontains(output.hosts_file_content, "ansible_connection  : winrm")
     error_message = "When database_platform=HANA (Linux), the hosts file must NOT contain WinRM connection settings (mutually exclusive with ssh)."
+  }
+
+  assert {
+    condition     = strcontains(output.hosts_file_content, "ansible_connection  : ssh")
+    error_message = "When database_platform=HANA, the hosts file DB group must use 'ansible_connection : ssh'."
+  }
+
+  assert {
+    condition     = !strcontains(output.hosts_file_content, "ansible_winrm_transport")
+    error_message = "When database_platform=HANA, the hosts file must NOT contain WinRM transport settings."
+  }
+
+  assert {
+    condition     = !strcontains(output.hosts_file_content, "virtual_host        : v")
+    error_message = "When use_secondary_ips is false (default), the hosts file must NOT contain virtual_host entries with 'v' prefix (SECONDARY_DNSNAME)."
+  }
+
+  assert {
+    condition     = !strcontains(output.hosts_file_content, "      site")
+    error_message = "When scale_out=false (default), the hosts file DB group must NOT contain a 'site' field."
+  }
+
+  assert {
+    condition     = strcontains(output.hosts_file_content, "supported_tiers       : [hana]")
+    error_message = "When app tier servers exist, the DB group's supported_tiers must be narrow (just the platform name)."
+  }
+
+  assert {
+    condition     = strcontains(output.hosts_file_content, "ABC_PAS:")
+    error_message = "When application_server_count >= 1, the hosts file must contain the PAS group header."
+  }
+
+  assert {
+    condition     = !strcontains(output.hosts_file_content, "node_tier             : hana-multi-sid")
+    error_message = "When shared_home=false, node_tier must NOT contain 'multi-sid'."
+  }
+
+  assert {
+    condition     = strcontains(output.hosts_file_content, "use_nvme_disks      : false")
+    error_message = "With default (SCSI) disk controller, the hosts file must contain 'use_nvme_disks : false'."
   }
 }
 
@@ -383,15 +418,6 @@ run "hosts_anydb_platform_uses_anydb_hostnames" {
   assert {
     condition     = !strcontains(output.hosts_file_content, "node_tier             : hana")
     error_message = "When database_platform=ORACLE, the hosts file must NOT contain 'node_tier : hana' (mutually exclusive platform)."
-  }
-}
-
-run "hosts_use_secondary_ips_false_no_v_prefix" {
-  command = apply
-
-  assert {
-    condition     = !strcontains(output.hosts_file_content, "virtual_host        : v")
-    error_message = "When use_secondary_ips is false (default), the hosts file must NOT contain virtual_host entries with 'v' prefix (SECONDARY_DNSNAME)."
   }
 }
 
@@ -437,20 +463,6 @@ run "hosts_sqlserver_platform_uses_winrm_connection" {
   }
 }
 
-run "hosts_hana_platform_uses_ssh_no_winrm" {
-  command = apply
-
-  assert {
-    condition     = strcontains(output.hosts_file_content, "ansible_connection  : ssh")
-    error_message = "When database_platform=HANA, the hosts file DB group must use 'ansible_connection : ssh'."
-  }
-
-  assert {
-    condition     = !strcontains(output.hosts_file_content, "ansible_winrm_transport")
-    error_message = "When database_platform=HANA, the hosts file must NOT contain WinRM transport settings."
-  }
-}
-
 run "hosts_scale_out_injects_site_field" {
   command = apply
 
@@ -465,15 +477,6 @@ run "hosts_scale_out_injects_site_field" {
   assert {
     condition     = strcontains(output.hosts_file_content, "site")
     error_message = "When scale_out=true (database_HANA_use_scaleout_scenario), the hosts file DB group must contain a 'site' field for each node."
-  }
-}
-
-run "hosts_no_scale_out_no_site_field" {
-  command = apply
-
-  assert {
-    condition     = !strcontains(output.hosts_file_content, "      site")
-    error_message = "When scale_out=false (default), the hosts file DB group must NOT contain a 'site' field."
   }
 }
 
@@ -508,20 +511,6 @@ run "hosts_single_server_broadened_db_tiers" {
   assert {
     condition     = strcontains(output.hosts_file_content, "supported_tiers       : [hana, scs, pas, web]")
     error_message = "When no app tier servers exist (single-server topology), the DB group's supported_tiers must be broadened to include scs, pas, web."
-  }
-}
-
-run "hosts_multi_server_narrow_db_tiers" {
-  command = apply
-
-  assert {
-    condition     = strcontains(output.hosts_file_content, "supported_tiers       : [hana]")
-    error_message = "When app tier servers exist, the DB group's supported_tiers must be narrow (just the platform name)."
-  }
-
-  assert {
-    condition     = strcontains(output.hosts_file_content, "ABC_PAS:")
-    error_message = "When application_server_count >= 1, the hosts file must contain the PAS group header."
   }
 }
 
@@ -583,29 +572,6 @@ run "hosts_shared_home_multi_sid_platform" {
   assert {
     condition     = strcontains(output.hosts_file_content, "node_tier             : hana-multi-sid")
     error_message = "When shared_home=true, the DB group's node_tier must be 'hana-multi-sid' (format('%s-multi-sid', lower(platform)))."
-  }
-}
-
-run "hosts_no_shared_home_plain_platform" {
-  command = apply
-
-  assert {
-    condition     = strcontains(output.hosts_file_content, "node_tier             : hana")
-    error_message = "When shared_home=false (default), the DB group's node_tier must be the plain platform name ('hana')."
-  }
-
-  assert {
-    condition     = !strcontains(output.hosts_file_content, "node_tier             : hana-multi-sid")
-    error_message = "When shared_home=false, node_tier must NOT contain 'multi-sid'."
-  }
-}
-
-run "hosts_nvme_disk_controller_flag_false_by_default" {
-  command = apply
-
-  assert {
-    condition     = strcontains(output.hosts_file_content, "use_nvme_disks      : false")
-    error_message = "With default (SCSI) disk controller, the hosts file must contain 'use_nvme_disks : false'."
   }
 }
 

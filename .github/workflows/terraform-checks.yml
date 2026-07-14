@@ -242,43 +242,16 @@ jobs:
         esac
 
     - name: Run terraform test
-      # The unspecified default shell on Linux runners is `bash -e {0}` (no
-      # pipefail), so a non-zero exit from `terraform test` would be masked by
-      # `tee`'s own exit code (usually 0). Explicitly requesting `shell: bash`
-      # switches to `bash --noprofile --norc -eo pipefail {0}`, ensuring the
-      # step fails when `terraform test` fails.
       shell: bash
       run: |
         cd ${{ matrix.module }}
-        SECONDS=0
         terraform init -backend=false
-        init_duration=$SECONDS
-        echo "::notice title=⏱ init duration (${{ matrix.module }})::${init_duration}s"
 
-        SECONDS=0
-        filter_arg=""
         if [[ -n "${{ matrix.test_file }}" ]]; then
-          filter_arg="-filter=tests/${{ matrix.test_file }}"
+          terraform test -filter=tests/${{ matrix.test_file }} -no-color
+        else
+          terraform test -no-color
         fi
-        terraform test ${filter_arg} -no-color | tee /tmp/terraform-test.log
-        test_duration=$SECONDS
-        echo "::notice title=⏱ test duration (${{ matrix.module }}${{ matrix.test_file && format(' / {0}', matrix.test_file) || '' }})::${test_duration}s"
-        echo "::notice title=⏱ total duration (${{ matrix.module }}${{ matrix.test_file && format(' / {0}', matrix.test_file) || '' }})::$((init_duration + test_duration))s"
-
-    - name: Publish terraform test summary
-      if: always()
-      run: |
-        result_line=$(grep -oE '[0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?' /tmp/terraform-test.log | tail -1)
-        status="✅ passed"
-        if ! grep -q '^Success!' /tmp/terraform-test.log; then
-          status="❌ failed"
-        fi
-        {
-          echo "### terraform test — ${{ matrix.module }}${{ matrix.test_file && format(' / {0}', matrix.test_file) || '' }}"
-          echo ""
-          echo "**Status:** $status — ${result_line:-no result line found}"
-          echo ""
-        } >> "$GITHUB_STEP_SUMMARY"
 
   coverage-gate:
     name: 'terraform test coverage gate'
@@ -349,7 +322,4 @@ jobs:
           exit_code=1
         fi
 
-        if [[ $exit_code -eq 0 ]]; then
-          echo "✅ All test files are covered by shard manifests and all shards passed."
-        fi
         exit $exit_code
