@@ -414,6 +414,16 @@ run "app_service_deployment_creates_service_plan_and_webapp" {
     condition     = module.sap_deployer.infrastructure_resource_cardinality.webapp_subnet == 1
     error_message = "When app_service_deployment is true (greenfield), the webapp subnet must be created."
   }
+
+  assert {
+    condition     = !strcontains(file("${path.module}/../../terraform-units/modules/sap_deployer/app_service.tf"), "health_check_path")
+    error_message = "app_service.tf must not set health_check_path; remove it to avoid false-negative health probes behind Easy Auth."
+  }
+
+  assert {
+    condition     = !strcontains(file("${path.module}/../../terraform-units/modules/sap_deployer/app_service.tf"), "health_check_eviction_time_in_min")
+    error_message = "app_service.tf must not set health_check_eviction_time_in_min when health_check_path is removed."
+  }
 }
 
 run "app_service_deployment_false_skips_webapp" {

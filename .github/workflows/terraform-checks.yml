@@ -116,7 +116,7 @@ jobs:
         python-version: '3.11'
 
     - name: Install Checkov
-      run: pip install checkov
+      run: pip install checkov==3.3.8
 
     - name: Run Checkov (Terraform static scan)
       run: checkov -d deploy/terraform --framework terraform --compact
@@ -136,6 +136,7 @@ jobs:
     - name: Install terraform-docs
       run: |
         curl -sSLo /tmp/terraform-docs.tar.gz https://terraform-docs.io/dl/v0.24.0/terraform-docs-v0.24.0-linux-amd64.tar.gz
+        echo "9005daf969de0b50134493a2c00078b49f5f5b39d021cda7c89bf4d4f3d776d3  /tmp/terraform-docs.tar.gz" | sha256sum --check --strict
         tar -xzf /tmp/terraform-docs.tar.gz -C /tmp terraform-docs
         chmod +x /tmp/terraform-docs
         echo "/tmp" >> "$GITHUB_PATH"

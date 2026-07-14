@@ -184,8 +184,6 @@ resource "azurerm_windows_web_app" "webapp" {
         dotnet_version = "v9.0"
       }
     ftps_state                        = "Disabled"
-    health_check_eviction_time_in_min = 2
-    health_check_path                 = "/"
     http2_enabled                     = true
   }
 
