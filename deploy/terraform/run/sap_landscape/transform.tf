@@ -335,10 +335,7 @@ locals {
                                                  name = length(ctr.name) > 0 ? ctr.name : format("container%02d", ctr_idx)
                                                }
                                              ]
-                                             https_traffic_only_enabled = (
-                                               acct.account_kind == "FileStorage" &&
-                                               length([for s in acct.file_shares : s if upper(s.protocol) == "NFS"]) > 0
-                                             ) ? false : (acct.account_kind == "FileStorage" ? var.AFS_enable_encryption_in_transit : true)
+                                             https_traffic_only_enabled = var.AFS_enable_encryption_in_transit
                                            }
                                            if (
                                              length(acct.file_shares) > 0
