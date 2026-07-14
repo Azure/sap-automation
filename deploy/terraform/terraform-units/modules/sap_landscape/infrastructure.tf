@@ -32,6 +32,7 @@ data "azurerm_resource_group" "resource_group" {
 
 // Creates the SAP VNET
 resource "azurerm_virtual_network" "vnet_sap" {
+  #checkov:skip=CKV_AZURE_183: intentional customer-provided DNS support
   provider                             = azurerm.main
   count                                = var.infrastructure.virtual_networks.sap.exists  ? 0 : 1
   name                                 = local.SAP_virtual_network_name

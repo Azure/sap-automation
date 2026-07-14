@@ -81,7 +81,7 @@ output "deployer_user_assigned_identity"         {
 
 output "external_user_assigned_identity"         {
                                                    description = "Is there an external MSI assigned"
-                                                   value = module.sap_deployer.deployer_user_assigned_identity == var.user_assigned_identity_id
+                                                   value = module.sap_deployer.deployer_uai.id == var.user_assigned_identity_id
                                                  }
 
 output "deployer_client_id"                      {

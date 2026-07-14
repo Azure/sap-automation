@@ -3,6 +3,7 @@ resource "azurerm_key_vault_secret" "subscription" {
   depends_on                           = [
                                            time_sleep.wait_for_keyvault
                                          ]
+  content_type                         = "secret"
   name                                 = format("%s-subscription-id", upper(var.naming.prefix.DEPLOYER))
   value                                = data.azurerm_client_config.deployer.subscription_id
   key_vault_id                         = var.key_vault.exists ? (
@@ -25,6 +26,7 @@ resource "azurerm_key_vault_secret" "tenant" {
   depends_on                           = [
                                            time_sleep.wait_for_keyvault
                                          ]
+  content_type                         = "secret"
   name                                 = format("%s-tenant-id", upper(var.naming.prefix.DEPLOYER))
   value                                = data.azurerm_client_config.deployer.tenant_id
   key_vault_id                         = var.key_vault.exists ? (

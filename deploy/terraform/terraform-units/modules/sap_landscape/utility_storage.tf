@@ -50,6 +50,9 @@ locals {
 ################################################################################
 
 resource "azurerm_storage_account" "utility" {
+  #checkov:skip=CKV_AZURE_35: public access needed for utility share
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = length(var.utility_storage_settings)
   depends_on                           = [
@@ -143,6 +146,7 @@ resource "azurerm_storage_share" "utility" {
 ################################################################################
 
 resource "azurerm_storage_container" "utility" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   count                                = length(local.utility_blob_containers)
 

@@ -1,0 +1,8 @@
+{
+  "module": "deploy/terraform/bootstrap/sap_library",
+  "shards": [
+    { "file": "plan_shape.tftest.hcl", "runs": 7 },
+    { "file": "validation.tftest.hcl", "runs": 21 }
+  ],
+  "total_runs": 28
+}

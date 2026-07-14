@@ -84,7 +84,7 @@ variable "authentication"              {
                                          }
                                          validation {
                                            condition = (
-                                             length(trimspace(var.authentication.username)) != 0
+                                             length(var.authentication) == 0 ? true : length(trimspace(try(var.authentication.username, ""))) != 0
                                            )
                                            error_message = "The default username for the Virtual machines must be specified."
                                          }

@@ -28,7 +28,10 @@ resource "azapi_resource" "ams_instance" {
   count                                 = local.create_ams_instance && var.infrastructure.virtual_networks.sap.subnet_ams.defined ? 1 : 0
   name                                  = local.ams_instance_name
   location                              = local.region
-  parent_id                             = azurerm_resource_group.resource_group[0].id
+  parent_id                             = local.resource_group_exists ? (
+                                             data.azurerm_resource_group.resource_group[0].id) : (
+                                             azurerm_resource_group.resource_group[0].id
+                                           )
   depends_on                            = [
                                             azurerm_virtual_network.vnet_sap,
                                             azurerm_subnet.ams

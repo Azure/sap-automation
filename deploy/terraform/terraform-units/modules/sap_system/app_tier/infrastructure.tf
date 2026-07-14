@@ -38,7 +38,7 @@ data "azurerm_subnet" "subnet_sap_app" {
 #######################################4#######################################8
 resource "azurerm_subnet_route_table_association" "app" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.defined ? 1 : 0) : 0
+  count                                = local.enable_deployment ? (var.infrastructure.virtual_networks.sap.subnet_app.defined && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0) : 0
   subnet_id                            = azurerm_subnet.subnet_sap_app[0].id
   route_table_id                       = var.landscape_tfstate.route_table_id
 }
@@ -318,7 +318,7 @@ resource "azurerm_lb_rule" "fs" {
 resource "azurerm_availability_set" "scs" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && local.use_scs_avset ? (
-                                           length(var.ppg)) : (
+                                           max(local.scs_zone_count, 1)) : (
                                            0
                                          )
   name                                 = format("%s%s%s",
@@ -330,7 +330,7 @@ resource "azurerm_availability_set" "scs" {
   resource_group_name                  = var.resource_group[0].name
   platform_update_domain_count         = 20
   platform_fault_domain_count          = local.faultdomain_count
-  proximity_placement_group_id         = var.ppg[count.index]
+  proximity_placement_group_id         = try(var.ppg[count.index], null)
   managed                              = true
   tags                                 = var.tags
 }

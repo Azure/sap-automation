@@ -31,7 +31,7 @@ resource "azurerm_network_interface" "scs" {
                                          private_ip_address = try(pub.value.nic_ips[count.index],
                                            var.application_tier.use_DHCP ? (
                                              null) : (
-                                             cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists ?
+                                             cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ?
                                                data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] :
                                                azurerm_subnet.subnet_sap_app[0].address_prefixes[0],
                                                tonumber(count.index) + local.ip_offsets.scs_vm + pub.value.offset
@@ -69,7 +69,7 @@ resource "azurerm_network_interface_application_security_group_association" "scs
 
 resource "azurerm_network_interface" "scs_admin" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.application_tier.dual_network_interfaces && length(try(var.admin_subnet.id, "")) > 0 ? (
+  count                                = local.enable_deployment && var.application_tier.dual_network_interfaces && var.admin_subnet != null ? (
                                            local.scs_server_count) : (
                                            0
                                          )
@@ -454,6 +454,7 @@ resource "azurerm_windows_virtual_machine" "scs" {
 
 # Creates managed data disk
 resource "azurerm_managed_disk" "scs" {
+  #checkov:skip=CKV_AZURE_251: disk export via private endpoint not used
   provider                             = azurerm.main
   count                                = local.enable_deployment ? length(local.scs_data_disks) : 0
   name                                 = format("%s%s%s%s%s",

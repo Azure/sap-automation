@@ -51,6 +51,7 @@ resource "azurerm_public_ip" "deployer" {
 }
 
 resource "azurerm_network_interface" "deployer" {
+  #checkov:skip=CKV_AZURE_119: public IP gated by enable_deployer_public_ip var
   count                                = var.deployer_vm_count
   name                                 = format("%s%s%s%s%s",
                                          var.naming.resource_prefixes.nic,
@@ -113,6 +114,7 @@ data "azurerm_user_assigned_identity" "deployer" {
 
 // Linux Virtual Machine for Deployer
 resource "azurerm_linux_virtual_machine" "deployer" {
+  #checkov:skip=CKV_AZURE_50: monitoring via monitoring_extension_deployer_lnx
   count                                = var.deployer_vm_count
 
   name                                 = format("%s%s%s%s%s",

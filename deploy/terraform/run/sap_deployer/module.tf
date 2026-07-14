@@ -16,8 +16,8 @@ module "sap_deployer" {
                                                    azuread.main                     = azuread
                                                    }
   naming                                        = length(var.name_override_file) > 0 ? (
-                                                     local.custom_names) : (
-                                                     module.sap_namegenerator.naming
+                                                     jsondecode(jsonencode(local.custom_names))) : (
+                                                     jsondecode(jsonencode(module.sap_namegenerator.naming))
                                                    )
   naming_new                                    = module.sap_namegenerator.naming_new
 
