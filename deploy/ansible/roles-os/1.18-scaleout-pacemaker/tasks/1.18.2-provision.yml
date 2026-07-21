@@ -131,6 +131,8 @@
     # the VIP assignment)
     # Refer to: https://www.suse.com/support/kb/doc/?id=7023633 for more information
     - name:                            "1.18.2 Generic Pacemaker - Ensure that network interface is not managed by cloud network plugin"
+      when:
+                                       - ansible_distribution_major_version | int < 16
       become:                          true
       ansible.builtin.lineinfile:
         path:                          /etc/sysconfig/network/ifcfg-eth0

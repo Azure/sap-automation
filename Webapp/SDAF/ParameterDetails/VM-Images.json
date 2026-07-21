@@ -1,5 +1,29 @@
 [
   {
+    "name": "Red Hat 7.9",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "79sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 7.9 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "79sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Red Hat 8.4 App",
     "data": {
       "os_type": "LINUX",
@@ -191,6 +215,19 @@
       "type": "marketplace"
     }
   },
+
+  {
+    "name": "SUSE 12 SP5",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-12-sp5",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
   {
     "name": "SUSE 15 SP3",
     "data": {
@@ -252,6 +289,18 @@
     }
   },
   {
+    "name": "SUSE 16",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-16-0-x86-64",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "OracleLinux 8.10",
     "data": {
       "os_type": "LINUX",
@@ -307,6 +356,42 @@
       "publisher": "Oracle",
       "offer": "Oracle-Linux",
       "sku": "ol97-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2016",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2016-datacenter",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2019",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2019-datacenter",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2019-G2",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2019-datacenter-g2",
       "version": "latest",
       "type": "marketplace"
     }

@@ -160,8 +160,9 @@
 
 - name:                                "1.9 Kernel parameters - Set limits for DB2"
   ansible.builtin.blockinfile:
-    path:                              /etc/security/limits.conf
-    insertafter:                       '#@student        -       maxlogins       4'
+    path:                              /etc/security/limits.d/99-sap-db2.conf
+    create:                            true
+    mode:                              '0644'
     state:                              present
     block: |
                 @sapsys    hard    nproc    unlimited
@@ -173,8 +174,9 @@
 
 - name:                                "1.9 Kernel parameters - Set limits for HANA"
   ansible.builtin.blockinfile:
-    path:                              /etc/security/limits.conf
-    insertafter:                       '#@student        -       maxlogins       4'
+    path:                              /etc/security/limits.d/99-sap-hana.conf
+    create:                            true
+    mode:                              '0644'
     state:                              present
     block: |
                 @sapsys    hard    nproc    unlimited
@@ -186,8 +188,9 @@
 
 - name:                                "1.9 Kernel parameters - Set limits for app tier"
   ansible.builtin.blockinfile:
-    path:                              /etc/security/limits.conf
-    insertafter:                       '#@student        -       maxlogins       4'
+    path:                              /etc/security/limits.d/99-sap-app.conf
+    create:                            true
+    mode:                              '0644'
     state:                              present
     block: |
                 @sapsys    hard    nproc    unlimited

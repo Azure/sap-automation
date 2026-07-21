@@ -14,11 +14,27 @@
 # -------------------------------------+---------------------------------------8
 
 # SUSE bug 1167134
-- name:                                "1.2 HostName: - Ensure DHCLIENT_SET_HOSTNAME is set to no for SLES"
+- name:                                "1.2 HostName: - Ensure DHCLIENT_SET_HOSTNAME is set to no for SLES (wicked)"
   ansible.builtin.lineinfile:
     path:                              /etc/sysconfig/network/dhcp
     regexp:                            '^DHCLIENT_SET_HOSTNAME='
     line:                              DHCLIENT_SET_HOSTNAME="no"
-  when:                                ansible_os_family | upper == "SUSE"
+  when:
+    - ansible_os_family | upper == "SUSE"
+    - ansible_distribution_major_version | int < 16
+
+- name:                                "1.2 HostName: - Ensure DHCP does not set hostname for SLES 16+ (NetworkManager)"
+  become:                              true
+  ansible.builtin.copy:
+    dest:                              /etc/NetworkManager/conf.d/99-sap-no-dhcp-hostname.conf
+    mode:                              '0644'
+    owner:                             root
+    group:                             root
+    content: |
+      [main]
+      hostname-mode=none
+  when:
+    - ansible_os_family | upper == "SUSE"
+    - ansible_distribution_major_version | int >= 16
 
 ...

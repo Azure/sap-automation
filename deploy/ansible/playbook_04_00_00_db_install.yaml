@@ -329,33 +329,56 @@
             password:                  "{{ hostvars.localhost.root_password | password_hash('sha512') }}"
             password_lock:             false
 
-        - name:                        "Database Installation Playbook: - HANA Scale-out - Enable {{ item.key }} in /etc/ssh/sshd_config"
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure /etc/ssh/sshd_config.d directory exists"
+          become:                      true
+          ansible.builtin.file:
+            path:                      /etc/ssh/sshd_config.d
+            state:                     directory
+            mode:                      '0755'
+            owner:                     root
+            group:                     root
+
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure sshd_config includes drop-in directory"
           become:                      true
           ansible.builtin.lineinfile:
-            path:                      "/etc/ssh/sshd_config"
-            regex:                     "^(# *)?{{ item.key }}"
-            line:                      "{{ item.key }} {{ item.value }}"
-            state:                     present
-          loop:
-            - { key: "PermitRootLogin", value: "yes" }
-            - { key: "PasswordAuthentication", value: "yes" }
-            - { key: "ChallengeResponseAuthentication", value: "yes" }
+            path:                      /etc/ssh/sshd_config
+            regexp:                    '^\s*#?\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
+            line:                      Include /etc/ssh/sshd_config.d/*.conf
+            insertbefore:              BOF
+
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Check if base sshd_config uses AllowUsers"
+          become:                      true
+          ansible.builtin.command:
+            argv:
+              - grep
+              - -qE
+              - '^[[:space:]]*AllowUsers[[:space:]]+'
+              - /etc/ssh/sshd_config
+          register:                    sshd_allowusers_in_base
+          changed_when:                false
+          failed_when:                 false
+
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Configure SSH for root login"
+          become:                      true
+          ansible.builtin.copy:
+            dest:                      /etc/ssh/sshd_config.d/99-sap-hana-scaleout.conf
+            mode:                      '0600'
+            owner:                     root
+            group:                     root
+            content: |
+              PermitRootLogin yes
+              PasswordAuthentication yes
+              ChallengeResponseAuthentication yes
+              {% if sshd_allowusers_in_base.rc == 0 %}
+              AllowUsers root
+              {% endif %}
 
         - name:                        "Database Installation Playbook: - HANA Scale-out - Debug sshdconfig file"
-          ansible.builtin.shell:       "cat /etc/ssh/sshd_config | grep -v '^#' | grep -v '^$'"
+          ansible.builtin.shell:       "cat /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*.conf 2>/dev/null | grep -v '^#' | grep -v '^$'"
           register:                    sshdconfig
           changed_when:                false
           failed_when:                 false
           ignore_errors:               true
-
-        - name:                        "Database Installation Playbook: - HANA Scale-out - Append root user to AllowUsers if used"
-          become:                      true
-          ansible.builtin.lineinfile:
-            path:                      "/etc/ssh/sshd_config"
-            regexp:                    '^AllowUsers (?!.*root.*)(.*)'
-            line:                      'AllowUsers \g<1> root'
-            backrefs:                  true
-            state:                     present
 
         - name:                        "Database Installation Playbook: - HANA Scale-out - Restart SSHD on {{ ansible_hostname }}"
           become:                      true
@@ -460,17 +483,37 @@
             update_password:               always
             password:                      "{{ lookup('ansible.builtin.password', '/dev/null', seed=inventory_hostname) | password_hash('sha512') }}"
 
-        - name:                            "Database Installation Playbook: - HANA Scale-out - Enable {{ item.key }} in /etc/ssh/sshd_config"
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Ensure /etc/ssh/sshd_config.d directory exists"
+          become:                          true
+          ansible.builtin.file:
+            path:                          /etc/ssh/sshd_config.d
+            state:                         directory
+            mode:                          '0755'
+            owner:                         root
+            group:                         root
+
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Ensure sshd_config includes drop-in directory"
           become:                          true
           ansible.builtin.lineinfile:
-            path:                          "/etc/ssh/sshd_config"
-            regex:                         "^(# *)?{{ item.key }}"
-            line:                          "{{ item.key }} {{ item.value }}"
-            state:                         present
-          loop:
-            - { key: "PermitRootLogin", value: "yes" }
-            - { key: "PasswordAuthentication", value: "no" }
-            - { key: "ChallengeResponseAuthentication", value: "no" }
+            path:                          /etc/ssh/sshd_config
+            regexp:                        '^\s*#?\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
+            line:                          Include /etc/ssh/sshd_config.d/*.conf
+            insertbefore:                  BOF
+
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Disable root credential SSH access"
+          become:                          true
+          ansible.builtin.copy:
+            dest:                          /etc/ssh/sshd_config.d/99-sap-hana-scaleout.conf
+            mode:                          '0600'
+            owner:                         root
+            group:                         root
+            content: |
+              PermitRootLogin yes
+              PasswordAuthentication no
+              ChallengeResponseAuthentication no
+              {% if sshd_allowusers_in_base.rc == 0 %}
+              AllowUsers root
+              {% endif %}
 
         - name:                            "Database Installation Playbook: - HANA Scale-out - Restart SSHD on {{ ansible_hostname }}"
           become:                          true
