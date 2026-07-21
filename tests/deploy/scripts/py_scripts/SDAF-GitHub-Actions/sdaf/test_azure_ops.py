@@ -44,6 +44,7 @@ class TestAzureOps:
         assert sdaf.azure_ops.get_azure_oidc_config() == {
             "environment": "AzureCloud",
             "audience": "api://AzureADTokenExchange",
+            "terraform_environment": "public",
         }
 
     def test_get_azure_oidc_config_returns_us_government_values(self, mocker):
@@ -56,6 +57,7 @@ class TestAzureOps:
         assert sdaf.azure_ops.get_azure_oidc_config() == {
             "environment": "AzureUSGovernment",
             "audience": "api://AzureADTokenExchangeUSGov",
+            "terraform_environment": "usgovernment",
         }
 
     def test_get_azure_oidc_config_rejects_unknown_cloud(self, mocker):

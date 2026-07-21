@@ -131,6 +131,7 @@ class TestMain:
             return_value={
                 "environment": "AzureCloud",
                 "audience": "api://AzureADTokenExchange",
+                "terraform_environment": "public",
             },
         )
         mocker.patch(
@@ -166,6 +167,7 @@ class TestMain:
 
         trigger_mock.assert_called_once_with(user_data, "00-create-environment.yml")
         environment_variables = add_environment_variables_mock.call_args.args[3]
+        assert environment_variables["ARM_ENVIRONMENT"] == "public"
         assert environment_variables["AZURE_ENVIRONMENT"] == "AzureCloud"
         assert environment_variables["AZURE_AUDIENCE"] == "api://AzureADTokenExchange"
 

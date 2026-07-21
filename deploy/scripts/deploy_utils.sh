@@ -341,20 +341,21 @@ function set_azure_cloud_environment() {
 
 	# set the azure cloud environment variables
 	local azure_cloud_environment=''
+	local azure_environment_name=''
 
-	unset AZURE_ENVIRONMENT
+	unset ARM_ENVIRONMENT
 
 	# check the azure environment in which we are running
-	AZURE_ENVIRONMENT=$(az cloud show --query name --output tsv)
+	azure_environment_name=$(az cloud show --query name --output tsv)
 
-	if [ -n "${AZURE_ENVIRONMENT}" ]; then
+	if [ -n "${azure_environment_name}" ]; then
 
-		case $AZURE_ENVIRONMENT in
+		case $azure_environment_name in
 		AzureCloud)
 			azure_cloud_environment='public'
 			;;
 		AzureUSGovernment)
-			azure_cloud_environment='usgov'
+			azure_cloud_environment='usgovernment'
 			;;
 		AzureChinaCloud)
 			azure_cloud_environment='china'
@@ -364,7 +365,7 @@ function set_azure_cloud_environment() {
 			;;
 		esac
 
-		export AZURE_ENVIRONMENT=${azure_cloud_environment}
+		export ARM_ENVIRONMENT=${azure_cloud_environment}
 		echo -e "\t\t[set_azure_cloud_environment]: Azure cloud environment: ${azure_cloud_environment}"
 	else
 		echo -e "\t\t[set_azure_cloud_environment]: Unable to determine the Azure cloud environment"

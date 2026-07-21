@@ -44,6 +44,7 @@ def main():
 
     user_data["azure_environment"] = oidc_config["environment"]
     user_data["azure_audience"] = oidc_config["audience"]
+    user_data["terraform_environment"] = oidc_config["terraform_environment"]
 
     # Check if user selected Managed Identity or Service Principal
     use_managed_identity = user_data.get("auth_choice", "1") == "2"
@@ -385,6 +386,7 @@ def main():
     environment_variables = {
         "ARM_SUBSCRIPTION_ID": user_data["subscription_id"],
         "ARM_TENANT_ID": user_data["tenant_id"],
+        "ARM_ENVIRONMENT": user_data["terraform_environment"],
         "AZURE_AUDIENCE": user_data["azure_audience"],
         "AZURE_ENVIRONMENT": user_data["azure_environment"],
         "USE_MSI": "true" if use_managed_identity else "false",
