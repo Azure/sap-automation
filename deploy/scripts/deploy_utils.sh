@@ -606,6 +606,9 @@ function get_region_code() {
 		"uaenorth")             export region_code="UANO" ;;
 		"uksouth")              export region_code="UKSO" ;;
 		"ukwest")               export region_code="UKWE" ;;
+		"usgovarizona")         export region_code="USAR" ;;
+		"usgovtexas")           export region_code="USTE" ;;
+		"usgovvirginia")        export region_code="USVI" ;;
 		"westcentralus")        export region_code="WCUS" ;;
 		"westeurope")           export region_code="WEEU" ;;
 		"westindia")            export region_code="WEIN" ;;

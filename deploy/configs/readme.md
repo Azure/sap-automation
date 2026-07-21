@@ -75,6 +75,9 @@ uaecentral
 uaenorth
 uksouth
 ukwest
+usgovarizona
+usgovtexas
+usgovvirginia
 westcentralus
 westeurope
 westindia
