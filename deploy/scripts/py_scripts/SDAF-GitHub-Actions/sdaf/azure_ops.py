@@ -5,6 +5,46 @@ import json
 from .utils import run_az_command
 
 
+AZURE_OIDC_CONFIG = {
+    "AzureCloud": {
+        "environment": "AzureCloud",
+        "audience": "api://AzureADTokenExchange",
+    },
+    "AzureUSGovernment": {
+        "environment": "AzureUSGovernment",
+        "audience": "api://AzureADTokenExchangeUSGov",
+    },
+    "AzureChinaCloud": {
+        "environment": "AzureChinaCloud",
+        "audience": "api://AzureADTokenExchangeChina",
+    },
+    "AzureGermanCloud": {
+        "environment": "AzureGermanCloud",
+        "audience": "api://AzureADTokenExchangeGerman",
+    },
+}
+
+
+def get_azure_oidc_config():
+    """Return the ``azure/login`` environment and audience for the active CLI cloud."""
+    result = run_az_command(
+        ["account", "show", "--query", "environmentName", "-o", "tsv"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Unable to determine the active Azure cloud: {result.stderr}")
+
+    cloud_name = result.stdout.strip()
+    if cloud_name not in AZURE_OIDC_CONFIG:
+        supported = ", ".join(AZURE_OIDC_CONFIG)
+        raise ValueError(
+            f"Azure cloud '{cloud_name}' is not supported. Supported clouds: {supported}"
+        )
+
+    return AZURE_OIDC_CONFIG[cloud_name].copy()
+
+
 def verify_azure_login():
     """
     Verify if the user is logged into Azure CLI.
@@ -507,9 +547,9 @@ def configure_federated_identity(user_data, spn_data):
     parameters = {
         "name": "GitHubActions",
         "issuer": "https://token.actions.githubusercontent.com",
-        "subject": f"repo:{user_data['repo_name']}:environment:{user_data['environment_name']}",
+        "subject": user_data["federated_subject"],
         "description": f"{user_data['environment_name']}-deploy",
-        "audiences": ["api://AzureADTokenExchange"],
+        "audiences": [user_data["azure_audience"]],
     }
 
     # Convert parameters to a JSON string

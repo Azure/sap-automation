@@ -9,6 +9,30 @@ import time
 logger = logging.getLogger(__name__)
 
 
+def get_federated_subject(
+    github_client,
+    repo_full_name,
+    environment_name,
+    subject_format="standard",
+    subject_override="",
+):
+    """Build the GitHub OIDC subject used by an environment-bound workflow."""
+    if subject_override:
+        return subject_override
+
+    repo = github_client.get_repo(repo_full_name)
+    if subject_format == "standard":
+        return f"repo:{repo.full_name}:environment:{environment_name}"
+    if subject_format == "enterprise":
+        owner = repo.owner
+        return (
+            f"repo:{owner.login}@{owner.id}/{repo.name}@{repo.id}:"
+            f"environment:{environment_name}"
+        )
+
+    raise ValueError("OIDC subject format must be 'standard' or 'enterprise'.")
+
+
 def add_repository_variables(github_client, repo_full_name, variables):
     """
     Add variables to the repository level.

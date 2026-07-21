@@ -6,6 +6,7 @@ Unit tests for ``sdaf.azure_ops``.
 """
 
 import json
+import pytest
 import sdaf.azure_ops
 
 
@@ -32,6 +33,50 @@ class TestAzureOps:
     """
     Test suite covering every public function of ``sdaf.azure_ops``.
     """
+
+    def test_get_azure_oidc_config_returns_public_cloud_defaults(self, mocker):
+        """The public Azure cloud uses the standard token-exchange audience."""
+        mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            return_value=_completed(returncode=0, stdout="AzureCloud\n"),
+        )
+
+        assert sdaf.azure_ops.get_azure_oidc_config() == {
+            "environment": "AzureCloud",
+            "audience": "api://AzureADTokenExchange",
+        }
+
+    def test_get_azure_oidc_config_returns_us_government_values(self, mocker):
+        """Azure US Government uses its sovereign token-exchange audience."""
+        mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            return_value=_completed(returncode=0, stdout="AzureUSGovernment\n"),
+        )
+
+        assert sdaf.azure_ops.get_azure_oidc_config() == {
+            "environment": "AzureUSGovernment",
+            "audience": "api://AzureADTokenExchangeUSGov",
+        }
+
+    def test_get_azure_oidc_config_rejects_unknown_cloud(self, mocker):
+        """Unknown clouds fail before creating a mismatched federated credential."""
+        mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            return_value=_completed(returncode=0, stdout="PrivateCloud\n"),
+        )
+
+        with pytest.raises(ValueError, match="PrivateCloud"):
+            sdaf.azure_ops.get_azure_oidc_config()
+
+    def test_get_azure_oidc_config_reports_cli_failure(self, mocker):
+        """Azure CLI lookup failures stop bootstrap with the original diagnostic."""
+        mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            return_value=_completed(returncode=1, stderr="not logged in"),
+        )
+
+        with pytest.raises(RuntimeError, match="not logged in"):
+            sdaf.azure_ops.get_azure_oidc_config()
 
     def test_verify_azure_login_returns_true_when_logged_in(self, mocker):
         """
@@ -615,7 +660,11 @@ class TestAzureOps:
             "sdaf.azure_ops.run_az_command", return_value=_completed(returncode=0)
         )
 
-        user_data = {"repo_name": "org/repo", "environment_name": "MGMT"}
+        user_data = {
+            "environment_name": "MGMT",
+            "federated_subject": "repo:org/repo:environment:MGMT",
+            "azure_audience": "api://AzureADTokenExchange",
+        }
         spn_data = {"appId": "app-id"}
 
         sdaf.azure_ops.configure_federated_identity(user_data, spn_data)
@@ -635,7 +684,11 @@ class TestAzureOps:
             return_value=_completed(returncode=1, stderr="conflict"),
         )
 
-        user_data = {"repo_name": "org/repo", "environment_name": "MGMT"}
+        user_data = {
+            "environment_name": "MGMT",
+            "federated_subject": "repo:org/repo:environment:MGMT",
+            "azure_audience": "api://AzureADTokenExchange",
+        }
         spn_data = {"appId": "app-id"}
 
         sdaf.azure_ops.configure_federated_identity(user_data, spn_data)
