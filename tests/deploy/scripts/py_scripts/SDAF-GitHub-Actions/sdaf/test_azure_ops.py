@@ -657,7 +657,11 @@ class TestAzureOps:
         :param mocker: pytest-mock fixture used to patch ``run_az_command``.
         """
         run_mock = mocker.patch(
-            "sdaf.azure_ops.run_az_command", return_value=_completed(returncode=0)
+            "sdaf.azure_ops.run_az_command",
+            side_effect=[
+                _completed(returncode=0, stdout="[]"),
+                _completed(returncode=0),
+            ],
         )
 
         user_data = {
@@ -669,7 +673,35 @@ class TestAzureOps:
 
         sdaf.azure_ops.configure_federated_identity(user_data, spn_data)
 
-        run_mock.assert_called_once()
+        assert run_mock.call_count == 2
+        create_args = run_mock.call_args_list[1].args[0]
+        parameters = json.loads(create_args[create_args.index("--parameters") + 1])
+        assert parameters["subject"] == "repo:org/repo:environment:MGMT"
+        assert parameters["audiences"] == ["api://AzureADTokenExchange"]
+
+    def test_configure_federated_identity_updates_existing_credential(self, mocker):
+        """Rerunning bootstrap repairs an existing credential instead of conflicting."""
+        run_mock = mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            side_effect=[
+                _completed(
+                    returncode=0,
+                    stdout=json.dumps([{"id": "credential-id", "name": "GitHubActions"}]),
+                ),
+                _completed(returncode=0),
+            ],
+        )
+        user_data = {
+            "environment_name": "MGMT",
+            "federated_subject": "repo:org@100/repo@200:environment:MGMT",
+            "azure_audience": "api://AzureADTokenExchangeUSGov",
+        }
+
+        sdaf.azure_ops.configure_federated_identity(user_data, {"appId": "app-id"})
+
+        update_args = run_mock.call_args_list[1].args[0]
+        assert "update" in update_args
+        assert "credential-id" in update_args
 
     def test_configure_federated_identity_logs_warning_when_federated_credential_fails(
         self, mocker
@@ -681,7 +713,10 @@ class TestAzureOps:
         """
         mocker.patch(
             "sdaf.azure_ops.run_az_command",
-            return_value=_completed(returncode=1, stderr="conflict"),
+            side_effect=[
+                _completed(returncode=0, stdout="[]"),
+                _completed(returncode=1, stderr="conflict"),
+            ],
         )
 
         user_data = {

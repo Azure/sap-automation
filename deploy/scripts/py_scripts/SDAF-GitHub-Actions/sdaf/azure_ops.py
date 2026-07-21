@@ -4,7 +4,6 @@
 import json
 from .utils import run_az_command
 
-
 AZURE_OIDC_CONFIG = {
     "AzureCloud": {
         "environment": "AzureCloud",
@@ -555,22 +554,39 @@ def configure_federated_identity(user_data, spn_data):
     # Convert parameters to a JSON string
     parameters_json = json.dumps(parameters)
 
-    # Create the federated credential
-    federated_args = [
-        "ad",
-        "app",
-        "federated-credential",
-        "create",
-        "--id",
-        spn_data["appId"],
-        "--parameters",
-        parameters_json,
-    ]
+    list_result = run_az_command(
+        ["ad", "app", "federated-credential", "list", "--id", spn_data["appId"]],
+        capture_output=True,
+        text=True,
+    )
+    if list_result.returncode != 0:
+        print("Warning: Unable to inspect existing federated identity credentials.")
+        print(f"Error: {list_result.stderr}")
+        return
+
+    try:
+        existing = next(
+            (
+                credential
+                for credential in json.loads(list_result.stdout or "[]")
+                if credential.get("name") == parameters["name"]
+            ),
+            None,
+        )
+    except json.JSONDecodeError:
+        print("Warning: Unable to parse existing federated identity credentials.")
+        return
+
+    operation = "update" if existing else "create"
+    federated_args = ["ad", "app", "federated-credential", operation, "--id", spn_data["appId"]]
+    if existing:
+        federated_args.extend(["--federated-credential-id", existing["id"]])
+    federated_args.extend(["--parameters", parameters_json])
 
     result = run_az_command(federated_args, capture_output=True, text=True)
 
     if result.returncode == 0:
-        print("Federated identity credential configured successfully.")
+        print(f"Federated identity credential {operation}d successfully.")
     else:
         print("Warning: There was an issue configuring federated identity credential.")
         print(f"Error: {result.stderr}")
