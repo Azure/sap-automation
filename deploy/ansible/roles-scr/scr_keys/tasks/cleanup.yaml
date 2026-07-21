@@ -1,0 +1,28 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                                 Cleanup                                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Description:
+#   - Runs in the context of each inventory host but is delegated to localhost to ensure it only affects
+#     the controller machine.
+#   - Remove the SSH credential files from the OS (controller only)
+#   - This is a cleanup task to ensure that sensitive information is not left on the controller
+#     after the playbook has run.
+#   - The SSH credential files are typically created during the playbook execution to facilitate
+#     SSH access to the source and destination SAP systems for key management operations.
+#   - By removing these files at the end of the playbook, we enhance the security posture of the deployment process.
+# ---------------------------------------------------------------------------*/
+- name:                                 "SCR Keys: ({{ function | upper }}) Cleanup the SSH credential files from the OS (controller only)"
+  delegate_to:                          localhost
+  ansible.builtin.file:
+    path:                               "{{ ansible_ssh_private_key_file }}"
+    state:                              absent
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...
