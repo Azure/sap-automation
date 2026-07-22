@@ -85,16 +85,6 @@
     group:                             root
   become:                              true
 
-- name:                                "1.13 MOTD - Ensure sshd_config includes drop-in directory"
-  ansible.builtin.lineinfile:
-    path:                              /etc/ssh/sshd_config
-    regexp:                            '^\s*#?\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
-    line:                              Include /etc/ssh/sshd_config.d/*.conf
-    insertbefore:                      BOF
-  become:                              true
-  notify:
-    - "1.13 MOTD - Restart sshd service"
-
 - name:                                "1.13 MOTD - Update PrintMotd and Banner via drop-in"
   ansible.builtin.copy:
     dest:                              /etc/ssh/sshd_config.d/99-sap-motd.conf
@@ -107,5 +97,18 @@
   become:                              true
   notify:
     - "1.13 MOTD - Restart sshd service"
+
+- name:                                "1.13 MOTD - Validate SSH configuration"
+  ansible.builtin.command:             /usr/sbin/sshd -T
+  become:                              true
+  changed_when:                        false
+  register:                            motd_sshd_effective_configuration
+
+- name:                                "1.13 MOTD - Verify drop-in configuration is effective"
+  ansible.builtin.assert:
+    that:
+      - "'printmotd yes' in motd_sshd_effective_configuration.stdout"
+      - "'banner /etc/issue.net' in motd_sshd_effective_configuration.stdout"
+    fail_msg:                          The SSH daemon did not load the MOTD drop-in configuration.
 
 ...

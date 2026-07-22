@@ -338,14 +338,6 @@
             owner:                     root
             group:                     root
 
-        - name:                        "Database Installation Playbook: - HANA Scale-out - Ensure sshd_config includes drop-in directory"
-          become:                      true
-          ansible.builtin.lineinfile:
-            path:                      /etc/ssh/sshd_config
-            regexp:                    '^\s*#?\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
-            line:                      Include /etc/ssh/sshd_config.d/*.conf
-            insertbefore:              BOF
-
         - name:                        "Database Installation Playbook: - HANA Scale-out - Check if base sshd_config uses AllowUsers"
           become:                      true
           ansible.builtin.command:
@@ -372,6 +364,19 @@
               {% if sshd_allowusers_in_base.rc == 0 %}
               AllowUsers root
               {% endif %}
+
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Validate SSH configuration"
+          become:                      true
+          ansible.builtin.command:     /usr/sbin/sshd -T
+          changed_when:                false
+          register:                    hana_scaleout_sshd_effective_configuration
+
+        - name:                        "Database Installation Playbook: - HANA Scale-out - Verify root credential SSH configuration"
+          ansible.builtin.assert:
+            that:
+              - "'permitrootlogin yes' in hana_scaleout_sshd_effective_configuration.stdout"
+              - "'passwordauthentication yes' in hana_scaleout_sshd_effective_configuration.stdout"
+            fail_msg:                  The SSH daemon did not load the HANA scale-out drop-in configuration.
 
         - name:                        "Database Installation Playbook: - HANA Scale-out - Debug sshdconfig file"
           ansible.builtin.shell:       "cat /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*.conf 2>/dev/null | grep -v '^#' | grep -v '^$'"
@@ -492,14 +497,6 @@
             owner:                         root
             group:                         root
 
-        - name:                            "Database Installation Playbook: - HANA Scale-out - Ensure sshd_config includes drop-in directory"
-          become:                          true
-          ansible.builtin.lineinfile:
-            path:                          /etc/ssh/sshd_config
-            regexp:                        '^\s*#?\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
-            line:                          Include /etc/ssh/sshd_config.d/*.conf
-            insertbefore:                  BOF
-
         - name:                            "Database Installation Playbook: - HANA Scale-out - Disable root credential SSH access"
           become:                          true
           ansible.builtin.copy:
@@ -514,6 +511,19 @@
               {% if sshd_allowusers_in_base.rc == 0 %}
               AllowUsers root
               {% endif %}
+
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Validate SSH configuration"
+          become:                          true
+          ansible.builtin.command:         /usr/sbin/sshd -T
+          changed_when:                    false
+          register:                        hana_scaleout_sshd_effective_configuration
+
+        - name:                            "Database Installation Playbook: - HANA Scale-out - Verify key-only root SSH configuration"
+          ansible.builtin.assert:
+            that:
+              - "'permitrootlogin yes' in hana_scaleout_sshd_effective_configuration.stdout"
+              - "'passwordauthentication no' in hana_scaleout_sshd_effective_configuration.stdout"
+            fail_msg:                      The SSH daemon did not load the HANA scale-out drop-in configuration.
 
         - name:                            "Database Installation Playbook: - HANA Scale-out - Restart SSHD on {{ ansible_hostname }}"
           become:                          true
