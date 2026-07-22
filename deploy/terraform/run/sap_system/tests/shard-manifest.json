@@ -4,9 +4,9 @@
     { "file": "output_hosts.tftest.hcl", "runs": 10 },
     { "file": "output_params.tftest.hcl", "runs": 21 },
     { "file": "output_cross_sub.tftest.hcl", "runs": 6 },
-    { "file": "plan_shape_core.tftest.hcl", "runs": 22 },
+    { "file": "plan_shape_core.tftest.hcl", "runs": 27 },
     { "file": "plan_shape_advanced.tftest.hcl", "runs": 22 },
     { "file": "validation.tftest.hcl", "runs": 35 }
   ],
-  "total_runs": 116
+  "total_runs": 121
 }
