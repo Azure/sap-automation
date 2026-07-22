@@ -128,7 +128,7 @@ function fail_if_null {
 }
 
 function getAndStoreTerraformStateStorageAccountDetails {
-	local REMOTE_STATE_SA="${1}"
+	REMOTE_STATE_SA="${1}"
 	local config_file_name="${2}"
 
 	echo "Trying to find the storage account:  ${REMOTE_STATE_SA}"
@@ -145,6 +145,7 @@ function getAndStoreTerraformStateStorageAccountDetails {
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		TF_VAR_management_subscription_id=$STATE_SUBSCRIPTION
 
+		export REMOTE_STATE_SA
 		export REMOTE_STATE_RG
 		export STATE_SUBSCRIPTION
 		export TF_VAR_tfstate_resource_id
