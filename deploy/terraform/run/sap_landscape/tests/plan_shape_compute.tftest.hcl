@@ -383,6 +383,47 @@ run "utility_vm_count_drives_windows_vm_names" {
     condition     = module.sap_landscape.utility_vm_computer_names[0] == module.sap_namegenerator.naming.virtualmachine_names.WORKLOAD_VMNAME[0]
     error_message = "sap_namegenerator's utility_vm_count wiring must drive the planned utility VM computer names."
   }
+
+  assert {
+    condition     = alltrue([for zone in module.sap_landscape.utility_vm_zones : zone == null])
+    error_message = "Utility VMs must remain non-zonal when utility_vm_zones is not provided."
+  }
+}
+
+run "utility_vm_zones_distribute_windows_vms" {
+  command = plan
+
+  variables {
+    utility_vm_count = 2
+    utility_vm_zones = ["1", "2"]
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_vm_zones == ["1", "2"]
+    error_message = "Utility VMs must be distributed across the configured zones in order."
+  }
+}
+
+run "utility_vm_zones_distribute_linux_vms" {
+  command = plan
+
+  variables {
+    utility_vm_count = 2
+    utility_vm_zones = ["1", "2"]
+    utility_vm_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "Canonical"
+      offer           = "ubuntu-24_04-lts"
+      sku             = "server"
+      version         = "latest"
+    }
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_vm_zones == ["1", "2"]
+    error_message = "Linux utility VMs must be distributed across the configured zones in order."
+  }
 }
 
 run "private_endpoint_enabled_with_keyvault_plans_endpoint" {
