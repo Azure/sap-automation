@@ -394,13 +394,13 @@ run "utility_vm_zones_distribute_windows_vms" {
   command = plan
 
   variables {
-    utility_vm_count = 2
+    utility_vm_count = 3
     utility_vm_zones = ["1", "2"]
   }
 
   assert {
-    condition     = module.sap_landscape.utility_vm_zones == ["1", "2"]
-    error_message = "Utility VMs must be distributed across the configured zones in order."
+    condition     = module.sap_landscape.utility_vm_zones == ["1", "2", "1"]
+    error_message = "Utility VMs must be distributed round-robin across the configured zones."
   }
 }
 
@@ -408,7 +408,7 @@ run "utility_vm_zones_distribute_linux_vms" {
   command = plan
 
   variables {
-    utility_vm_count = 2
+    utility_vm_count = 3
     utility_vm_zones = ["1", "2"]
     utility_vm_image = {
       os_type         = "LINUX"
@@ -421,8 +421,8 @@ run "utility_vm_zones_distribute_linux_vms" {
   }
 
   assert {
-    condition     = module.sap_landscape.utility_vm_zones == ["1", "2"]
-    error_message = "Linux utility VMs must be distributed across the configured zones in order."
+    condition     = module.sap_landscape.utility_vm_zones == ["1", "2", "1"]
+    error_message = "Linux utility VMs must be distributed round-robin across the configured zones."
   }
 }
 
