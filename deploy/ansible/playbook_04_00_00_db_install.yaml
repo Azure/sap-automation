@@ -353,7 +353,7 @@
         - name:                        "Database Installation Playbook: - HANA Scale-out - Configure SSH for root login"
           become:                      true
           ansible.builtin.copy:
-            dest:                      /etc/ssh/sshd_config.d/99-sap-hana-scaleout.conf
+            dest:                      /etc/ssh/sshd_config.d/00-sap-hana-scaleout.conf
             mode:                      '0600'
             owner:                     root
             group:                     root
@@ -500,7 +500,7 @@
         - name:                            "Database Installation Playbook: - HANA Scale-out - Disable root credential SSH access"
           become:                          true
           ansible.builtin.copy:
-            dest:                          /etc/ssh/sshd_config.d/99-sap-hana-scaleout.conf
+            dest:                          /etc/ssh/sshd_config.d/00-sap-hana-scaleout.conf
             mode:                          '0600'
             owner:                         root
             group:                         root
