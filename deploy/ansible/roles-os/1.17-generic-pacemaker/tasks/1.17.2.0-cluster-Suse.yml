@@ -71,10 +71,11 @@
   when:                                ansible_hostname == primary_instance_name
   block:
 
-    - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured"
-      ansible.builtin.shell:           "crm cluster init -y --interface eth0"
+    - name:                            "1.17 Generic Pacemaker - Ensure corosync is configured (SLES before 16)"
+      ansible.builtin.shell:           "crm cluster init -y -u --interface eth0 corosync"
       register:                        crm_init_result
       failed_when:                     crm_init_result.rc > 1
+      when:                            ansible_distribution_major_version | int < 16
 
     - name:                            "1.17 Generic Pacemaker - Ensure cluster (hdb_{{ db_sid | upper }}) is configured"
       # ha-cluster-init is not supported in SUSE 15 SP4 anymore, crm syntax required

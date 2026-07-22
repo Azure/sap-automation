@@ -97,18 +97,21 @@ locals {
                                            database_cluster_disk_type      = var.database_cluster_disk_type
                                            database_cluster_type           = var.database_cluster_type
                                            database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
-                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
-                                                                                 var.database_high_availability ? (
-                                                                                     startswith(try(var.database_vm_image.offer, ""), "sles-sap-16") ? true : var.use_sles_saphanasr_angi
-                                                                                     ) : (
-                                                                                       false
-                                                                                     )
-                                                                                 ) : (
-                                                                                   false
+                                           database_hana_use_saphanasr_angi = upper(var.database_platform) == "HANA" && var.database_high_availability ? (
+                                                                                 startswith(coalesce(try(var.database_vm_image.offer, null), "UNSET"), "sles-sap-16") ? (
+                                                                                   true) : (
+                                                                                   var.use_saphanasr_angi || var.use_sles_saphanasr_angi
                                                                                  )
+                                                                               ) : (
+                                                                                 false
+                                                                               )
 
                                            database_vm_sku                 = var.database_vm_sku
-                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, "Optimized")
+                                           db_sizing_key                   = coalesce(
+                                                                               length(trimspace(var.db_sizing_dictionary_key)) > 0 ? var.db_sizing_dictionary_key : null,
+                                                                               length(trimspace(var.database_size)) > 0 ? var.database_size : null,
+                                                                               "Default"
+                                                                             )
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                            dual_network_interfaces         = var.database_dual_nics
@@ -142,16 +145,6 @@ locals {
                                            scale_out                       = var.database_HANA_use_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
-                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
-                                                                                 var.database_high_availability ? (
-                                                                                     startswith(try(var.database_vm_image.offer, ""), "sles-sap-16") ? true : var.use_sles_saphanasr_angi
-                                                                                     ) : (
-                                                                                       false
-                                                                                     )
-                                                                                 ) : (
-                                                                                   false
-                                                                                 )
-
                                            disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                          }
 

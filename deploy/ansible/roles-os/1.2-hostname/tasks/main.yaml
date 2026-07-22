@@ -33,6 +33,7 @@
     content: |
       [main]
       hostname-mode=none
+  notify:                              "1.2 HostName - Reload NetworkManager configuration"
   when:
     - ansible_os_family | upper == "SUSE"
     - ansible_distribution_major_version | int >= 16

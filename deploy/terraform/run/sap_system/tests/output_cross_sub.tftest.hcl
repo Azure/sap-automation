@@ -168,8 +168,18 @@ variables {
   user_keyvault_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-user"
 
   database_platform  = "HANA"
+  database_size      = "Default"
   database_use_avset = true
   database_use_ppg   = false
+  database_vm_image = {
+    os_type         = "LINUX"
+    source_image_id = null
+    publisher       = "SUSE"
+    offer           = "sles-sap-15-sp5"
+    sku             = "gen2"
+    version         = "latest"
+    type            = "marketplace"
+  }
 
   scs_server_use_avset         = true
   scs_server_use_ppg           = false

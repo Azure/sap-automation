@@ -91,7 +91,7 @@ fi
 
 set -eu
 
-curdir=$(dirname "$SAP_PARAMS")
+curdir=$(cd "$(dirname "$SAP_PARAMS")" && pwd)
 
 cd "$curdir" || exit
 
