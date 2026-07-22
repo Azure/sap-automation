@@ -65,6 +65,7 @@ variables {
   deployer_statefile_foldername                = "."
   use_deployer                                 = false
   use_private_endpoint                         = false
+  routing_preference_enabled                   = false
   register_storage_accounts_keyvaults_with_dns = false
   create_privatelink_dns_zones                 = false
   management_network_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"

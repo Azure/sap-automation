@@ -45,10 +45,13 @@ resource "azurerm_storage_account" "storage_tfstate" {
                                             }
                   }
 
-  routing {
-            publish_microsoft_endpoints = true
-            choice                      = "MicrosoftRouting"
-          }
+  dynamic "routing" {
+    for_each = try(var.storage_account_tfstate.routing_preference_enabled, true) ? [1] : []
+    content {
+              publish_microsoft_endpoints = true
+              choice                      = "MicrosoftRouting"
+            }
+  }
 
 
   lifecycle {
@@ -280,10 +283,13 @@ resource "azurerm_storage_account" "storage_sapbits" {
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
   default_to_oauth_authentication      = true
 
-  routing {
-            publish_microsoft_endpoints = true
-            choice                      = "MicrosoftRouting"
-          }
+  dynamic "routing" {
+    for_each = try(var.storage_account_sapbits.routing_preference_enabled, true) ? [1] : []
+    content {
+              publish_microsoft_endpoints = true
+              choice                      = "MicrosoftRouting"
+            }
+  }
   lifecycle {
               ignore_changes = [tags]
             }

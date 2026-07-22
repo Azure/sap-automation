@@ -115,6 +115,7 @@ variables {
   custom_random_id                             = "abc"
   tfstate_resource_id                          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-tfstate/providers/Microsoft.Storage/storageAccounts/tfstatesa"
   use_private_endpoint                         = true
+  routing_preference_enabled                   = false
   register_storage_accounts_keyvaults_with_dns = true
   create_privatelink_dns_zones                 = false
   management_dns_resourcegroup_name            = "rg-mgmt-dns"

@@ -57,6 +57,7 @@ locals {
                                               name                   = coalesce(var.library_sapmedia_blob_container_name, module.sap_namegenerator.naming.resource_suffixes.sapbits)
                                             }
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
+                                           routing_preference_enabled                = var.routing_preference_enabled
                                            public_network_access_enabled             = try(
                                                                                                local.deployer_outputs.network_security_perimeter_deployment,
                                                                                                true
@@ -87,6 +88,7 @@ locals {
                                                                                      }
 
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
+                                           routing_preference_enabled                = var.routing_preference_enabled
                                            public_network_access_enabled             = try(
                                                                                                local.deployer_outputs.network_security_perimeter_deployment,
                                                                                                true
