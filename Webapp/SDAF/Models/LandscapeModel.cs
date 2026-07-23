@@ -596,6 +596,8 @@ namespace SDAFWebApp.Models
         [IpAddressValidator]
         public string[] utility_vm_nic_ips { get; set; }
 
+        public string[] utility_vm_zones { get; set; }
+
         public string storage_account_replication_type { get; set; } = "LRS";
 
         public string controlPlaneEnvironment { get; set; }

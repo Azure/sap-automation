@@ -330,6 +330,7 @@ No modules.
 | <a name="output_utility_storage_account_names"></a> [utility\_storage\_account\_names](#output\_utility\_storage\_account\_names) | List of utility storage account names |
 | <a name="output_utility_vm_computer_names"></a> [utility\_vm\_computer\_names](#output\_utility\_vm\_computer\_names) | Planned utility VM computer names |
 | <a name="output_utility_vm_count"></a> [utility\_vm\_count](#output\_utility\_vm\_count) | Number of utility VMs created by this module |
+| <a name="output_utility_vm_zones"></a> [utility\_vm\_zones](#output\_utility\_vm\_zones) | Planned availability zones for utility VMs |
 | <a name="output_vnet_sap_id"></a> [vnet\_sap\_id](#output\_vnet\_sap\_id) | Azure resource identifier for the Virtual Network |
 | <a name="output_vnet_tags"></a> [vnet\_tags](#output\_vnet\_tags) | Tags applied to the created workload VNet, if any |
 | <a name="output_web_nsg_id"></a> [web\_nsg\_id](#output\_web\_nsg\_id) | Azure resource identifier for the web subnet network security group |
