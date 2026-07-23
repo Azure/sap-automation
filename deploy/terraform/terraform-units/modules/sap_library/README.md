@@ -130,6 +130,7 @@ No modules.
 | <a name="output_sa_connection_string"></a> [sa\_connection\_string](#output\_sa\_connection\_string) | Connection string to storage account |
 | <a name="output_sapbits_sa_resource_group_name"></a> [sapbits\_sa\_resource\_group\_name](#output\_sapbits\_sa\_resource\_group\_name) | SAPBits storage account resource group name |
 | <a name="output_sapbits_storage_account_name"></a> [sapbits\_storage\_account\_name](#output\_sapbits\_storage\_account\_name) | SAPBits storage account name |
+| <a name="output_storage_endpoints"></a> [storage\_endpoints](#output\_storage\_endpoints) | Cloud-specific blob endpoints used for SAP media and Terraform state |
 | <a name="output_storagecontainer_sapbits_name"></a> [storagecontainer\_sapbits\_name](#output\_storagecontainer\_sapbits\_name) | SAP Bits container name |
 | <a name="output_storagecontainer_tfstate"></a> [storagecontainer\_tfstate](#output\_storagecontainer\_tfstate) | TFState container name |
 | <a name="output_tfstate_resource_id"></a> [tfstate\_resource\_id](#output\_tfstate\_resource\_id) | value of the Azure resource id for the tfstate storage account |

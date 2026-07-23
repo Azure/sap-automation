@@ -131,6 +131,42 @@ variables {
   }
 }
 
+run "cloud_specific_storage_endpoints_are_preserved" {
+  command = plan
+
+  override_resource {
+    target          = module.sap_library.azurerm_storage_account.storage_sapbits
+    override_during = plan
+    values = {
+      id                    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-library/providers/Microsoft.Storage/storageAccounts/stsapbitsgov"
+      name                  = "stsapbitsgov"
+      resource_group_name   = "rg-library"
+      primary_blob_endpoint = "https://stsapbitsgov.blob.core.usgovcloudapi.net/"
+    }
+  }
+
+  override_resource {
+    target          = module.sap_library.azurerm_storage_account.storage_tfstate
+    override_during = plan
+    values = {
+      id                    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-library/providers/Microsoft.Storage/storageAccounts/sttfstategov"
+      name                  = "sttfstategov"
+      resource_group_name   = "rg-library"
+      primary_blob_endpoint = "https://sttfstategov.blob.core.usgovcloudapi.net/"
+    }
+  }
+
+  assert {
+    condition     = module.sap_library.storage_endpoints.sapbits_location_base_path == "https://stsapbitsgov.blob.core.usgovcloudapi.net/sapbits"
+    error_message = "The SAP media path must use the cloud-specific blob endpoint exported by AzureRM."
+  }
+
+  assert {
+    condition     = module.sap_library.storage_endpoints.tfstate_blob_endpoint == "https://sttfstategov.blob.core.usgovcloudapi.net"
+    error_message = "The Terraform state path must use the cloud-specific blob endpoint exported by AzureRM."
+  }
+}
+
 run "greenfield_resource_group_creates_expected_name" {
   command = plan
 
@@ -203,6 +239,7 @@ run "brownfield_sapmedia_storage_reuses_existing_account" {
       id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing-library/providers/Microsoft.Storage/storageAccounts/stsapbitsexisting"
       name                      = "stsapbitsexisting"
       resource_group_name       = "rg-existing-library"
+      primary_blob_endpoint     = "https://stsapbitsexisting.blob.core.usgovcloudapi.net/"
       primary_access_key        = "diagnostic-access-key"
       primary_connection_string = "DefaultEndpointsProtocol=https;AccountName=stsapbitsexisting;AccountKey=diagnostic-access-key;EndpointSuffix=core.windows.net"
       tags = {
@@ -220,6 +257,11 @@ run "brownfield_sapmedia_storage_reuses_existing_account" {
   assert {
     condition     = output.sapbits_storage_account_name == "stsapbitsexisting"
     error_message = "The brownfield SAP media path must surface the existing storage-account name from the imported ARM ID."
+  }
+
+  assert {
+    condition     = module.sap_library.storage_endpoints.sapbits_location_base_path == "https://stsapbitsexisting.blob.core.usgovcloudapi.net/sapbits"
+    error_message = "The brownfield SAP media path must preserve the endpoint exported by the existing storage account."
   }
 }
 
@@ -250,6 +292,7 @@ run "brownfield_tfstate_storage_reuses_existing_account" {
       id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing-library/providers/Microsoft.Storage/storageAccounts/sttfstateexisting"
       name                      = "sttfstateexisting"
       resource_group_name       = "rg-existing-library"
+      primary_blob_endpoint     = "https://sttfstateexisting.blob.core.usgovcloudapi.net/"
       primary_connection_string = "DefaultEndpointsProtocol=https;AccountName=sttfstateexisting;AccountKey=diagnostic-access-key;EndpointSuffix=core.windows.net"
       tags = {
         Environment = "DEV"
@@ -266,6 +309,11 @@ run "brownfield_tfstate_storage_reuses_existing_account" {
   assert {
     condition     = output.remote_state_storage_account_name == "sttfstateexisting"
     error_message = "The brownfield tfstate path must surface the existing storage-account name from the imported ARM ID."
+  }
+
+  assert {
+    condition     = module.sap_library.storage_endpoints.tfstate_blob_endpoint == "https://sttfstateexisting.blob.core.usgovcloudapi.net"
+    error_message = "The brownfield Terraform state path must preserve the endpoint exported by the existing storage account."
   }
 }
 

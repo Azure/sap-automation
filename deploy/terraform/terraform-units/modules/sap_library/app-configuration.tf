@@ -138,9 +138,7 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPMediaPath", var.deployer.control_plane_name)
   label                                = var.deployer.control_plane_name
-  value                                = format("https://%s.blob.core.windows.net/%s", var.storage_account_sapbits.exists ?
-                                                             split("/", var.storage_account_sapbits.id)[8] : local.storage_account_SAPmedia,
-                                                             var.storage_account_sapbits.sapbits_blob_container.name)
+  value                                = local.sapbits_location_base_path
   content_type                         = "text/plain"
   type                                 = "kv"
   tags                                 = merge(var.infrastructure.tags, {
