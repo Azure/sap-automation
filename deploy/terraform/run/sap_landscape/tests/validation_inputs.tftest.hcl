@@ -241,6 +241,35 @@ run "invalid_environment" {
   ]
 }
 
+run "separate_storage_subnet_accepts_address_prefix" {
+  command = plan
+
+  variables {
+    storage_subnet_arm_id         = ""
+    storage_subnet_address_prefix = "10.10.8.0/24"
+    use_separate_storage_subnet    = true
+  }
+
+  assert {
+    condition     = output.use_separate_storage_subnet
+    error_message = "A separate storage subnet with an address prefix must keep the baseline plan healthy."
+  }
+}
+
+run "separate_storage_subnet_requires_configuration" {
+  command = plan
+
+  variables {
+    storage_subnet_arm_id         = ""
+    storage_subnet_address_prefix = ""
+    use_separate_storage_subnet    = true
+  }
+
+  expect_failures = [
+    var.use_separate_storage_subnet,
+  ]
+}
+
 run "valid_subscription_id" {
   command = plan
 

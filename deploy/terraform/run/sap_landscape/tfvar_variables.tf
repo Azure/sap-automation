@@ -367,6 +367,14 @@ variable "web_subnet_nsg_arm_id"                {
 variable "use_separate_storage_subnet"          {
                                                   description = "Boolean to use a separate subnet"
                                                   default     = false
+                                                  type        = bool
+                                                  validation {
+                                                    condition = !var.use_separate_storage_subnet || (
+                                                      length(trimspace(var.storage_subnet_arm_id)) > 0 ||
+                                                      length(trimspace(var.storage_subnet_address_prefix)) > 0
+                                                    )
+                                                    error_message = "When use_separate_storage_subnet is true, storage_subnet_arm_id or storage_subnet_address_prefix must be specified."
+                                                  }
                                                 }
 
 variable "storage_subnet_name"                  {
