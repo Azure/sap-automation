@@ -1139,6 +1139,7 @@ function ReplaceResourceInStateFile {
 # Terraform imports require the complete role-assignment resource ID, not only its GUID.
 function ResolveRoleAssignmentResourceID {
 	local role_assignment_id=$1
+	local role_assignment_name=$role_assignment_id
 	local resolved_role_assignment_id
 	local subscription_id
 	local subscription_ids
@@ -1146,6 +1147,10 @@ function ResolveRoleAssignmentResourceID {
 	if [[ "$role_assignment_id" == /* ]]; then
 		echo "$role_assignment_id"
 		return 0
+	fi
+
+	if [[ "$role_assignment_name" =~ ^[[:xdigit:]]{32}$ ]]; then
+		role_assignment_name="${role_assignment_name:0:8}-${role_assignment_name:8:4}-${role_assignment_name:12:4}-${role_assignment_name:16:4}-${role_assignment_name:20:12}"
 	fi
 
 	if ! subscription_ids=$(az account list \
@@ -1160,7 +1165,7 @@ function ResolveRoleAssignmentResourceID {
 		if resolved_role_assignment_id=$(az role assignment list \
 			--all \
 			--subscription "$subscription_id" \
-			--query "[?name=='${role_assignment_id}'].id | [0]" \
+			--query "[?name=='${role_assignment_name}'].id | [0]" \
 			--output tsv) && [[ -n "$resolved_role_assignment_id" ]]; then
 			echo "$resolved_role_assignment_id"
 			return 0
