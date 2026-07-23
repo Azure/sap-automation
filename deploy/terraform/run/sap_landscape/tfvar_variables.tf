@@ -163,6 +163,16 @@ variable "use_private_endpoint"                 {
                                                   type        = bool
                                                 }
 
+variable "private_endpoint_network_policies"    {
+                                                  description = "Controls network policy support for private endpoints on workload zone subnets"
+                                                  default     = "Enabled"
+                                                  type        = string
+                                                  validation {
+                                                    condition     = contains(["Disabled", "Enabled", "NetworkSecurityGroupEnabled", "RouteTableEnabled"], var.private_endpoint_network_policies)
+                                                    error_message = "The private_endpoint_network_policies value must be Disabled, Enabled, NetworkSecurityGroupEnabled, or RouteTableEnabled."
+                                                  }
+                                                }
+
 variable "use_service_endpoint"                 {
                                                   description = "Boolean value indicating if service endpoints should be used for the deployment"
                                                   default     = false
@@ -1331,5 +1341,3 @@ variable "control_plane_name"                   {
                                                   description = "The name of the control plane"
                                                   default     = ""
                                                 }
-
-
