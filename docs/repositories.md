@@ -9,8 +9,8 @@ executable asset.
 
 | Repository | Responsibility | Primary assets |
 | --- | --- | --- |
-| [`Azure/sap-automation`](https://github.com/Azure/sap-automation) | Central documentation, framework source, local execution, and shared pipeline templates | Terraform, Ansible, scripts, pipeline templates, Azure DevOps setup utilities, and Web application |
-| [`Azure/sap-automation-gh-bootstrap`](https://github.com/Azure/sap-automation-gh-bootstrap) | GitHub setup and GitHub Actions execution | Repository templates, environments, variables, secrets, runners, and workflows |
+| [`Azure/sap-automation`](https://github.com/Azure/sap-automation) | Central documentation, framework source, local execution, and shared pipeline templates | Terraform, Ansible, scripts, GitHub and Azure DevOps setup utilities, runner infrastructure, pipeline templates, and Web application |
+| [`Azure/sap-automation-gh-bootstrap`](https://github.com/Azure/sap-automation-gh-bootstrap) | GitHub configuration-repository bootstrap and GitHub Actions execution | Configuration-repository template and workflows |
 | [`Azure/sap-automation-bootstrap`](https://github.com/Azure/sap-automation-bootstrap) | Azure DevOps customer-repository bootstrap and Azure Pipelines execution | Customer-repository structure and wrapper pipelines |
 | [`Azure/SAP-automation-samples`](https://github.com/Azure/SAP-automation-samples) | Shared deployment examples and SAP software definitions | Terraform examples, SAP definitions, BOM files, and Ansible samples |
 
@@ -59,7 +59,8 @@ maintain it.
 | Change | Owning repository |
 | --- | --- |
 | Terraform module, Ansible role, local script, pipeline template, or Web application | `Azure/sap-automation` |
-| GitHub workflow, environment, secret, variable, or runner setup | `Azure/sap-automation-gh-bootstrap` |
+| GitHub setup utility, repository or environment secret and variable provisioning, or runner implementation | `Azure/sap-automation` |
+| GitHub configuration-repository template or workflow | `Azure/sap-automation-gh-bootstrap` |
 | Azure DevOps project or workload-zone setup utility, repository resource, variable group, service connection, or agent-pool setup | `Azure/sap-automation` |
 | Azure DevOps customer-repository template or wrapper pipeline | `Azure/sap-automation-bootstrap` |
 | Terraform example, SAP definition, BOM file, or Ansible sample | `Azure/SAP-automation-samples` |

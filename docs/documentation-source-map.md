@@ -27,6 +27,7 @@ statement.
 
 | Capability | Execution model | Source asset | Validation result |
 | --- | --- | --- | --- |
+| GitHub repository setup | GitHub Actions | [`SDAF-GitHub-Actions`](../deploy/scripts/py_scripts/SDAF-GitHub-Actions/) | Configures the GitHub App, repository variables and secrets, Azure identity, and required permissions. It dispatches workflow `00`, then configures the created environment and federated identity. |
 | Control-plane configuration generation | GitHub Actions | [`00-create-environment.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/00-create-environment.yml) | Generates control-plane environment and `WORKSPACES` configuration from templates. |
 | Workload-zone configuration generation | GitHub Actions | [`02-create-workload-environment.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/02-create-workload-environment.yml) | Generates workload-zone environment and configuration. |
 | SAP-system configuration generation | GitHub Actions | [`04-create-system-environment.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/04-create-system-environment.yml) | Generates and commits SAP-system `WORKSPACES` configuration. It does not create a GitHub environment. |

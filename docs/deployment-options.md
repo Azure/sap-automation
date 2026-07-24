@@ -46,7 +46,7 @@ The
 [`Azure/sap-automation-gh-bootstrap`](https://github.com/Azure/sap-automation-gh-bootstrap)
 repository provides:
 
-- GitHub repository bootstrap and environment setup.
+- GitHub configuration-repository template.
 - Workflows that generate control-plane, workload-zone, and SAP-system
   configuration.
 - Workflows that deploy each infrastructure stage.
@@ -64,10 +64,12 @@ Start the GitHub Actions setup:
    [repository prerequisites](https://github.com/Azure/sap-automation-gh-bootstrap#use-sap-deployment-automation-framework-from-github).
 2. Select **Use this template** to
    [create the configuration repository](https://github.com/new?template_name=sap-automation-gh-bootstrap&template_owner=Azure).
-3. In the configuration repository, run
-   [`00 - Create environment`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/main/.github/workflows/00-create-environment.yml)
+3. Run the
+   [`SDAF-GitHub-Actions` setup utility](../deploy/scripts/py_scripts/SDAF-GitHub-Actions/README.md).
+   The utility configures the GitHub App, repository variables and secrets,
+   Azure identity, and required permissions. It then dispatches workflow `00`
    to create the control-plane environment and configuration.
-4. Review and approve the generated environment variables, secrets, and
+4. Review and approve the generated environment, variables, secrets, and
    `WORKSPACES` configuration.
 5. Run
    [`01 - Deploy Control Plane`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/main/.github/workflows/01-deploy-control-plane.yml)
