@@ -23,7 +23,7 @@ configuration and automation assets for the first deployment stage.
 | Compare execution models | [Choose an SDAF deployment option](deployment-options.md) |
 | Understand repository ownership | [SDAF repositories](repositories.md) |
 | Use GitHub Actions | [`Azure/sap-automation-gh-bootstrap`](https://github.com/Azure/sap-automation-gh-bootstrap) |
-| Use Azure DevOps | [`Azure/sap-automation-bootstrap`](https://github.com/Azure/sap-automation-bootstrap) |
+| Use Azure DevOps | [Start with Azure DevOps](deployment-options.md#azure-devops) |
 | Run SDAF scripts directly | [`deploy/scripts`](../deploy/scripts/) |
 | Find Terraform samples and SAP BOMs | [`Azure/SAP-automation-samples`](https://github.com/Azure/SAP-automation-samples) |
 
