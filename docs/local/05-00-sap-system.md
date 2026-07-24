@@ -104,7 +104,8 @@ Do not pass `--auto-approve`.
 ## Validate
 
 1. Confirm that Terraform apply completed successfully.
-2. Confirm that `apply_output.log` or `apply_output.json` records the apply.
+2. Confirm that `apply_output.log` records the apply. Automation mode uses
+   `apply_output.json` only as a transient processing artifact.
 3. Confirm that the expected SAP-system resource group, VMs, disks, network
    interfaces, and load balancers exist.
 4. Confirm that the system state blob is named

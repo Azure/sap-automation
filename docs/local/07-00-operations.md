@@ -108,7 +108,8 @@ Retain:
 - The SDAF commit and installed tool versions.
 - The approved `.tfvars` revision.
 - Terraform plan and apply console output.
-- `apply_output.log` or `apply_output.json`.
+- `apply_output.log`. Automation mode removes its transient
+  `apply_output.json` after processing.
 - Stage Markdown summaries.
 - Generated inventory and `sap-parameters.yaml`.
 - Ansible output and product logs.

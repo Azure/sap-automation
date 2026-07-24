@@ -97,7 +97,8 @@ cross-subscription resources.
 ## Validate
 
 1. Confirm that Terraform apply completed successfully.
-2. Confirm that `apply_output.log` or `apply_output.json` records the apply.
+2. Confirm that `apply_output.log` records the apply. Automation mode uses
+   `apply_output.json` only as a transient processing artifact.
 3. Confirm that the workload-zone resource group and configured shared
    services exist.
 4. Confirm that the workload-zone state blob is named
@@ -120,4 +121,3 @@ have a state migration or recovery plan.
 ## Next step
 
 [Deploy an SAP system](05-00-sap-system.md).
-

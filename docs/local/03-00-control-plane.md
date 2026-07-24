@@ -101,8 +101,9 @@ and requires the deployer state folder.
 ## Validate
 
 1. Confirm that both Terraform applies completed successfully in the console.
-2. Confirm that `apply_output.log` exists in each component working directory,
-   unless automation output mode produced `apply_output.json`.
+2. Confirm that `apply_output.log` exists in each component working directory.
+   The documented interactive execution retains this log; automation mode uses
+   `apply_output.json` only as a transient processing artifact.
 3. Confirm that `$CONFIG_REPO_PATH/.sap_deployment_automation` contains the
    environment metadata file.
 4. Confirm that the library output identifies the remote-state storage

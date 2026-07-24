@@ -83,7 +83,9 @@ It passes the selected combination to
 - Runs selected numbered playbooks.
 - Runs customer pre- and post-playbooks from
   `$CONFIG_REPO_PATH/ANSIBLE` when matching files exist.
-- Stops the selected sequence after a failed playbook.
+- Reports customer hook failures but continues to the numbered playbook or the
+  next selected playbook.
+- Stops the selected sequence after a failed numbered playbook.
 
 The menu exposes validation, OS configuration, SAP OS configuration, BOM
 processing, SCS, database, database load, database HA, PAS, application
@@ -143,8 +145,9 @@ pre/post playbooks.
 
 3. Select one reviewed playbook or grouped sequence.
 
-   The wrapper reports the current playbook and stops if it returns a nonzero
-   status.
+   The wrapper reports the current playbook and stops if a numbered playbook
+   returns a nonzero status. Customer pre- and post-playbook failures are
+   reported but do not stop the sequence.
 
 4. Repeat the menu for the next approved sequence.
 
@@ -165,9 +168,10 @@ pre/post playbooks.
 ## Safe retry
 
 Correct the failed prerequisite or task, then rerun the smallest applicable
-playbook. The menu stops after a failure, so do not restart a grouped sequence
-without identifying the failed playbook and reviewing its progress marker and
-idempotence.
+playbook. Before restarting a grouped sequence, identify any failed numbered
+playbook or customer hook and review its output, progress marker, and
+idempotence. A failed pre-hook does not prevent the numbered playbook from
+running, and a failed post-hook does not stop the next selected playbook.
 
 Do not delete `.progress` markers merely to force a rerun. Review the role that
 owns the marker and the target system state first.
