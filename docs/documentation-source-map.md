@@ -17,7 +17,7 @@ versions:
 | --- | --- | --- |
 | `Azure/sap-automation` | `release/july-2026` | `93785d789` |
 | `Azure/sap-automation-gh-bootstrap` | `update-docs-templates` | `0ee1260a6` |
-| `Azure/sap-automation-bootstrap` | `docs-updates` | `fd94e68d9` |
+| `Azure/sap-automation-bootstrap` | `main` | `fd94e68d9` |
 | `Azure/SAP-automation-samples` | `main` | `20a0b849b` |
 
 Revalidate a row against the target branch before changing its capability
@@ -43,11 +43,11 @@ statement.
 | SAP-system deployment | GitHub Actions | [`05-sap-system-deployment.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/05-sap-system-deployment.yml) | Deploys SAP-system infrastructure from prepared configuration. |
 | SAP-system deployment | Azure DevOps | [`03-sap-system-deployment.yml`](https://github.com/Azure/sap-automation-bootstrap/blob/fd94e68d96a5827707d08bcb622d44e8a80f789b/pipelines/03-sap-system-deployment.yml) | Wraps the core SAP-system pipeline template. |
 | SAP-system deployment | Local | [`installer.sh`](../deploy/scripts/installer.sh) and [`installer_v2.sh`](../deploy/scripts/installer_v2.sh) | Local system entry points exist. Release guidance must identify the supported entry point. |
-| SAP software download | GitHub Actions | [`06-sap-software-download.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/06-sap-software-download.yml) and [`065-sap-software-download.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/065-sap-software-download.yml) | Both workflows exist. Their intended public distinction requires owner confirmation. |
+| SAP software download | GitHub Actions | [`06-sap-software-download.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/06-sap-software-download.yml) and [`065-sap-software-download.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/065-sap-software-download.yml) | Workflow `06` selects a predefined combined BOM. Workflow `06.5` selects separate application, database, and kernel BOMs and combines them under the selected name. |
 | SAP software download | Azure DevOps | [`04-sap-software-download.yml`](https://github.com/Azure/sap-automation-bootstrap/blob/fd94e68d96a5827707d08bcb622d44e8a80f789b/pipelines/04-sap-software-download.yml) and [`04-sap-software-download_v2.yml`](https://github.com/Azure/sap-automation-bootstrap/blob/fd94e68d96a5827707d08bcb622d44e8a80f789b/pipelines/04-sap-software-download_v2.yml) | Wrapper variants exist. Detailed guidance must explain selection criteria after owner confirmation. |
 | SAP software download | Local | [`download_menu.sh`](../deploy/ansible/download_menu.sh) and [`playbook_bom_downloader.yaml`](../deploy/ansible/playbook_bom_downloader.yaml) | Runs the local BOM-driven software download path. |
 | SAP software definitions | Shared | [`SAP`](https://github.com/Azure/SAP-automation-samples/tree/20a0b849ba40ed816683ec1ce6a417f73276485d/SAP) and [`BOM`](https://github.com/Azure/SAP-automation-samples/tree/20a0b849ba40ed816683ec1ce6a417f73276485d/BOM) | The samples repository owns SAP definitions and BOM files for every execution model. |
-| OS, database, and SAP installation | GitHub Actions | [`07-configuration-installation.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/07-configuration-installation.yml) | Orchestrates configuration and installation. The owning repository documents current implementation limitations. |
+| OS, database, and SAP installation | GitHub Actions | [`07-configuration-installation.yml`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/0ee1260a6bce5137cdf295386ad9e32ef5c8bd1d/.github/workflows/07-configuration-installation.yml) | Currently blocked by invalid YAML indentation and inconsistent inventory path handling. Do not dispatch the workflow until both issues are corrected and validated. |
 | OS, database, and SAP installation | Azure DevOps | [`05-DB-and-SAP-installation.yml`](https://github.com/Azure/sap-automation-bootstrap/blob/fd94e68d96a5827707d08bcb622d44e8a80f789b/pipelines/05-DB-and-SAP-installation.yml) and [`07-sap-cal-installation.yml`](https://github.com/Azure/sap-automation-bootstrap/blob/fd94e68d96a5827707d08bcb622d44e8a80f789b/pipelines/07-sap-cal-installation.yml) | Provides the standard installation wrapper and an Azure DevOps CAL path. |
 | OS, database, and SAP installation | Local | [`configuration_menu.sh`](../deploy/ansible/configuration_menu.sh) and [`deploy/ansible`](../deploy/ansible/) | Uses the local Ansible wrapper and numbered playbooks. |
 | Repository updates | Azure DevOps | [`20-update-repositories.yml`](https://github.com/Azure/sap-automation-bootstrap/blob/fd94e68d96a5827707d08bcb622d44e8a80f789b/pipelines/20-update-repositories.yml) | Updates configured repositories through an Azure DevOps wrapper. |
@@ -63,8 +63,6 @@ statement.
 The following questions must be resolved before detailed journey guidance
 labels one option as current or supported:
 
-- What is the intended public distinction between GitHub workflows `06` and
-  `065`?
 - What is the intended public distinction between the Azure DevOps software
   download wrapper variants?
 - Which local established and v2 entry points are supported for each release?

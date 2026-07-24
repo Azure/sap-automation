@@ -52,6 +52,12 @@ repository provides:
 - Workflows that deploy each infrastructure stage.
 - Workflows for software download, installation, and removal.
 
+> [!WARNING]
+> Do not dispatch workflow `07 - Operating System Configuration and
+> Installation` until its invalid YAML indentation and inconsistent inventory
+> path handling are corrected and validated. The owning repository documents
+> these current implementation limitations.
+
 Start with the repository README and complete its numbered guides in order.
 Do not start with the control-plane deployment workflow. The bootstrap and
 configuration-generation steps create inputs required by later workflows.
