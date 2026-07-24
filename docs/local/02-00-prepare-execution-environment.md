@@ -45,20 +45,24 @@ Azure deployment.
 1. Clone the SDAF repository.
 
    ```bash
-   git clone https://github.com/Azure/sap-automation.git
+   mkdir -p "$HOME/Azure_SAP_Automated_Deployment"
+   git clone https://github.com/Azure/sap-automation.git \
+     "$HOME/Azure_SAP_Automated_Deployment/sap-automation"
    ```
 
-   The `sap-automation` directory is created.
+   The repository is created at the fixed checkout path used by
+   `configure_deployer.sh`.
 
 2. Check out the approved commit.
 
    ```bash
-   cd sap-automation
+   cd "$HOME/Azure_SAP_Automated_Deployment/sap-automation"
    git checkout <SDAF_COMMIT>
+   git rev-parse HEAD
    ```
 
    Git reports a detached HEAD at the approved commit unless the commit is on
-   a local release branch.
+   a local release branch, and `rev-parse` returns the recorded commit.
 
 3. Export the source and configuration paths.
 
@@ -99,9 +103,14 @@ Azure deployment.
    if [ -f /etc/profile.d/deploy_server.sh ]; then
      source /etc/profile.d/deploy_server.sh
    fi
+   export SAP_AUTOMATION_REPO_PATH="$HOME/Azure_SAP_Automated_Deployment/sap-automation"
+   export CONFIG_REPO_PATH="<CONFIG_ROOT>"
+   export ARM_SUBSCRIPTION_ID="<SUBSCRIPTION_ID>"
    ```
 
    Terraform, Azure CLI, Ansible, and SDAF scripts are available on `PATH`.
+   Re-exporting the reviewed values is required because the generated profile
+   sets its current subscription and fixed default repository paths.
 
 7. Verify the tool versions.
 

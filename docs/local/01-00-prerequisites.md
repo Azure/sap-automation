@@ -45,13 +45,11 @@ Confirm the following requirements:
 
 Treat the SDAF commit and tool versions as one reviewed release unit.
 
-1. Record the approved SDAF commit.
+1. Identify the approved SDAF commit from your release guidance and record it
+   as `<SDAF_COMMIT>`.
 
-   ```bash
-   git -C "$SAP_AUTOMATION_REPO_PATH" rev-parse HEAD
-   ```
-
-   The command returns one commit identifier.
+   Verify this value with `git rev-parse HEAD` after checking out the repository
+   on the next page.
 
 2. Review each Terraform root module's `providers.tf` before installation.
 
