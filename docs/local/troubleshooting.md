@@ -99,8 +99,10 @@ Stop before approval. Compare:
 - The previous successful plan or apply record.
 
 SAP-system automation checks selected VM, disk, SAP library, and state storage
-replacements. Workload-zone automation also writes risk information to its
-environment `.err` file for selected migration conditions.
+replacements. Workload-zone automation reports selected migration risks in the
+console during local interactive execution. Its environment `.err` artifact is
+written only when the script runs through Azure DevOps, so local operators must
+retain the console output.
 
 ## A control-plane run stopped partway through
 
@@ -190,4 +192,3 @@ Include:
 - Whether a retry, recovery, state operation, or manual Azure change occurred.
 
 Return to [Run SDAF locally](README.md).
-

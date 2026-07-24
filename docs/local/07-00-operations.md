@@ -214,9 +214,9 @@ approved removal scope.
 cd "$CONFIG_REPO_PATH/WORKSPACES"
 "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remove_controlplane.sh" \
   --deployer_parameter_file \
-  "DEPLOYER/<CONTROL_PLANE>-INFRASTRUCTURE/<CONTROL_PLANE>-INFRASTRUCTURE.tfvars" \
+  "$CONFIG_REPO_PATH/WORKSPACES/DEPLOYER/<CONTROL_PLANE>-INFRASTRUCTURE/<CONTROL_PLANE>-INFRASTRUCTURE.tfvars" \
   --library_parameter_file \
-  "LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY.tfvars"
+  "$CONFIG_REPO_PATH/WORKSPACES/LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY.tfvars"
 ```
 
 Review each destroy operation. Use `--keep_agent` only when you have approved

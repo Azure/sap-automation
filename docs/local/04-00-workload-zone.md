@@ -50,7 +50,6 @@ Also identify:
 - Configures the `sap_landscape` Terraform root module.
 - Reads deployer remote state.
 - Runs Terraform plan with detailed exit codes.
-- Checks plan output for selected replacement and data-loss risks.
 - Applies the approved plan.
 - Persists workload-zone metadata.
 - Uploads the `.tfvars` file and local backend metadata to the state storage
@@ -65,9 +64,10 @@ changes, storage replacement, Key Vault changes, role assignments, and
 cross-subscription resources.
 
 > [!WARNING]
-> Stop if the script reports that the environment uses older Terraform
-> templates or that the plan risks data loss. Review the complete plan and
-> migration path before continuing.
+> Stop if the displayed plan shows older Terraform templates, replacement, or
+> data-loss risk. The fresh local execution path does not capture the current
+> plan for automated replacement checks, so operator review of the complete
+> plan and migration path is required.
 
 ## Run
 
@@ -106,7 +106,7 @@ cross-subscription resources.
 5. Confirm that the `tfvars/LANDSCAPE` path contains the uploaded
    configuration and backend metadata.
 6. Confirm that the workload-zone Markdown summary contains the expected
-   subscription, network, Key Vault, and storage details.
+   environment, location, and Key Vault name.
 7. Confirm connectivity and name resolution from the execution host or
    deployer to the workload zone.
 
