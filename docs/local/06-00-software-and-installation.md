@@ -57,16 +57,17 @@ Before using the download menu, add reviewed values for all four keys to
 `sap-parameters.yaml`:
 
 ```yaml
-application_bom_name: "<APPLICATION_BOM>"
-database_bom_name: "<DATABASE_BOM>"
-sap_kernel_bom_name: "<KERNEL_BOM>"
-save_bom_as: "<COMBINED_BOM_NAME>"
+application_bom_name: <APPLICATION_BOM>
+database_bom_name: <DATABASE_BOM>
+sap_kernel_bom_name: <KERNEL_BOM>
+save_bom_as: <COMBINED_BOM_NAME>
 ```
 
 The wrapper combines the four values and passes the result to
 [`playbook_bom_downloader.yaml`](../../deploy/ansible/playbook_bom_downloader.yaml).
 Without these keys, it overrides the generated BOM value with an invalid empty
-combination.
+combination. Keep these values unquoted because the wrapper extracts the second
+whitespace-delimited field instead of parsing YAML.
 
 ## Configuration preparation
 
