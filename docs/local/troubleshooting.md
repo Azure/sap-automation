@@ -171,7 +171,17 @@ Do not remove the remote-state account or edit state to hide the failure.
 3. Confirm that workload zones were removed before the control plane.
 4. Compare remaining Azure resources with the Terraform state list.
 5. Resolve locks, permissions, policies, and delete protections.
-6. Rerun the same removal command and review the destroy plan.
+6. For an SAP-system or workload-zone removal, rerun the same command and
+   review the destroy plan.
+
+For an interrupted control-plane removal, inspect the environment file under
+`$CONFIG_REPO_PATH/.sap_deployment_automation`, its persisted `step`, the
+library destroy result, and the remaining deployer state and resources. After
+the library destroy, `remove_controlplane.sh` saves `step=1`; a later invocation
+can exit successfully without destroying the deployer. Do not treat that exit
+as completion or edit the step to bypass the guard. Obtain expert review for a
+component-specific deployer recovery path, including state backup and destroy
+plan review.
 
 Use `advanced_state_management.sh` only when an Azure resource and its
 Terraform address require an explicitly reviewed `list`, `import`, or
