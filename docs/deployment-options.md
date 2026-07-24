@@ -58,9 +58,23 @@ repository provides:
 > path handling are corrected and validated. The owning repository documents
 > these current implementation limitations.
 
-Start with the repository README and complete its numbered guides in order.
-Do not start with the control-plane deployment workflow. The bootstrap and
-configuration-generation steps create inputs required by later workflows.
+Start the GitHub Actions setup:
+
+1. Review the
+   [repository prerequisites](https://github.com/Azure/sap-automation-gh-bootstrap#use-sap-deployment-automation-framework-from-github).
+2. Select **Use this template** to
+   [create the configuration repository](https://github.com/new?template_name=sap-automation-gh-bootstrap&template_owner=Azure).
+3. In the configuration repository, run
+   [`00 - Create environment`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/main/.github/workflows/00-create-environment.yml)
+   to create the control-plane environment and configuration.
+4. Review and approve the generated environment variables, secrets, and
+   `WORKSPACES` configuration.
+5. Run
+   [`01 - Deploy Control Plane`](https://github.com/Azure/sap-automation-gh-bootstrap/blob/main/.github/workflows/01-deploy-control-plane.yml)
+   only after the required configuration and approvals are available.
+
+After these steps, the control-plane inputs are ready for the first deployment
+workflow.
 
 ## Azure DevOps
 
