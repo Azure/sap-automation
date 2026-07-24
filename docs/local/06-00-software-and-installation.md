@@ -164,7 +164,18 @@ pre/post playbooks.
    returns a nonzero status. Customer pre- and post-playbook failures are
    reported but do not stop the sequence.
 
-4. Repeat the menu for the next approved sequence.
+4. After the menu exits, remove the retrieved private-key file immediately.
+
+   ```bash
+   rm -f -- "$PWD/sshkey"
+   test ! -e "$PWD/sshkey"
+   ```
+
+   The wrapper removes `sshkey` only when **Quit** is selected. A normal
+   playbook selection exits without removing it, including after a failed
+   numbered playbook.
+
+5. Repeat steps 1 through 4 for the next approved sequence.
 
    Progress files under the workspace `.progress` directory provide evidence
    for BOM and installation stages that implement markers.

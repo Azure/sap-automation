@@ -47,7 +47,17 @@ Azure deployment.
 
 ## Prepare the host
 
-1. Clone the SDAF repository.
+1. Install Git through your organization's approved operating-system package
+   process, then verify it is available.
+
+   ```bash
+   command -v git
+   git --version
+   ```
+
+   Both commands complete successfully.
+
+2. Clone the SDAF repository.
 
    ```bash
    mkdir -p "$HOME/Azure_SAP_Automated_Deployment"
@@ -58,7 +68,7 @@ Azure deployment.
    The repository is created at the fixed checkout path used by
    `configure_deployer.sh`.
 
-2. Check out the approved commit.
+3. Check out the approved commit.
 
    ```bash
    cd "$HOME/Azure_SAP_Automated_Deployment/sap-automation"
@@ -69,7 +79,7 @@ Azure deployment.
    Git reports a detached HEAD at the approved commit unless the commit is on
    a local release branch, and `rev-parse` returns the recorded commit.
 
-3. Export the source and configuration paths.
+4. Export the source and configuration paths.
 
    ```bash
    export SAP_AUTOMATION_REPO_PATH="$(pwd)"
@@ -79,7 +89,7 @@ Azure deployment.
 
    Each variable resolves to a nonempty absolute path or subscription ID.
 
-4. Create the configuration root.
+5. Create the configuration root.
 
    ```bash
    mkdir -p "$CONFIG_REPO_PATH/WORKSPACES"
@@ -87,7 +97,7 @@ Azure deployment.
 
    The `WORKSPACES` directory exists outside the SDAF checkout.
 
-5. Install Azure CLI through your organization's approved process, then
+6. Install Azure CLI through your organization's approved process, then
    authenticate before host preparation.
 
    ```bash
@@ -107,7 +117,7 @@ Azure deployment.
    setup completes, so exporting a subscription ID without an authenticated
    session is not sufficient.
 
-6. Prepare the Linux toolchain.
+7. Prepare the Linux toolchain.
 
    ```bash
    TF_VERSION=1.14.6 \
@@ -134,7 +144,7 @@ Azure deployment.
    versions through that process instead. The deployment scripts check that
    Terraform and Azure CLI are available.
 
-7. Start a new shell or load the generated profile when present.
+8. Start a new shell or load the generated profile when present.
 
    ```bash
    if [ -f /etc/profile.d/deploy_server.sh ]; then
@@ -158,7 +168,7 @@ Azure deployment.
    approved `known_hosts` file and obtain a reviewed wrapper or execution path
    that does not override the setting.
 
-8. Verify the tool versions.
+9. Verify the tool versions.
 
    ```bash
    "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/helpers/check_workstation.sh"
@@ -166,7 +176,7 @@ Azure deployment.
 
    The command prints a version for `az`, `terraform`, `ansible`, and `jq`.
 
-9. Verify the Azure context after host preparation.
+10. Verify the Azure context after host preparation.
 
    ```bash
    az account show --query '{subscription:id,tenant:tenantId,user:user.name}' \
