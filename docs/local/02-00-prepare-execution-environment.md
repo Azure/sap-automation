@@ -87,7 +87,27 @@ Azure deployment.
 
    The `WORKSPACES` directory exists outside the SDAF checkout.
 
-5. Prepare the Linux toolchain.
+5. Install Azure CLI through your organization's approved process, then
+   authenticate before host preparation.
+
+   ```bash
+   command -v az
+   az login
+   az account set --subscription "$ARM_SUBSCRIPTION_ID"
+   az account show --query '{subscription:id,tenant:tenantId,user:user.name}' \
+     --output table
+   ```
+
+   The output identifies the intended subscription, tenant, and principal.
+   Use the approved service-principal sign-in instead when that identity model
+   applies. On an Azure host with managed identity, use the approved
+   `az login --identity` form.
+
+   `configure_deployer.sh` queries `az account show` before its own Azure CLI
+   setup completes, so exporting a subscription ID without an authenticated
+   session is not sufficient.
+
+6. Prepare the Linux toolchain.
 
    ```bash
    TF_VERSION=1.14.6 \
@@ -105,11 +125,16 @@ Azure deployment.
    > updates can affect software unrelated to SDAF and can require a host
    > restart.
 
+   The script ends by signing in with managed identity. Run it only on an Azure
+   host with an approved system-assigned or user-assigned managed identity. On
+   a workstation without managed identity, install the reviewed tools through
+   your organization's process instead.
+
    If your organization manages these tools separately, install the approved
    versions through that process instead. The deployment scripts check that
    Terraform and Azure CLI are available.
 
-6. Start a new shell or load the generated profile when present.
+7. Start a new shell or load the generated profile when present.
 
    ```bash
    if [ -f /etc/profile.d/deploy_server.sh ]; then
@@ -130,7 +155,7 @@ Azure deployment.
    populate the approved `known_hosts` file and export
    `ANSIBLE_HOST_KEY_CHECKING=True` after loading the profile.
 
-7. Verify the tool versions.
+8. Verify the tool versions.
 
    ```bash
    "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/helpers/check_workstation.sh"
@@ -138,18 +163,15 @@ Azure deployment.
 
    The command prints a version for `az`, `terraform`, `ansible`, and `jq`.
 
-8. Sign in to Azure.
+9. Verify the Azure context after host preparation.
 
    ```bash
-   az login
-   az account set --subscription "$ARM_SUBSCRIPTION_ID"
    az account show --query '{subscription:id,tenant:tenantId,user:user.name}' \
      --output table
    ```
 
    The output identifies the intended subscription, tenant, and principal.
-   Use the approved service-principal or managed-identity sign-in instead when
-   that identity model applies.
+   Reauthenticate with the approved identity if the context changed.
 
 ## Prepare configuration
 
