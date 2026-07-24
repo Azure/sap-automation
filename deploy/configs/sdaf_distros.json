@@ -1,6 +1,7 @@
 {
   "SUSE": {
     "DistroIds": [
+      "SUSE:sles-sap-16-0-x86-64:gen2:latest",
       "SUSE:sles-sap-15-sp7:gen2:latest",
       "SUSE:sles-sap-15-sp6:gen2:latest",
       "SUSE:sles-sap-15-sp5:gen2:latest",

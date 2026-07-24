@@ -1,0 +1,16 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+- name:                                "1.2 HostName - Reload NetworkManager configuration"
+  become:                              true
+  ansible.builtin.command:
+    argv:
+      - nmcli
+      - general
+      - reload
+      - conf
+  changed_when:                        true
+
+...

@@ -97,18 +97,21 @@ locals {
                                            database_cluster_disk_type      = var.database_cluster_disk_type
                                            database_cluster_type           = var.database_cluster_type
                                            database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
-                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
-                                                                                 var.database_high_availability ? (
-                                                                                     var.use_saphanasr_angi || var.use_sles_saphanasr_angi
-                                                                                     ) : (
-                                                                                       false
-                                                                                     )
-                                                                                 ) : (
-                                                                                   false
+                                           database_hana_use_saphanasr_angi = upper(var.database_platform) == "HANA" && var.database_high_availability ? (
+                                                                                 startswith(coalesce(try(var.database_vm_image.offer, null), "UNSET"), "sles-sap-16") ? (
+                                                                                   true) : (
+                                                                                   var.use_saphanasr_angi || var.use_sles_saphanasr_angi
                                                                                  )
+                                                                               ) : (
+                                                                                 false
+                                                                               )
 
                                            database_vm_sku                 = var.database_vm_sku
-                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, "Default")
+                                           db_sizing_key                   = coalesce(
+                                                                               length(trimspace(var.db_sizing_dictionary_key)) > 0 ? var.db_sizing_dictionary_key : null,
+                                                                               length(trimspace(var.database_size)) > 0 ? var.database_size : null,
+                                                                               "Default"
+                                                                             )
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                            dual_network_interfaces         = var.database_dual_nics
@@ -142,7 +145,6 @@ locals {
                                            scale_out                       = var.database_HANA_use_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
-
                                            disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                          }
 
@@ -334,16 +336,19 @@ locals {
 
   scs_os_specified                  = (length(local.scs_os.source_image_id) + length(local.scs_os.publisher)) > 0
 
-  validated_use_simple_mount        = var.use_simple_mount ? (
-                                        upper(local.scs_os.publisher) != "SUSE" || !(var.scs_high_availability) ? (
-                                         false) : (
-                                         contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5", "sles-sap-15-sp6"], local.scs_os.offer) ? (
-                                           var.use_simple_mount) : (
-                                           false
-                                         )
-                                       )) : (
-                                       false
-                                       )
+  validated_use_simple_mount        = (
+                                        upper(local.scs_os.publisher) == "SUSE" && var.scs_high_availability
+                                      ) ? (
+                                        startswith(local.scs_os.offer, "sles-sap-16") ? (
+                                          true) : (
+                                          var.use_simple_mount && contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5", "sles-sap-15-sp6", "sles-sap-15-sp7"], local.scs_os.offer) ? (
+                                            true) : (
+                                            false
+                                          )
+                                        )
+                                      ) : (
+                                        false
+                                      )
 
   web_os                            = {
                                         os_type         = coalesce(try(var.webdispatcher_server_image.os_type, null), try(var.application_server_image.os_type, null), "LINUX")

@@ -5,11 +5,8 @@
 
 totem {
     version:             2
-    secauth:             on
-    crypto_hash:         sha1
-    crypto_cipher:       aes256
+{{ corosync_crypto_config | indent(4, first=true) }}
     cluster_name:        hacluster
-    clear_node_high_bit: yes
 
     token:                               {{ cluster_totem.token }}
     token_retransmits_before_loss_const: {{ cluster_totem.retransmits }}
@@ -17,16 +14,9 @@ totem {
     consensus:                           {{ cluster_totem.consensus }}
     max_messages:                        {{ cluster_totem.max_messages }}
 
-    interface {
-        ringnumber: 0
-        mcastport:  5405
-        ttl:        1
-    }
+{{ corosync_interface_config | indent(4, first=true) }}
 
-
-    transport: udpu
-
-
+    transport: {{ corosync_transport }}
 
 }
 
