@@ -2,8 +2,9 @@
 
 ## Outcome
 
-The Linux execution host has pinned tools, an authenticated Azure identity,
-an SDAF checkout, a separate configuration root, and reviewed stage inputs.
+The Linux execution host has reviewed and recorded tool versions, an
+authenticated Azure identity, an SDAF checkout, a separate configuration
+root, and reviewed stage inputs.
 
 ## Before you begin
 
@@ -33,9 +34,13 @@ Later stages persist nonsecret environment metadata under
 ## What the automation does
 
 `configure_deployer.sh` prepares a Linux host with Terraform, Azure CLI,
-Ansible, required Python packages, and Ansible collections. It uses a Python
-virtual environment instead of changing the system Python environment. It
-also writes `/etc/profile.d/deploy_server.sh`.
+Ansible, required Python packages, Ansible collections, and .NET 9. It upgrades
+or patches distribution packages before installing the toolchain. Terraform is
+version-pinned, but Azure CLI, the Ansible patch release, .NET channel updates,
+several Python packages, and several collections can resolve newer versions.
+On RHEL and SLES, the script also installs `virtualenv` into system Python
+before creating the Python virtual environment under `/opt/ansible`. It writes
+`/etc/profile.d/deploy_server.sh`.
 
 The script does not create customer `WORKSPACES` configuration or approve an
 Azure deployment.
@@ -89,9 +94,16 @@ Azure deployment.
      "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/configure_deployer.sh"
    ```
 
-   The script installs Terraform under `/opt/terraform`, Azure CLI, a Python
-   virtual environment under `/opt/ansible`, Ansible dependencies, and a
-   profile script under `/etc/profile.d`.
+   The script upgrades or patches operating-system packages, installs
+   Terraform under `/opt/terraform`, Azure CLI, .NET 9, Ansible dependencies,
+   and a profile script under `/etc/profile.d`. On RHEL and SLES, it installs
+   `virtualenv` into system Python before creating the environment under
+   `/opt/ansible`.
+
+   > [!WARNING]
+   > Run this step only in an approved maintenance window. Distribution package
+   > updates can affect software unrelated to SDAF and can require a host
+   > restart.
 
    If your organization manages these tools separately, install the approved
    versions through that process instead. The deployment scripts check that
@@ -111,6 +123,12 @@ Azure deployment.
    Terraform, Azure CLI, Ansible, and SDAF scripts are available on `PATH`.
    Re-exporting the reviewed values is required because the generated profile
    sets its current subscription and fixed default repository paths.
+
+   The generated profile also sets `ANSIBLE_HOST_KEY_CHECKING=False`. Before
+   running configuration, verify each target host key through an approved
+   out-of-band source. If your security policy requires strict checking,
+   populate the approved `known_hosts` file and export
+   `ANSIBLE_HOST_KEY_CHECKING=True` after loading the profile.
 
 7. Verify the tool versions.
 
@@ -181,9 +199,12 @@ Confirm that:
 
 ## Safe retry
 
-Host setup is repeatable, but `configure_deployer.sh` regenerates
-`/etc/profile.d/deploy_server.sh`. Preserve any approved local customization
-elsewhere before rerunning it.
+Do not treat a host-setup rerun as deterministic. It repeats the
+operating-system upgrade or patch and can resolve newer unpinned Azure CLI,
+Ansible patch, Python package, .NET channel, and collection versions. Obtain a
+new maintenance and version review, record the currently resolved versions,
+and preserve approved profile customization elsewhere before rerunning
+`configure_deployer.sh`.
 
 ## Next step
 
