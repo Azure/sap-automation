@@ -83,9 +83,9 @@ Do not pass `--auto-approve` for an operator-reviewed local deployment.
    ```bash
    "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
      --deployer_parameter_file \
-     "DEPLOYER/<CONTROL_PLANE>-INFRASTRUCTURE/<CONTROL_PLANE>-INFRASTRUCTURE.tfvars" \
+     "$CONFIG_REPO_PATH/WORKSPACES/DEPLOYER/<CONTROL_PLANE>-INFRASTRUCTURE/<CONTROL_PLANE>-INFRASTRUCTURE.tfvars" \
      --library_parameter_file \
-     "LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY.tfvars" \
+     "$CONFIG_REPO_PATH/WORKSPACES/LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY.tfvars" \
      --subscription "$ARM_SUBSCRIPTION_ID"
    ```
 

@@ -62,7 +62,7 @@ Azure deployment.
 
    ```bash
    cd "$HOME/Azure_SAP_Automated_Deployment/sap-automation"
-   git checkout <SDAF_COMMIT>
+   git checkout "<SDAF_COMMIT>"
    git rev-parse HEAD
    ```
 

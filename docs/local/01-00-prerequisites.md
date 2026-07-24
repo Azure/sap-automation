@@ -28,6 +28,12 @@ Confirm the following requirements:
 - Permission to create role assignments when the configuration requires SDAF
   to assign Contributor, User Access Administrator, Key Vault, Storage, DNS,
   or other roles.
+- For the established control-plane path without MSI-only deployment, an
+  approved service-principal application ID, tenant ID, client secret, and
+  subscription ID. Provide them through the approved secure input method or
+  the `ARM_CLIENT_ID`, `ARM_TENANT_ID`, and `ARM_CLIENT_SECRET` environment
+  variables when the scripts require them. An interactive Azure user sign-in
+  does not replace these inputs for `set_secrets.sh`.
 - An approved management virtual network and subnet, or approved address
   spaces for SDAF to create them.
 - Name resolution and routing between the execution host, Azure Resource
