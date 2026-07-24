@@ -42,7 +42,8 @@ remote state, create a plan, apply approved changes, and refresh stage
 metadata. `remover.sh` runs Terraform destroy for a selected `sap_system` or
 `sap_landscape`. `remove_controlplane.sh` removes library and deployer
 resources. `advanced_state_management.sh` lists, imports, or removes Terraform
-state entries.
+state entries. Before every operation, including `list`, it runs
+`terraform init -migrate-state -upgrade` against the supplied backend.
 
 ## Review before execution
 
@@ -83,7 +84,17 @@ only for a reviewed state operation. It supports `list`, `import`, and
 > incorrect address or Azure resource ID can cause later replacement or
 > deletion. Back up state and obtain expert review before either operation.
 
-List state before changing it:
+Before invoking the script, back up the target remote-state blob and the local
+`.terraform/terraform.tfstate` backend metadata. Confirm that the existing
+local metadata and the supplied subscription, storage account, container, and
+key identify the intended backend.
+
+> [!WARNING]
+> The `list` operation is not read-only during initialization. Reject any
+> unexpected prompt to copy or migrate state, reconcile the existing and target
+> backends, and rerun only after expert review.
+
+After completing these checks, list state:
 
 ```bash
 cd "$CONFIG_REPO_PATH/WORKSPACES/SYSTEM/<SAP_SYSTEM>"
@@ -98,8 +109,8 @@ cd "$CONFIG_REPO_PATH/WORKSPACES/SYSTEM/<SAP_SYSTEM>"
   --control_plane_name "<CONTROL_PLANE>"
 ```
 
-The script initializes the matching root module and writes the listed
-resources to `resources.lst`.
+The script initializes the matching root module with migration and provider
+upgrade options, then writes the listed resources to `resources.lst`.
 
 ## Retain logs and evidence
 

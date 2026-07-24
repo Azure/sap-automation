@@ -151,9 +151,12 @@ Azure deployment.
 
    The generated profile also sets `ANSIBLE_HOST_KEY_CHECKING=False`. Before
    running configuration, verify each target host key through an approved
-   out-of-band source. If your security policy requires strict checking,
-   populate the approved `known_hosts` file and export
-   `ANSIBLE_HOST_KEY_CHECKING=True` after loading the profile.
+   out-of-band source. `configuration_menu.sh` also sets this value to `False`
+   each time it starts, so exporting `ANSIBLE_HOST_KEY_CHECKING=True` before
+   using that wrapper does not enable strict checking. If your security policy
+   requires strict checking, do not use the wrapper unchanged. Populate the
+   approved `known_hosts` file and obtain a reviewed wrapper or execution path
+   that does not override the setting.
 
 8. Verify the tool versions.
 
