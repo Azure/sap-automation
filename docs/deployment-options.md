@@ -31,7 +31,7 @@ for your SDAF deployment.
 | Approval boundary | Workflow dispatch, repository permissions, and GitHub environment controls | Pipeline stages and Azure DevOps checks or approvals where configured | Explicit operator review before each state-changing command |
 | Terraform state | Shared SDAF state accessed through the workflow identity | Shared SDAF state accessed through the pipeline identity | Shared SDAF state accessed from the execution host |
 | Platform update flow | Update the configuration repository and workflow template through GitHub review | Use repository and pipeline update wrappers where applicable | The operator controls source version updates and script execution |
-| Recovery and removal | GitHub removal workflows | Azure DevOps Terraform removal, ARM fallback, and control-plane removal wrappers | Core state, recovery, and removal scripts |
+| Recovery and removal | GitHub removal workflows | Terraform removal, ARM fallback, and control-plane removal wrappers; no dedicated recovery wrapper was identified | Core state, recovery, and removal scripts |
 
 The table describes capability differences, not a ranking. Select the model
 that meets your organization's source-control, identity, governance, and
@@ -64,7 +64,7 @@ variable groups, and agent pools own the deployment process.
 The
 [`Azure/sap-automation-bootstrap`](https://github.com/Azure/sap-automation-bootstrap)
 repository provides wrapper pipelines for control-plane, workload-zone,
-SAP-system, software-download, installation, update, recovery, and removal
+SAP-system, software-download, installation, update, and removal
 operations.
 
 Azure DevOps does not currently provide verified one-to-one equivalents for
@@ -75,9 +75,24 @@ configure project resources and variable groups. Prepare and review
 workload-zone and SAP-system configuration explicitly before you run their
 deployment pipelines.
 
-Start with the repository README and the
-[`pipelines`](https://github.com/Azure/sap-automation-bootstrap/tree/main/pipelines)
-directory.
+Start the Azure DevOps setup:
+
+1. Review the
+   [`Azure/sap-automation-bootstrap`](https://github.com/Azure/sap-automation-bootstrap)
+   repository layout and pipeline ownership.
+2. Review the
+   [`New-SDAFADOProject`](../deploy/scripts/pwsh/SDAFUtilities/Public/New-SDAFADOProject.ps1)
+   utility before you create or configure the Azure DevOps project.
+3. Review the
+   [`New-SDAFADOWorkloadZone`](../deploy/scripts/pwsh/SDAFUtilities/Public/New-SDAFADOWorkloadZone.ps1)
+   utility before you configure workload-zone resources and variables.
+4. Prepare and approve the required `WORKSPACES` configuration.
+5. Select the corresponding wrapper in the
+   [`pipelines`](https://github.com/Azure/sap-automation-bootstrap/tree/main/pipelines)
+   directory only after its inputs are available.
+
+After these steps, the Azure DevOps project resources and deployment inputs
+are ready for the first applicable wrapper pipeline.
 
 ## Local or scripted execution
 

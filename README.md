@@ -21,7 +21,7 @@ processes differ.
 | Execution model | Use this path when | Start here |
 | --- | --- | --- |
 | GitHub Actions | Your deployment configuration and automation run from GitHub repositories and workflows. | [Set up SDAF with GitHub Actions](https://github.com/Azure/sap-automation-gh-bootstrap) |
-| Azure DevOps | Your organization uses Azure Repos, Azure Pipelines, service connections, variable groups, and agent pools. | [Set up SDAF with Azure DevOps](https://github.com/Azure/sap-automation-bootstrap) |
+| Azure DevOps | Your organization uses Azure Repos, Azure Pipelines, service connections, variable groups, and agent pools. | [Review the Azure DevOps execution model](docs/deployment-options.md#azure-devops) |
 | Local or scripted execution | You run the SDAF scripts directly from a workstation, deployment host, or other automation environment. | [Review the local execution model](docs/deployment-options.md#local-or-scripted-execution) |
 
 For selection criteria and capability differences, see

@@ -6,17 +6,17 @@ comparable without implying that their automation is identical.
 
 ## Organize content by user outcome
 
-Use this lifecycle vocabulary for GitHub Actions, Azure DevOps, and local
-execution:
+Select an execution model from the unnumbered central hub. Then use this
+lifecycle vocabulary for the ordered GitHub Actions, Azure DevOps, and local
+journeys:
 
-1. Choose a deployment path.
-2. Plan architecture, access, networking, quota, cost, and support.
-3. Bootstrap the deployment environment.
-4. Configure, review, deploy, and validate the control plane.
-5. Configure, review, deploy, and validate a workload zone.
-6. Configure, review, deploy, and validate an SAP system.
-7. Acquire SAP software and run configuration and installation.
-8. Operate, update, troubleshoot, recover, and remove resources.
+1. Plan architecture, access, networking, quota, cost, and support.
+2. Bootstrap the deployment environment.
+3. Configure, review, deploy, and validate the control plane.
+4. Configure, review, deploy, and validate a workload zone.
+5. Configure, review, deploy, and validate an SAP system.
+6. Acquire SAP software and run configuration and installation.
+7. Operate, update, troubleshoot, recover, and remove resources.
 
 Keep platform-neutral concepts in `Azure/sap-automation`. Keep detailed
 platform procedures with the repository that owns the executable asset.
