@@ -44,15 +44,29 @@ utility searches below that root, including:
 
 Do not set `BOM_CATALOG` to an individual BOM directory.
 
-The software-download wrapper reads these values from `sap-parameters.yaml`:
+The Terraform-generated `sap-parameters.yaml` contains `bom_base_name`, but
+`download_menu.sh` does not preserve that value. The wrapper instead requires
+these component keys:
 
 - `application_bom_name`
 - `database_bom_name`
 - `sap_kernel_bom_name`
 - `save_bom_as`
 
-It passes the selected combination to
+Before using the download menu, add reviewed values for all four keys to
+`sap-parameters.yaml`:
+
+```yaml
+application_bom_name: "<APPLICATION_BOM>"
+database_bom_name: "<DATABASE_BOM>"
+sap_kernel_bom_name: "<KERNEL_BOM>"
+save_bom_as: "<COMBINED_BOM_NAME>"
+```
+
+The wrapper combines the four values and passes the result to
 [`playbook_bom_downloader.yaml`](../../deploy/ansible/playbook_bom_downloader.yaml).
+Without these keys, it overrides the generated BOM value with an invalid empty
+combination.
 
 ## Configuration preparation
 

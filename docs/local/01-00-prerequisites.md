@@ -13,7 +13,10 @@ Run them on an operator-managed Linux host, including an SDAF deployer after
 it exists. The repository's
 [`configure_deployer.sh`](../../deploy/scripts/configure_deployer.sh) setup
 path recognizes Ubuntu, RHEL, and supported SLES releases. It rejects SLES 12
-and SLES 15.4 through 15.7.
+and SLES 15.4 through 15.7. This setup path requires an x86_64 or amd64 host
+because it downloads the Terraform `linux_amd64` archive. On ARM64, use a
+separately reviewed architecture-specific tool installation path instead of
+`configure_deployer.sh`.
 
 The source does not establish native Windows, Windows Subsystem for Linux, or
 macOS as supported deployment hosts. Do not infer host support from Bash

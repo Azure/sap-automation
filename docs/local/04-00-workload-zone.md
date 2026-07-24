@@ -29,6 +29,8 @@ Also identify:
 - `<STATE_STORAGE_ACCOUNT>`: Library output
   `remote_state_storage_account_name`.
 - `<STATE_SUBSCRIPTION_ID>`: Subscription containing the state account.
+- `<WORKLOAD_SUBSCRIPTION_ID>`: Subscription where workload-zone resources are
+  deployed.
 
 ## Configuration preparation
 
@@ -89,7 +91,8 @@ cross-subscription resources.
      --control_plane_name "<CONTROL_PLANE>" \
      --deployer_tfstate_key "<DEPLOYER_STATE_KEY>" \
      --storageaccountname "<STATE_STORAGE_ACCOUNT>" \
-     --state_subscription "<STATE_SUBSCRIPTION_ID>"
+     --state_subscription "<STATE_SUBSCRIPTION_ID>" \
+     --subscription "<WORKLOAD_SUBSCRIPTION_ID>"
    ```
 
    Terraform displays the plan and asks for approval before apply.
