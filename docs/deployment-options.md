@@ -106,9 +106,13 @@ Choose local execution when you need to run SDAF directly from a workstation,
 deployer, or another automation host without a GitHub Actions or Azure
 Pipelines wrapper.
 
-Local execution uses the entry points under
-[`deploy/scripts`](../deploy/scripts/). The scripts consume the same Terraform
-configuration and state model used by the hosted execution models.
+Local infrastructure deployment uses the entry points under
+[`deploy/scripts`](../deploy/scripts/). Local software download and
+installation use the [`download_menu.sh`](../deploy/ansible/download_menu.sh)
+and
+[`configuration_menu.sh`](../deploy/ansible/configuration_menu.sh)
+Ansible wrappers. These entry points consume the same configuration and state
+model used by the hosted execution models.
 
 Local execution does not provide a hosted stage-specific configuration
 generator. Prepare configuration from the
