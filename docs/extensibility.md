@@ -119,9 +119,11 @@ SDAF generates names through the
 module. Use parameter overrides before changing that module.
 
 The root modules accept `name_override_file`, which points to a JSON file
-containing resource-name overrides. The SAP-system root merges supplied
-top-level and virtual-machine names with generated defaults, so omitted entries
-continue to use framework naming.
+containing resource-name overrides. For an SAP-system override, the JSON must
+contain a `virtualmachine_names` object, which can be empty. The root merges
+supplied keys inside that object and supplied top-level groups with generated
+defaults. Omitted keys inside `virtualmachine_names` and omitted top-level
+groups continue to use framework naming.
 
 You can also use focused parameters such as:
 

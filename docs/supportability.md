@@ -103,7 +103,7 @@ operating-system, or infrastructure combination.
 
 | Availability model | Topology | Framework path | Configuration |
 | --- | --- | --- | --- |
-| Non-HA | Database non-HA | The database tier doesn't use a high-availability configuration | `database_high_availability = false` and `database_server_count > 1` |
+| Non-HA | Database non-HA | The database tier doesn't use a high-availability configuration | `database_high_availability = false` and `database_server_count >= 1` |
 | High availability | Scale-up | The database tier uses the database-specific clustered high-availability path | `database_high_availability = true`, `database_server_count = 1` and `database_HANA_use_scaleout_scenario = false` |
 | High availability | Scale-out | The SAP HANA database tier uses the scale-out clustered high-availability path | `database_high_availability = true`, `database_server_count > 1` and `database_HANA_use_scaleout_scenario = true` |
 
