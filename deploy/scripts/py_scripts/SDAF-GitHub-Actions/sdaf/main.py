@@ -37,6 +37,15 @@ def main():
     user_data = ui.get_user_input()
 
     try:
+        github_ops.validate_federated_subject_format(
+            user_data.get("federated_subject_format", "immutable"),
+            user_data.get("federated_subject_override", ""),
+        )
+    except ValueError as error:
+        print(f"Unable to configure GitHub OIDC: {error}")
+        sys.exit(1)
+
+    try:
         oidc_config = azure_ops.get_azure_oidc_config()
     except (RuntimeError, ValueError) as error:
         print(f"Unable to configure Azure OIDC: {error}")
@@ -343,7 +352,7 @@ def main():
             github_client,
             user_data["repo_name"],
             user_data["control_plane_name"],
-            user_data.get("federated_subject_format", "standard"),
+            user_data.get("federated_subject_format", "immutable"),
             user_data.get("federated_subject_override", ""),
         )
         print(f"GitHub OIDC subject: {user_data['federated_subject']}")

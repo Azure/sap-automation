@@ -171,6 +171,22 @@ class TestMain:
         assert environment_variables["AZURE_ENVIRONMENT"] == "AzureCloud"
         assert environment_variables["AZURE_AUDIENCE"] == "api://AzureADTokenExchange"
 
+    def test_main_exits_before_provisioning_for_invalid_oidc_subject_format(self, mocker):
+        """Invalid OIDC format configuration must not create Azure resources."""
+        user_data = _user_data()
+        user_data["federated_subject_format"] = "unknown"
+        create_spn_mock = mocker.patch("sdaf.azure_ops.create_azure_service_principal")
+
+        mocker.patch("sdaf.ui.display_instructions")
+        mocker.patch("sdaf.ui.check_prerequisites")
+        mocker.patch("sdaf.ui.get_user_input", return_value=user_data)
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_main()
+
+        assert exc_info.value.code == 1
+        create_spn_mock.assert_not_called()
+
     def test_main_exits_when_repository_secret_creation_raises_github_exception(self, mocker):
         """
         Failure path for :func:`sdaf.main.main`.

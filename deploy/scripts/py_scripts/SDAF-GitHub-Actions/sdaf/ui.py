@@ -536,7 +536,7 @@ def get_user_input():
         "s_password": s_password,
         "resource_group": resource_group_name,
         "docker_image": docker_image,
-        "federated_subject_format": os.environ.get("SDAF_GITHUB_OIDC_SUBJECT_FORMAT", "standard")
+        "federated_subject_format": os.environ.get("SDAF_GITHUB_OIDC_SUBJECT_FORMAT", "immutable")
         .strip()
         .lower(),
         "federated_subject_override": os.environ.get("SDAF_GITHUB_OIDC_SUBJECT", "").strip(),

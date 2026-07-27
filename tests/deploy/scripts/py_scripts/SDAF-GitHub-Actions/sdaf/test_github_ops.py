@@ -157,23 +157,23 @@ class TestGithubOps:
         """
         mocker.patch("sdaf.github_ops.time.sleep")
 
-    def test_get_federated_subject_returns_standard_subject(self):
-        """Standard GitHub repositories use the conventional owner/repo subject."""
+    def test_get_federated_subject_returns_immutable_subject_by_default(self):
+        """GitHub Cloud repositories use immutable owner and repository IDs by default."""
         client = _FakeGithubClient()
 
         result = sdaf.github_ops.get_federated_subject(client, "org/repo", "MGMT")
 
-        assert result == "repo:org/repo:environment:MGMT"
+        assert result == "repo:org@100/repo@200:environment:MGMT"
 
-    def test_get_federated_subject_returns_enterprise_subject(self):
-        """Enterprise-managed repositories include stable owner and repository IDs."""
+    def test_get_federated_subject_returns_standard_subject_when_requested(self):
+        """Repositories without immutable subject claims retain the legacy format."""
         client = _FakeGithubClient()
 
         result = sdaf.github_ops.get_federated_subject(
-            client, "org/repo", "MGMT", subject_format="enterprise"
+            client, "org/repo", "MGMT", subject_format="standard"
         )
 
-        assert result == "repo:org@100/repo@200:environment:MGMT"
+        assert result == "repo:org/repo:environment:MGMT"
 
     def test_get_federated_subject_honors_exact_override(self):
         """An explicit subject bypasses repository metadata lookup."""
@@ -193,7 +193,7 @@ class TestGithubOps:
         """Unknown subject formats fail before a credential is registered."""
         client = _FakeGithubClient()
 
-        with pytest.raises(ValueError, match="standard.*enterprise"):
+        with pytest.raises(ValueError, match="standard.*immutable"):
             sdaf.github_ops.get_federated_subject(
                 client, "org/repo", "MGMT", subject_format="unknown"
             )
