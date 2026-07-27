@@ -122,7 +122,7 @@ implementation for the adopted release.
 | Topology | Description | Configuration |
 | --- | --- | --- |
 | Single central services instance | One SAP central services server is deployed without an enqueue replication server cluster | `scs_server_count = 1` and `scs_high_availability = false` |
-| Highly available central services | Each configured central-services unit deploys an SAP central services and enqueue replication server pair | `scs_server_count >= 1` and `scs_high_availability = true` |
+| Highly available central services | Each configured central-services unit deploys an SAP central services and enqueue replication server pair | `scs_server_count = 1` and `scs_high_availability = true` |
 
 `scs_server_count = 0` omits the central-services tier. When high availability
 is enabled, SDAF creates two virtual machines for each configured
