@@ -159,6 +159,22 @@ Azure deployment.
    Re-exporting the reviewed values is required because the generated profile
    sets its current subscription and fixed default repository paths.
 
+   The generated profile can also export `ARM_USE_MSI=true` and an
+   `ARM_CLIENT_ID`, and can run `az login --identity`, when host setup detects
+   a user-assigned managed identity. After sourcing the profile, verify that
+   these variables still select the intended identity model:
+
+   - For Azure CLI user or service-principal execution, unset `ARM_USE_MSI`.
+     For service-principal execution, re-export the reviewed
+     `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_TENANT_ID`, and
+     `ARM_SUBSCRIPTION_ID` values.
+   - For managed-identity execution, verify that `ARM_USE_MSI=true` and that
+     `ARM_CLIENT_ID` identifies the approved user-assigned identity. Use the
+     reviewed system-assigned identity procedure when no client ID is needed.
+
+   Do not start deployment until `az account show` and the `ARM_*` variables
+   agree with the selected identity model and subscription.
+
    The generated profile also sets `ANSIBLE_HOST_KEY_CHECKING=False`. Before
    running configuration, verify each target host key through an approved
    out-of-band source. `configuration_menu.sh` also sets this value to `False`

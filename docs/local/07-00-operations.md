@@ -139,10 +139,17 @@ variables and can expose credentials.
 2. Record the exit code and complete output.
 3. Confirm the current Azure resources and remote-state lock.
 4. Keep the same SDAF commit, tool versions, identity, parameter file, state
-   account, and state key.
-5. Correct only the identified cause.
-6. Rerun the same stage command.
-7. Review the new plan before approval.
+   account, state key, and provider selections. Preserve the generated
+   `.terraform.lock.hcl` for every root module involved in the stage and
+   compare it during the retry.
+5. Treat any provider lock change as an upgrade that requires review and a
+   new plan. The stage installers run `terraform init -upgrade`, and some root
+   provider requirements, including `hashicorp/random`, don't constrain a
+   version. The same SDAF commit and Terraform version therefore don't
+   guarantee the same provider resolution.
+6. Correct only the identified cause.
+7. Rerun the same stage command.
+8. Review the new plan before approval.
 
 Use [Troubleshoot local execution](troubleshooting.md) for stage-specific
 diagnostics.

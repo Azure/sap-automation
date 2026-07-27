@@ -93,7 +93,12 @@ Choose one identity model for each execution host:
   and use the signed-in user.
 - **Service principal**: Export the `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`,
   `ARM_TENANT_ID`, and `ARM_SUBSCRIPTION_ID` variables. Protect the secret from
-  shell history, process listings, logs, and source control.
+  shell history, logs, and source control. The current control-plane wrapper
+  passes the secret to `set_secrets.sh` as a command argument, so this path
+  can't protect it from process-argument inspection. Use the service-principal
+  path only on an isolated execution host with an approved process-inspection
+  policy, or use the approved managed-identity path when process-argument
+  exposure isn't permitted.
 - **Managed identity**: Use an Azure host with an assigned identity and the
   script family's managed-identity option only when your release guidance
   selects that path.
