@@ -14,9 +14,9 @@ required command-line dependencies. An operator-managed Linux host, including
 an SDAF deployer after it exists, provides the documented setup path. The
 repository's
 [`configure_deployer.sh`](../../deploy/scripts/configure_deployer.sh) setup
-path accepts Ubuntu, RHEL, SLES 15.0 through 15.3, and SLES 15.8 or later.
-This setup path requires an x86_64 or amd64 host because it downloads the
-Terraform `linux_amd64` archive.
+path recognizes Ubuntu, RHEL, and SLES. Consult the current script before setup
+for its release-specific validation. This setup path requires an x86_64 or
+amd64 host because it downloads the Terraform `linux_amd64` archive.
 
 On another Bash environment or on ARM64, install and validate the required
 tools through a separately reviewed process instead of
