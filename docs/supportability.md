@@ -107,9 +107,11 @@ operating-system, or infrastructure combination.
 | High availability | Scale-up | The database tier uses the database-specific clustered high-availability path |
 | High availability | Scale-out | The SAP HANA database tier uses the scale-out clustered high-availability path |
 
-The implementation is defined by the
-[`database_HANA_use_scaleout_scenario`](../deploy/terraform/run/sap_system/tfvar_variables.tf)
-input and the scale-up and scale-out roles in
+Database HA requires `database_high_availability = true`. For SAP HANA HA,
+`database_HANA_use_scaleout_scenario` selects the implementation path:
+`false` uses scale-up and `true` uses scale-out. These inputs are defined in
+[`tfvar_variables.tf`](../deploy/terraform/run/sap_system/tfvar_variables.tf);
+the corresponding roles are selected in
 [`playbook_04_00_01_db_ha.yaml`](../deploy/ansible/playbook_04_00_01_db_ha.yaml).
 Scale-out-specific inputs also expose standby-node and observer configuration.
 Validate the node count, storage design, standby roles, and selected HA
@@ -119,8 +121,12 @@ implementation for the adopted release.
 
 | Topology | Description | Configuration |
 | --- | --- | --- |
-| Single central services instance | One SAP central services server is deployed without an enqueue replication server cluster | `scs_high_availability = false` |
-| Highly available central services | SAP central services and the enqueue replication server use the supported clustered configuration | `scs_high_availability = true` |
+| Single central services instance | One SAP central services server is deployed without an enqueue replication server cluster | `scs_server_count = 1` and `scs_high_availability = false` |
+| Highly available central services | Each configured central-services unit deploys an SAP central services and enqueue replication server pair | `scs_server_count >= 1` and `scs_high_availability = true` |
+
+`scs_server_count = 0` omits the central-services tier. When high availability
+is enabled, SDAF creates two virtual machines for each configured
+central-services unit.
 
 High availability depends on operating-system, database, fencing, load
 balancer, availability-zone or availability-set, and storage compatibility.
