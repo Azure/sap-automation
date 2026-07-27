@@ -35,7 +35,7 @@ data "azurerm_network_security_group" "nsg_web" {
 resource "azurerm_subnet_network_security_group_association" "Associate_nsg_web" {
   provider                             = azurerm.main
   count                                = local.enable_deployment && var.infrastructure.virtual_networks.sap.subnet_web.defined ? 1 : 0
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? (
                                            data.azurerm_subnet.subnet_sap_web[0].id) : (
                                            azurerm_subnet.subnet_sap_web[0].id
                                          )
@@ -53,7 +53,7 @@ resource "azurerm_network_security_rule" "webRule_internet" {
   protocol                             = "*"
   source_address_prefix                = "Internet"
   source_port_range                    = "*"
-  destination_address_prefixes         = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+  destination_address_prefixes         = var.infrastructure.virtual_networks.sap.subnet_web.exists || var.infrastructure.virtual_networks.sap.subnet_web.exists_in_workload ? (
                                              data.azurerm_subnet.subnet_sap_web[0].address_prefixes) : (
                                              azurerm_subnet.subnet_sap_web[0].address_prefixes
                                          )

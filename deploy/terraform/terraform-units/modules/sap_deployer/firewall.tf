@@ -61,6 +61,7 @@ resource "azurerm_public_ip" "firewall" {
 }
 
 resource "azurerm_firewall" "firewall" {
+  #checkov:skip=CKV_AZURE_219: uses classic rule collections, not policy
   count                                      = var.firewall.deployment ? 1 : 0
   name                                       = format("%s%s%s%s",
                                                 var.naming.resource_prefixes.firewall,
@@ -70,6 +71,7 @@ resource "azurerm_firewall" "firewall" {
                                               )
   sku_tier                                   = "Standard"
   sku_name                                   = "AZFW_VNet"
+  threat_intel_mode                          = "Deny"
   resource_group_name                        = var.infrastructure.virtual_network.management.exists ? (
                                                  data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                  var.infrastructure.resource_group.exists ? (

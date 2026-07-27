@@ -9,6 +9,9 @@
 #######################################4#######################################8
 
 resource "azurerm_storage_account" "sapmnt" {
+  #checkov:skip=CKV_AZURE_35: public access needed for sapmnt share
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = var.application_tier.use_AFS_for_sapmnt && var.application_tier.enable_deployment ? (
                                            length(var.azure_files_sapmnt_id) > 0 ? (

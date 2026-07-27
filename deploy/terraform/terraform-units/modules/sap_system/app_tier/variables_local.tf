@@ -65,7 +65,7 @@ locals {
   ##############################################################################################
 
   application_subnet_name              = var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[10], ""),
                                                     var.infrastructure.virtual_networks.sap.subnet_app.name,
                                                     format("%s%s%s%s",
                                                       var.naming.resource_prefixes.app_subnet,
@@ -107,7 +107,7 @@ locals {
   ##############################################################################################
 
   web_subnet_name                      = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_web.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_web.id)[10], ""),
                                                     var.infrastructure.virtual_networks.sap.subnet_web.name,
                                                     format("%s%s%s%s",
                                                       var.naming.resource_prefixes.web_subnet,
@@ -351,7 +351,7 @@ locals {
                                              private_ip_address = length(try(local.scs_server_loadbalancer_ips[2], "")) > 0 ? (
                                                local.scs_server_loadbalancer_ips[2]) : (
                                                var.application_tier.use_DHCP ? (
-                                               null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 2 + local.ip_offsets.scs_lb))
+                                               null) : (cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 2 + local.ip_offsets.scs_lb))
                                              )
                                              private_ip_address_allocation = length(try(local.scs_server_loadbalancer_ips[2], "")) > 0 ? "Static" : "Dynamic"
 
@@ -373,7 +373,7 @@ locals {
                                              private_ip_address = length(try(local.scs_server_loadbalancer_ips[3], "")) > 0 ? (
                                                local.scs_server_loadbalancer_ips[3]) : (
                                                var.application_tier.use_DHCP ? (
-                                               null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 3 + local.ip_offsets.scs_lb))
+                                               null) : (cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 3 + local.ip_offsets.scs_lb))
                                              )
                                              private_ip_address_allocation = length(try(local.scs_server_loadbalancer_ips[3], "")) > 0 ? "Static" : "Dynamic"
                                            }
@@ -394,10 +394,12 @@ locals {
                                                            )) : (
                                                            ""
                                                          )
-                                             private_ip_address = length(try(local.scs_server_loadbalancer_ips[0], "")) > 0 ? (
-                                                                    local.scs_server_loadbalancer_ips[0]) : (
-                                                                    var.application_tier.use_DHCP ? (
-                                                                    null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 0 + local.ip_offsets.scs_lb))
+                                             private_ip_address = local.enable_deployment ? (
+                                                                    length(try(local.scs_server_loadbalancer_ips[0], "")) > 0 ? (
+                                                                     local.scs_server_loadbalancer_ips[0]) : (
+                                                                     var.application_tier.use_DHCP ? (
+                                                                     null) : (cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 0 + local.ip_offsets.scs_lb)))) : (
+                                                                    null
                                                                   )
                                              private_ip_address_allocation = length(try(local.scs_server_loadbalancer_ips[0], "")) > 0 ? "Static" : "Dynamic"
                                            },
@@ -415,10 +417,12 @@ locals {
                                                            )) : (
                                                            ""
                                                          )
-                                             private_ip_address = length(try(local.scs_server_loadbalancer_ips[1], "")) > 0 ? (
-                                                                    local.scs_server_loadbalancer_ips[1]) : (
-                                                                    var.application_tier.use_DHCP ? (
-                                                                    null) : (cidrhost(data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 1 + local.ip_offsets.scs_lb))
+                                             private_ip_address = local.enable_deployment ? (
+                                                                    length(try(local.scs_server_loadbalancer_ips[1], "")) > 0 ? (
+                                                                     local.scs_server_loadbalancer_ips[1]) : (
+                                                                     var.application_tier.use_DHCP ? (
+                                                                     null) : (cidrhost(var.infrastructure.virtual_networks.sap.subnet_app.exists || var.infrastructure.virtual_networks.sap.subnet_app.exists_in_workload ? data.azurerm_subnet.subnet_sap_app[0].address_prefixes[0] : azurerm_subnet.subnet_sap_app[0].address_prefixes[0], 1 + local.ip_offsets.scs_lb)))) : (
+                                                                    null
                                                                   )
                                              private_ip_address_allocation = length(try(local.scs_server_loadbalancer_ips[1], "")) > 0 ? "Static" : "Dynamic"
                                            },

@@ -46,7 +46,7 @@ locals {
 
   default_filepath                     = format("%s%s",
                                            path.module,
-                                           format("/../../../../../configs/%s_sizes.json", lower(var.database.platform))
+                                           format("/../../../../../configs/%s_sizes.json", lower(var.database.platform) == "ase" ? "sybase" : lower(var.database.platform))
                                          )
   custom_sizing                        = length(var.custom_disk_sizes_filename) > 0
 

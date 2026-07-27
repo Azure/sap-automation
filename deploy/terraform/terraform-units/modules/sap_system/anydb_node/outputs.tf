@@ -55,7 +55,8 @@ output "database_server_secondary_ips" {
 output "database_server_vm_ids"        {
                                          description = "AnyDB Virtual machine resource IDs"
                                          value       = local.enable_deployment ? (
-                                                      coalesce(azurerm_linux_virtual_machine.dbserver[*].id,
+                                                      length(azurerm_linux_virtual_machine.dbserver) > 0 ? (
+                                                        azurerm_linux_virtual_machine.dbserver[*].id) : (
                                                         azurerm_windows_virtual_machine.dbserver[*].id
                                                       )
                                                       ) : (

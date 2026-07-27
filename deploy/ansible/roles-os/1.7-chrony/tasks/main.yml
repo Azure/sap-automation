@@ -141,6 +141,24 @@
   when:
     # If no custom pool or servers specified, then use defaults
     - (chrony_conf_entries | count) == 0
+    - ansible_distribution_major_version | default('15') | int < 16
+
+- name:                                "1.7 chrony - Remove SAP chrony drop-in for SLES 16+ defaults"
+  ansible.builtin.file:
+    path:                              /etc/chrony.d/99-sap.conf
+    state:                             absent
+  register:                            chrony_dropin_removed
+  when:
+    - (chrony_conf_entries | count) == 0
+    - ansible_distribution_major_version | default('15') | int >= 16
+
+- name:                                "1.7 chrony - Set chrony facts"
+  ansible.builtin.set_fact:
+    chronyd_restart_required: >-
+      {{ (chronyd_restart_required | bool) or (chrony_dropin_removed is changed) }}
+  when:
+    - (chrony_conf_entries | count) == 0
+    - ansible_distribution_major_version | default('15') | int >= 16
 
 # -------------------------------------+---------------------------------------8
 #
@@ -193,7 +211,37 @@
   when:
     # If custom pool or servers specified
     - (chrony_conf_entries | count) > 0
+    # SLES 16 uses drop-in files instead
+    - ansible_distribution_major_version | default('15') | int < 16
   tags: ansible_skip_lint
+
+# SLES 16+: use drop-in file for custom chrony settings
+- name:                                "1.7 chrony - Setup chrony with override settings (SLES 16+ drop-in)"
+  block:
+    - name:                            "1.7 chrony - Ensure /etc/chrony.d directory exists"
+      ansible.builtin.file:
+        path:                          /etc/chrony.d
+        state:                         directory
+        mode:                          '0755'
+
+    - name:                            "1.7 chrony - Add/Update custom settings drop-in"
+      ansible.builtin.copy:
+        dest:                          /etc/chrony.d/99-sap.conf
+        mode:                          '0644'
+        content: |
+          {% for entry in chrony_conf_entries -%}
+          {{ entry.type }} {{ entry.name }} {{ entry.opts | join(' ') }}
+          {% endfor %}
+      register:                        chrony_conf_updated
+
+    - name:                            "1.7 chrony - Set chrony facts"
+      ansible.builtin.set_fact:
+        chronyd_restart_required: >-
+          {{ ((chronyd_restart_required | bool) or
+              (chrony_conf_updated is changed)) }}
+  when:
+    - (chrony_conf_entries | count) > 0
+    - ansible_distribution_major_version | default('15') | int >= 16
 
 - name:                                "1.7 chrony - Do we need to restart chronyd?"
   ansible.builtin.debug:

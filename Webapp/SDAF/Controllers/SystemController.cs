@@ -6,6 +6,7 @@ using SDAFWebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -26,17 +27,19 @@ namespace SDAFWebApp.Controllers
         private FormViewModel<SystemModel> systemView;
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
+        private readonly ILogger<SystemController> _logger;
 
         private ImageDropdown[] imagesOffered;
         private List<SelectListItem> imageOptions;
         private Dictionary<string, Image> imageMapping;
         private readonly string platform;
 
-        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
+        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration, ILogger<SystemController> logger)
         {
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
+            _logger = logger;
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             systemView = SetViewData();
@@ -81,6 +84,7 @@ namespace SDAFWebApp.Controllers
 
                 systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = "Error retrieving existing systems: " + e.Message;
@@ -100,31 +104,30 @@ namespace SDAFWebApp.Controllers
             {
                 s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
             }
-            catch
+            catch (Exception e)
             {
-
+                _logger?.LogWarning(e, "Failed to deserialize system {Id} in partition {PartitionKey}", id, partitionKey);
             }
-            AppFile file = null;
+            if (s == null) return null;
             try
             {
-                file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
+                AppFile file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
                 s.name_override_file = id + "_custom_naming.json";
             }
-            catch
+            catch (Exception e)
             {
-
+                _logger?.LogInformation(e, "No custom naming file found for system {Id}; using default naming", id);
             }
 
-            file = null;
             try
             {
-                file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
+                AppFile file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
                 s.custom_disk_sizes_filename = id + "_custom_sizes.json";
                 s.database_size = "Custom";
             }
-            catch
+            catch (Exception e)
             {
-
+                _logger?.LogInformation(e, "No custom sizes file found for system {Id}; using default sizing", id);
             }
 
             return s;
@@ -170,9 +173,8 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public ActionResult GetImage(string name)
         {
-            if (name != null && imageMapping.ContainsKey(name))
+            if (name != null && imageMapping.TryGetValue(name, out Image image))
             {
-                Image image = imageMapping[name];
                 return Json(image);
             }
             else
@@ -211,6 +213,7 @@ namespace SDAFWebApp.Controllers
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
+                // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
                     ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
@@ -238,6 +241,7 @@ namespace SDAFWebApp.Controllers
 
                 return View(systemView);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = e.Message;
@@ -246,6 +250,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Deploy")]
         public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
@@ -258,23 +263,22 @@ namespace SDAFWebApp.Controllers
                 {
                     file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
                     system.name_override_file = id + "_custom_naming.json";
-                    var stream = new MemoryStream(file.Content);
+                    using var stream = new MemoryStream(file.Content);
 
                     string thisContent = System.Text.Encoding.UTF8.GetString(stream.ToArray());
                     string pathForNaming = $"/SYSTEM/{id}/{id}_custom_naming.json";
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch
+                catch (Exception e)
                 {
-
+                    _logger?.LogWarning(e, "Failed to save custom naming file for system {Id}; continuing with default naming", id);
                 }
 
-                file = null;
                 try
                 {
                     file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
-                    var stream = new MemoryStream(file.Content);
+                    using var stream = new MemoryStream(file.Content);
 
                     system.custom_disk_sizes_filename = id + "_custom_sizes.json";
                     system.database_size = "Custom";
@@ -284,9 +288,9 @@ namespace SDAFWebApp.Controllers
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch
+                catch (Exception e)
                 {
-
+                    _logger?.LogWarning(e, "Failed to save custom sizes file for system {Id}; continuing with default sizing", id);
                 }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
@@ -339,7 +343,6 @@ namespace SDAFWebApp.Controllers
                         }
                     case "github":
                         {
-                            string key = "-" + system.sid;
                             // Trigger with
                             var inputs = new Dictionary<string, object>
                             {
@@ -354,6 +357,7 @@ namespace SDAFWebApp.Controllers
                 }
 
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = "Error deploying system " + id + ": " + e.Message;
@@ -374,6 +378,7 @@ namespace SDAFWebApp.Controllers
 
                 return View(systemView);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = e.Message;
@@ -382,6 +387,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Install")]
         public async Task<IActionResult> InstallConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
@@ -417,7 +423,6 @@ namespace SDAFWebApp.Controllers
                         }
                     case "github":
                         {
-                            string key = "-" + system.sid;
                             // Trigger with
                             var inputs = new Dictionary<string, object>
                             {
@@ -442,6 +447,7 @@ namespace SDAFWebApp.Controllers
                 }
 
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = "Error triggering SAP installation pipeline for system " + id + ": " + e.Message;
@@ -504,6 +510,7 @@ namespace SDAFWebApp.Controllers
 
                 return View(systemView);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = e.Message;
@@ -526,7 +533,7 @@ namespace SDAFWebApp.Controllers
                     {
                         if (String.IsNullOrEmpty(system.Description))
                         {
-                            if ((bool)system.database_high_availability || (bool)system.scs_high_availability)
+                            if (system.database_high_availability == true || system.scs_high_availability == true)
                             {
                                 system.Description = system.database_platform + " high availability system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
@@ -577,7 +584,7 @@ namespace SDAFWebApp.Controllers
                         }
                         if (String.IsNullOrEmpty(system.Description))
                         {
-                            if ((bool)system.database_high_availability || (bool)system.scs_high_availability)
+                            if (system.database_high_availability == true || system.scs_high_availability == true)
                             {
                                 system.Description = system.database_platform + " high availability system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
@@ -623,6 +630,7 @@ namespace SDAFWebApp.Controllers
                         return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
                     }
                 }
+                // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
                     ModelState.AddModelError("SystemId", "Error editing system: " + e.Message);
@@ -671,6 +679,7 @@ namespace SDAFWebApp.Controllers
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
+                // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
                     ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
@@ -694,6 +703,7 @@ namespace SDAFWebApp.Controllers
                 systemView.SapObject = system;
                 return View(systemView);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = e.Message;
@@ -711,12 +721,14 @@ namespace SDAFWebApp.Controllers
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
 
+                // FileStreamResult takes ownership of the stream and disposes it after writing the response.
                 var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
                 return new FileStreamResult(stream, new MediaTypeHeaderValue("text/plain"))
                 {
                     FileDownloadName = path
                 };
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
@@ -738,6 +750,7 @@ namespace SDAFWebApp.Controllers
                 SystemEntity systemEntity = new(system);
                 await _systemService.UpdateAsync(systemEntity);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 ModelState.AddModelError("SystemId", "Error setting default for system: " + e.Message);
@@ -757,6 +770,7 @@ namespace SDAFWebApp.Controllers
                     Console.WriteLine("Unset existing default " + existingDefault.Id);
                 }
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 throw new Exception("Error unsetting the current default object: " + e.Message);

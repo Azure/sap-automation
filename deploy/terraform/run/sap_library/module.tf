@@ -14,6 +14,7 @@ module "sap_library" {
                                        azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
                                      }
   Agent_IP                          = var.add_Agent_IP ? var.Agent_IP : ""
+  application_configuration_deployment = var.application_configuration_deployment
   bootstrap                         = false
   deployer                          = local.deployer
   deployer_tfstate                  = try(data.terraform_remote_state.deployer[0].outputs , {})
