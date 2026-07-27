@@ -36,8 +36,11 @@ The SAP-system Terraform root passes
 to the
 [`output_files`](../deploy/terraform/terraform-units/modules/sap_system/output_files/)
 module. The module includes those settings in generated Ansible parameters.
-You can also review and maintain applicable values directly in
-`sap-parameters.yaml`.
+You can review the resulting values in `sap-parameters.yaml`, but don't
+maintain extensions by editing that generated file directly. A later
+Terraform apply regenerates the file and can overwrite manual changes. Store
+durable extension values in `configuration_settings` in the SAP-system
+configuration.
 
 The following extension collections are implemented by current Ansible roles:
 
@@ -80,7 +83,7 @@ The SAP-system root supports:
 - Database sizing keys such as `database_size` and
   `db_sizing_dictionary_key`.
 - An explicit database VM SKU through `database_vm_sku`.
-- Application-tier sizing keys such as `app_tier_vm_sizing` and
+- Application-tier sizing keys such as `application_size` and
   `app_tier_sizing_dictionary_key`.
 - A shared custom disk configuration through `custom_disk_sizes_filename`.
 - Tier-specific disk files through `db_disk_sizes_filename` and
@@ -176,6 +179,14 @@ The extension difference is significant:
   checked-out configuration repository.
 - The hosted helper also loads `extra-params.yaml` from the current SAP-system
   parameter directory when the file exists.
+
+Neither wrapper treats a failed pre-hook as a safety gate. Both continue to
+the framework playbook after reporting the pre-hook result. The local wrapper
+stops its playbook loop when a framework playbook fails, but hook failures
+don't stop the loop. In the hosted helper, a later framework or post-hook run
+can overwrite an earlier nonzero return code; the helper exits with the most
+recently recorded playbook result. If an extension must block later work,
+enforce and preserve its exit status in the owning wrapper stage.
 
 Review the owning GitHub workflow or Azure DevOps pipeline before relying on a
 hook. A wrapper must invoke the relevant helper and check out the
