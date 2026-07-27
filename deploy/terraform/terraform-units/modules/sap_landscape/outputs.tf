@@ -854,3 +854,8 @@ output "utility_vm_computer_names"                  {
                                                      description = "Planned utility VM computer names"
                                                      value       = concat(azurerm_windows_virtual_machine.utility_vm[*].computer_name, azurerm_linux_virtual_machine.utility_vm[*].computer_name)
                                                     }
+
+output "utility_vm_zones"                           {
+                                                     description = "Planned availability zones for utility VMs"
+                                                     value       = concat(azurerm_windows_virtual_machine.utility_vm[*].zone, azurerm_linux_virtual_machine.utility_vm[*].zone)
+                                                    }

@@ -315,6 +315,7 @@ locals {
                                            private_ip_address = var.utility_vm_nic_ips
                                            disk_size          = var.utility_vm_os_disk_size
                                            disk_type          = var.utility_vm_os_disk_type
+                                           zones              = distinct(var.utility_vm_zones)
                                          }
 
   utility_storage_settings             = [

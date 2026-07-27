@@ -1110,6 +1110,12 @@ variable "utility_vm_nic_ips"                      {
                                                      default     = []
                                                    }
 
+variable "utility_vm_zones"                        {
+                                                     description = "The zones for the utility virtual machines"
+                                                     type        = list(string)
+                                                     default     = []
+                                                   }
+
 #########################################################################################
 #                                                                                       #
 #  Utility Storage Accounts                                                             #

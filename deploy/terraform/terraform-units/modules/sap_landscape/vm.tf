@@ -79,6 +79,7 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
   automatic_updates_enabled                              = !(var.infrastructure.patch_mode == "ImageDefault")
 
   encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
+  zone                                                   = try(var.vm_settings.zones[count.index % max(length(var.vm_settings.zones), 1)], null)
 
   os_disk {
                  name                 = format("%s%s%s%s%s",
@@ -148,6 +149,7 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
   bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
 
   encryption_at_host_enabled                             = var.infrastructure.encryption_at_host_enabled
+  zone                                                   = try(var.vm_settings.zones[count.index % max(length(var.vm_settings.zones), 1)], null)
   dynamic "admin_ssh_key"              {
                                         for_each = range(1)
                                         content {

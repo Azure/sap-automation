@@ -168,8 +168,18 @@ variables {
   user_keyvault_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-kv/providers/Microsoft.KeyVault/vaults/kv-user"
 
   database_platform  = "HANA"
+  database_size      = "Default"
   database_use_avset = true
   database_use_ppg   = false
+  database_vm_image = {
+    os_type         = "LINUX"
+    source_image_id = null
+    publisher       = "SUSE"
+    offer           = "sles-sap-15-sp5"
+    sku             = "gen2"
+    version         = "latest"
+    type            = "marketplace"
+  }
 
   scs_server_use_avset         = true
   scs_server_use_ppg           = false
@@ -1097,4 +1107,106 @@ run "brownfield_storage_tier_reuses_existing_subnet" {
   }
 }
 
+run "sles16_hana_ha_forces_angi" {
+  command = apply
 
+  variables {
+    database_high_availability = true
+    NFS_provider               = "AFS"
+    use_saphanasr_angi         = false
+    use_sles_saphanasr_angi    = false
+    database_vm_image = {
+      os_type         = "LINUX"
+      source_image_id = null
+      publisher       = "SUSE"
+      offer           = "sles-sap-16"
+      sku             = "gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_hanasr_angi:               true")
+    error_message = "SLES 16 HANA HA deployments must force SAPHanaSR-angi on even when both current and deprecated inputs are false."
+  }
+}
+
+run "non_sles16_honors_current_angi_input_with_null_offer" {
+  command = apply
+
+  variables {
+    database_high_availability = true
+    NFS_provider               = "AFS"
+    use_saphanasr_angi         = true
+    use_sles_saphanasr_angi    = false
+    database_vm_image = {
+      os_type         = "LINUX"
+      source_image_id = null
+      publisher       = "SUSE"
+      offer           = null
+      sku             = "gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_hanasr_angi:               true")
+    error_message = "Non-SLES 16 HANA HA deployments must honor use_saphanasr_angi, including when the image offer is null."
+  }
+}
+
+run "non_sles16_honors_deprecated_angi_input" {
+  command = apply
+
+  variables {
+    database_high_availability = true
+    NFS_provider               = "AFS"
+    use_saphanasr_angi         = false
+    use_sles_saphanasr_angi    = true
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_hanasr_angi:               true")
+    error_message = "Non-SLES 16 HANA HA deployments must continue honoring the deprecated use_sles_saphanasr_angi input."
+  }
+}
+
+run "sles16_scs_ha_defaults_to_simple_mount" {
+  command = apply
+
+  variables {
+    scs_high_availability = true
+    NFS_provider          = "AFS"
+    use_simple_mount      = false
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "SUSE"
+      offer           = "sles-sap-16"
+      sku             = "gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              true")
+    error_message = "SLES 16 SCS HA deployments must default use_simple_mount to true."
+  }
+}
+
+run "empty_database_sizing_inputs_use_default_os_disk" {
+  command = plan
+
+  variables {
+    db_sizing_dictionary_key = ""
+    database_size            = ""
+  }
+
+  assert {
+    condition     = length(output.hanadb_vm_ids) == 1
+    error_message = "Empty database sizing inputs must select the Default sizing entry and produce the HANA VM with its required OS disk."
+  }
+}

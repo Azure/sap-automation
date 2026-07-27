@@ -47,10 +47,13 @@ repos:
   sles_sap15.5:
   sles_sap15.6:
   sles_sap15.7:
+  sles_sap16.0:
   sles15.3:
   sles15.4:
   sles15.5:
   sles15.6:
+  sles15.7:
+  sles16.0:
 
   # Oracle
   # Adding the entries for Oracle-Linux for testing. cat /etc/oracle-release is the command to get the os version info in Oracle linux.

@@ -1573,6 +1573,32 @@
         ],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "utility_vm_zones",
+        "Required": false,
+        "Description": "Defines the Availability zones for the utility virtual machines.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },

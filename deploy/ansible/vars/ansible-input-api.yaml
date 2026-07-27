@@ -77,7 +77,6 @@ hana_components:                       "all"
 instance_type:                         "ASCS"
 
 dbload_retry_count:                    240
-dbload_async_timeout:                  14400
 
 single_server:                         false
 
@@ -251,6 +250,20 @@ NFS_version:                            "NFSv4.1"
 use_simple_mount:                       false
 # Indicate if Encryption in Transit is to be used for AFS shares
 use_eit_for_afs:                        false
+
+# Corosync defaults (Corosync v2)
+corosync_crypto_config:                 |-
+  secauth:             on
+  crypto_hash:         sha1
+  crypto_cipher:       aes256
+  clear_node_high_bit: yes
+corosync_interface_config:              |-
+  interface {
+      ringnumber: 0
+      mcastport:  5405
+      ttl:        1
+  }
+corosync_transport:                     udpu
 
 # Cluster - Defaults
 # database_high_availability:            false
