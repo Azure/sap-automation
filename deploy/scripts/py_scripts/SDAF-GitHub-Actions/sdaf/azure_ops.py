@@ -15,16 +15,6 @@ AZURE_OIDC_CONFIG = {
         "audience": "api://AzureADTokenExchangeUSGov",
         "terraform_environment": "usgovernment",
     },
-    "AzureChinaCloud": {
-        "environment": "AzureChinaCloud",
-        "audience": "api://AzureADTokenExchangeChina",
-        "terraform_environment": "china",
-    },
-    "AzureGermanCloud": {
-        "environment": "AzureGermanCloud",
-        "audience": "api://AzureADTokenExchangeGerman",
-        "terraform_environment": "german",
-    },
 }
 
 

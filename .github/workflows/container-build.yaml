@@ -11,14 +11,12 @@ on:
     branches:
       - main
       - "development-*"
-      - gh-action-gov
     tags:
       - "v*.*.*.*"
   pull_request:
     branches:
       - main
       - "development-*"
-      - gh-action-gov
   workflow_dispatch:
 
 permissions:
