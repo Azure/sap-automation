@@ -1,6 +1,6 @@
 # SAP Deployment Automation Framework supportability
 
-This article summarizes the technical scope published for SAP Deployment
+This article summarizes the validated technical scope for SAP Deployment
 Automation Framework (SDAF). Use it with current SAP product documentation,
 SAP on Azure certification guidance, Azure service availability, and the
 release notes for the SDAF version that you deploy.
@@ -23,10 +23,9 @@ The following terms apply:
   customization.
 
 Availability in Terraform, Ansible, or a sample doesn't establish support by
-itself. The matrices in this article were reviewed against the current
-Microsoft Learn
-[SDAF supportability matrix](https://learn.microsoft.com/azure/sap/automation/supportability)
-for the July 2026 documentation baseline.
+itself. The matrices in this article record the July 2026 documentation
+baseline. Code can include enablement for versions or scenarios that aren't
+yet part of the published tested baseline.
 
 ## Execution-host boundary
 
@@ -42,8 +41,8 @@ their own prerequisites.
 
 | Family | Published framework scope | Published tested versions |
 | --- | --- | --- |
-| Red Hat Enterprise Linux | 64-bit x86-64, 8.2 through 10.0 | 8.2, 8.4, 8.6, 8.8, 9.0, 9.2, 9.4, 9.6, 10.0 |
-| SUSE Linux Enterprise Server | 64-bit x86-64, 12.x and 15.x | 12 SP4, 15 SP2, 15 SP3, 15 SP4, 15 SP5, 15 SP6, 15 SP7, 16 SP0 |
+| Red Hat Enterprise Linux | 64-bit x86-64, 7.x through 10.0 | 7.9, 8.2, 8.4, 8.6, 8.8, 9.0, 9.2, 9.4, 9.6, 10.0 |
+| SUSE Linux Enterprise Server | 64-bit x86-64, 12.x and 15.x | 12 SP4, 15 SP2, 15 SP3, 15 SP4, 15 SP5, 15 SP6, 15 SP7 |
 | Oracle Linux | 64-bit x86-64 | 8.2, 8.4, 8.6, 8.8, 8.9 |
 | Windows Server | 64-bit x64 | 2016, 2019, 2022 |
 
@@ -96,15 +95,25 @@ deployment topology.
 
 ### Database topologies
 
-| Availability model | Topology | Description |
+The published support topology describes a distributed high-availability
+deployment. SDAF implements that database tier through separate scale-up and
+SAP HANA scale-out paths. The following rows describe those implementation
+paths; they don't independently establish support for a specific product,
+operating-system, or infrastructure combination.
+
+| Availability model | Topology | Framework path |
 | --- | --- | --- |
 | Non-HA | Database non-HA | The database tier doesn't use a high-availability configuration |
-| High Availability | Scale-up | The database tier uses the supported database-specific scale-up high-availability configuration |
-| High Availability | Scale-out | The SAP HANA database tier uses the supported scale-out high-availability configuration |
+| High availability | Scale-up | The database tier uses the database-specific clustered high-availability path |
+| High availability | Scale-out | The SAP HANA database tier uses the scale-out clustered high-availability path |
 
-SAP HANA scale-out HA supports standby-node and observer options. Validate the
-node count, storage design, standby roles, and selected HA implementation for
-the adopted release.
+The implementation is defined by the
+[`database_HANA_use_scaleout_scenario`](../deploy/terraform/run/sap_system/tfvar_variables.tf)
+input and the scale-up and scale-out roles in
+[`playbook_04_00_01_db_ha.yaml`](../deploy/ansible/playbook_04_00_01_db_ha.yaml).
+Scale-out-specific inputs also expose standby-node and observer configuration.
+Validate the node count, storage design, standby roles, and selected HA
+implementation for the adopted release.
 
 ### SAP central services topologies
 
