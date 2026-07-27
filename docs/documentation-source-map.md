@@ -23,6 +23,26 @@ versions:
 Revalidate a row against the target branch before changing its capability
 statement.
 
+## Reference documentation sources
+
+The architecture, extensibility, and supportability references use the
+following baselines:
+
+| Reference | Source | Validation use |
+| --- | --- | --- |
+| Framework architecture | [SAP Deployment Automation Framework](https://learn.microsoft.com/azure/sap/automation/deployment-framework) | Control plane, workload zone, SAP system, software acquisition, and SAP topology concepts |
+| Extensibility | [Extend SAP Deployment Automation Framework](https://learn.microsoft.com/azure/sap/automation/extensibility) | Published configuration extensions and custom Ansible-hook patterns |
+| Custom sizing | [Custom disk configuration reference](https://learn.microsoft.com/azure/sap/automation/configure-extra-disks) | Custom sizing JSON structure, file placement, and disk configuration behavior |
+| Custom naming | [Configure custom naming](https://learn.microsoft.com/azure/sap/automation/naming-module) | Name-override JSON contract, naming inputs, and naming-module boundary |
+| Technical supportability | [Supportability matrix for SAP Deployment Automation Framework](https://learn.microsoft.com/azure/sap/automation/supportability) | Published operating-system, database, storage, topology, and Azure capability matrices |
+| Terraform architecture | [`deploy/terraform/run`](../deploy/terraform/run/) and [`deploy/terraform/bootstrap`](../deploy/terraform/bootstrap/) at `fe6a307d1c9d0dee81d1dfc486265276aed3b03a` | Root-module boundaries, remote-state dependencies, generated outputs, and bootstrap flow |
+| Ansible extensions | [`deploy/ansible`](../deploy/ansible/) at `fe6a307d1c9d0dee81d1dfc486265276aed3b03a` | Custom repositories, packages, logical volumes, kernel parameters, services, exports, mounts, and local pre/post hooks |
+| Hosted Ansible extensions | [`05-run-ansible.sh`](../deploy/scripts/pipeline_scripts/v2/05-run-ansible.sh) at `fe6a307d1c9d0dee81d1dfc486265276aed3b03a` | Hosted pre/post hook names, lookup path, extra parameters, and failure behavior |
+
+Supportability values in central documentation must remain distinguishable
+from support policy. Implementation availability alone doesn't
+establish support.
+
 ## Lifecycle capability sources
 
 | Capability | Execution model | Source asset | Validation result |
@@ -67,7 +87,7 @@ labels one option as current or supported:
 - What is the intended public distinction between the Azure DevOps software
   download wrapper variants?
 - Which local established and v2 entry points are supported for each release?
-- What is the approved support boundary and customer support channel?
+- What is the approved support boundary and support channel?
 
 Do not infer these answers from filenames. Record owner confirmation and the
 validated release when a question is resolved.
