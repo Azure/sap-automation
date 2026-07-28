@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Ansible Collections
         run: |
-          ansible-galaxy collection install ansible.windows --force
+          ansible-galaxy collection install ansible.windows:3.7.0 --force
           ansible-galaxy collection install ansible.posix:2.2.1 --force
           ansible-galaxy collection install ansible.utils --force
           ansible-galaxy collection install ansible.netcommon:5.1.2 --force
