@@ -96,9 +96,9 @@ whitespace-delimited field instead of parsing YAML.
 - Retrieves the SAP system SSH key from the workload-zone Key Vault through
   `pb_get-sshkey.yaml`.
 - Runs selected numbered playbooks.
-- Runs customer pre- and post-playbooks from
+- Runs custom pre- and post-playbooks from
   `$CONFIG_REPO_PATH/ANSIBLE` when matching files exist.
-- Reports customer hook failures but continues to the numbered playbook or the
+- Reports custom hook failures but continues to the numbered playbook or the
   next selected playbook.
 - Stops the selected sequence after a failed numbered playbook.
 
@@ -117,7 +117,8 @@ pre/post playbooks.
 > Installation playbooks change operating systems, storage, clusters,
 > databases, and SAP instances. Do not select **All Playbooks** on an existing
 > system without reviewing idempotence, progress markers, and recovery for
-> every included playbook.
+> every included playbook. Some underlying Ansible modules or roles might not
+> be idempotent.
 
 ## Download software
 
@@ -161,7 +162,7 @@ pre/post playbooks.
 3. Select one reviewed playbook or grouped sequence.
 
    The wrapper reports the current playbook and stops if a numbered playbook
-   returns a nonzero status. Customer pre- and post-playbook failures are
+   returns a nonzero status. Custom pre- and post-playbook failures are
    reported but do not stop the sequence.
 
 4. After the menu exits, remove the retrieved private-key file immediately.
@@ -195,12 +196,13 @@ pre/post playbooks.
 
 Correct the failed prerequisite or task, then rerun the smallest applicable
 playbook. Before restarting a grouped sequence, identify any failed numbered
-playbook or customer hook and review its output, progress marker, and
+playbook or custom hook and review its output, progress marker, and
 idempotence. A failed pre-hook does not prevent the numbered playbook from
 running, and a failed post-hook does not stop the next selected playbook.
 
-Do not delete `.progress` markers merely to force a rerun. Review the role that
-owns the marker and the target system state first.
+> [!WARNING]
+> Do not delete `.progress` markers merely to force a rerun. Review the role
+> that owns the marker and the target system state first.
 
 ## Next step
 

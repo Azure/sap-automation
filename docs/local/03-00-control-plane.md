@@ -36,7 +36,7 @@ used by the library directory and parameter file.
    application settings.
 3. Confirm that deployer and library names describe the same environment and
    location.
-4. Commit or otherwise record the approved customer configuration.
+4. Commit or otherwise record the approved deployment configuration.
 
 ## What the automation does
 
@@ -56,9 +56,11 @@ used by the library directory and parameter file.
 It can also invoke `installer.sh` for component migration steps required by
 the control-plane orchestration.
 
-`deploy_control_plane_v2.sh` implements the same lifecycle through sourced v2
-functions and has different option and environment-variable names. Use it only
-when selected by release guidance.
+`deploy_control_plane_v2.sh` implements the lifecycle through sourced v2
+functions and is designed to use Azure App Configuration as the central store
+for deployment metadata, including remote-state and Key Vault references. It
+has different option and environment-variable names. Use it only when selected
+by release guidance.
 
 ## Review before execution
 
@@ -124,8 +126,11 @@ component completed, inspect the persisted `step` value and component state
 before using `--recover`. The script implements `--recover` specifically for
 its persisted control-plane step flow.
 
-Do not use `--force` as a general retry option. It changes how local Terraform
-metadata is considered and can trigger state migration or replacement paths.
+> [!WARNING]
+> Do not use `--force` as a general retry option. It changes how local
+> Terraform metadata is considered and can trigger state migration or
+> replacement paths. Use it only with a reviewed state migration or recovery
+> plan.
 
 ## Next step
 

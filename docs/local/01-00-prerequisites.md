@@ -133,7 +133,7 @@ as the owner of:
 - `BOM` software bills of materials.
 - `Ansible` sample inputs.
 
-Copy only the required examples into the customer configuration repository.
+Copy only the required examples into the deployment configuration repository.
 Review names, subscriptions, regions, networks, sizes, images, availability,
 credentials, and feature flags. Samples are not production approval.
 

@@ -17,7 +17,7 @@ steps as a regular user with `sudo` permission. Do not run
 Define these placeholders:
 
 - `<SDAF_COMMIT>`: Approved `Azure/sap-automation` commit.
-- `<CONFIG_ROOT>`: Absolute path to the customer configuration root.
+- `<CONFIG_ROOT>`: Absolute path to the deployment configuration root.
 - `<SUBSCRIPTION_ID>`: Initial target Azure subscription.
 - `<ABSOLUTE_PATH_TO_SAP_AUTOMATION_SAMPLES>`: Absolute path to the reviewed
   `Azure/SAP-automation-samples` checkout.
@@ -25,7 +25,7 @@ Define these placeholders:
 The scripts require:
 
 - `SAP_AUTOMATION_REPO_PATH`: SDAF checkout root.
-- `CONFIG_REPO_PATH`: Customer configuration root.
+- `CONFIG_REPO_PATH`: Deployment configuration root.
 - `ARM_SUBSCRIPTION_ID`: Current target subscription.
 
 Later stages persist nonsecret environment metadata under
@@ -42,7 +42,7 @@ On RHEL and SLES, the script also installs `virtualenv` into system Python
 before creating the Python virtual environment under `/opt/ansible`. It writes
 `/etc/profile.d/deploy_server.sh`.
 
-The script does not create customer `WORKSPACES` configuration or approve an
+The script does not create deployment `WORKSPACES` configuration or approve an
 Azure deployment.
 
 ## Prepare the host

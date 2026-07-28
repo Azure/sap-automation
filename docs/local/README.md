@@ -67,7 +67,7 @@ options unchanged.
 
 ## Configuration and state layout
 
-Keep customer configuration outside the SDAF source checkout. A typical
+Keep deployment configuration outside the SDAF source checkout. A typical
 configuration root contains:
 
 ```text
@@ -98,4 +98,3 @@ This journey was validated against `Azure/sap-automation` commit
 `fe6a307d1c9d0dee81d1dfc486265276aed3b03a` on
 `release/july-2026`. Revalidate commands and capability statements before you
 use another release.
-

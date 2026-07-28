@@ -31,7 +31,7 @@ For an operation, identify:
 
 ## Prepare an operational change
 
-1. Reconcile the customer configuration, remote state, and Azure resources.
+1. Reconcile the deployment configuration, remote state, and Azure resources.
 2. Record drift or manual Azure changes.
 3. Back up business data and state before a risky or destructive operation.
 4. Review dependencies on shared control-plane and workload-zone resources.
@@ -55,7 +55,7 @@ order. Do not use `--auto-approve` for an operator-reviewed change or removal.
 
 ## Apply an approved change
 
-1. Update one stage's customer configuration.
+1. Update one stage's deployment configuration.
 2. Review the source-control diff.
 3. Confirm the same SDAF and tool versions used by the environment, or approve
    an upgrade plan.

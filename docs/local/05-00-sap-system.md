@@ -9,7 +9,7 @@ software download and installation.
 ## Before you begin
 
 - Complete [workload-zone deployment](04-00-workload-zone.md).
-- Confirm the workload-zone state key and remote-state account.
+- Confirm the workload-zone state blob name and remote-state account.
 - Confirm VM-family quota, image availability, storage performance, DNS,
   load-balancer, availability-zone, and high-availability decisions.
 - Confirm the configured operating systems and database topology are
@@ -27,7 +27,8 @@ Also identify:
 - `<CONTROL_PLANE>`: Control-plane name.
 - `<WORKLOAD_ZONE>`: Workload-zone name.
 - `<DEPLOYER_STATE_KEY>`: Deployer state blob name.
-- `<LANDSCAPE_STATE_KEY>`: Usually
+- `<LANDSCAPE_STATE_KEY>` (also called `<WORKLOAD_ZONE_STATE_KEY>`): Workload-zone
+  Terraform state blob name in the `tfstate` container, usually
   `<WORKLOAD_ZONE>-INFRASTRUCTURE.terraform.tfstate`.
 - `<STATE_STORAGE_ACCOUNT>`: Remote-state storage account name.
 - `<STATE_SUBSCRIPTION_ID>`: Subscription containing that storage account.
@@ -52,7 +53,7 @@ Also identify:
 
 - Loads control-plane and workload-zone metadata.
 - Configures the `sap_system` Terraform root module.
-- Reads deployer and landscape remote state.
+- Reads deployer and landscape (workload-zone) remote state.
 - Runs Terraform plan with detailed exit codes.
 - Checks plan output for replacement of state storage, SAP library storage,
   VMs, and managed disks.
@@ -62,10 +63,12 @@ Also identify:
   and other output files in the current system directory.
 - Writes `apply_output.log` or `apply_output.json`.
 
-[`installer_v2.sh`](../../deploy/scripts/installer_v2.sh) provides a v2
-implementation. It uses `--parameter_file` instead of `--parameterfile` and
-different state environment-variable names. Do not mix its options with the
-established command.
+[`installer_v2.sh`](../../deploy/scripts/installer_v2.sh) provides the v2
+implementation designed to retrieve shared deployment metadata from Azure App
+Configuration, including remote-state and Key Vault references. It uses
+`--parameter_file` instead of `--parameterfile` and different state
+environment-variable names. Do not mix its options with the established
+command.
 
 ## Review before execution
 

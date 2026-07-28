@@ -118,8 +118,9 @@ cross-subscription resources.
 Rerun the same command after correcting the cause. Use the same commit,
 configuration, state account, state key, and identity. Review the new plan.
 
-Do not use `--force` unless you have reviewed its local-state handling and
-have a state migration or recovery plan.
+> [!WARNING]
+> Do not use `--force` unless you have reviewed its local-state handling and
+> have a state migration or recovery plan.
 
 ## Next step
 
