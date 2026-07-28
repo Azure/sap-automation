@@ -51,6 +51,7 @@
       ansible.builtin.set_fact:
         fencing_spn_subscription_id:              "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:                      "{{ azure_metadata.json.compute.resourceGroupName }}"
+        fencing_azure_cloud_parameter:            "{{ 'cloud=usgov' if (azure_metadata.json.compute.azEnvironment | default('') | lower) == 'azureusgovernmentcloud' else '' }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

@@ -199,6 +199,7 @@
                                          resourceGroup="{{ resource_group_name }}"
                                          tenantId="{{ fencing_spn_tenant_id }}"
                                          subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         {{ fencing_azure_cloud_parameter }}
                                          power_timeout=240
                                          pcmk_reboot_timeout=900
                                          pcmk_monitor_timeout=120
@@ -217,6 +218,7 @@
                                          passwd="{{ fencing_spn_client_pwd }}"
                                          resourceGroup="{{ resource_group_name }}"
                                          subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         {{ fencing_azure_cloud_parameter }}
                                          power_timeout=240
                                          pcmk_reboot_timeout=900
                                          pcmk_monitor_timeout=120
@@ -236,6 +238,7 @@
                                          resourceGroup="{{ resource_group_name }}"
                                          tenantId="{{ fencing_spn_tenant_id }}"
                                          subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         {{ fencing_azure_cloud_parameter }}
                                          power_timeout=240
                                          pcmk_reboot_timeout=900
                                          pcmk_monitor_timeout=120
@@ -253,6 +256,7 @@
                                          msi=true
                                          resourceGroup="{{ resource_group_name }}"
                                          subscriptionId="{{ fencing_spn_subscription_id }}"
+                                         {{ fencing_azure_cloud_parameter }}
                                          power_timeout=240
                                          pcmk_reboot_timeout=900
                                          pcmk_monitor_timeout=120
