@@ -23,6 +23,8 @@ For an operation, identify:
 - `<LANDSCAPE_STATE_KEY>`: Workload-zone state blob name.
 - `<STATE_STORAGE_ACCOUNT>`: Remote-state storage account name.
 - `<STATE_SUBSCRIPTION_ID>`: Subscription containing the state account.
+- `<WORKLOAD_SUBSCRIPTION_ID>`: Subscription containing the workload-zone and
+  SAP-system resources.
 - The matching deployment and removal script family.
 - The Azure identity and maintenance window.
 - Required backups, retained resources, and approvers.
@@ -151,6 +153,12 @@ variables and can expose credentials.
 7. Rerun the same stage command.
 8. Review the new plan before approval.
 
+Do not use the generic rerun step for an interrupted control-plane removal.
+After the library destroy, `remove_controlplane.sh` persists `step=1`, and a
+later invocation can exit successfully without removing the deployer. Follow
+[Removal is incomplete](troubleshooting.md#removal-is-incomplete) for a
+reviewed component-specific recovery.
+
 Use [Troubleshoot local execution](troubleshooting.md) for stage-specific
 diagnostics.
 
@@ -176,6 +184,7 @@ Remove resources in reverse dependency order:
 
 ```bash
 cd "$CONFIG_REPO_PATH/WORKSPACES/SYSTEM/<SAP_SYSTEM>"
+ARM_SUBSCRIPTION_ID="<WORKLOAD_SUBSCRIPTION_ID>" \
 "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover.sh" \
   --type sap_system \
   --parameterfile "<SAP_SYSTEM>.tfvars" \
@@ -198,6 +207,7 @@ complete.
 ```bash
 cd \
   "$CONFIG_REPO_PATH/WORKSPACES/LANDSCAPE/<WORKLOAD_ZONE>-INFRASTRUCTURE"
+ARM_SUBSCRIPTION_ID="<WORKLOAD_SUBSCRIPTION_ID>" \
 "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/remover.sh" \
   --type sap_landscape \
   --parameterfile "<WORKLOAD_ZONE>-INFRASTRUCTURE.tfvars" \

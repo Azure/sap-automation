@@ -31,6 +31,8 @@ Also identify:
   `<WORKLOAD_ZONE>-INFRASTRUCTURE.terraform.tfstate`.
 - `<STATE_STORAGE_ACCOUNT>`: Remote-state storage account name.
 - `<STATE_SUBSCRIPTION_ID>`: Subscription containing that storage account.
+- `<WORKLOAD_SUBSCRIPTION_ID>`: Subscription where the SAP-system resources
+  are deployed.
 
 ## Configuration preparation
 
@@ -89,6 +91,7 @@ Do not pass `--auto-approve`.
 2. Run the SAP-system installer.
 
    ```bash
+   ARM_SUBSCRIPTION_ID="<WORKLOAD_SUBSCRIPTION_ID>" \
    "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/installer.sh" \
      --type sap_system \
      --parameterfile "<SAP_SYSTEM>.tfvars" \
