@@ -16,7 +16,7 @@
 #     SSH access to the source and destination SAP systems for key management operations.
 #   - By removing these files at the end of the playbook, we enhance the security posture of the deployment process.
 # ---------------------------------------------------------------------------*/
-- name:                                 "SCR Keys: ({{ function | upper }}) Cleanup the SSH credential files from the OS (controller only)"
+- name:                                 "SCR Keys: (CLEANUP) Cleanup the SSH credential files from the OS (controller only)"
   delegate_to:                          localhost
   ansible.builtin.file:
     path:                               "{{ ansible_ssh_private_key_file }}"
