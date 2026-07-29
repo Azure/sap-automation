@@ -99,7 +99,28 @@ class _FakeRepo:
         self.full_name = "org/repo"
         self.name = "repo"
         self.id = 200
+        self.url = "https://api.github.com/repos/org/repo"
         self.owner = type("Owner", (), {"login": "org", "id": 100})()
+        self._requester = type(
+            "Requester",
+            (),
+            {
+                "requestJsonAndCheck": _CallRecorder(
+                    return_value=(
+                        {},
+                        {
+                            "use_default": False,
+                            "include_claim_keys": [
+                                "repository",
+                                "repository_id",
+                                "repository_owner_id",
+                                "context",
+                            ],
+                        },
+                    )
+                )
+            },
+        )()
         self.create_variable = _CallRecorder()
         self.create_secret = _CallRecorder()
         self.get_environment = _CallRecorder(return_value=_FakeEnvironment())
@@ -157,13 +178,28 @@ class TestGithubOps:
         """
         mocker.patch("sdaf.github_ops.time.sleep")
 
-    def test_get_federated_subject_returns_immutable_subject_by_default(self):
-        """GitHub Cloud repositories use immutable owner and repository IDs by default."""
+    def test_get_federated_subject_discovers_immutable_subject(self):
+        """The repository OIDC customization selects immutable subject claims."""
         client = _FakeGithubClient()
 
         result = sdaf.github_ops.get_federated_subject(client, "org/repo", "MGMT")
 
         assert result == "repo:org@100/repo@200:environment:MGMT"
+        client.get_repo.return_value._requester.requestJsonAndCheck.assert_called_once_with(
+            "GET", "https://api.github.com/repos/org/repo/actions/oidc/customization/sub"
+        )
+
+    def test_get_federated_subject_discovers_standard_subject(self):
+        """The GitHub default OIDC subject uses the standard format."""
+        client = _FakeGithubClient()
+        client.get_repo.return_value._requester.requestJsonAndCheck.return_value = (
+            {},
+            {"use_default": True, "include_claim_keys": []},
+        )
+
+        result = sdaf.github_ops.get_federated_subject(client, "org/repo", "MGMT")
+
+        assert result == "repo:org/repo:environment:MGMT"
 
     def test_get_federated_subject_returns_standard_subject_when_requested(self):
         """Repositories without immutable subject claims retain the legacy format."""

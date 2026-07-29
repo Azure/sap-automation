@@ -22,15 +22,32 @@ def get_federated_subject(
     github_client,
     repo_full_name,
     environment_name,
-    subject_format="immutable",
+    subject_format="",
     subject_override="",
 ):
     """Build the GitHub OIDC subject used by an environment-bound workflow."""
     if subject_override:
         return subject_override
 
-    validate_federated_subject_format(subject_format)
     repo = github_client.get_repo(repo_full_name)
+    if not subject_format:
+        _, customization = repo._requester.requestJsonAndCheck(
+            "GET", f"{repo.url}/actions/oidc/customization/sub"
+        )
+        if customization["use_default"]:
+            subject_format = "standard"
+        elif {"repository", "repository_id", "repository_owner_id"}.issubset(
+            customization["include_claim_keys"]
+        ):
+            subject_format = "immutable"
+        else:
+            raise ValueError(
+                "The repository OIDC subject customization cannot be represented by "
+                "the supported standard or immutable subject formats. Set "
+                "SDAF_GITHUB_OIDC_SUBJECT explicitly."
+            )
+
+    validate_federated_subject_format(subject_format)
     if subject_format == "standard":
         return f"repo:{repo.full_name}:environment:{environment_name}"
     if subject_format == "immutable":
