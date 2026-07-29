@@ -262,8 +262,8 @@
   ansible.builtin.reboot:
     msg:                               "Rebooting to apply NVMe configuration changes"
     test_command:                      uptime
-    connect_timeout:                   10
-    reboot_timeout:                    1200
+    connect_timeout:                   5
+    reboot_timeout:                    600
     pre_reboot_delay:                  0
     post_reboot_delay:                 30
   register:                            system_rebooted
