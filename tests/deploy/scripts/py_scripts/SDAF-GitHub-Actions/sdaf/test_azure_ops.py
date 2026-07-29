@@ -5,6 +5,7 @@
 Unit tests for ``sdaf.azure_ops``.
 """
 
+import hashlib
 import json
 import pytest
 import sdaf.azure_ops
@@ -688,7 +689,17 @@ class TestAzureOps:
             side_effect=[
                 _completed(
                     returncode=0,
-                    stdout=json.dumps([{"id": "credential-id", "name": "GitHubActions"}]),
+                    stdout=json.dumps(
+                        [
+                            {
+                                "id": "credential-id",
+                                "name": "GitHubActions",
+                                "issuer": "https://token.actions.githubusercontent.com",
+                                "subject": "repo:org@100/repo@200:environment:MGMT",
+                                "audiences": ["api://AzureADTokenExchangeUSGov"],
+                            }
+                        ]
+                    ),
                 ),
                 _completed(returncode=0),
             ],
@@ -704,6 +715,92 @@ class TestAzureOps:
         update_args = run_mock.call_args_list[1].args[0]
         assert "update" in update_args
         assert "credential-id" in update_args
+
+    def test_configure_federated_identity_preserves_different_same_name_credential(self, mocker):
+        """A reused application must not overwrite another workflow's trust."""
+        run_mock = mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            side_effect=[
+                _completed(
+                    returncode=0,
+                    stdout=json.dumps(
+                        [
+                            {
+                                "id": "other-credential-id",
+                                "name": "GitHubActions",
+                                "issuer": "https://token.actions.githubusercontent.com",
+                                "subject": "repo:other/repo:environment:PROD",
+                                "audiences": ["api://AzureADTokenExchange"],
+                            }
+                        ]
+                    ),
+                ),
+                _completed(returncode=0),
+            ],
+        )
+        user_data = {
+            "environment_name": "MGMT",
+            "federated_subject": "repo:org@100/repo@200:environment:MGMT",
+            "azure_audience": "api://AzureADTokenExchangeUSGov",
+        }
+
+        sdaf.azure_ops.configure_federated_identity(user_data, {"appId": "app-id"})
+
+        create_args = run_mock.call_args_list[1].args[0]
+        parameters = json.loads(create_args[create_args.index("--parameters") + 1])
+        assert "create" in create_args
+        assert "other-credential-id" not in create_args
+        assert parameters["name"].startswith("GitHubActions-")
+        assert parameters["subject"] == user_data["federated_subject"]
+
+    def test_configure_federated_identity_updates_existing_unique_credential(self, mocker):
+        """Rerunning setup updates the deterministic credential without conflict."""
+        subject = "repo:org@100/repo@200:environment:MGMT"
+        audience = "api://AzureADTokenExchangeUSGov"
+        identity = "|".join(
+            ["https://token.actions.githubusercontent.com", subject, audience]
+        )
+        unique_name = f"GitHubActions-{hashlib.sha256(identity.encode('utf-8')).hexdigest()[:12]}"
+        run_mock = mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            side_effect=[
+                _completed(
+                    returncode=0,
+                    stdout=json.dumps(
+                        [
+                            {
+                                "id": "other-credential-id",
+                                "name": "GitHubActions",
+                                "issuer": "https://token.actions.githubusercontent.com",
+                                "subject": "repo:other/repo:environment:PROD",
+                                "audiences": ["api://AzureADTokenExchange"],
+                            },
+                            {
+                                "id": "unique-credential-id",
+                                "name": unique_name,
+                                "issuer": "https://token.actions.githubusercontent.com",
+                                "subject": subject,
+                                "audiences": [audience],
+                            },
+                        ]
+                    ),
+                ),
+                _completed(returncode=0),
+            ],
+        )
+
+        sdaf.azure_ops.configure_federated_identity(
+            {
+                "environment_name": "MGMT",
+                "federated_subject": subject,
+                "azure_audience": audience,
+            },
+            {"appId": "app-id"},
+        )
+
+        update_args = run_mock.call_args_list[1].args[0]
+        assert "update" in update_args
+        assert "unique-credential-id" in update_args
 
     def test_configure_federated_identity_logs_warning_when_federated_credential_fails(
         self, mocker

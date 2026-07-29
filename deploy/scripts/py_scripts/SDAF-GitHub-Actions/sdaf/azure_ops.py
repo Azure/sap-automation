@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import hashlib
 import json
 from .utils import run_az_command
 
@@ -545,9 +546,6 @@ def configure_federated_identity(user_data, spn_data):
         "audiences": [user_data["azure_audience"]],
     }
 
-    # Convert parameters to a JSON string
-    parameters_json = json.dumps(parameters)
-
     list_result = run_az_command(
         ["ad", "app", "federated-credential", "list", "--id", spn_data["appId"]],
         capture_output=True,
@@ -559,11 +557,15 @@ def configure_federated_identity(user_data, spn_data):
         return
 
     try:
+        credentials = json.loads(list_result.stdout or "[]")
         existing = next(
             (
                 credential
-                for credential in json.loads(list_result.stdout or "[]")
+                for credential in credentials
                 if credential.get("name") == parameters["name"]
+                and credential.get("issuer") == parameters["issuer"]
+                and credential.get("subject") == parameters["subject"]
+                and credential.get("audiences") == parameters["audiences"]
             ),
             None,
         )
@@ -571,11 +573,31 @@ def configure_federated_identity(user_data, spn_data):
         print("Warning: Unable to parse existing federated identity credentials.")
         return
 
+    if not existing and any(
+        credential.get("name") == parameters["name"] for credential in credentials
+    ):
+        identity = "|".join(
+            [parameters["issuer"], parameters["subject"], *parameters["audiences"]]
+        )
+        suffix = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12]
+        parameters["name"] = f"GitHubActions-{suffix}"
+        existing = next(
+            (
+                credential
+                for credential in credentials
+                if credential.get("name") == parameters["name"]
+                and credential.get("issuer") == parameters["issuer"]
+                and credential.get("subject") == parameters["subject"]
+                and credential.get("audiences") == parameters["audiences"]
+            ),
+            None,
+        )
+
     operation = "update" if existing else "create"
     federated_args = ["ad", "app", "federated-credential", operation, "--id", spn_data["appId"]]
     if existing:
         federated_args.extend(["--federated-credential-id", existing["id"]])
-    federated_args.extend(["--parameters", parameters_json])
+    federated_args.extend(["--parameters", json.dumps(parameters)])
 
     result = run_az_command(federated_args, capture_output=True, text=True)
 
