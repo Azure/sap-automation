@@ -110,12 +110,7 @@ class _FakeRepo:
                         {},
                         {
                             "use_default": False,
-                            "include_claim_keys": [
-                                "repository",
-                                "repository_id",
-                                "repository_owner_id",
-                                "context",
-                            ],
+                            "sub_claim_prefix": "repo:org@100/repo@200",
                         },
                     )
                 )
@@ -178,8 +173,8 @@ class TestGithubOps:
         """
         mocker.patch("sdaf.github_ops.time.sleep")
 
-    def test_get_federated_subject_discovers_immutable_subject(self):
-        """The repository OIDC customization selects immutable subject claims."""
+    def test_get_federated_subject_discovers_subject_from_prefix(self):
+        """GitHub's OIDC response supplies the exact repository subject prefix."""
         client = _FakeGithubClient()
 
         result = sdaf.github_ops.get_federated_subject(client, "org/repo", "MGMT")
@@ -189,17 +184,24 @@ class TestGithubOps:
             "GET", "https://api.github.com/repos/org/repo/actions/oidc/customization/sub"
         )
 
-    def test_get_federated_subject_discovers_standard_subject(self):
-        """The GitHub default OIDC subject uses the standard format."""
+    def test_get_federated_subject_discovers_default_subject_from_prefix(self):
+        """The default subject prefix is not inferred from `use_default`."""
         client = _FakeGithubClient()
         client.get_repo.return_value._requester.requestJsonAndCheck.return_value = (
             {},
-            {"use_default": True, "include_claim_keys": []},
+            {
+                "use_default": True,
+                "sub_claim_prefix": "repo:org/repo",
+            },
         )
 
         result = sdaf.github_ops.get_federated_subject(client, "org/repo", "MGMT")
 
         assert result == "repo:org/repo:environment:MGMT"
+
+    def test_validate_federated_subject_format_allows_discovery(self):
+        """An empty format signals repository OIDC subject discovery."""
+        sdaf.github_ops.validate_federated_subject_format("")
 
     def test_get_federated_subject_returns_standard_subject_when_requested(self):
         """Repositories without immutable subject claims retain the legacy format."""

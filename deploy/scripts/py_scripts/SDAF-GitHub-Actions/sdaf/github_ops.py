@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def validate_federated_subject_format(subject_format, subject_override=""):
     """Validate the configured GitHub OIDC subject format before provisioning."""
-    if subject_override:
+    if subject_override or not subject_format:
         return
 
     if subject_format not in {"standard", "immutable"}:
@@ -34,18 +34,13 @@ def get_federated_subject(
         _, customization = repo._requester.requestJsonAndCheck(
             "GET", f"{repo.url}/actions/oidc/customization/sub"
         )
-        if customization["use_default"]:
-            subject_format = "standard"
-        elif {"repository", "repository_id", "repository_owner_id"}.issubset(
-            customization["include_claim_keys"]
-        ):
-            subject_format = "immutable"
-        else:
+        subject_prefix = customization.get("sub_claim_prefix")
+        if not subject_prefix:
             raise ValueError(
-                "The repository OIDC subject customization cannot be represented by "
-                "the supported standard or immutable subject formats. Set "
+                "GitHub did not return an OIDC subject prefix. Set "
                 "SDAF_GITHUB_OIDC_SUBJECT explicitly."
             )
+        return f"{subject_prefix}:environment:{environment_name}"
 
     validate_federated_subject_format(subject_format)
     if subject_format == "standard":
