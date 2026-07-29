@@ -6,8 +6,8 @@ exclude_paths:
 warn_list:
   # FIXME: Experimental violations should be fixed in separate PR
   - experimental
-  - yaml[new-line-at-end-of-file]
-  
+#   - yaml[new-line-at-end-of-file]
+
 skip_list:
   - no-handler   # Ignored because there is no easier way to do
   - key-order[task] # Refactor needed
