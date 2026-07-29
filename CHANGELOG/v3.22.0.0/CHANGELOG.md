@@ -8,8 +8,6 @@
 - Added repository-aware OIDC subject handling. Setup now preserves existing
   federated credentials and uses GitHub's reported subject prefix when no
   explicit subject format or subject override is supplied.
-- Enabled container-image publication for manually dispatched builds and added
-  the `gh-action-gov` branch to workflow triggers.
 - Added US Government regions (`USAR`, `USTE`, and `USVI`) to configuration,
   pipeline choices, and sample-deployer configuration generation.
 
@@ -18,8 +16,10 @@
   routing preferences.
 - Improved workload-zone remote-state persistence, force-reset recovery, role
   assignment ID normalization, and private endpoint policy configuration.
-- Added separate storage subnet validation, utility VM zone support, and
-  distribution validation.
+- Added Terraform plan-shape and validation tests for configurable private
+  endpoint policies, separate storage subnets, and utility VM zone placement.
+- Expanded Terraform input validation for storage subnet and zone-distribution
+  configurations.
 - Added Azure Government parameters to Pacemaker fencing configuration and
   strengthened fencing service-principal validation.
 
