@@ -222,9 +222,6 @@ namespace SDAFWebApp.Controllers
 
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
-                    string id = landscape.Id;
-                    string path = $"/LANDSCAPE/{id}/{id}.tfvars";
-                    string content = Helper.ConvertToTerraform(landscape);
 
                     return RedirectToAction("Index");
                 }
@@ -258,6 +255,7 @@ namespace SDAFWebApp.Controllers
 
                 return View(landscapeView);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = e.Message;
@@ -266,6 +264,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Deploy")]
         public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
@@ -395,6 +394,7 @@ namespace SDAFWebApp.Controllers
                 ViewBag.ImageOptions = imageOptions;
                 return View(landscapeView);
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = e.Message;
@@ -511,7 +511,6 @@ namespace SDAFWebApp.Controllers
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     string id = landscape.Id;
-                    string path = $"/LANDSCAPE/{id}/{id}.tfvars";
                     string content = Helper.ConvertToTerraform(landscape);
 
                     byte[] bytes = Encoding.UTF8.GetBytes(content);
@@ -530,6 +529,7 @@ namespace SDAFWebApp.Controllers
 
                     return RedirectToAction("Index");
                 }
+                // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
                     ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
@@ -570,12 +570,14 @@ namespace SDAFWebApp.Controllers
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
 
+                // FileStreamResult takes ownership of the stream and disposes it after writing the response.
                 var stream = new MemoryStream(Encoding.UTF8.GetBytes(content));
                 return new FileStreamResult(stream, new MediaTypeHeaderValue("text/plain"))
                 {
                     FileDownloadName = path
                 };
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
@@ -598,6 +600,7 @@ namespace SDAFWebApp.Controllers
                 await _landscapeService.UpdateAsync(landscapeEntity);
                 TempData["success"] = id + " is now the default workload zone";
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 TempData["error"] = "Error setting default for workload zone: " + e.Message;
@@ -617,6 +620,7 @@ namespace SDAFWebApp.Controllers
                     Console.WriteLine("Unset existing default " + existingDefault.Id);
                 }
             }
+            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
                 throw new Exception("Error unsetting the current default object: " + e.Message);

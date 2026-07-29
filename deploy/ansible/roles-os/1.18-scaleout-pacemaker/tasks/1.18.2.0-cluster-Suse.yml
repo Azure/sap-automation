@@ -41,9 +41,10 @@
 # eth0 is the "db" NIC
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure clustering can manage Virtual IPs on the Database Interface"
   when:
+                                       - ansible_facts.packages['cloud-netconfig-azure'] is defined
                                        - ansible_facts.packages['cloud-netconfig-azure']
                                        - ansible_facts.packages['cloud-netconfig-azure'][0].version is version('1.3', '<')
-                                       - not (ansible_distribution | lower ~ ansible_distribution_major_version) in ['suse16', 'sles_sap16' ]
+                                       - ansible_distribution_major_version | int < 16
                                        - node_tier == 'hana'
   ansible.builtin.lineinfile:
     path:                              /etc/sysconfig/network/ifcfg-eth0
@@ -154,15 +155,18 @@
     src:                               corosync.conf.j2
     dest:                              /etc/corosync/corosync.conf
     mode:                              0600
+  when:                                ansible_distribution_major_version | int < 16
 
 - name:                                "1.18.2.0 Generic Pacemaker - Ensure the pacemaker service is restarted on node."
   ansible.builtin.systemd:
     name:                              pacemaker
     state:                             restarted
+  when:                                ansible_distribution_major_version | int < 16
 
 - name:                                "1.18.2.0 Generic Pacemaker - Pause"
   ansible.builtin.wait_for:
     timeout:                           30
+  when:                                ansible_distribution_major_version | int < 16
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

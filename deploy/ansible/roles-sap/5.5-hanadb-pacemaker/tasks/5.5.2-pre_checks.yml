@@ -23,7 +23,9 @@
       - "fencing_spn_client_pwd is defined"
       - "fencing_spn_client_pwd | trim | length > 0"
     fail_msg:                          Fencing SPN details are missing
-  when:                                not use_msi_for_clusters
+  when:
+                                       - database_cluster_type == "AFA"
+                                       - not use_msi_for_clusters
 
 - name:                                "5.5.2 HANA Pacemaker - Check the required cluster password is set"
   ansible.builtin.assert:

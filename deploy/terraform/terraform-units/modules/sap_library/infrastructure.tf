@@ -127,7 +127,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            var.naming.separator,
                                            "vault"
                                          )
-  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+  resource_group_name                  = local.use_local_privatelink_dns ? (
                                            var.infrastructure.resource_group.exists ? (
                                              split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
@@ -153,7 +153,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_agent" {
                                            var.naming.separator,
                                            "vault-agent"
                                          )
-  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+  resource_group_name                  = local.use_local_privatelink_dns ? (
                                            var.infrastructure.resource_group.exists ? (
                                              split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
@@ -179,7 +179,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_additional" {
                                            var.naming.separator,
                                            "vault-additional"
                                          )
-  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+  resource_group_name                  = local.use_local_privatelink_dns ? (
                                            var.infrastructure.resource_group.exists ? (
                                              split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name
@@ -205,7 +205,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob_agent" {
                                            var.naming.separator,
                                            "blob-agent"
                                          )
-  resource_group_name                  = length(var.dns_settings.privatelink_dns_subscription_id) == 0 ? (
+  resource_group_name                  = local.use_local_privatelink_dns ? (
                                            var.infrastructure.resource_group.exists ? (
                                              split("/", var.infrastructure.resource_group.id)[4]) : (
                                              azurerm_resource_group.library[0].name

@@ -1,3 +1,7 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+import logging
 import sys
 import json
 from github import Github, GithubException
@@ -6,10 +10,12 @@ from . import azure_ops
 from . import github_ops
 from .utils import run_az_command
 
+
 def main():
     """
     Main execution flow of the GitHub Repository/Environment/Secrets setup script.
     """
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     ui.display_instructions()
     ui.check_prerequisites()
 
@@ -22,7 +28,9 @@ def main():
     print("  - Storage Table Data Contributor: For accessing table storage data")
     print("  - Key Vault Administrator: For managing secrets in Key Vault")
     print("  - App Configuration Data Owner: For managing app configuration data")
-    print("\nThe script will attempt to assign these roles, but if you don't have sufficient permissions,")
+    print(
+        "\nThe script will attempt to assign these roles, but if you don't have sufficient permissions,"
+    )
     print("you may need to ask an administrator to assign them later.")
 
     print("\nStarting setup process...\n")
@@ -45,7 +53,7 @@ def main():
                 "--name",
                 resource_group,
                 "--location",
-                user_data["region_map"]
+                user_data["region_map"],
             ]
             print(f"Creating resource group in {user_data['region_map']}...")
             rg_result = run_az_command(create_rg_args, capture_output=True, text=True)
@@ -56,11 +64,15 @@ def main():
                 print("\nPossible causes:")
                 print("1. Insufficient permissions to create resource groups")
                 print("2. The location may be invalid or unavailable")
-                print("3. Another resource group with the same name exists in a different subscription")
+                print(
+                    "3. Another resource group with the same name exists in a different subscription"
+                )
                 print("\nCannot continue without a valid resource group. Exiting.")
                 sys.exit(1)
 
-            print(f"✓ Resource group {resource_group} successfully created in {user_data['region_map']}")
+            print(
+                f"✓ Resource group {resource_group} successfully created in {user_data['region_map']}"
+            )
 
     print("\nCreating necessary credentials for GitHub Actions...\n")
 
@@ -73,20 +85,28 @@ def main():
     spn_for_github_auth = {}
     if "spn_name" in user_data and user_data["spn_name"]:
         # If user already provided SPN details when collecting inputs, use those
-        print(f"\nUsing provided Service Principal '{user_data['spn_name']}' for GitHub Actions authentication...")
+        print(
+            f"\nUsing provided Service Principal '{user_data['spn_name']}' for GitHub Actions authentication..."
+        )
         spn_for_github_auth = azure_ops.create_azure_service_principal(user_data)
     else:
         # Otherwise, create a temporary SPN for initial authentication
         default_spn_name = f"{user_data['environment']}-SDAF-SPN"
-        print(f"\nYou need to create a Service Principal for initial GitHub Actions authentication.")
+        print(
+            f"\nYou need to create a Service Principal for initial GitHub Actions authentication."
+        )
         print(f"The default name would be: {default_spn_name}")
-        use_default_name = input(f"Would you like to use this default name? (y/n): ").strip().lower()
+        use_default_name = (
+            input(f"Would you like to use this default name? (y/n): ").strip().lower()
+        )
 
         temp_spn_name = default_spn_name
-        if use_default_name not in ['y', 'yes']:
+        if use_default_name not in ["y", "yes"]:
             temp_spn_name = input("Enter a name for the Service Principal: ").strip()
 
-        print(f"\nCreating Service Principal '{temp_spn_name}' for initial GitHub Actions authentication...")
+        print(
+            f"\nCreating Service Principal '{temp_spn_name}' for initial GitHub Actions authentication..."
+        )
 
         # Create a temporary user_data structure for SPN creation
         spn_user_data = user_data.copy()
@@ -96,7 +116,9 @@ def main():
         spn_for_github_auth = azure_ops.create_azure_service_principal(spn_user_data)
 
     if not spn_for_github_auth:
-        print("\nFailed to create/configure Service Principal for initial GitHub Actions authentication.")
+        print(
+            "\nFailed to create/configure Service Principal for initial GitHub Actions authentication."
+        )
         print("Cannot continue without creating the service principal. Exiting.")
         sys.exit(1)
 
@@ -104,7 +126,9 @@ def main():
     if use_managed_identity:
         if user_data.get("use_existing_identity", False):
             # Use existing User-Assigned Managed Identity
-            print(f"\nUsing existing User-Assigned Managed Identity '{user_data['identity_name']}'...\n")
+            print(
+                f"\nUsing existing User-Assigned Managed Identity '{user_data['identity_name']}'...\n"
+            )
 
             # Create a data structure that matches what would be returned by create_user_assigned_identity
             identity_data = {
@@ -114,17 +138,21 @@ def main():
                 "identityId": user_data.get("identity_id"),
                 "principalId": user_data["identity_principal_id"],
                 "clientId": user_data["identity_client_id"],
-                "roleAssignments": []  # No new role assignments were created
+                "roleAssignments": [],  # No new role assignments were created
             }
 
             # Verify the identity exists and is accessible
             identity_show_args = [
                 "identity",
                 "show",
-                "--name", user_data["identity_name"],
-                "--resource-group", user_data["resource_group"]
+                "--name",
+                user_data["identity_name"],
+                "--resource-group",
+                user_data["resource_group"],
             ]
-            identity_show_result = run_az_command(identity_show_args, capture_output=True, text=True)
+            identity_show_result = run_az_command(
+                identity_show_args, capture_output=True, text=True
+            )
 
             if identity_show_result.returncode != 0:
                 print("\nFailed to verify access to the User-Assigned Managed Identity.")
@@ -140,10 +168,14 @@ def main():
             try:
                 identity_data_from_azure = json.loads(identity_show_result.stdout)
                 if identity_data_from_azure.get("clientId") != user_data["identity_client_id"]:
-                    print("\nWarning: The Client ID you provided does not match the Client ID of the identity in Azure.")
+                    print(
+                        "\nWarning: The Client ID you provided does not match the Client ID of the identity in Azure."
+                    )
                     print(f"Provided Client ID: {user_data['identity_client_id']}")
                     print(f"Actual Client ID: {identity_data_from_azure.get('clientId')}")
-                    if input("Do you want to continue with the Client ID from Azure? (y/n): ").strip().lower() in ['y', 'yes']:
+                    if input(
+                        "Do you want to continue with the Client ID from Azure? (y/n): "
+                    ).strip().lower() in ["y", "yes"]:
                         # Update the client ID to match what's in Azure
                         user_data["identity_client_id"] = identity_data_from_azure.get("clientId")
                         identity_data["clientId"] = identity_data_from_azure.get("clientId")
@@ -165,7 +197,7 @@ def main():
                 "Storage Table Data Contributor",
                 "Key Vault Administrator",
                 "App Configuration Data Owner",
-                "Network Contributor"
+                "Network Contributor",
             ]
 
             # Track assigned and failed roles for summary
@@ -177,9 +209,12 @@ def main():
                     "role",
                     "assignment",
                     "list",
-                    "--assignee", user_data["identity_principal_id"],
-                    "--role", role_name,
-                    "--scope", f"/subscriptions/{user_data['subscription_id']}"
+                    "--assignee",
+                    user_data["identity_principal_id"],
+                    "--role",
+                    role_name,
+                    "--scope",
+                    f"/subscriptions/{user_data['subscription_id']}",
                 ]
                 role_check_result = run_az_command(role_check_args, capture_output=True, text=True)
 
@@ -190,10 +225,9 @@ def main():
                             print(f"✓ Role '{role_name}' is already assigned")
                             assigned_roles.append(role_name)
                             # Add this existing role to the identity_data
-                            identity_data.setdefault("roleAssignments", []).append({
-                                "role": role_name,
-                                "id": "existing"  # Marker for existing role
-                            })
+                            identity_data.setdefault("roleAssignments", []).append(
+                                {"role": role_name, "id": "existing"}  # Marker for existing role
+                            )
                         else:
                             # Role is not assigned, assign it
                             print(f"Role '{role_name}' is not assigned. Assigning it now...")
@@ -201,32 +235,43 @@ def main():
                                 "role",
                                 "assignment",
                                 "create",
-                                "--assignee-object-id", user_data["identity_principal_id"],
-                                "--assignee-principal-type", "ServicePrincipal",
-                                "--role", role_name,
-                                "--scope", f"/subscriptions/{user_data['subscription_id']}",
-                                "--query", "id",
-                                "--output", "tsv",
-                                "--only-show-errors"
+                                "--assignee-object-id",
+                                user_data["identity_principal_id"],
+                                "--assignee-principal-type",
+                                "ServicePrincipal",
+                                "--role",
+                                role_name,
+                                "--scope",
+                                f"/subscriptions/{user_data['subscription_id']}",
+                                "--query",
+                                "id",
+                                "--output",
+                                "tsv",
+                                "--only-show-errors",
                             ]
-                            assign_result = run_az_command(assign_role_args, capture_output=True, text=True)
+                            assign_result = run_az_command(
+                                assign_role_args, capture_output=True, text=True
+                            )
                             if assign_result.returncode == 0:
                                 assigned_roles.append(role_name)
                                 role_id = assign_result.stdout.strip()
                                 print(f"✓ Successfully assigned '{role_name}' role")
                                 # Add this new role to the identity_data
-                                identity_data.setdefault("roleAssignments", []).append({
-                                    "role": role_name,
-                                    "id": role_id
-                                })
+                                identity_data.setdefault("roleAssignments", []).append(
+                                    {"role": role_name, "id": role_id}
+                                )
                             else:
-                                print(f"Warning: Failed to assign '{role_name}' role: {assign_result.stderr}")
+                                print(
+                                    f"Warning: Failed to assign '{role_name}' role: {assign_result.stderr}"
+                                )
                                 failed_roles.append(role_name)
                     except json.JSONDecodeError:
                         print(f"Warning: Could not verify if '{role_name}' role is assigned")
                         failed_roles.append(role_name)
                 else:
-                    print(f"Warning: Could not check role assignment for '{role_name}': {role_check_result.stderr}")
+                    print(
+                        f"Warning: Could not check role assignment for '{role_name}': {role_check_result.stderr}"
+                    )
                     failed_roles.append(role_name)
 
             # Print summary of role assignments
@@ -248,7 +293,7 @@ def main():
                 identity_name=identity_name,
                 resource_group=resource_group,
                 subscription_id=user_data["subscription_id"],
-                location=user_data["region_map"]
+                location=user_data["region_map"],
             )
 
             if not identity_data:
@@ -285,7 +330,9 @@ def main():
 
     try:
         # Generate secrets for the repository
-        repository_secrets = github_ops.generate_repository_secrets(user_data, user_data["gh_app_id"], user_data["private_key"])
+        repository_secrets = github_ops.generate_repository_secrets(
+            user_data, user_data["gh_app_id"], user_data["private_key"]
+        )
         github_ops.add_repository_secrets(github_client, user_data["repo_name"], repository_secrets)
 
         # Add repository-level variables
@@ -295,14 +342,20 @@ def main():
             "TF_IN_AUTOMATION": "true",
             "TF_LOG": "ERROR",
             "ANSIBLE_CORE_VERSION": "2.16",
-            "TF_VERSION": "1.14.6"
+            "TF_VERSION": "1.14.6",
         }
         print("\nAdding variables to repository level...")
-        github_ops.add_repository_variables(github_client, user_data["repo_name"], repository_variables)
+        github_ops.add_repository_variables(
+            github_client, user_data["repo_name"], repository_variables
+        )
     except GithubException as e:
         if e.status == 401:
-            print("\nError: GitHub authentication failed. Please check your Personal Access Token (PAT).")
-            print("Ensure the token is valid and has the necessary permissions (repo, workflow, admin:org).")
+            print(
+                "\nError: GitHub authentication failed. Please check your Personal Access Token (PAT)."
+            )
+            print(
+                "Ensure the token is valid and has the necessary permissions (repo, workflow, admin:org)."
+            )
         elif e.status == 404:
             print(f"\nError: Repository '{user_data['repo_name']}' not found.")
             print("Please check the repository name and ensure your PAT has access to it.")
@@ -316,7 +369,9 @@ def main():
         "ARM_TENANT_ID": user_data["tenant_id"],
         "USE_MSI": "true" if use_managed_identity else "false",
         # Add S_USERNAME with a placeholder if not provided
-        "S_USERNAME": user_data["s_username"] if user_data["s_username"] else "Add SAP S Username here"
+        "S_USERNAME": (
+            user_data["s_username"] if user_data["s_username"] else "Add SAP S Username here"
+        ),
     }
 
     # Prepare environment secrets
@@ -325,27 +380,35 @@ def main():
     if use_managed_identity:
         # For Managed Identity, set up both SPN (for initial auth) and MSI details
         # Set up environment variables for User-Assigned Managed Identity as primary auth method
-        environment_variables.update({
-            "ARM_CLIENT_ID": identity_data["clientId"],
-            "ARM_OBJECT_ID": identity_data["principalId"],
-        })
+        environment_variables.update(
+            {
+                "ARM_CLIENT_ID": identity_data["clientId"],
+                "ARM_OBJECT_ID": identity_data["principalId"],
+            }
+        )
 
         # But also add SPN details for initial authentication
-        environment_variables.update({
-            "ARM_SPN_CLIENT_ID": spn_for_github_auth["appId"],
-            "ARM_SPN_OBJECT_ID": spn_for_github_auth["object_id"],
-        })
+        environment_variables.update(
+            {
+                "ARM_SPN_CLIENT_ID": spn_for_github_auth["appId"],
+                "ARM_SPN_OBJECT_ID": spn_for_github_auth["object_id"],
+            }
+        )
 
         # Add client secret to secrets
         environment_secrets["ARM_SPN_CLIENT_SECRET"] = spn_for_github_auth["password"]
 
-        print("Environment configuration prepared for User Managed Identity with SPN for initial authentication")
+        print(
+            "Environment configuration prepared for User Managed Identity with SPN for initial authentication"
+        )
     else:
         # Set up environment variables and secrets for Service Principal only
-        environment_variables.update({
-            "ARM_CLIENT_ID": spn_data["appId"],
-            "ARM_OBJECT_ID": spn_data["object_id"],
-        })
+        environment_variables.update(
+            {
+                "ARM_CLIENT_ID": spn_data["appId"],
+                "ARM_OBJECT_ID": spn_data["object_id"],
+            }
+        )
         # Add client secret to secrets
         environment_secrets["ARM_CLIENT_SECRET"] = spn_data["password"]
         print("Environment configuration prepared for Service Principal (USE_MSI=false)")
@@ -357,30 +420,39 @@ def main():
         print("✓ App Registration variables added to environment configuration.")
 
     # Add SAP S-User password and PAT to Environment secrets, with a placeholder if not provided
-    environment_secrets["S_PASSWORD"] = user_data["s_password"] if user_data["s_password"] else "Add SAP S Password here"
+    environment_secrets["S_PASSWORD"] = (
+        user_data["s_password"] if user_data["s_password"] else "Add SAP S Password here"
+    )
     environment_secrets["PAT"] = user_data["token"]
 
-    print(
-        f"\nInitial setup completed successfully!\n"
-        f"Repository: {user_data['repo_name']}\n"
-    )
+    print(f"\nInitial setup completed successfully!\n" f"Repository: {user_data['repo_name']}\n")
 
     print("\nConfiguration status:")
     if use_managed_identity:
         if user_data.get("use_existing_identity", False):
             print(f"- Using existing User-Assigned Managed Identity: {user_data['identity_name']}")
         else:
-            print(f"- User-Assigned Managed Identity has been created: {user_data['identity_name']}")
+            print(
+                f"- User-Assigned Managed Identity has been created: {user_data['identity_name']}"
+            )
 
         # Also show SPN info (since it's needed for initial GitHub Actions authentication)
         # Use the actual SPN name from spn_for_github_auth or user data
         if user_data.get("use_existing_spn"):
             spn_name = user_data.get("spn_name")
-            print(f"- Using existing Service Principal for initial GitHub Actions authentication: {spn_name}")
+            print(
+                f"- Using existing Service Principal for initial GitHub Actions authentication: {spn_name}"
+            )
         else:
             # Get the actual name used when creating the SPN for initial auth (could be custom or default)
-            spn_name = spn_user_data.get("spn_name") if 'spn_user_data' in locals() else user_data.get("spn_name")
-            print(f"- Service Principal for initial GitHub Actions authentication has been created: {spn_name}")
+            spn_name = (
+                spn_user_data.get("spn_name")
+                if "spn_user_data" in locals()
+                else user_data.get("spn_name")
+            )
+            print(
+                f"- Service Principal for initial GitHub Actions authentication has been created: {spn_name}"
+            )
             print("  (This SPN will be used until a self-hosted runner is set up)")
     else:
         if user_data.get("use_existing_spn", False):
@@ -454,9 +526,12 @@ def main():
         azure_ops.configure_federated_identity(user_data, spn_data)
 
     print(f"\nSetup completed successfully!")
-    print(f"Environment '{environment_name}' has been configured with all necessary variables and secrets.")
+    print(
+        f"Environment '{environment_name}' has been configured with all necessary variables and secrets."
+    )
     print("You can now proceed with deploying your SAP environment using GitHub Actions.")
     print(f"Repository: {user_data['server_url']}/{user_data['repo_name']}")
+
 
 if __name__ == "__main__":
     main()

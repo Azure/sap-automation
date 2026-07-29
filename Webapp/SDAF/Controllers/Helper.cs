@@ -278,9 +278,9 @@ namespace SDAFWebApp.Controllers
         public static string MapRegion(string region)
         {
             if (region == null) return "";
-            if (regionMapping.ContainsKey(region))
+            if (regionMapping.TryGetValue(region, out string mappedRegion))
             {
-                return regionMapping[region];
+                return mappedRegion;
             }
             else
             {
@@ -394,7 +394,7 @@ namespace SDAFWebApp.Controllers
 
         public static string TfvarToJson(string hclString)
         {
-            StringReader stringReader = new(hclString);
+            using StringReader stringReader = new(hclString);
             StringBuilder jsonString = new();
             jsonString.AppendLine("{");
             string jsonFormattedOutput;
@@ -403,13 +403,13 @@ namespace SDAFWebApp.Controllers
                 string currLine = stringReader.ReadLine();
                 if (currLine == null)
                 {
-                    jsonFormattedOutput = jsonString.ToString().Trim();
-                    while (jsonFormattedOutput.EndsWith(',') || jsonFormattedOutput.EndsWith('\n') || jsonFormattedOutput.EndsWith('\r') || jsonFormattedOutput.EndsWith(' '))
+                    while (jsonString.Length > 0 && (jsonString[^1] == ',' || jsonString[^1] == '\n' || jsonString[^1] == '\r' || char.IsWhiteSpace(jsonString[^1])))
                     {
-                        jsonFormattedOutput = jsonFormattedOutput[..^1];
+                        jsonString.Length--;
                     }
 
-                    jsonFormattedOutput += "}";
+                    jsonString.Append('}');
+                    jsonFormattedOutput = jsonString.ToString();
                     break;
                 }
                 else if (currLine.StartsWith('#') || currLine == "")
@@ -435,7 +435,8 @@ namespace SDAFWebApp.Controllers
                         Console.WriteLine(key);
                         if (key.EndsWith("tags\""))
                         {
-                            value += "[";
+                            StringBuilder valueBuilder = new();
+                            valueBuilder.Append('[');
                             currLine = stringReader.ReadLine();
                             while (!currLine.StartsWith('}'))
                             {
@@ -446,13 +447,12 @@ namespace SDAFWebApp.Controllers
                                     tagKey = "\"" + tagKey + "\"";
                                 }
                                 var tagValue = currLine[(equalIndex + 1)..].Trim();
-                                value += "{";
-                                value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
-                                value += "},";
+                                valueBuilder.Append('{');
+                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
+                                valueBuilder.Append("},");
                                 currLine = stringReader.ReadLine().TrimStart();
                             }
-                            value = value.Trim(',');
-                            value += "],";
+                            value = valueBuilder.ToString().Trim(',') + "],";
                         }
                         else if (key.ToLower() == "\"network_address_space\"")
                         {
@@ -470,7 +470,8 @@ namespace SDAFWebApp.Controllers
                         }
                         else if (key.EndsWith("configuration_settings\""))
                         {
-                            value += "[";
+                            StringBuilder valueBuilder = new();
+                            valueBuilder.Append('[');
                             currLine = stringReader.ReadLine();
                             while (!currLine.StartsWith('}'))
                             {
@@ -481,13 +482,12 @@ namespace SDAFWebApp.Controllers
                                     tagKey = "\"" + tagKey + "\"";
                                 }
                                 var tagValue = currLine[(equalIndex + 1)..].Trim();
-                                value += "{";
-                                value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
-                                value += "},";
+                                valueBuilder.Append('{');
+                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
+                                valueBuilder.Append("},");
                                 currLine = stringReader.ReadLine();
                             }
-                            value = value.Trim(',');
-                            value += "],";
+                            value = valueBuilder.ToString().Trim(',') + "],";
                         }
                         else
                         {

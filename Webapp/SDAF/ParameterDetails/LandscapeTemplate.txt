@@ -647,6 +647,9 @@ $$utility_vm_image$$
 # Defines if the utility virtual machine IP
 $$utility_vm_nic_ips$$
 
+# Defines the Availability zones for the utility virtual machines
+$$utility_vm_zones$$
+
 ############################################################################################
 #                                                                                          #
 #                                  Tags for all resources                                  #

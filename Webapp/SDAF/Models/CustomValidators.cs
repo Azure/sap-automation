@@ -34,7 +34,7 @@ namespace SDAFWebApp.Models
             public override bool IsValid(object value)
             {
                 if (value == null) return true;
-                if (value != null && Helper.regionMapping.ContainsKey((string)value)) return true;
+                if (Helper.regionMapping.ContainsKey((string)value)) return true;
                 else return false;
             }
         }
