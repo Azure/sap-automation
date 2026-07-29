@@ -8,8 +8,12 @@ rules:
 
   document-start: disable
 
+  new-line-at-end-of-file:
+    level: warning
+
   line-length:
     max: 160
+    level: warning
 
   braces:
     min-spaces-inside: 0
