@@ -426,3 +426,24 @@ output "workload_zone_name"                      {
                                                     description = "Workload Zone name"
                                                     value       = local.workload_zone_name
                                                  }
+
+###############################################################################
+#                                                                             #
+#                   Cross-subscription resolution outputs                     #
+#                                                                             #
+###############################################################################
+
+output "resolved_deployer_subscription_id"         {
+                                                     description = "Subscription ID resolved from the deployer coalesce() chain (remote state → tfstate → spn_keyvault_id)"
+                                                     value       = local.deployer_subscription_id
+                                                   }
+
+output "resolved_management_dns_subscription_id"   {
+                                                     description = "Management DNS subscription ID resolved from coalesce(var → tfstate fallback)"
+                                                     value       = coalesce(var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id)
+                                                   }
+
+output "resolved_privatelink_dns_subscription_id"  {
+                                                     description = "Private Link DNS subscription ID resolved from coalesce(var → management_dns → tfstate fallback)"
+                                                     value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id)
+                                                   }

@@ -1092,6 +1092,12 @@ variable "utility_vm_nic_ips"                      {
                                                      default     = []
                                                    }
 
+variable "utility_vm_zones"                        {
+                                                     description = "The zones for the utility virtual machines"
+                                                     type        = list(string)
+                                                     default     = []
+                                                   }
+
 #########################################################################################
 #                                                                                       #
 #  Utility Storage Accounts                                                             #
@@ -1331,5 +1337,4 @@ variable "control_plane_name"                   {
                                                   description = "The name of the control plane"
                                                   default     = ""
                                                 }
-
 

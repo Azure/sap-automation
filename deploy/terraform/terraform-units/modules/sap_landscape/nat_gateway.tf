@@ -8,10 +8,13 @@ resource "azurerm_public_ip" "ng_pip" {
   count                                = local.create_nat_gateway ? 1 : 0
   name                                 = format("%s%s", local.nat_gateway_name, "-pip")
   location                             = local.region
-  resource_group_name                  = azurerm_resource_group.resource_group[0].name
+  resource_group_name                  = local.resource_group_exists ? (
+                                           data.azurerm_resource_group.resource_group[0].name) : (
+                                           azurerm_resource_group.resource_group[0].name
+                                         )
   idle_timeout_in_minutes              = local.nat_gateway_idle_timeout_in_minutes
   zones                                = local.nat_gateway_public_ip_zones
-  ip_tags                              = try(length(var.infrastructure.nat_gateway.ip_tags,"") > 0 ? var.infrastructure.nat_gateway.ip_tags : null, null)
+  ip_tags                              = try(length(var.infrastructure.nat_gateway.ip_tags) > 0 ? var.infrastructure.nat_gateway.ip_tags : null, null)
   tags                                 = var.infrastructure.tags
   allocation_method                    = "Static"
   sku                                  = "Standard"
@@ -29,7 +32,10 @@ resource "azurerm_nat_gateway" "ng" {
   count                                = local.create_nat_gateway ? 1 : 0
   name                                 = local.nat_gateway_name
   location                             = local.region
-  resource_group_name                  = azurerm_resource_group.resource_group[0].name
+  resource_group_name                  = local.resource_group_exists ? (
+                                           data.azurerm_resource_group.resource_group[0].name) : (
+                                           azurerm_resource_group.resource_group[0].name
+                                         )
   idle_timeout_in_minutes              = local.nat_gateway_idle_timeout_in_minutes
   sku_name                             = "Standard"
   depends_on                           = [
@@ -51,9 +57,12 @@ resource "azurerm_nat_gateway_public_ip_association" "ng_pip_assoc" {
 # NAT Gateway subnet association with app subnet
 resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc" {
   provider                             = azurerm.main
-  count                                = local.create_nat_gateway ? 1 : 0
+  count                                = local.create_nat_gateway && (var.infrastructure.virtual_networks.sap.subnet_app.defined || var.infrastructure.virtual_networks.sap.subnet_app.exists) ? 1 : 0
   nat_gateway_id                       = azurerm_nat_gateway.ng[0].id
-  subnet_id                            = azurerm_subnet.app[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                           azurerm_subnet.app[0].id
+                                         )
   depends_on                           = [
                                            azurerm_subnet.app
                                          ]
@@ -62,9 +71,12 @@ resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc" {
 # NAT Gateway subnet association with db subnet
 resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc_db" {
   provider                             = azurerm.main
-  count                                = local.create_nat_gateway ? 1 : 0
+  count                                = local.create_nat_gateway && (var.infrastructure.virtual_networks.sap.subnet_db.defined || var.infrastructure.virtual_networks.sap.subnet_db.exists) ? 1 : 0
   nat_gateway_id                       = azurerm_nat_gateway.ng[0].id
-  subnet_id                            = azurerm_subnet.db[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_db.id) : (
+                                           azurerm_subnet.db[0].id
+                                         )
   depends_on                           = [
                                            azurerm_subnet.db
                                          ]
@@ -73,9 +85,12 @@ resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc_db" {
 # NAT Gateway subnet association with web subnet
 resource "azurerm_subnet_nat_gateway_association" "ng_subnet_assoc_web" {
   provider                             = azurerm.main
-  count                                = local.create_nat_gateway ? 1 : 0
+  count                                = local.create_nat_gateway && (var.infrastructure.virtual_networks.sap.subnet_web.defined || var.infrastructure.virtual_networks.sap.subnet_web.exists) ? 1 : 0
   nat_gateway_id                       = azurerm_nat_gateway.ng[0].id
-  subnet_id                            = azurerm_subnet.web[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_web.id) : (
+                                           azurerm_subnet.web[0].id
+                                         )
   depends_on                           = [
                                            azurerm_subnet.web
                                          ]

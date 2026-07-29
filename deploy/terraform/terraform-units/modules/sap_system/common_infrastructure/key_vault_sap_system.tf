@@ -40,6 +40,7 @@ data "azurerm_key_vault_secret" "sid_password" {
 #                                                                             #
 ###############################################################################
 resource "azurerm_key_vault" "sid_keyvault_user" {
+  #checkov:skip=CKV2_AZURE_32: private endpoints out of scope by default
   provider                             = azurerm.main
   count                                = local.enable_sid_deployment && local.use_local_credentials && length(local.user_key_vault_id) == 0 ? 1 : 0
   name                                 = local.user_keyvault_name
@@ -97,6 +98,11 @@ resource "random_id" "sapsystem" {
   byte_length                          = 4
 }
 
+## Add an expiry date to the secrets
+resource "time_offset" "secret_expiry_date" {
+  offset_months = 12
+}
+
 // Generate random password if password is set as authentication type and
 # user doesn't specify a password, and save in Key Vault
 resource "random_password" "password" {
@@ -114,7 +120,12 @@ resource "azurerm_key_vault_secret" "auth_username" {
   name                                 = format("%s-username", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_auth_username
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
+  expiration_date                      = try(var.key_vault.set_secret_expiry, false) ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
   tags                                 = var.tags
+
 }
 
 // Store the password in KV when authentication type is password
@@ -125,7 +136,12 @@ resource "azurerm_key_vault_secret" "auth_password" {
   name                                 = format("%s-password", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_auth_password
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
+  expiration_date                      = try(var.key_vault.set_secret_expiry, false) ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
   tags                                 = var.tags
+
 }
 
 // Using TF tls to generate SSH key pair and store in user KV
@@ -146,7 +162,12 @@ resource "azurerm_key_vault_secret" "sdu_private_key" {
   name                                 = format("%s-sshkey", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_private_key
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
+  expiration_date                      = try(var.key_vault.set_secret_expiry, false) ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
   tags                                 = var.tags
+
 }
 
 resource "azurerm_key_vault_secret" "sdu_public_key" {
@@ -156,5 +177,10 @@ resource "azurerm_key_vault_secret" "sdu_public_key" {
   name                                 = format("%s-sshkey-pub", try(coalesce(var.naming.resource_prefixes.sdu_secret, local.prefix), ""))
   value                                = local.sid_public_key
   key_vault_id                         = length(local.user_key_vault_id) > 0 ? data.azurerm_key_vault.sid_keyvault_user[0].id : azurerm_key_vault.sid_keyvault_user[0].id
+  expiration_date                      = try(var.key_vault.set_secret_expiry, false) ? (
+                                           time_offset.secret_expiry_date.rfc3339) : (
+                                           null
+                                         )
   tags                                 = var.tags
+
 }

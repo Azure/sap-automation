@@ -23,8 +23,8 @@ locals {
                                            create_nat_gateway      = var.deploy_nat_gateway
                                            name                    = var.nat_gateway_name
                                            id                      = try(var.nat_gateway_arm_id, "")
-                                           region                  = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                           public_ip_zones         = try(var.nat_gateway_public_ip_zones, lower(coalesce(var.location, try(var.infrastructure.region, ""))) == "eastus2euap" ? ["1", "2", "3", "4"] : ["1", "2", "3"])
+                                           region                  = lower(try(coalesce(var.location, try(var.infrastructure.region, "")), ""))
+                                           public_ip_zones         = try(var.nat_gateway_public_ip_zones, lower(try(coalesce(var.location, try(var.infrastructure.region, "")), "")) == "eastus2euap" ? ["1", "2", "3", "4"] : ["1", "2", "3"])
                                            public_ip_id            = try(var.nat_gateway_public_ip_arm_id, "")
                                            idle_timeout_in_minutes = var.nat_gateway_idle_timeout_in_minutes
                                            ip_tags                 = try(var.nat_gateway_public_ip_tags, {})
@@ -315,6 +315,7 @@ locals {
                                            private_ip_address = var.utility_vm_nic_ips
                                            disk_size          = var.utility_vm_os_disk_size
                                            disk_type          = var.utility_vm_os_disk_type
+                                           zones              = distinct(var.utility_vm_zones)
                                          }
 
   utility_storage_settings             = [
@@ -335,10 +336,7 @@ locals {
                                                  name = length(ctr.name) > 0 ? ctr.name : format("container%02d", ctr_idx)
                                                }
                                              ]
-                                             https_traffic_only_enabled = (
-                                               acct.account_kind == "FileStorage" &&
-                                               length([for s in acct.file_shares : s if upper(s.protocol) == "NFS"]) > 0
-                                             ) ? false : (acct.account_kind == "FileStorage" ? var.AFS_enable_encryption_in_transit : true)
+                                             https_traffic_only_enabled = var.AFS_enable_encryption_in_transit
                                            }
                                            if (
                                              length(acct.file_shares) > 0

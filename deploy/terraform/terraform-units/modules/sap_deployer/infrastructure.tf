@@ -82,6 +82,9 @@ data "azurerm_subnet" "subnet_mgmt" {
 
 // Creates boot diagnostics storage account for Deployer
 resource "azurerm_storage_account" "deployer" {
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_33: private endpoints out of scope by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   depends_on                           = [ azurerm_subnet.subnet_mgmt ]
   count                                = length(var.deployer.deployer_diagnostics_account_arm_id) > 0 ? 0 : min(1,var.deployer_vm_count)
   name                                 = local.storageaccount_names

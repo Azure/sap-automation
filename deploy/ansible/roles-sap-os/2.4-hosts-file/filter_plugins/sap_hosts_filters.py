@@ -19,7 +19,6 @@ Integration: Called from within 2.4-hosts-file role
 import ipaddress
 from typing import Dict, List, Optional, Any
 
-
 DB_TIERS = {"hana", "oracle", "oracle-asm", "db2", "sybase"}
 SCALE_OUT_DB_TIERS = {"hana"}
 
@@ -88,16 +87,12 @@ class FilterModule:
         entries.extend(self._generate_main_section_footer(config))
 
         # Generate virtual hostname sections (always visible to all hosts)
-        virtual_sections = self._generate_virtual_hostname_sections(
-            ansible_vars, config
-        )
+        virtual_sections = self._generate_virtual_hostname_sections(ansible_vars, config)
         entries.extend(virtual_sections)
 
         return entries
 
-    def _extract_sap_configuration(
-        self, ansible_vars: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_sap_configuration(self, ansible_vars: Dict[str, Any]) -> Dict[str, Any]:
         """Extract and normalize SAP configuration from Ansible variables."""
         return {
             "sap_sid": ansible_vars.get("sap_sid", "").upper(),
@@ -110,9 +105,7 @@ class FilterModule:
                 ansible_vars.get("db_high_availability", False),
             ),
             "db_instance_number": ansible_vars.get("db_instance_number", "00"),
-            "db_lb_ip": ansible_vars.get(
-                "database_loadbalancer_ip", ansible_vars.get("db_lb_ip")
-            ),
+            "db_lb_ip": ansible_vars.get("database_loadbalancer_ip", ansible_vars.get("db_lb_ip")),
             # SCS/ERS configuration
             "scs_high_availability": ansible_vars.get("scs_high_availability", False),
             "scs_instance_number": ansible_vars.get("scs_instance_number", "00"),
@@ -120,47 +113,27 @@ class FilterModule:
             "scs_lb_ip": ansible_vars.get("scs_lb_ip"),
             "ers_lb_ip": ansible_vars.get("ers_lb_ip"),
             # Custom virtual hostname overrides
-            "custom_scs_virtual_hostname": ansible_vars.get(
-                "custom_scs_virtual_hostname"
-            ),
-            "custom_ers_virtual_hostname": ansible_vars.get(
-                "custom_ers_virtual_hostname"
-            ),
-            "custom_db_virtual_hostname": ansible_vars.get(
-                "custom_db_virtual_hostname"
-            ),
-            "custom_pas_virtual_hostname": ansible_vars.get(
-                "custom_pas_virtual_hostname"
-            ),
-            "custom_app_virtual_hostname": ansible_vars.get(
-                "custom_app_virtual_hostname"
-            ),
-            "custom_web_virtual_hostname": ansible_vars.get(
-                "custom_web_virtual_hostname"
-            ),
+            "custom_scs_virtual_hostname": ansible_vars.get("custom_scs_virtual_hostname"),
+            "custom_ers_virtual_hostname": ansible_vars.get("custom_ers_virtual_hostname"),
+            "custom_db_virtual_hostname": ansible_vars.get("custom_db_virtual_hostname"),
+            "custom_pas_virtual_hostname": ansible_vars.get("custom_pas_virtual_hostname"),
+            "custom_app_virtual_hostname": ansible_vars.get("custom_app_virtual_hostname"),
+            "custom_web_virtual_hostname": ansible_vars.get("custom_web_virtual_hostname"),
         }
 
-    def _extract_network_configuration(
-        self, ansible_vars: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_network_configuration(self, ansible_vars: Dict[str, Any]) -> Dict[str, Any]:
         """Extract network configuration from Ansible variables."""
         subnet_db = ansible_vars.get("subnet_cidr_db", "")
         subnet_storage = ansible_vars.get("subnet_cidr_storage", "")
         subnet_client = ansible_vars.get("subnet_cidr_client", "")
 
         return {
-            "subnet_cidr_db": (
-                subnet_db if subnet_db and len(subnet_db.strip()) > 0 else None
-            ),
+            "subnet_cidr_db": (subnet_db if subnet_db and len(subnet_db.strip()) > 0 else None),
             "subnet_cidr_storage": (
-                subnet_storage
-                if subnet_storage and len(subnet_storage.strip()) > 0
-                else None
+                subnet_storage if subnet_storage and len(subnet_storage.strip()) > 0 else None
             ),
             "subnet_cidr_client": (
-                subnet_client
-                if subnet_client and len(subnet_client.strip()) > 0
-                else None
+                subnet_client if subnet_client and len(subnet_client.strip()) > 0 else None
             ),
         }
 
@@ -199,9 +172,7 @@ class FilterModule:
                 f"# Network isolation: Active (Non-DB host view - showing client subnet IPs only)"
             )
         elif config["database_scale_out"] and is_current_host_db_vm:
-            header.append(
-                f"# Network isolation: Disabled (DB host view - showing all IPs)"
-            )
+            header.append(f"# Network isolation: Disabled (DB host view - showing all IPs)")
 
         return header
 
@@ -256,12 +227,9 @@ class FilterModule:
         is_target_host_db_vm = self._is_scale_out_db_host(supported_tiers)
         default_virtual_host = host_vars.get("virtual_host")
 
-
         # Determine if we need to apply network isolation filtering
         apply_filtering = (
-            not is_current_host_db_vm
-            and is_target_host_db_vm
-            and config["database_scale_out"]
+            not is_current_host_db_vm and is_target_host_db_vm and config["database_scale_out"]
         )
 
         if apply_filtering:
@@ -299,9 +267,7 @@ class FilterModule:
 
             # Primary hostname entry
             entries.append(
-                self._format_hosts_entry(
-                    primary_ip, f"{hostname}.{config['sap_fqdn']}", hostname
-                )
+                self._format_hosts_entry(primary_ip, f"{hostname}.{config['sap_fqdn']}", hostname)
             )
 
             # Default virtual host entry: map to primary IP / VIP only, if defined
@@ -413,37 +379,22 @@ class FilterModule:
         """Determine suffix for database scale-out IP addresses."""
         try:
             ip_obj = ipaddress.ip_address(ip_address)
-
-            # Check database subnet (use -hsr for HA, -hana for non-HA)
-            if network_config["subnet_cidr_db"]:
-                try:
-                    db_network = ipaddress.ip_network(
-                        network_config["subnet_cidr_db"], strict=False
-                    )
-                    if ip_obj in db_network:
-                        return (
-                            "-hsr" if config["database_high_availability"] else "-hana"
-                        )
-                except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
-                    pass
-
-            # Check storage subnet (use -inter for HA, -storage for non-HA)
-            if network_config["subnet_cidr_storage"]:
-                try:
-                    storage_network = ipaddress.ip_network(
-                        network_config["subnet_cidr_storage"], strict=False
-                    )
-                    if ip_obj in storage_network:
-                        return (
-                            "-inter"
-                            if config["database_high_availability"]
-                            else "-storage"
-                        )
-                except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
-                    pass
-
         except ipaddress.AddressValueError:
-            pass
+            return None
+
+        subnet_checks = [
+            (network_config["subnet_cidr_db"], "-hsr", "-hana"),
+            (network_config["subnet_cidr_storage"], "-inter", "-storage"),
+        ]
+        for subnet_cidr, ha_suffix, non_ha_suffix in subnet_checks:
+            if not subnet_cidr:
+                continue
+            try:
+                subnet_network = ipaddress.ip_network(subnet_cidr, strict=False)
+            except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
+                continue
+            if ip_obj in subnet_network:
+                return ha_suffix if config["database_high_availability"] else non_ha_suffix
 
         return None
 
@@ -478,14 +429,12 @@ class FilterModule:
                     continue
 
         except (ipaddress.AddressValueError, ipaddress.NetmaskValueError):
-            pass
+            return primary_ip
 
         # Fallback to primary IP if no client subnet IP found
         return primary_ip
 
-    def _is_ip_in_client_subnet(
-        self, ip_address: str, network_config: Dict[str, Any]
-    ) -> bool:
+    def _is_ip_in_client_subnet(self, ip_address: str, network_config: Dict[str, Any]) -> bool:
         """Check if IP address belongs to client subnet."""
         if not network_config["subnet_cidr_client"]:
             return False
@@ -634,9 +583,7 @@ class FilterModule:
                 try:
                     ipaddress.ip_network(subnet_value, strict=False)
                 except (ipaddress.AddressValueError, ipaddress.NetmaskValueError) as e:
-                    results["errors"].append(
-                        f"Invalid {subnet_key}: {subnet_value} - {str(e)}"
-                    )
+                    results["errors"].append(f"Invalid {subnet_key}: {subnet_value} - {str(e)}")
                     results["valid"] = False
 
         # Check for overlapping subnets

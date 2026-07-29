@@ -76,24 +76,39 @@
 # Update printmotd if commented. We do not change it is explicitly set to no
 # Update sshd
 # -------------------------------------+---------------------------------------8
-- name:                                "1.13 MOTD - Update PrintMotd when commented"
-  ansible.builtin.lineinfile:
-    state:                             present
-    dest:                              /etc/ssh/sshd_config
-    regexp:                            '#PrintMotd'
-    line:                              'PrintMotd yes'
+- name:                                "1.13 MOTD - Ensure /etc/ssh/sshd_config.d directory exists"
+  ansible.builtin.file:
+    path:                              /etc/ssh/sshd_config.d
+    state:                             directory
+    mode:                              '0755'
+    owner:                             root
+    group:                             root
+  become:                              true
+
+- name:                                "1.13 MOTD - Update PrintMotd and Banner via drop-in"
+  ansible.builtin.copy:
+    dest:                              /etc/ssh/sshd_config.d/99-sap-motd.conf
+    mode:                              '0600'
+    owner:                             root
+    group:                             root
+    content: |
+      PrintMotd yes
+      Banner /etc/issue.net
   become:                              true
   notify:
     - "1.13 MOTD - Restart sshd service"
 
-- name:                                "1.13 MOTD - Update default Banner path"
-  ansible.builtin.lineinfile:
-    state:                             present
-    dest:                              /etc/ssh/sshd_config
-    regexp:                            '#Banner'
-    line:                              'Banner /etc/issue.net'
+- name:                                "1.13 MOTD - Validate SSH configuration"
+  ansible.builtin.command:             /usr/sbin/sshd -T
   become:                              true
-  notify:
-    - "1.13 MOTD - Restart sshd service"
+  changed_when:                        false
+  register:                            motd_sshd_effective_configuration
+
+- name:                                "1.13 MOTD - Verify drop-in configuration is effective"
+  ansible.builtin.assert:
+    that:
+      - "'printmotd yes' in motd_sshd_effective_configuration.stdout"
+      - "'banner /etc/issue.net' in motd_sshd_effective_configuration.stdout"
+    fail_msg:                          The SSH daemon did not load the MOTD drop-in configuration.
 
 ...

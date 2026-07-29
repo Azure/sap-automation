@@ -361,3 +361,66 @@ resource "local_file" "deployer_exports" {
   file_permission      = "0660"
   directory_permission = "0770"
 }
+
+output "infrastructure_resource_cardinality" {
+  description = "Cardinality (creation count) of core infrastructure resources for terraform test diagnostics. 1 = created (greenfield), 0 = looked up (brownfield)."
+  value = {
+    vnet            = length(azurerm_virtual_network.vnet_mgmt)
+    mgmt_subnet     = length(azurerm_subnet.subnet_mgmt)
+    mgmt_nsg        = length(azurerm_network_security_group.nsg_mgmt)
+    firewall_subnet = length(azurerm_subnet.firewall)
+    bastion_subnet  = length(azurerm_subnet.bastion)
+    webapp_subnet   = length(azurerm_subnet.webapp)
+    agent_subnet    = length(azurerm_subnet.subnet_agent)
+  }
+}
+
+output "resource_group_info" {
+  description = "Deployer resource group creation status and tags for terraform test diagnostics"
+  value = {
+    created_count = length(azurerm_resource_group.deployer)
+    tags          = var.infrastructure.resource_group.exists ? data.azurerm_resource_group.deployer[0].tags : azurerm_resource_group.deployer[0].tags
+  }
+}
+
+output "key_vault_info" {
+  description = "Deployer key vault creation status, tags, and security posture for terraform test diagnostics"
+  value = {
+    created_count                 = length(azurerm_key_vault.kv_user)
+    tags                          = var.key_vault.exists ? data.azurerm_key_vault.kv_user[0].tags : azurerm_key_vault.kv_user[0].tags
+    public_network_access_enabled = var.key_vault.exists ? try(data.azurerm_key_vault.kv_user[0].public_network_access_enabled, null) : try(azurerm_key_vault.kv_user[0].public_network_access_enabled, null)
+  }
+}
+
+output "diagnostics_storage_info" {
+  description = "Diagnostics storage account tags and network security posture for terraform test diagnostics"
+  value = {
+    tags           = length(var.deployer.deployer_diagnostics_account_arm_id) == 0 ? try(azurerm_storage_account.deployer[0].tags, null) : try(data.azurerm_storage_account.deployer[0].tags, null)
+    default_action = length(var.deployer.deployer_diagnostics_account_arm_id) == 0 ? try(azurerm_storage_account.deployer[0].network_rules[0].default_action, "") : ""
+  }
+}
+
+output "app_configuration_created_count" {
+  description = "Diagnostic count of created application configuration stores (discrete optional feature; retained standalone since merging would obscure its independent on/off toggle)"
+  value       = length(azurerm_app_configuration.app_config)
+}
+
+output "deployer_public_ip_created_count" {
+  description = "Diagnostic count of created deployer public IP resources"
+  value       = length(azurerm_public_ip.deployer)
+}
+
+output "deployer_uai_created_count" {
+  description = "Diagnostic count of created deployer user-assigned identity resources"
+  value       = length(azurerm_user_assigned_identity.deployer)
+}
+
+output "firewall_created_count" {
+  description = "Diagnostic count of created Azure Firewall resources"
+  value       = length(azurerm_firewall.firewall)
+}
+
+output "network_security_perimeter_created_count" {
+  description = "Diagnostic count of created network security perimeters (discrete optional feature; retained standalone for the same reason as app_configuration_created_count)"
+  value       = length(azurerm_network_security_perimeter.perimeter)
+}

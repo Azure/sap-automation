@@ -190,6 +190,12 @@
       ansible.builtin.set_fact:
         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
 
+    - name:                                       "1.17 Generic Pacemaker - Add public key to authorized_keys for root user"
+      ansible.posix.authorized_key:
+        user:                                     root
+        key:                                      "{{ cluster_public_ssh_key }}"
+        state:                                    present
+
 
 - name:                                           "1.17 Generic Pacemaker - Wait for ssh key facts to be present"
   when:

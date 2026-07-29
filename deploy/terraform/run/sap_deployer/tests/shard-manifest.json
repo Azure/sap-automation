@@ -1,0 +1,10 @@
+{
+  "module": "deploy/terraform/run/sap_deployer",
+  "shards": [
+    { "file": "plan_shape_core.tftest.hcl", "runs": 30 },
+    { "file": "plan_shape_advanced.tftest.hcl", "runs": 31 },
+    { "file": "validation_required.tftest.hcl", "runs": 32 },
+    { "file": "validation_optional.tftest.hcl", "runs": 31 }
+  ],
+  "total_runs": 124
+}

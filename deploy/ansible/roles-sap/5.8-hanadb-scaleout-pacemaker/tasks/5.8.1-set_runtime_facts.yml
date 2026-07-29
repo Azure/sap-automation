@@ -254,6 +254,7 @@
     - name:                            "5.8 HANA Pacemaker Scale-out - Install resource-agents-sap-hana package [RHEL classic]"
       when:
                                        - not (use_hanasr_angi | default(false))
+                                       - ansible_facts.packages['resource-agents-sap-hana-scaleout'] is not defined
                                        - saphanaSR_version == "0.0.0"
       ansible.builtin.dnf:
         name:                          resource-agents-sap-hana

@@ -15,6 +15,7 @@ locals {
 
 // Creates storage account for storing tfstate
 resource "azurerm_storage_account" "storage_tfstate" {
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.exists ? 0 : 1
   name                                 = length(var.storage_account_tfstate.name) > 0 ? (
@@ -67,6 +68,7 @@ data "azurerm_storage_account" "storage_tfstate" {
 }
 
 resource "azurerm_storage_account_network_rules" "storage_tfstate" {
+  #checkov:skip=CKV_AZURE_35: public access needed for tfstate reads
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage  && !var.storage_account_tfstate.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_tfstate[0].id
@@ -137,7 +139,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                      content {
                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
+                                               private_dns_zone_ids = [local.use_local_privatelink_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                              }
                                    }
 
@@ -195,7 +197,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                      for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns && var.application_configuration_deployment ? 1 : 0)
                                      content {
                                                name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                               private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
+                                               private_dns_zone_ids = [local.use_local_privatelink_dns ? azurerm_private_dns_zone.table[0].id : data.azurerm_private_dns_zone.table[0].id]
                                              }
                                    }
 
@@ -206,6 +208,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
 
 // Creates the storage container inside the storage account for sapsystem
 resource "azurerm_storage_container" "storagecontainer_tfstate" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 0 : 1
   depends_on                           = [
@@ -225,13 +228,14 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
-                                           storage_account_name = var.storage_account_tfstate.exists > 0 ? (
+                                           storage_account_name = var.storage_account_tfstate.exists ? (
                                              data.azurerm_storage_account.storage_tfstate[0].name) : (
                                              azurerm_storage_account.storage_tfstate[0].name
                                            )
 }
 
 resource "azurerm_storage_container" "storagecontainer_tfvars" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   depends_on                           = [
                                            azurerm_private_endpoint.storage_tfstate,
@@ -253,6 +257,8 @@ resource "azurerm_storage_container" "storagecontainer_tfvars" {
 #
 ##############################################################################################
 resource "azurerm_storage_account" "storage_sapbits" {
+  #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
+  #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.exists ? 0 : 1
   name                                 = length(var.storage_account_sapbits.name) > 0 ? (
@@ -285,8 +291,9 @@ resource "azurerm_storage_account" "storage_sapbits" {
 }
 
 resource "azurerm_storage_account_network_rules" "storage_sapbits" {
+  #checkov:skip=CKV_AZURE_35: public access needed for SAP media share
   provider                             = azurerm.main
-  count                                = var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage && !var.storage_account_tfstate.exists ? 1 : 0
+  count                                = var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage && !var.storage_account_sapbits.exists ? 1 : 0
   storage_account_id                   = azurerm_storage_account.storage_sapbits[0].id
   default_action                       = var.bootstrap ? "Allow" : var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
   ip_rules                             = local.deployer_public_ip_address_used ? (
@@ -375,7 +382,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                       for_each = range(var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0)
                                       content {
                                                 name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
-                                                private_dns_zone_ids = [local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
+                                                private_dns_zone_ids = [local.use_local_privatelink_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.storage[0].id]
                                               }
 
                                     }
@@ -388,6 +395,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
 
 // Creates the storage container inside the storage account for SAP bits
 resource "azurerm_storage_container" "storagecontainer_sapbits" {
+  #checkov:skip=CKV2_AZURE_21: no Log Analytics workspace dependency
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 0 : 1
   depends_on                           = [
@@ -407,7 +415,7 @@ data "azurerm_storage_container" "storagecontainer_sapbits" {
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-                                           storage_account_name = !var.storage_account_sapbits.exists ? (
+                                           storage_account_name = var.storage_account_sapbits.exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].name) : (
                                              azurerm_storage_account.storage_sapbits[0].name
                                            )
@@ -427,7 +435,7 @@ resource "azurerm_storage_share" "fileshare_sapbits" {
 
 data "azurerm_private_dns_zone" "storage" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !local.use_local_private_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
@@ -442,7 +450,7 @@ data "azurerm_private_dns_zone" "storage" {
 
 data "azurerm_private_dns_zone" "table" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = !local.use_local_private_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
+  count                                = !local.use_local_privatelink_dns && var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
   name                                 = var.dns_settings.dns_zone_names.table_dns_zone_name
   resource_group_name                  = coalesce(
                                            var.dns_settings.privatelink_dns_resourcegroup_name,
@@ -478,4 +486,3 @@ resource "azurerm_management_lock" "storage_tfstate" {
     prevent_destroy = false
   }
 }
-
