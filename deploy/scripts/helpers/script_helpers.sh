@@ -1338,6 +1338,7 @@ function ImportAndReRunApply {
 
 					print_banner "Installer" "Re-running Terraform apply after import" "info"
 					error_count=0
+					msi_imported_count=0
 
 					# shellcheck disable=SC2086
 					if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then

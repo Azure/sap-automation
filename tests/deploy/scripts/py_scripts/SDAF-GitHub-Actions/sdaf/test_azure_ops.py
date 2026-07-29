@@ -757,9 +757,7 @@ class TestAzureOps:
         """Rerunning setup updates the deterministic credential without conflict."""
         subject = "repo:org@100/repo@200:environment:MGMT"
         audience = "api://AzureADTokenExchangeUSGov"
-        identity = "|".join(
-            ["https://token.actions.githubusercontent.com", subject, audience]
-        )
+        identity = "|".join(["https://token.actions.githubusercontent.com", subject, audience])
         unique_name = f"GitHubActions-{hashlib.sha256(identity.encode('utf-8')).hexdigest()[:12]}"
         run_mock = mocker.patch(
             "sdaf.azure_ops.run_az_command",

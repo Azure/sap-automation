@@ -576,9 +576,7 @@ def configure_federated_identity(user_data, spn_data):
     if not existing and any(
         credential.get("name") == parameters["name"] for credential in credentials
     ):
-        identity = "|".join(
-            [parameters["issuer"], parameters["subject"], *parameters["audiences"]]
-        )
+        identity = "|".join([parameters["issuer"], parameters["subject"], *parameters["audiences"]])
         suffix = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12]
         parameters["name"] = f"GitHubActions-{suffix}"
         existing = next(
