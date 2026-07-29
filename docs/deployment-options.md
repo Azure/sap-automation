@@ -141,6 +141,8 @@ support status from a filename. Use only an entry point that your release
 guidance identifies and validate it against the checked-out repository
 version.
 
+Continue with the complete [local execution journey](local/README.md).
+
 ## Shared samples and BOM files
 
 All execution models can use

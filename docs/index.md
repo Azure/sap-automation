@@ -20,11 +20,14 @@ configuration and automation assets for the first deployment stage.
 
 | Goal | Documentation or source |
 | --- | --- |
+| Understand the framework architecture | [SDAF architecture](architecture.md) |
+| Review extension options | [Extend SDAF](extensibility.md) |
+| Check technical supportability | [SDAF supportability](supportability.md) |
 | Compare execution models | [Choose an SDAF deployment option](deployment-options.md) |
 | Understand repository ownership | [SDAF repositories](repositories.md) |
 | Use GitHub Actions | [Start with GitHub Actions](deployment-options.md#github-actions) |
 | Use Azure DevOps | [Start with Azure DevOps](deployment-options.md#azure-devops) |
-| Run SDAF directly | [`deploy/scripts`](../deploy/scripts/) infrastructure scripts and [`deploy/ansible`](../deploy/ansible/) software-download and installation wrappers |
+| Run SDAF directly | [Run SDAF locally](local/README.md) |
 | Find Terraform samples and SAP BOMs | [`Azure/SAP-automation-samples`](https://github.com/Azure/SAP-automation-samples) |
 
 ## Understand the framework source
@@ -41,6 +44,15 @@ model:
 - [`deploy/pipelines`](../deploy/pipelines/) contains the pipeline templates
   consumed by wrapper repositories.
 - [`Webapp`](../Webapp/) contains the configuration web application.
+
+Continue with the following framework references:
+
+- [SDAF architecture](architecture.md) explains deployment layers, state,
+  identity, and execution flow.
+- [Extend SDAF](extensibility.md) identifies built-in extension points and
+  organization maintenance boundaries.
+- [SDAF supportability](supportability.md) summarizes the technical platform,
+  database, storage, and topology matrix.
 
 ## Maintain the documentation
 
