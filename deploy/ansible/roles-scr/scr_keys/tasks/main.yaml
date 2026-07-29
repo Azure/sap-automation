@@ -73,12 +73,12 @@
 ---
 - name:                                   "SCR Keys - Retrieve SSH credentials from Key Vault"
   ansible.builtin.include_tasks:
-    file:                                 roles-scr/scr_keys/tasks/get_secrets.yaml
+    file:                                 get_secrets.yaml
   when:                                   not (cleanup | default(false) | bool)
 
 - name:                                   "SCR Keys - Remove temporary SSH key files"
   ansible.builtin.include_tasks:
-    file:                                 roles-scr/scr_keys/tasks/cleanup.yaml
+    file:                                 cleanup.yaml
   when:                                   cleanup | default(false) | bool
 
 # /*---------------------------------------------------------------------------8
