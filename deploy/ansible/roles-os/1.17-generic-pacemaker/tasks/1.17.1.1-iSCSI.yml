@@ -7,29 +7,19 @@
 # +------------------------------------4--------------------------------------*/
 # https://learn.microsoft.com/en-us/azure/sap/workloads/high-availability-guide-suse-pacemaker#set-up-the-iscsi-target-server-sbd-device
 
-
-- name:                                "1.17.1 iSCSI packages (SUSE)"
+- name:                                "1.17.1 iSCSI transport package (SUSE)"
   when:                                (ansible_os_family | upper) == "SUSE"
   become:                              true
-  become_user:                         root
   community.general.zypper:
-    name:                              "{{ item }}"
+    name:                              open-iscsi
     state:                             present
-  loop:
-    - open-iscsi
-    - sbd
 
-- name:                                "1.17.1 iSCSI packages (REDHAT)"
+- name:                                "1.17.1 iSCSI transport package (REDHAT)"
   when:                                (ansible_os_family | upper) == "REDHAT"
   become:                              true
-  become_user:                         root
   ansible.builtin.dnf:
-    name:                              "{{ item }}"
+    name:                              iscsi-initiator-utils
     state:                             present
-  loop:
-    - iscsi-initiator-utils
-    - sbd
-    - fence-agents-sbd
 
 - name:                                "1.17.1 iSCSI packages"
   become:                              true

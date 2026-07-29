@@ -21,6 +21,10 @@
     - name:                            "5.8 HANA Pacemaker Scale-out - Generate list of deployed packages on current host"
       ansible.builtin.package_facts:
 
+    - name:                            "5.8 HANA Pacemaker Scale-out - Set SAPHanaSR provider path for RHEL"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR-ScaleOut
+
     # for RHEL, ensure resource-agents-sap-hana-Scale-out is installed
 
     - name:                            "5.8 HANA Pacemaker Scale-out - Ensure resource-agents-sap-hana is absent (REDHAT)"
@@ -141,12 +145,12 @@
             block: |
                                        [ha_dr_provider_SAPHanaSR]
                                        provider = SAPHanaSR
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_chksrv]
                                        provider = ChkSrv
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 2
                                        action_on_lost = kill
 
@@ -324,7 +328,7 @@
                                        provider = ChkSrv
                                        path = /usr/share/sap-hana-ha/
                                        execution_order = 2
-                                       action_on_lost = stop
+                                       action_on_lost = fence
 
                                        [trace]
                                        ha_dr_hanasr = info

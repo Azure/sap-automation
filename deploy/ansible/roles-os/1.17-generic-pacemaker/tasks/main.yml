@@ -11,21 +11,23 @@
 - name:                                     "1.17 Generic Pacemaker - Run pre-checks"
   ansible.builtin.import_tasks:             1.17.1-pre_checks.yml
 
-- name:                                     "1.17 Generic Pacemaker - Set Runtime Facts"
+- name:                                     "1.17 Generic Pacemaker - Install SBD prerequisites"
+  ansible.builtin.import_tasks:             1.17.1.1-sbd-prerequisites.yaml
+  when:
+                                            - scs_cluster_type in ['ASD', 'ISCSI'] or
+                                              database_cluster_type in ['ASD', 'ISCSI']
+
+- name:                                     "1.17 Generic Pacemaker - Configure iSCSI transport"
   ansible.builtin.import_tasks:             1.17.1.1-iSCSI.yml
   when:
-                                            - ansible_os_family | upper == "SUSE" and
-                                              (scs_cluster_type == 'ISCSI') or
-                                              (database_cluster_type == 'ISCSI')
+                                            - scs_cluster_type == 'ISCSI' or
+                                              database_cluster_type == 'ISCSI'
 
 - name:                                     "1.17 Generic Pacemaker - SBD Devices"
   ansible.builtin.import_tasks:             1.17.1.2-sbd.yaml
   when:
-                                            - ansible_os_family | upper == "SUSE" and
-                                              (database_cluster_type == "ASD")   or
-                                              (database_cluster_type == "ISCSI") or
-                                              (scs_cluster_type      == "ASD")   or
-                                              (scs_cluster_type      == "ISCSI")
+                                            - scs_cluster_type in ['ASD', 'ISCSI'] or
+                                              database_cluster_type in ['ASD', 'ISCSI']
 
 # Import this task only if the cluster is not yet created
 - name:                                     "1.17 Generic Pacemaker - Provision"
