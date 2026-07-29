@@ -76,6 +76,7 @@
     file:                                 get_secrets.yaml
   when:                                   not (cleanup | default(false) | bool)
 
+
 - name:                                   "SCR Keys - Remove temporary SSH key files"
   ansible.builtin.include_tasks:
     file:                                 cleanup.yaml
