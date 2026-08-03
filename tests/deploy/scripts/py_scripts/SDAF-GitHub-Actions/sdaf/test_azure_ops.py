@@ -218,6 +218,7 @@ class TestAzureOps:
         result = sdaf.azure_ops.create_user_assigned_identity(
             "my-identity", "my-rg", "sub-id", "westeurope"
         )
+        assert result is not None
         assert result["name"] == "my-identity"
         assert result["identityId"] == "identity-id"
         assert result["principalId"] == "principal-id"
@@ -332,6 +333,7 @@ class TestAzureOps:
             "my-identity", "my-rg", "sub-id", "westeurope"
         )
 
+        assert result is not None
         assert len(result["roleAssignments"]) == 6
 
     def test_create_user_assigned_identity_returns_none_on_unexpected_exception(self, mocker):
@@ -379,6 +381,7 @@ class TestAzureOps:
 
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
 
+        assert result is not None
         assert result["appId"] == "app-id"
         assert result["object_id"] == "object-id"
 
@@ -412,6 +415,7 @@ class TestAzureOps:
 
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
 
+        assert result is not None
         assert result["appId"] == "existing-app-id"
         assert result["password"] == "PLACEHOLDER-CLIENT-SECRET"
         assert result["object_id"] == "PLACEHOLDER-OBJECT-ID"
@@ -447,6 +451,7 @@ class TestAzureOps:
 
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
 
+        assert result is not None
         assert result["appId"] == "PLACEHOLDER-APP-ID"
 
     def test_create_azure_service_principal_existing_spn_reports_role_check_and_assignment_failures(
@@ -486,6 +491,7 @@ class TestAzureOps:
         }
 
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
+        assert result is not None
         assert result["appId"] == "existing-app-id"
 
     def test_create_azure_service_principal_existing_spn_role_assignment_command_fails(
@@ -523,6 +529,7 @@ class TestAzureOps:
         }
 
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
+        assert result is not None
         assert result["appId"] == "existing-app-id"
 
     def test_create_azure_service_principal_returns_none_when_create_for_rbac_fails(self, mocker):
@@ -581,6 +588,7 @@ class TestAzureOps:
 
         user_data = {"use_existing_spn": False, "spn_name": "my-spn", "subscription_id": "sub-id"}
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
+        assert result is not None
         assert result["object_id"] == "PLACEHOLDER-OBJECT-ID"
 
     def test_create_azure_service_principal_uses_placeholder_object_id_when_sp_show_output_malformed(
@@ -605,6 +613,7 @@ class TestAzureOps:
 
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
 
+        assert result is not None
         assert result["object_id"] == "PLACEHOLDER-OBJECT-ID"
 
     def test_create_azure_service_principal_new_spn_tracks_role_assignment_exceptions(self, mocker):
@@ -626,6 +635,7 @@ class TestAzureOps:
 
         user_data = {"use_existing_spn": False, "spn_name": "my-spn", "subscription_id": "sub-id"}
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
+        assert result is not None
         assert result["appId"] == "app-id"
 
     def test_create_azure_service_principal_new_spn_tracks_role_assignment_command_failures(
@@ -649,6 +659,7 @@ class TestAzureOps:
 
         user_data = {"use_existing_spn": False, "spn_name": "my-spn", "subscription_id": "sub-id"}
         result = sdaf.azure_ops.create_azure_service_principal(user_data)
+        assert result is not None
         assert result["appId"] == "app-id"
 
     def test_configure_federated_identity_configures_federated_credential_successfully(

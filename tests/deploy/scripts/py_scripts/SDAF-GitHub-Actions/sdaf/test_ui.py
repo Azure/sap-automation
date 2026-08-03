@@ -773,6 +773,56 @@ class TestUi:
 
         assert exc_info.value.code == 1
 
+    def test_get_user_input_new_spn_secret_response_malformed_does_not_print_stdout(
+        self, mocker, tmp_path, capsys
+    ):
+        """
+        Regression test for :func:`sdaf.ui.get_user_input`.
+
+        :param mocker: pytest-mock fixture used to patch ``builtins.input``,
+            ``getpass.getpass``, ``verify_azure_login``, and
+            ``run_az_command``.
+        :param tmp_path: pytest fixture providing a temporary directory
+            used to write a fake private key file.
+        :param capsys: pytest fixture used to capture stdout/stderr.
+        """
+        private_key_file = tmp_path / "spn6-private-key.pem"
+        private_key_file.write_text(
+            "-----BEGIN PRIVATE KEY-----\nspn6\n-----END PRIVATE KEY-----\n"
+        )
+
+        input_values = self._github_creation_prefix(
+            "myorg/spnrepo6", "spn-app-6", "99999", str(private_key_file)
+        )
+        input_values += [
+            "MGMT-WEEU-DEP01",
+            "y",
+            "sub-id-123",
+            "tenant-id-123",
+            "1",
+            "y",
+            "existing-spn-6",
+            "app-id-6",
+            "y",
+        ]
+
+        mocker.patch("builtins.input", side_effect=input_values)
+        mocker.patch("sdaf.ui.getpass.getpass", return_value="gh-pat-token")
+        mocker.patch("sdaf.ui.verify_azure_login", return_value=False)
+        mocker.patch(
+            "sdaf.ui.run_az_command",
+            return_value=_completed(
+                returncode=0,
+                stdout=json.dumps({"unexpected": "SENTINEL-CLIENT-SECRET-VALUE"}),
+            ),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            sdaf.ui.get_user_input()
+
+        assert exc_info.value.code == 1
+        assert "SENTINEL-CLIENT-SECRET-VALUE" not in capsys.readouterr().out
+
     def test_get_user_input_existing_spn_secret_show_command_fails_exits(self, mocker, tmp_path):
         """
         Edge case for :func:`sdaf.ui.get_user_input`.

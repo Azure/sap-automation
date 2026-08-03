@@ -102,6 +102,7 @@ def main():
 
     # Create or use existing Service Principal for GitHub Actions authentication
     spn_for_github_auth = {}
+    spn_user_data = {}
     if "spn_name" in user_data and user_data["spn_name"]:
         # If user already provided SPN details when collecting inputs, use those
         print(
@@ -142,6 +143,8 @@ def main():
         sys.exit(1)
 
     # Now proceed with Managed Identity if selected
+    identity_data = {}
+    spn_data = {}
     if use_managed_identity:
         if user_data.get("use_existing_identity", False):
             # Use existing User-Assigned Managed Identity
@@ -476,11 +479,7 @@ def main():
             )
         else:
             # Get the actual name used when creating the SPN for initial auth (could be custom or default)
-            spn_name = (
-                spn_user_data.get("spn_name")
-                if "spn_user_data" in locals()
-                else user_data.get("spn_name")
-            )
+            spn_name = spn_user_data.get("spn_name") or user_data.get("spn_name")
             print(
                 f"- Service Principal for initial GitHub Actions authentication has been created: {spn_name}"
             )

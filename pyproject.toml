@@ -27,6 +27,23 @@ pythonpath = [
 ]
 addopts = "--cov --cov-report=term-missing --cov-fail-under=85"
 
+[tool.pyright]
+# Mirror the pytest ``pythonpath`` entries above.
+extraPaths = [
+  ".",
+  "deploy/ansible/roles-sap-os/2.4-hosts-file/filter_plugins",
+  "deploy/scripts/py_scripts/SDAF-GitHub-Actions",
+]
+exclude = [
+  "**/.venv",
+  "**/__pycache__",
+  "Webapp",
+]
+
+[[tool.pyright.executionEnvironments]]
+root = "deploy/ansible/lookup_plugins"
+reportIncompatibleMethodOverride = "none"
+
 [tool.coverage.run]
 source = [
   "deploy/ansible/filter_plugins",
