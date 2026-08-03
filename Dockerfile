@@ -84,7 +84,6 @@ RUN pip3 install --no-cache-dir \
     pywinrm==0.5.0 \
     setuptools==68.2.2 \
     wheel==0.42.0 \
-    chmod==1.0.3 \
     pyyaml==6.0.2
 
 RUN useradd -m -s /bin/bash azureadm && \

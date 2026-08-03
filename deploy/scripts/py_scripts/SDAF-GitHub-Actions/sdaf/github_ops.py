@@ -9,6 +9,50 @@ import time
 logger = logging.getLogger(__name__)
 
 
+def validate_federated_subject_format(subject_format, subject_override=""):
+    """Validate the configured GitHub OIDC subject format before provisioning."""
+    if subject_override or not subject_format:
+        return
+
+    if subject_format not in {"standard", "immutable"}:
+        raise ValueError("OIDC subject format must be 'standard' or 'immutable'.")
+
+
+def get_federated_subject(
+    github_client,
+    repo_full_name,
+    environment_name,
+    subject_format="",
+    subject_override="",
+):
+    """Build the GitHub OIDC subject used by an environment-bound workflow."""
+    if subject_override:
+        return subject_override
+
+    repo = github_client.get_repo(repo_full_name)
+    if not subject_format:
+        _, customization = repo._requester.requestJsonAndCheck(
+            "GET", f"{repo.url}/actions/oidc/customization/sub"
+        )
+        subject_prefix = customization.get("sub_claim_prefix")
+        if not subject_prefix:
+            raise ValueError(
+                "GitHub did not return an OIDC subject prefix. Set "
+                "SDAF_GITHUB_OIDC_SUBJECT explicitly."
+            )
+        return f"{subject_prefix}:environment:{environment_name}"
+
+    validate_federated_subject_format(subject_format)
+    if subject_format == "standard":
+        return f"repo:{repo.full_name}:environment:{environment_name}"
+    if subject_format == "immutable":
+        owner = repo.owner
+        return (
+            f"repo:{owner.login}@{owner.id}/{repo.name}@{repo.id}:"
+            f"environment:{environment_name}"
+        )
+
+
 def add_repository_variables(github_client, repo_full_name, variables):
     """
     Add variables to the repository level.

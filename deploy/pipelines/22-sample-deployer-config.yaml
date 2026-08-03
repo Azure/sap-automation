@@ -67,6 +67,9 @@ parameters:
       - UANO
       - UKSO
       - UKWE
+      - USAR
+      - USTE
+      - USVI
       - WCUS
       - WEEU
       - WEIN
@@ -172,6 +175,9 @@ stages:
                       "UANO" { "uaenorth" }
                       "UKSO" { "uksouth" }
                       "UKWE" { "ukwest" }
+                      "USAR" { "usgovarizona" }
+                      "USTE" { "usgovtexas" }
+                      "USVI" { "usgovvirginia" }
                       "WCUS" { "westcentralus" }
                       "WEEU" { "westeurope" }
                       "WEIN" { "westindia" }

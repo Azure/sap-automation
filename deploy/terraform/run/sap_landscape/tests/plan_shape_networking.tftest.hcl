@@ -503,6 +503,21 @@ run "greenfield_app_subnet_creates_resources" {
   }
 }
 
+run "private_endpoint_network_policy_is_propagated" {
+  command = plan
+
+  variables {
+    app_subnet_arm_id                 = ""
+    app_subnet_address_prefix         = "10.10.12.0/24"
+    private_endpoint_network_policies = "Disabled"
+  }
+
+  assert {
+    condition     = module.sap_landscape.private_endpoint_network_policies.app == "Disabled"
+    error_message = "The configured private endpoint network policy must be applied to workload zone subnets."
+  }
+}
+
 run "brownfield_app_subnet_reuses_existing_resources" {
   command = plan
   assert {

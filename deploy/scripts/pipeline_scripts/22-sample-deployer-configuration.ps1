@@ -54,6 +54,9 @@ $region = switch ("$Env:DEPLOYER_REGION") {
   "UANO" { "uaenorth" }
   "UKSO" { "uksouth" }
   "UKWE" { "ukwest" }
+  "USAR" { "usgovarizona" }
+  "USTE" { "usgovtexas" }
+  "USVI" { "usgovvirginia" }
   "WCUS" { "westcentralus" }
   "WEEU" { "westeurope" }
   "WEIN" { "westindia" }

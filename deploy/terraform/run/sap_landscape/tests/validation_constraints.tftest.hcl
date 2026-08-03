@@ -790,3 +790,28 @@ run "invalid_application_configuration_id" {
     var.application_configuration_id,
   ]
 }
+
+run "valid_private_endpoint_network_policies" {
+  command = plan
+
+  variables {
+    private_endpoint_network_policies = "NetworkSecurityGroupEnabled"
+  }
+
+  assert {
+    condition     = var.private_endpoint_network_policies == "NetworkSecurityGroupEnabled"
+    error_message = "A supported private endpoint network policy value must keep the baseline plan healthy."
+  }
+}
+
+run "invalid_private_endpoint_network_policies" {
+  command = plan
+
+  variables {
+    private_endpoint_network_policies = "Invalid"
+  }
+
+  expect_failures = [
+    var.private_endpoint_network_policies,
+  ]
+}

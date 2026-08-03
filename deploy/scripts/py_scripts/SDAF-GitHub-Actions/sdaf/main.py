@@ -36,6 +36,25 @@ def main():
     print("\nStarting setup process...\n")
     user_data = ui.get_user_input()
 
+    try:
+        github_ops.validate_federated_subject_format(
+            user_data.get("federated_subject_format", "immutable"),
+            user_data.get("federated_subject_override", ""),
+        )
+    except ValueError as error:
+        print(f"Unable to configure GitHub OIDC: {error}")
+        sys.exit(1)
+
+    try:
+        oidc_config = azure_ops.get_azure_oidc_config()
+    except (RuntimeError, ValueError) as error:
+        print(f"Unable to configure Azure OIDC: {error}")
+        sys.exit(1)
+
+    user_data["azure_environment"] = oidc_config["environment"]
+    user_data["azure_audience"] = oidc_config["audience"]
+    user_data["terraform_environment"] = oidc_config["terraform_environment"]
+
     # Check if user selected Managed Identity or Service Principal
     use_managed_identity = user_data.get("auth_choice", "1") == "2"
 
@@ -329,6 +348,15 @@ def main():
     github_client = Github(user_data["token"])
 
     try:
+        user_data["federated_subject"] = github_ops.get_federated_subject(
+            github_client,
+            user_data["repo_name"],
+            user_data["control_plane_name"],
+            user_data.get("federated_subject_format", "immutable"),
+            user_data.get("federated_subject_override", ""),
+        )
+        print(f"GitHub OIDC subject: {user_data['federated_subject']}")
+
         # Generate secrets for the repository
         repository_secrets = github_ops.generate_repository_secrets(
             user_data, user_data["gh_app_id"], user_data["private_key"]
@@ -367,6 +395,9 @@ def main():
     environment_variables = {
         "ARM_SUBSCRIPTION_ID": user_data["subscription_id"],
         "ARM_TENANT_ID": user_data["tenant_id"],
+        "ARM_ENVIRONMENT": user_data["terraform_environment"],
+        "AZURE_AUDIENCE": user_data["azure_audience"],
+        "AZURE_ENVIRONMENT": user_data["azure_environment"],
         "USE_MSI": "true" if use_managed_identity else "false",
         # Add S_USERNAME with a placeholder if not provided
         "S_USERNAME": (

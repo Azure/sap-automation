@@ -5,13 +5,13 @@
 Unit tests for ``sdaf.main``.
 """
 
-import sys
+import importlib
 import pytest
 from github import GithubException
 import json as json_module
-from sdaf import main as run_main
 
-_main_module = sys.modules["sdaf.main"]
+_main_module = importlib.import_module("sdaf.main")
+run_main = _main_module.main
 
 
 def _completed(returncode=0, stdout="", stderr=""):
@@ -123,6 +123,22 @@ class TestMain:
     Test suite covering :func:`sdaf.main.main`.
     """
 
+    @pytest.fixture(autouse=True)
+    def _mock_oidc_configuration(self, mocker):
+        """Use deterministic cloud and repository OIDC values in every main-flow test."""
+        mocker.patch(
+            "sdaf.azure_ops.get_azure_oidc_config",
+            return_value={
+                "environment": "AzureCloud",
+                "audience": "api://AzureADTokenExchange",
+                "terraform_environment": "public",
+            },
+        )
+        mocker.patch(
+            "sdaf.github_ops.get_federated_subject",
+            return_value="repo:org/repo:environment:MGMT-WEEU-DEP01",
+        )
+
     def test_main_completes_successfully_for_service_principal_happy_path(self, mocker):
         """
         Happy path for :func:`sdaf.main.main`.
@@ -144,12 +160,32 @@ class TestMain:
         mocker.patch("sdaf.github_ops.add_repository_secrets")
         mocker.patch("sdaf.github_ops.add_repository_variables")
         trigger_mock = mocker.patch("sdaf.github_ops.trigger_github_workflow", return_value=True)
-        mocker.patch("sdaf.github_ops.add_environment_variables")
+        add_environment_variables_mock = mocker.patch("sdaf.github_ops.add_environment_variables")
         mocker.patch("sdaf.github_ops.add_environment_secrets")
 
         run_main()
 
         trigger_mock.assert_called_once_with(user_data, "00-create-environment.yml")
+        environment_variables = add_environment_variables_mock.call_args.args[3]
+        assert environment_variables["ARM_ENVIRONMENT"] == "public"
+        assert environment_variables["AZURE_ENVIRONMENT"] == "AzureCloud"
+        assert environment_variables["AZURE_AUDIENCE"] == "api://AzureADTokenExchange"
+
+    def test_main_exits_before_provisioning_for_invalid_oidc_subject_format(self, mocker):
+        """Invalid OIDC format configuration must not create Azure resources."""
+        user_data = _user_data()
+        user_data["federated_subject_format"] = "unknown"
+        create_spn_mock = mocker.patch("sdaf.azure_ops.create_azure_service_principal")
+
+        mocker.patch("sdaf.ui.display_instructions")
+        mocker.patch("sdaf.ui.check_prerequisites")
+        mocker.patch("sdaf.ui.get_user_input", return_value=user_data)
+
+        with pytest.raises(SystemExit) as exc_info:
+            run_main()
+
+        assert exc_info.value.code == 1
+        create_spn_mock.assert_not_called()
 
     def test_main_exits_when_repository_secret_creation_raises_github_exception(self, mocker):
         """

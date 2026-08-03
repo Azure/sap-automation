@@ -266,6 +266,7 @@ No modules.
 | <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Details of the Azure infrastructure to deploy the SAP landscape into | `map` | `{}` | no |
 | <a name="input_install_create_smb_shares"></a> [install\_create\_smb\_shares](#input\_install\_create\_smb\_shares) | Value indicating if SMB shares should be created | `bool` | `true` | no |
 | <a name="input_key_vault"></a> [key\_vault](#input\_key\_vault) | The user brings existing Azure Key Vaults | `map` | `{}` | no |
+| <a name="input_private_endpoint_network_policies"></a> [private\_endpoint\_network\_policies](#input\_private\_endpoint\_network\_policies) | Controls network policy support for private endpoints on workload zone subnets | `string` | `"Enabled"` | no |
 | <a name="input_storage_account_replication_type"></a> [storage\_account\_replication\_type](#input\_storage\_account\_replication\_type) | Storage account replication type | `string` | `"ZRS"` | no |
 | <a name="input_use_AFS_for_shared_storage"></a> [use\_AFS\_for\_shared\_storage](#input\_use\_AFS\_for\_shared\_storage) | If true, will use AFS for installation media. | `bool` | `false` | no |
 | <a name="input_use_private_endpoint"></a> [use\_private\_endpoint](#input\_use\_private\_endpoint) | Boolean value indicating if private endpoint should be used for the deployment | `bool` | `false` | no |
@@ -306,6 +307,7 @@ No modules.
 | <a name="output_network_resource_counts"></a> [network\_resource\_counts](#output\_network\_resource\_counts) | Cardinality (creation count) of workload-zone network resources for terraform test diagnostics. 1 = created (greenfield), 0 = looked up (brownfield). |
 | <a name="output_ng_resource_id"></a> [ng\_resource\_id](#output\_ng\_resource\_id) | Azure resource identifier for the NAT Gateway |
 | <a name="output_nics_iscsi"></a> [nics\_iscsi](#output\_nics\_iscsi) | NICs for iSCSI devices |
+| <a name="output_private_endpoint_network_policies"></a> [private\_endpoint\_network\_policies](#output\_private\_endpoint\_network\_policies) | Private endpoint network policy state for module-created workload zone subnets |
 | <a name="output_privatelink_file_id"></a> [privatelink\_file\_id](#output\_privatelink\_file\_id) | Private DNS Zone ID for the file resources |
 | <a name="output_privatelink_keyvault_id"></a> [privatelink\_keyvault\_id](#output\_privatelink\_keyvault\_id) | Private DNS Zone ID for the keyvault resources |
 | <a name="output_privatelink_storage_id"></a> [privatelink\_storage\_id](#output\_privatelink\_storage\_id) | Private DNS Zone ID for the storage resources |

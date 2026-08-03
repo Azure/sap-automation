@@ -182,6 +182,7 @@
       ansible.builtin.shell: >
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params \
                                        subscriptionId="{{ fencing_spn_subscription_id }}" \
+                                       {{ fencing_azure_cloud_parameter }} \
                                        resourceGroup="{{ resource_group_name }}" \
                                        tenantId="{{ fencing_spn_tenant_id }}" \
                                        login="{{ fencing_spn_client_id }}" \
@@ -200,6 +201,7 @@
       ansible.builtin.shell: >
                                        crm configure primitive rsc_st_azure stonith:fence_azure_arm params \
                                        subscriptionId="{{ fencing_spn_subscription_id }}" \
+                                       {{ fencing_azure_cloud_parameter }} \
                                        resourceGroup="{{ resource_group_name }}" \
                                        msi=true \
                                        pcmk_monitor_retries=4 \

@@ -65,6 +65,7 @@ variables {
   deployer_statefile_foldername                = "."
   use_deployer                                 = false
   use_private_endpoint                         = false
+  routing_preference_enabled                   = false
   register_storage_accounts_keyvaults_with_dns = false
   create_privatelink_dns_zones                 = false
   management_network_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt"
@@ -76,6 +77,42 @@ variables {
   }
   resourcegroup_tags = {
     Purpose = "terraform-test"
+  }
+}
+
+run "cloud_specific_storage_endpoints_are_preserved" {
+  command = plan
+
+  override_resource {
+    target          = module.sap_library.azurerm_storage_account.storage_sapbits
+    override_during = plan
+    values = {
+      id                    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-library/providers/Microsoft.Storage/storageAccounts/stsapbitsgov"
+      name                  = "stsapbitsgov"
+      resource_group_name   = "rg-library"
+      primary_blob_endpoint = "https://stsapbitsgov.blob.core.usgovcloudapi.net/"
+    }
+  }
+
+  override_resource {
+    target          = module.sap_library.azurerm_storage_account.storage_tfstate
+    override_during = plan
+    values = {
+      id                    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-library/providers/Microsoft.Storage/storageAccounts/sttfstategov"
+      name                  = "sttfstategov"
+      resource_group_name   = "rg-library"
+      primary_blob_endpoint = "https://sttfstategov.blob.core.usgovcloudapi.net/"
+    }
+  }
+
+  assert {
+    condition     = module.sap_library.storage_endpoints.sapbits_location_base_path == "https://stsapbitsgov.blob.core.usgovcloudapi.net/sapbits"
+    error_message = "The SAP media path must use the cloud-specific blob endpoint exported by AzureRM."
+  }
+
+  assert {
+    condition     = module.sap_library.storage_endpoints.tfstate_blob_endpoint == "https://sttfstategov.blob.core.usgovcloudapi.net"
+    error_message = "The Terraform state path must use the cloud-specific blob endpoint exported by AzureRM."
   }
 }
 
@@ -130,6 +167,7 @@ run "brownfield_resource_group_and_storage_accounts_are_reused" {
       id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lib/providers/Microsoft.Storage/storageAccounts/stsapbitsboot"
       name                      = "stsapbitsboot"
       resource_group_name       = "rg-lib"
+      primary_blob_endpoint     = "https://stsapbitsboot.blob.core.usgovcloudapi.net/"
       primary_connection_string = "UseDevelopmentStorage=true;sapbits"
       tags = {
         Module   = "bootstrap-sap-library"
@@ -144,6 +182,7 @@ run "brownfield_resource_group_and_storage_accounts_are_reused" {
       id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-lib/providers/Microsoft.Storage/storageAccounts/sttfstateboot"
       name                      = "sttfstateboot"
       resource_group_name       = "rg-lib"
+      primary_blob_endpoint     = "https://sttfstateboot.blob.core.usgovcloudapi.net/"
       primary_connection_string = "UseDevelopmentStorage=true;tfstate"
       tags = {
         Module   = "bootstrap-sap-library"
@@ -165,6 +204,11 @@ run "brownfield_resource_group_and_storage_accounts_are_reused" {
   assert {
     condition     = module.sap_library.resource_tags.resource_group["Scenario"] == "brownfield" && module.sap_library.resource_tags.sapbits_storage_account["Module"] == "bootstrap-sap-library" && module.sap_library.resource_tags.tfstate_storage_account["Scenario"] == "brownfield"
     error_message = "Tag assertions must stay concrete in the brownfield branch too: the looked-up resource group and both looked-up storage accounts must expose the supplied brownfield tag values."
+  }
+
+  assert {
+    condition     = module.sap_library.storage_endpoints.sapbits_location_base_path == "https://stsapbitsboot.blob.core.usgovcloudapi.net/sapbits" && module.sap_library.storage_endpoints.tfstate_blob_endpoint == "https://sttfstateboot.blob.core.usgovcloudapi.net"
+    error_message = "Brownfield storage accounts must preserve their cloud-specific AzureRM blob endpoints."
   }
 }
 

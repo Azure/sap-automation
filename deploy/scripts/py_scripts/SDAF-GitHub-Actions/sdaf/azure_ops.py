@@ -1,8 +1,42 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import hashlib
 import json
 from .utils import run_az_command
+
+AZURE_OIDC_CONFIG = {
+    "AzureCloud": {
+        "environment": "AzureCloud",
+        "audience": "api://AzureADTokenExchange",
+        "terraform_environment": "public",
+    },
+    "AzureUSGovernment": {
+        "environment": "AzureUSGovernment",
+        "audience": "api://AzureADTokenExchangeUSGov",
+        "terraform_environment": "usgovernment",
+    },
+}
+
+
+def get_azure_oidc_config():
+    """Return the ``azure/login`` environment and audience for the active CLI cloud."""
+    result = run_az_command(
+        ["account", "show", "--query", "environmentName", "-o", "tsv"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Unable to determine the active Azure cloud: {result.stderr}")
+
+    cloud_name = result.stdout.strip()
+    if cloud_name not in AZURE_OIDC_CONFIG:
+        supported = ", ".join(AZURE_OIDC_CONFIG)
+        raise ValueError(
+            f"Azure cloud '{cloud_name}' is not supported. Supported clouds: {supported}"
+        )
+
+    return AZURE_OIDC_CONFIG[cloud_name].copy()
 
 
 def verify_azure_login():
@@ -507,30 +541,66 @@ def configure_federated_identity(user_data, spn_data):
     parameters = {
         "name": "GitHubActions",
         "issuer": "https://token.actions.githubusercontent.com",
-        "subject": f"repo:{user_data['repo_name']}:environment:{user_data['environment_name']}",
+        "subject": user_data["federated_subject"],
         "description": f"{user_data['environment_name']}-deploy",
-        "audiences": ["api://AzureADTokenExchange"],
+        "audiences": [user_data["azure_audience"]],
     }
 
-    # Convert parameters to a JSON string
-    parameters_json = json.dumps(parameters)
+    list_result = run_az_command(
+        ["ad", "app", "federated-credential", "list", "--id", spn_data["appId"]],
+        capture_output=True,
+        text=True,
+    )
+    if list_result.returncode != 0:
+        print("Warning: Unable to inspect existing federated identity credentials.")
+        print(f"Error: {list_result.stderr}")
+        return
 
-    # Create the federated credential
-    federated_args = [
-        "ad",
-        "app",
-        "federated-credential",
-        "create",
-        "--id",
-        spn_data["appId"],
-        "--parameters",
-        parameters_json,
-    ]
+    try:
+        credentials = json.loads(list_result.stdout or "[]")
+        existing = next(
+            (
+                credential
+                for credential in credentials
+                if credential.get("name") == parameters["name"]
+                and credential.get("issuer") == parameters["issuer"]
+                and credential.get("subject") == parameters["subject"]
+                and credential.get("audiences") == parameters["audiences"]
+            ),
+            None,
+        )
+    except json.JSONDecodeError:
+        print("Warning: Unable to parse existing federated identity credentials.")
+        return
+
+    if not existing and any(
+        credential.get("name") == parameters["name"] for credential in credentials
+    ):
+        identity = "|".join([parameters["issuer"], parameters["subject"], *parameters["audiences"]])
+        suffix = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12]
+        parameters["name"] = f"GitHubActions-{suffix}"
+        existing = next(
+            (
+                credential
+                for credential in credentials
+                if credential.get("name") == parameters["name"]
+                and credential.get("issuer") == parameters["issuer"]
+                and credential.get("subject") == parameters["subject"]
+                and credential.get("audiences") == parameters["audiences"]
+            ),
+            None,
+        )
+
+    operation = "update" if existing else "create"
+    federated_args = ["ad", "app", "federated-credential", operation, "--id", spn_data["appId"]]
+    if existing:
+        federated_args.extend(["--federated-credential-id", existing["id"]])
+    federated_args.extend(["--parameters", json.dumps(parameters)])
 
     result = run_az_command(federated_args, capture_output=True, text=True)
 
     if result.returncode == 0:
-        print("Federated identity credential configured successfully.")
+        print(f"Federated identity credential {operation}d successfully.")
     else:
         print("Warning: There was an issue configuring federated identity credential.")
         print(f"Error: {result.stderr}")

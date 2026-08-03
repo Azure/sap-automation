@@ -116,6 +116,17 @@ output "storage_subnet_id"                      {
                                                                 )
                                                 }
 
+output "private_endpoint_network_policies"       {
+                                                  description = "Private endpoint network policy state for module-created workload zone subnets"
+                                                  value = {
+                                                    admin   = try(azurerm_subnet.admin[0].private_endpoint_network_policies, null)
+                                                    app     = try(azurerm_subnet.app[0].private_endpoint_network_policies, null)
+                                                    db      = try(azurerm_subnet.db[0].private_endpoint_network_policies, null)
+                                                    storage = try(azurerm_subnet.storage[0].private_endpoint_network_policies, null)
+                                                    web     = try(azurerm_subnet.web[0].private_endpoint_network_policies, null)
+                                                  }
+                                                }
+
 output "anf_subnet_id"                          {
                                                   description = "Azure resource identifier for the anf subnet"
                                                   value       = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (

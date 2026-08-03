@@ -76,6 +76,14 @@ output "storagecontainer_sapbits_name"           {
                                                                   )
                                                  }
 
+output "storage_endpoints"                       {
+                                                   description = "Cloud-specific blob endpoints used for SAP media and Terraform state"
+                                                   value = {
+                                                     sapbits_location_base_path = local.sapbits_location_base_path
+                                                     tfstate_blob_endpoint      = trimsuffix(local.tfstate_blob_endpoint, "/")
+                                                   }
+                                                 }
+
 output "random_id"                               {
                                                    value = random_id.post_fix.hex
                                                  }

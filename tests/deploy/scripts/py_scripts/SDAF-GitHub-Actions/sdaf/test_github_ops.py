@@ -96,6 +96,26 @@ class _FakeRepo:
     """
 
     def __init__(self):
+        self.full_name = "org/repo"
+        self.name = "repo"
+        self.id = 200
+        self.url = "https://api.github.com/repos/org/repo"
+        self.owner = type("Owner", (), {"login": "org", "id": 100})()
+        self._requester = type(
+            "Requester",
+            (),
+            {
+                "requestJsonAndCheck": _CallRecorder(
+                    return_value=(
+                        {},
+                        {
+                            "use_default": False,
+                            "sub_claim_prefix": "repo:org@100/repo@200",
+                        },
+                    )
+                )
+            },
+        )()
         self.create_variable = _CallRecorder()
         self.create_secret = _CallRecorder()
         self.get_environment = _CallRecorder(return_value=_FakeEnvironment())
@@ -152,6 +172,69 @@ class TestGithubOps:
         :param mocker: pytest-mock fixture used to patch ``time.sleep``.
         """
         mocker.patch("sdaf.github_ops.time.sleep")
+
+    def test_get_federated_subject_discovers_subject_from_prefix(self):
+        """GitHub's OIDC response supplies the exact repository subject prefix."""
+        client = _FakeGithubClient()
+
+        result = sdaf.github_ops.get_federated_subject(client, "org/repo", "MGMT")
+
+        assert result == "repo:org@100/repo@200:environment:MGMT"
+        client.get_repo.return_value._requester.requestJsonAndCheck.assert_called_once_with(
+            "GET", "https://api.github.com/repos/org/repo/actions/oidc/customization/sub"
+        )
+
+    def test_get_federated_subject_discovers_default_subject_from_prefix(self):
+        """The default subject prefix is not inferred from `use_default`."""
+        client = _FakeGithubClient()
+        client.get_repo.return_value._requester.requestJsonAndCheck.return_value = (
+            {},
+            {
+                "use_default": True,
+                "sub_claim_prefix": "repo:org/repo",
+            },
+        )
+
+        result = sdaf.github_ops.get_federated_subject(client, "org/repo", "MGMT")
+
+        assert result == "repo:org/repo:environment:MGMT"
+
+    def test_validate_federated_subject_format_allows_discovery(self):
+        """An empty format signals repository OIDC subject discovery."""
+        sdaf.github_ops.validate_federated_subject_format("")
+
+    def test_get_federated_subject_returns_standard_subject_when_requested(self):
+        """Repositories without immutable subject claims retain the legacy format."""
+        client = _FakeGithubClient()
+
+        result = sdaf.github_ops.get_federated_subject(
+            client, "org/repo", "MGMT", subject_format="standard"
+        )
+
+        assert result == "repo:org/repo:environment:MGMT"
+
+    def test_get_federated_subject_honors_exact_override(self):
+        """An explicit subject bypasses repository metadata lookup."""
+        client = _FakeGithubClient()
+
+        result = sdaf.github_ops.get_federated_subject(
+            client,
+            "org/repo",
+            "MGMT",
+            subject_override="repo:custom:environment:MGMT",
+        )
+
+        assert result == "repo:custom:environment:MGMT"
+        client.get_repo.assert_not_called()
+
+    def test_get_federated_subject_rejects_unknown_format(self):
+        """Unknown subject formats fail before a credential is registered."""
+        client = _FakeGithubClient()
+
+        with pytest.raises(ValueError, match="standard.*immutable"):
+            sdaf.github_ops.get_federated_subject(
+                client, "org/repo", "MGMT", subject_format="unknown"
+            )
 
     def test_add_repository_variables_adds_non_empty_variables(self, mocker):
         """
