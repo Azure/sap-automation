@@ -687,3 +687,164 @@ run "params_subnet_cidr_client_present_when_admin_subnet_exists" {
   }
 }
 
+run "params_simple_mount_enabled_automatically_for_sles_16" {
+  command = apply
+
+  variables {
+    scs_high_availability = true
+    use_simple_mount      = false
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "SUSE"
+      offer           = "sles-sap-16"
+      sku             = "gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              true")
+    error_message = "SLES 16 HA systems must enable simple mount automatically."
+  }
+}
+
+run "params_simple_mount_enabled_for_supported_sles_15" {
+  command = apply
+
+  variables {
+    scs_high_availability = true
+    use_simple_mount      = true
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "SUSE"
+      offer           = "sles-sap-15-sp7"
+      sku             = "gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              true")
+    error_message = "Supported SLES 15 HA systems must honor use_simple_mount=true."
+  }
+}
+
+run "params_simple_mount_disabled_for_supported_sles_15_when_not_requested" {
+  command = apply
+
+  variables {
+    scs_high_availability = true
+    use_simple_mount      = false
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "SUSE"
+      offer           = "sles-sap-15-sp7"
+      sku             = "gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              false")
+    error_message = "Supported SLES 15 HA systems must honor use_simple_mount=false."
+  }
+}
+
+run "params_simple_mount_enabled_for_rhel_9" {
+  command = apply
+
+  variables {
+    scs_high_availability = true
+    use_simple_mount      = true
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "redhat"
+      offer           = "RHEL-SAP-HA"
+      sku             = "96sapha-gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              true")
+    error_message = "RHEL 9 HA systems must honor use_simple_mount=true."
+  }
+}
+
+run "params_simple_mount_enabled_for_rhel_10" {
+  command = apply
+
+  variables {
+    scs_high_availability = true
+    use_simple_mount      = true
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "redhat"
+      offer           = "rhel_test_offers"
+      sku             = "10_0_sap_ha-gen2"
+      version         = "latest"
+      type            = "marketplace_with_plan"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              true")
+    error_message = "RHEL 10 HA systems must honor use_simple_mount=true."
+  }
+}
+
+run "params_simple_mount_disabled_for_rhel_8" {
+  command = apply
+
+  variables {
+    scs_high_availability = true
+    use_simple_mount      = true
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "redhat"
+      offer           = "RHEL-SAP-HA"
+      sku             = "84sapha-gen2"
+      version         = "latest"
+      type            = "marketplace"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              false")
+    error_message = "RHEL 8 systems must not enable simple mount."
+  }
+}
+
+run "params_simple_mount_disabled_without_scs_ha" {
+  command = apply
+
+  variables {
+    scs_high_availability = false
+    use_simple_mount      = true
+    scs_server_image = {
+      os_type         = "LINUX"
+      source_image_id = ""
+      publisher       = "redhat"
+      offer           = "rhel_test_offers"
+      sku             = "10_0_sap_ha-gen2"
+      version         = "latest"
+      type            = "marketplace_with_plan"
+    }
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "use_simple_mount:              false")
+    error_message = "Simple mount must remain disabled when SCS is not highly available."
+  }
+}
+
