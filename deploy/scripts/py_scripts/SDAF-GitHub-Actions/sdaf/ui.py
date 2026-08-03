@@ -430,8 +430,6 @@ def get_user_input():
                     sys.exit(1)
                 print("Successfully generated a new client secret.")
             except (json.JSONDecodeError, ValueError) as e:
-                # The command output carries the generated client secret, so it must
-                # not be echoed to the console or to CI logs.
                 print(f"Failed to decode JSON for client secret: {str(e)}")
                 sys.exit(1)
         else:

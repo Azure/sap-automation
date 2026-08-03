@@ -102,8 +102,6 @@ def main():
 
     # Create or use existing Service Principal for GitHub Actions authentication
     spn_for_github_auth = {}
-    # Populated only when a temporary SPN has to be created below; declared up
-    # front so later references are unambiguously bound.
     spn_user_data = {}
     if "spn_name" in user_data and user_data["spn_name"]:
         # If user already provided SPN details when collecting inputs, use those
@@ -144,9 +142,7 @@ def main():
         print("Cannot continue without creating the service principal. Exiting.")
         sys.exit(1)
 
-    # Now proceed with Managed Identity if selected. Exactly one of these two is
-    # populated, chosen by ``use_managed_identity``; both are declared here so
-    # every later reference is unambiguously bound.
+    # Now proceed with Managed Identity if selected
     identity_data = {}
     spn_data = {}
     if use_managed_identity:

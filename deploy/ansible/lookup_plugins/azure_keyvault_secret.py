@@ -87,10 +87,8 @@ def describe_exception(error):
     """
     Build a log-safe description of an exception raised by the Key Vault SDK.
 
-    Azure Key Vault echoes the requested secret name back inside the service
-    error message, so the raw message must never be logged. Only the exception
-    type, HTTP status and service error code are reported; none of these carry
-    the secret name or its value.
+    Key Vault echoes the requested secret name back inside its error message, so
+    only the exception type, HTTP status and service error code are reported.
 
     :param error: The exception to describe.
     :return: A string safe to write to a log sink.
@@ -207,10 +205,6 @@ class AzureKeyVaultHelper:
             logger.info("Successfully fetched secret from %s", self.vault_url)
             return secret.value
         except Exception as e:
-            # The secret name is sensitive and must never reach a log sink. It is
-            # omitted here, and the exception message is reduced to its type and
-            # service error code because Key Vault echoes the requested secret
-            # name back inside the error text.
             reason = describe_exception(e)
             display.error(f"Failed to fetch secret from {self.vault_url}. Error: {reason}")
             logger.error(
@@ -247,8 +241,6 @@ class LookupModule(LookupBase):
                 secret_value = helper.get_secret(term)
                 ret.append(secret_value)
             except AnsibleError as e:
-                # Report the position in the lookup instead of the secret name so a
-                # multi-secret lookup stays diagnosable without leaking the name.
                 message = f"{str(e)} (lookup term index {index})"
                 display.error(message)
                 logger.error(message)

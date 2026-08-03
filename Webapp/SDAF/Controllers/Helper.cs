@@ -292,9 +292,8 @@ namespace SDAFWebApp.Controllers
         }
 
         /// <summary>
-        /// Makes a caller-supplied value safe to write to a log sink.
-        /// Strips CR/LF and other control characters so a crafted request value cannot
-        /// forge additional log entries, and caps the length to bound log growth.
+        /// Makes a caller-supplied value safe to write to a log sink by stripping
+        /// line-breaking characters and capping the length.
         /// </summary>
         /// <param name="value">The untrusted value to sanitize.</param>
         /// <returns>A single-line, length-bounded representation of <paramref name="value"/>.</returns>
@@ -307,8 +306,7 @@ namespace SDAFWebApp.Controllers
             foreach (char c in value)
             {
                 if (sanitized.Length >= maxLength) break;
-                // char.IsControl does not cover U+2028/U+2029, which some log
-                // consumers still treat as line terminators.
+                // char.IsControl does not cover U+2028/U+2029.
                 bool isLineBreaking = char.IsControl(c) || c == '\u2028' || c == '\u2029';
                 sanitized.Append(isLineBreaking ? '_' : c);
             }

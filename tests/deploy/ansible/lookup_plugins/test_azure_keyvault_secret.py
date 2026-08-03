@@ -189,25 +189,35 @@ class TestAzureKeyvaultSecret:
         with pytest.raises(AnsibleError, match="Failed to fetch secret"):
             helper.get_secret("my-secret")
 
-    def test_get_secret_error_does_not_leak_secret_name(self, mock_secret_client):
-        """The raised error must not echo the caller-supplied secret name.
+    def test_get_secret_error_does_not_leak_secret_name(self, mock_secret_client, mocker):
+        """The error and both log sinks must not echo the secret name.
 
         The injected exception message deliberately embeds the secret name, the
-        way Azure Key Vault does for ``SecretNotFound``, so the test proves the
-        name is stripped rather than merely absent from the source exception.
+        way Azure Key Vault does for ``SecretNotFound``.
 
         :param mock_secret_client: Fixture patching ``SecretClient``.
+        :param mocker: pytest-mock fixture used to patch the log sinks.
         """
         mock_secret_client.return_value.list_properties_of_secrets.return_value = iter([1])
         mock_secret_client.return_value.get_secret.side_effect = RuntimeError(
             "(SecretNotFound) A secret with (name/id) super-sensitive-name was not found"
         )
+        display_error = mocker.patch(f"{_MODULE}.display.error")
+        logger_error = mocker.patch(f"{_MODULE}.logger.error")
+
         helper = AzureKeyVaultHelper(vault_url="https://example.vault.azure.net")
         with pytest.raises(AnsibleError) as excinfo:
             helper.get_secret("super-sensitive-name")
+
         assert "super-sensitive-name" not in str(excinfo.value)
         assert "vault.azure.net" in str(excinfo.value)
         assert "RuntimeError" in str(excinfo.value)
+
+        logged = [str(call) for call in display_error.call_args_list]
+        logged += [str(call) for call in logger_error.call_args_list]
+        assert logged
+        for entry in logged:
+            assert "super-sensitive-name" not in entry
 
     def test_describe_exception_reports_status_and_service_code(self):
         """The log-safe description surfaces the status and service error code."""
