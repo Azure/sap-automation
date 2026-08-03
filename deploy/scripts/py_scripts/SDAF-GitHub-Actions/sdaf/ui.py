@@ -372,7 +372,7 @@ def get_user_input():
         if generate_new_secret:
             print("Generating a new client secret...")
             # First try to reset credential at the app level
-            app_secret_args = [
+            app_credential_reset_args = [
                 "ad",
                 "app",
                 "credential",
@@ -382,12 +382,14 @@ def get_user_input():
                 "--display-name",
                 "rbac",
             ]
-            secret_result = run_az_command(app_secret_args, capture_output=True, text=True)
+            secret_result = run_az_command(
+                app_credential_reset_args, capture_output=True, text=True
+            )
 
             # If app credential reset fails, try service principal credential reset
             if secret_result.returncode != 0:
                 print("App credential reset failed, trying service principal credential reset...")
-                sp_secret_args = [
+                sp_credential_reset_args = [
                     "ad",
                     "sp",
                     "credential",
@@ -397,7 +399,9 @@ def get_user_input():
                     "--name",
                     "rbac",
                 ]
-                secret_result = run_az_command(sp_secret_args, capture_output=True, text=True)
+                secret_result = run_az_command(
+                    sp_credential_reset_args, capture_output=True, text=True
+                )
 
             if secret_result.returncode != 0:
                 print("Failed to generate new client secret. Please check the error and try again.")
@@ -426,8 +430,9 @@ def get_user_input():
                     sys.exit(1)
                 print("Successfully generated a new client secret.")
             except (json.JSONDecodeError, ValueError) as e:
+                # The command output carries the generated client secret, so it must
+                # not be echoed to the console or to CI logs.
                 print(f"Failed to decode JSON for client secret: {str(e)}")
-                print(secret_result.stdout)
                 sys.exit(1)
         else:
             spn_password = getpass.getpass(

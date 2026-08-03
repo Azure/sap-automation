@@ -83,6 +83,31 @@ logger = logging.getLogger(__name__)
 display = Display()
 
 
+def describe_exception(error):
+    """
+    Build a log-safe description of an exception raised by the Key Vault SDK.
+
+    Azure Key Vault echoes the requested secret name back inside the service
+    error message, so the raw message must never be logged. Only the exception
+    type, HTTP status and service error code are reported; none of these carry
+    the secret name or its value.
+
+    :param error: The exception to describe.
+    :return: A string safe to write to a log sink.
+    """
+    parts = [type(error).__name__]
+
+    status_code = getattr(error, "status_code", None)
+    if status_code is not None:
+        parts.append(f"status={status_code}")
+
+    error_code = getattr(getattr(error, "error", None), "code", None)
+    if error_code:
+        parts.append(f"code={error_code}")
+
+    return " ".join(parts)
+
+
 class AzureKeyVaultHelper:
     """
     A helper class for retrieving secrets from Azure Key Vault.
@@ -168,7 +193,6 @@ class AzureKeyVaultHelper:
         :param secret_name: The secret name (optionally with version, e.g., secret_name/version).
         :return: The secret value.
         """
-        redacted_name = secret_name[:4] + "***" if len(secret_name) > 4 else "***"
         try:
             display.v(
                 f"Fetching secret from {self.vault_url} using {type(self.credential).__name__}"
@@ -183,18 +207,18 @@ class AzureKeyVaultHelper:
             logger.info("Successfully fetched secret from %s", self.vault_url)
             return secret.value
         except Exception as e:
-            display.error(
-                f"Failed to fetch secret {redacted_name} from {self.vault_url}. Error: {str(e)}"
-            )
+            # The secret name is sensitive and must never reach a log sink. It is
+            # omitted here, and the exception message is reduced to its type and
+            # service error code because Key Vault echoes the requested secret
+            # name back inside the error text.
+            reason = describe_exception(e)
+            display.error(f"Failed to fetch secret from {self.vault_url}. Error: {reason}")
             logger.error(
-                "Failed to fetch secret %s from %s. Error: %s",
-                redacted_name,
+                "Failed to fetch secret from %s. Error: %s",
                 self.vault_url,
-                str(e),
+                reason,
             )
-            raise AnsibleError(
-                f"Failed to fetch secret {redacted_name} from {self.vault_url}: {str(e)}"
-            )
+            raise AnsibleError(f"Failed to fetch secret from {self.vault_url}: {reason}")
 
 
 class LookupModule(LookupBase):
@@ -202,7 +226,7 @@ class LookupModule(LookupBase):
     Ansible lookup module for retrieving secrets from Azure Key Vault.
     """
 
-    def run(self, terms, variables, **kwargs):
+    def run(self, terms, variables=None, **kwargs):
         vault_url = kwargs.get("vault_url")
         client_id = kwargs.get("client_id")
         client_secret = kwargs.get("client_secret")
@@ -218,13 +242,16 @@ class LookupModule(LookupBase):
         helper = AzureKeyVaultHelper(vault_url, client_id, client_secret, tenant_id, timeout)
         ret = []
 
-        for term in terms:
+        for index, term in enumerate(terms):
             try:
                 secret_value = helper.get_secret(term)
                 ret.append(secret_value)
             except AnsibleError as e:
-                display.error(str(e))
-                logger.error(str(e))
+                # Report the position in the lookup instead of the secret name so a
+                # multi-secret lookup stays diagnosable without leaking the name.
+                message = f"{str(e)} (lookup term index {index})"
+                display.error(message)
+                logger.error(message)
                 raise
 
         return ret

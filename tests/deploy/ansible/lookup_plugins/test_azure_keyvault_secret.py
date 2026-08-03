@@ -12,6 +12,7 @@ from azure.core.exceptions import HttpResponseError
 from deploy.ansible.lookup_plugins.azure_keyvault_secret import (
     AzureKeyVaultHelper,
     LookupModule,
+    describe_exception,
 )
 
 _MODULE = "deploy.ansible.lookup_plugins.azure_keyvault_secret"
@@ -188,6 +189,48 @@ class TestAzureKeyvaultSecret:
         with pytest.raises(AnsibleError, match="Failed to fetch secret"):
             helper.get_secret("my-secret")
 
+    def test_get_secret_error_does_not_leak_secret_name(self, mock_secret_client):
+        """The raised error must not echo the caller-supplied secret name.
+
+        The injected exception message deliberately embeds the secret name, the
+        way Azure Key Vault does for ``SecretNotFound``, so the test proves the
+        name is stripped rather than merely absent from the source exception.
+
+        :param mock_secret_client: Fixture patching ``SecretClient``.
+        """
+        mock_secret_client.return_value.list_properties_of_secrets.return_value = iter([1])
+        mock_secret_client.return_value.get_secret.side_effect = RuntimeError(
+            "(SecretNotFound) A secret with (name/id) super-sensitive-name was not found"
+        )
+        helper = AzureKeyVaultHelper(vault_url="https://example.vault.azure.net")
+        with pytest.raises(AnsibleError) as excinfo:
+            helper.get_secret("super-sensitive-name")
+        assert "super-sensitive-name" not in str(excinfo.value)
+        assert "vault.azure.net" in str(excinfo.value)
+        assert "RuntimeError" in str(excinfo.value)
+
+    def test_describe_exception_reports_status_and_service_code(self):
+        """The log-safe description surfaces the status and service error code."""
+
+        class _ServiceError(Exception):
+            """Mimics an Azure SDK error that echoes the secret name."""
+
+            def __init__(self):
+                super().__init__("A secret with (name/id) leaky-name was not found")
+                self.status_code = 404
+                self.error = SimpleNamespace(code="SecretNotFound")
+
+        described = describe_exception(_ServiceError())
+
+        assert "_ServiceError" in described
+        assert "status=404" in described
+        assert "code=SecretNotFound" in described
+        assert "leaky-name" not in described
+
+    def test_describe_exception_omits_absent_status_and_code(self):
+        """Plain exceptions are described by type alone."""
+        assert describe_exception(RuntimeError("boom")) == "RuntimeError"
+
     def test_lookup_module_run_returns_secret_values(self, mocker):
         """
         Happy path for :meth:`LookupModule.run`.
@@ -203,6 +246,44 @@ class TestAzureKeyvaultSecret:
             vault_url="https://example.vault.azure.net",
         )
         assert result == ["s1", "s2"]
+
+    def test_lookup_module_run_reports_failing_term_index(self, mocker):
+        """A failed lookup is reported by position rather than by secret name.
+
+        :param mocker: pytest-mock fixture used to patch the helper class.
+        """
+
+        class _FailingHelper:
+            """Returns the first secret then fails on the second."""
+
+            def __init__(self):
+                self._calls = 0
+
+            def get_secret(self, *args, **kwargs):
+                """
+                :param args: Positional arguments (ignored).
+                :param kwargs: Keyword arguments (ignored).
+                :return: The first secret value, otherwise raises.
+                """
+                self._calls += 1
+                if self._calls == 1:
+                    return "s1"
+                raise AnsibleError("Failed to fetch secret from https://example.vault.azure.net")
+
+        mocker.patch(f"{_MODULE}.AzureKeyVaultHelper", return_value=_FailingHelper())
+        error_calls = mocker.patch(f"{_MODULE}.display.error")
+        module = LookupModule()
+
+        with pytest.raises(AnsibleError):
+            module.run(
+                ["secret1", "super-sensitive-name"],
+                variables=None,
+                vault_url="https://example.vault.azure.net",
+            )
+
+        logged = error_calls.call_args[0][0]
+        assert "lookup term index 1" in logged
+        assert "super-sensitive-name" not in logged
 
     def test_lookup_module_run_raises_when_vault_url_missing(self):
         """

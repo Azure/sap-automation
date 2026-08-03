@@ -27,6 +27,29 @@ pythonpath = [
 ]
 addopts = "--cov --cov-report=term-missing --cov-fail-under=85"
 
+[tool.pyright]
+# Mirror the pytest ``pythonpath`` entries above so editors/static analysis
+# resolve the same modules the test suite imports at runtime.
+extraPaths = [
+  ".",
+  "deploy/ansible/roles-sap-os/2.4-hosts-file/filter_plugins",
+  "deploy/scripts/py_scripts/SDAF-GitHub-Actions",
+]
+exclude = [
+  "**/.venv",
+  "**/__pycache__",
+  "Webapp",
+]
+
+# ansible-core's ``LookupBase.run`` is an abstract stub whose body is ``pass``
+# and which carries no return annotation, so static analysis infers its return
+# type as ``None``. The Ansible lookup-plugin contract requires ``run`` to return
+# a list, so every lookup plugin necessarily widens that inferred type. The rule
+# is disabled for this directory only; it stays active everywhere else.
+[[tool.pyright.executionEnvironments]]
+root = "deploy/ansible/lookup_plugins"
+reportIncompatibleMethodOverride = "none"
+
 [tool.coverage.run]
 source = [
   "deploy/ansible/filter_plugins",

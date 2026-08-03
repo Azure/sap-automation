@@ -45,12 +45,8 @@ def get_federated_subject(
     validate_federated_subject_format(subject_format)
     if subject_format == "standard":
         return f"repo:{repo.full_name}:environment:{environment_name}"
-    if subject_format == "immutable":
-        owner = repo.owner
-        return (
-            f"repo:{owner.login}@{owner.id}/{repo.name}@{repo.id}:"
-            f"environment:{environment_name}"
-        )
+    owner = repo.owner
+    return f"repo:{owner.login}@{owner.id}/{repo.name}@{repo.id}:environment:{environment_name}"
 
 
 def add_repository_variables(github_client, repo_full_name, variables):

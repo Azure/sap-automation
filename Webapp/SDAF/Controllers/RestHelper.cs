@@ -556,9 +556,13 @@ namespace SDAFWebApp.Controllers
 
             dynamicEnvironment.variables = dynamicVariables;
 
-            // Make the put call
-            string requestJson = JsonConvert.SerializeObject(dynamicEnvironment, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-            using StringContent content = new(requestJson, Encoding.ASCII, "application/json");
+            // Make the put call. Serialize through System.Text.Json so the payload is produced
+            // by the HTML-escaping default encoder, matching CreateVariableGroup above and
+            // preventing user-supplied variable-group names/descriptions from being emitted raw.
+            string mergedJson = JsonConvert.SerializeObject(dynamicEnvironment, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            using JsonDocument mergedDocument = JsonDocument.Parse(mergedJson);
+            string requestJson = JsonSerializer.Serialize(mergedDocument.RootElement, jsonSerializerOptions);
+            using StringContent content = new(requestJson, Encoding.UTF8, "application/json");
 
             HttpResponseMessage putResponse = await client.PutAsync(uri, content);
             string putResponseBody = await putResponse.Content.ReadAsStringAsync();

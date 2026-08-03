@@ -106,7 +106,7 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger?.LogWarning(e, "Failed to deserialize system {Id} in partition {PartitionKey}", id, partitionKey);
+                _logger?.LogWarning(e, "Failed to deserialize system {Id} in partition {PartitionKey}", Helper.SanitizeForLog(id), Helper.SanitizeForLog(partitionKey));
             }
             if (s == null) return null;
             try
@@ -116,7 +116,7 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger?.LogInformation(e, "No custom naming file found for system {Id}; using default naming", id);
+                _logger?.LogInformation(e, "No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
             }
 
             try
@@ -127,7 +127,7 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                _logger?.LogInformation(e, "No custom sizes file found for system {Id}; using default sizing", id);
+                _logger?.LogInformation(e, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
             }
 
             return s;
@@ -272,7 +272,7 @@ namespace SDAFWebApp.Controllers
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogWarning(e, "Failed to save custom naming file for system {Id}; continuing with default naming", id);
+                    _logger?.LogWarning(e, "Failed to save custom naming file for system {Id}; continuing with default naming", Helper.SanitizeForLog(id));
                 }
 
                 try
@@ -290,7 +290,7 @@ namespace SDAFWebApp.Controllers
                 }
                 catch (Exception e)
                 {
-                    _logger?.LogWarning(e, "Failed to save custom sizes file for system {Id}; continuing with default sizing", id);
+                    _logger?.LogWarning(e, "Failed to save custom sizes file for system {Id}; continuing with default sizing", Helper.SanitizeForLog(id));
                 }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";

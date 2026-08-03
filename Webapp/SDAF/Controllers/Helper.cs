@@ -290,6 +290,33 @@ namespace SDAFWebApp.Controllers
                 throw new KeyNotFoundException("location is not a valid Azure region");
             }
         }
+
+        /// <summary>
+        /// Makes a caller-supplied value safe to write to a log sink.
+        /// Strips CR/LF and other control characters so a crafted request value cannot
+        /// forge additional log entries, and caps the length to bound log growth.
+        /// </summary>
+        /// <param name="value">The untrusted value to sanitize.</param>
+        /// <returns>A single-line, length-bounded representation of <paramref name="value"/>.</returns>
+        public static string SanitizeForLog(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+
+            const int maxLength = 256;
+            StringBuilder sanitized = new(Math.Min(value.Length, maxLength));
+            foreach (char c in value)
+            {
+                if (sanitized.Length >= maxLength) break;
+                // char.IsControl does not cover U+2028/U+2029, which some log
+                // consumers still treat as line terminators.
+                bool isLineBreaking = char.IsControl(c) || c == '\u2028' || c == '\u2029';
+                sanitized.Append(isLineBreaking ? '_' : c);
+            }
+
+            if (value.Length > maxLength) sanitized.Append("...");
+            return sanitized.ToString();
+        }
+
         public static async Task<byte[]> ProcessFormFile(IFormFile formFile,
             ModelStateDictionary modelState, string[] permittedExtensions,
             long sizeLimit)
