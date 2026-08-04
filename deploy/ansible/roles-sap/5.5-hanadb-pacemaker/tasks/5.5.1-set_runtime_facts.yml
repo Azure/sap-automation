@@ -163,6 +163,19 @@
         - use_hanasr_angi | default(false)
         - ansible_os_family | upper == 'REDHAT'
       block:
+        # The sap-hana-ha (ANGI) package declares a Conflicts against the classic
+        # resource-agents-sap-hana package, which is installed unconditionally by
+        # roles-os/1.4-packages and roles-os/1.17-generic-pacemaker. It must be
+        # removed first or dnf fails with a depsolve conflict.
+        # TODO: remove this task once 1.4-packages and 1.17-generic-pacemaker
+        # skip resource-agents-sap-hana when use_hanasr_angi is true.
+        - name:                        "5.5.1 HANA Pacemaker - Remove conflicting resource-agents-sap-hana [RHEL ANGI]"
+          ansible.builtin.dnf:
+            name:                      resource-agents-sap-hana
+            state:                     absent
+          when:
+                                       - ansible_facts.packages['resource-agents-sap-hana'] is defined
+
         - name:                        "5.5.1 HANA Pacemaker - Install sap-hana-ha package"
           ansible.builtin.dnf:
             name:                      "sap-hana-ha"
@@ -174,6 +187,7 @@
 
         - name:                        "5.5.1 HANA Pacemaker - Update package versions after sap-hana-ha install"
           ansible.builtin.set_fact:
+            saphanaSR_version:         "{{ ansible_facts.packages['resource-agents-sap-hana'][0].version if 'resource-agents-sap-hana' in ansible_facts.packages else '0.0.0' }}"
             saphanaSR_angi_version:    "{{ ansible_facts.packages['sap-hana-ha'][0].version if 'sap-hana-ha' in ansible_facts.packages else '0.0.0' }}"
 
     - name:                            "5.5.1 HANA Pacemaker - Capture the Hana DB version"
