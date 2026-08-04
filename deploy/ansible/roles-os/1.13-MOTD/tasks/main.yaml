@@ -85,6 +85,13 @@
     group:                             root
   become:                              true
 
+- name:                                "1.13 MOTD - Check for a distribution sshd_config"
+  ansible.builtin.stat:
+    path:                              /etc/ssh/sshd_config
+  become:                              true
+  register:                            motd_sshd_config
+
+# SLES 16 ships no /etc/ssh/sshd_config; its vendor /usr/etc copy already includes the drop-in directory.
 - name:                                "1.13 MOTD - Ensure SSH drop-in loader is configured"
   ansible.builtin.lineinfile:
     path:                              /etc/ssh/sshd_config
@@ -93,6 +100,7 @@
     insertbefore:                       BOF
     validate:                           '/usr/sbin/sshd -t -f %s'
   become:                              true
+  when:                                motd_sshd_config.stat.exists
   notify:
     - "1.13 MOTD - Restart sshd service"
 
