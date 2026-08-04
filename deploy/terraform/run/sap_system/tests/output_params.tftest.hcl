@@ -692,6 +692,7 @@ run "params_simple_mount_enabled_automatically_for_sles_16" {
 
   variables {
     scs_high_availability = true
+    NFS_provider          = "AFS"
     use_simple_mount      = false
     scs_server_image = {
       os_type         = "LINUX"
@@ -715,6 +716,7 @@ run "params_simple_mount_enabled_for_supported_sles_15" {
 
   variables {
     scs_high_availability = true
+    NFS_provider          = "AFS"
     use_simple_mount      = true
     scs_server_image = {
       os_type         = "LINUX"
@@ -738,6 +740,7 @@ run "params_simple_mount_disabled_for_supported_sles_15_when_not_requested" {
 
   variables {
     scs_high_availability = true
+    NFS_provider          = "AFS"
     use_simple_mount      = false
     scs_server_image = {
       os_type         = "LINUX"
@@ -761,6 +764,7 @@ run "params_simple_mount_enabled_for_rhel_9" {
 
   variables {
     scs_high_availability = true
+    NFS_provider          = "AFS"
     use_simple_mount      = true
     scs_server_image = {
       os_type         = "LINUX"
@@ -784,6 +788,7 @@ run "params_simple_mount_enabled_for_rhel_10" {
 
   variables {
     scs_high_availability = true
+    NFS_provider          = "AFS"
     use_simple_mount      = true
     scs_server_image = {
       os_type         = "LINUX"
@@ -807,6 +812,7 @@ run "params_simple_mount_disabled_for_rhel_8" {
 
   variables {
     scs_high_availability = true
+    NFS_provider          = "AFS"
     use_simple_mount      = true
     scs_server_image = {
       os_type         = "LINUX"
