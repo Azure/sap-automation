@@ -96,9 +96,17 @@
   notify:
     - "1.13 MOTD - Restart sshd service"
 
+- name:                                "1.13 MOTD - Remove obsolete late-loading drop-in"
+  ansible.builtin.file:
+    path:                              /etc/ssh/sshd_config.d/99-sap-motd.conf
+    state:                             absent
+  become:                              true
+  notify:
+    - "1.13 MOTD - Restart sshd service"
+
 - name:                                "1.13 MOTD - Update PrintMotd and Banner via drop-in"
   ansible.builtin.copy:
-    dest:                              /etc/ssh/sshd_config.d/99-sap-motd.conf
+    dest:                              /etc/ssh/sshd_config.d/00-sap-motd.conf
     mode:                              '0600'
     owner:                             root
     group:                             root
