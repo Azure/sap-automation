@@ -336,18 +336,14 @@ locals {
 
   scs_os_specified                  = (length(local.scs_os.source_image_id) + length(local.scs_os.publisher)) > 0
 
-  validated_use_simple_mount        = (
-                                        upper(local.scs_os.publisher) == "SUSE" && var.scs_high_availability
-                                      ) ? (
-                                        startswith(local.scs_os.offer, "sles-sap-16") ? (
-                                          true) : (
-                                          var.use_simple_mount && contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5", "sles-sap-15-sp6", "sles-sap-15-sp7"], local.scs_os.offer) ? (
-                                            true) : (
-                                            false
+  validated_use_simple_mount        = var.scs_high_availability && (
+                                        upper(local.scs_os.publisher) == "SUSE" ? (
+                                          startswith(local.scs_os.offer, "sles-sap-16") || (
+                                            var.use_simple_mount && contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5", "sles-sap-15-sp6", "sles-sap-15-sp7"], local.scs_os.offer)
                                           )
+                                        ) : (
+                                          upper(local.scs_os.publisher) == "REDHAT" && var.use_simple_mount && !startswith(local.scs_os.sku, "7") && !startswith(local.scs_os.sku, "8")
                                         )
-                                      ) : (
-                                        false
                                       )
 
   web_os                            = {
