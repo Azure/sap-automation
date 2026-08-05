@@ -228,7 +228,7 @@ variable "region_mapping" {
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
     "norwaywest"         = "nowe"
-    "newzealandnorth"   =  "nzno"
+    "newzealandnorth"    = "nzno"
     "polandcentral"      = "plce"
     "qatarcentral"       = "qace"
     "southafricanorth"   = "sano"
@@ -252,7 +252,6 @@ variable "region_mapping" {
     "westus"             = "weus"
     "westus2"            = "wus2"
     "westus3"            = "wus3"
-    "newzealandnorth"    = "nzno"
   }
 }
 
