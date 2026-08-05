@@ -6,7 +6,7 @@ pytest-cov==7.1.0
 black==26.5.1
 
 # Runtime dependencies imported by the modules under test.
-ansible-core==2.16.14
+ansible-core==2.16.19rc1
 azure-identity>=1.19.0
 azure-appconfiguration>=1.7.1
 azure-keyvault-secrets>=4.9.0
