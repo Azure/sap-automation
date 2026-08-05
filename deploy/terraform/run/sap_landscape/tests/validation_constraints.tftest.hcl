@@ -804,6 +804,15 @@ run "valid_private_endpoint_network_policies" {
   }
 }
 
+run "default_private_endpoint_network_policies" {
+  command = plan
+
+  assert {
+    condition     = var.private_endpoint_network_policies == "Disabled"
+    error_message = "The default private endpoint network policy must be 'Disabled' so private endpoint creation is not rejected by Azure."
+  }
+}
+
 run "invalid_private_endpoint_network_policies" {
   command = plan
 

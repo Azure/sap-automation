@@ -5,8 +5,12 @@ a four-character region code. The code appears in resource names, resource
 group names, Terraform state file names, and the names of the generated
 configuration files and directories under `WORKSPACES`.
 
-Use this page to look up the code for a region, to confirm that SDAF supports
-a region, and to add a region that is not listed.
+Use this page to look up the code for a region, to confirm which regions the
+name generator has a code for, and to add a region that is not listed. A region
+appearing in this table only means SDAF can derive a name code for it; it
+doesn't establish that the region is supported. See the
+[supportability matrix](https://learn.microsoft.com/azure/sap/automation/supportability)
+for support statements.
 
 ## Where the region code appears
 

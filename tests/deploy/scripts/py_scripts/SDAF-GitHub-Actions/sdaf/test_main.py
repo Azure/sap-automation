@@ -446,6 +446,46 @@ class TestMain:
 
         run_main()
 
+    def test_main_passes_service_management_reference_to_app_registration(self, mocker):
+        """
+        Verify :func:`sdaf.main.main` forwards the collected service management
+        reference to :func:`sdaf.azure_ops.create_app_registration`.
+
+        :param mocker: pytest-mock fixture used to patch every
+            collaborator of ``sdaf.main``.
+        """
+        user_data = _msi_user_data(use_existing_identity=False)
+        user_data["use_webapp"] = True
+        user_data["app_registration_name"] = "MGMT-app"
+        user_data["service_management_reference"] = "92a421fe-9780-4c8d-97d1-d5e9c4122bc5"
+        spn_data = _spn_data()
+        identity_data = _identity_data()
+
+        mocker.patch("sdaf.ui.display_instructions")
+        mocker.patch("sdaf.ui.check_prerequisites")
+        mocker.patch("sdaf.ui.get_user_input", return_value=user_data)
+        mocker.patch("sdaf.azure_ops.verify_resource_group", return_value=True)
+        mocker.patch("sdaf.azure_ops.create_azure_service_principal", return_value=spn_data)
+        mocker.patch("sdaf.azure_ops.create_user_assigned_identity", return_value=identity_data)
+        create_app_registration = mocker.patch(
+            "sdaf.azure_ops.create_app_registration",
+            return_value={"app_id": "webapp-app-id", "object_id": "webapp-object-id"},
+        )
+        mocker.patch("sdaf.azure_ops.configure_federated_identity")
+        mocker.patch.object(_main_module, "Github")
+        mocker.patch("sdaf.github_ops.generate_repository_secrets", return_value={})
+        mocker.patch("sdaf.github_ops.add_repository_secrets")
+        mocker.patch("sdaf.github_ops.add_repository_variables")
+        mocker.patch("sdaf.github_ops.trigger_github_workflow", return_value=True)
+        mocker.patch("sdaf.github_ops.add_environment_variables")
+        mocker.patch("sdaf.github_ops.add_environment_secrets")
+
+        run_main()
+
+        create_app_registration.assert_called_once_with(
+            "MGMT-app", "92a421fe-9780-4c8d-97d1-d5e9c4122bc5"
+        )
+
     def test_main_exits_when_new_managed_identity_creation_fails(self, mocker):
         """
         Failure path for :func:`sdaf.main.main`.

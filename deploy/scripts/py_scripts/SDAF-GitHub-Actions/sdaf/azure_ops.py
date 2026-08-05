@@ -676,7 +676,9 @@ def diagnose_service_principal_issues(spn_appid, subscription_id):
                         for role in roles
                         if "roleDefinitionName" in role
                     ]
-                    print(f"[OK] Service Principal has the following roles: {', '.join(role_names)}")
+                    print(
+                        f"[OK] Service Principal has the following roles: {', '.join(role_names)}"
+                    )
 
                     # Check if it has the required roles
                     required_roles = ["Contributor", "User Access Administrator"]
