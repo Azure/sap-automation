@@ -27,11 +27,12 @@ locals {
   # Determine effective naming based on configuration
   use_control_plane_naming                     = length(trimspace(var.control_plane_name)) > 0
   environment_name                             = local.use_control_plane_naming ? var.control_plane_name : var.environment
+  deployer_outputs                             = try(data.terraform_remote_state.deployer[0].outputs, {})
 
   # Control plane naming resolution
-  control_plane_name_resolved                  = coalesce(
-                                                    var.control_plane_name,
-                                                    try(data.terraform_remote_state.deployer[0].outputs.environment, "")
+  control_plane_name_resolved                  = length(trimspace(var.control_plane_name)) > 0 ? (
+                                                    var.control_plane_name) : (
+                                                    try(local.deployer_outputs.environment, "")
                                                   )
 
 
@@ -82,6 +83,6 @@ data "azurerm_key_vault_secret" "tenant_id" {
 }
 // Import current service principal
 data "azuread_service_principal" "sp"             {
-                                                    count        = local.use_spn ? 1 : 0
+                                                    count        = local.use_spn && local.retrieve_cp_credentials ? 1 : 0
                                                     client_id    = data.azurerm_key_vault_secret.client_id[0].value
                                                   }

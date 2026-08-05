@@ -7,17 +7,27 @@
 #
 # -----------------------------------------------------------------------------
 
-- name:                                1.0 - Enable logging for sudo operations
+- name:                                "1.0 - Ensure /etc/sudoers.d directory exists"
   become:                              true
-  ansible.builtin.blockinfile:
-    path:                              /etc/sudoers
-    state:                             present
-    insertafter:                       'EOF'
+  ansible.builtin.file:
+    path:                              /etc/sudoers.d
+    state:                             directory
+    mode:                              '0750'
+    owner:                             root
+    group:                             root
+
+- name:                                "1.0 - Enable logging for sudo operations"
+  become:                              true
+  ansible.builtin.copy:
+    dest:                              /etc/sudoers.d/sap_sudo_logging
+    mode:                              '0440'
+    owner:                             root
+    group:                             root
     validate:                          visudo -cf %s
-    block: |
-                                       Defaults logfile="/var/log/sudo.log"
-                                       Defaults iolog_dir="/var/log/sudo/${user}"
-                                       Defaults log_input
+    content: |
+      Defaults logfile="/var/log/sudo.log"
+      Defaults iolog_dir="/var/log/sudo/${user}"
+      Defaults log_input
 #      Additional option to also logo outputs instead of inputs only
 #      Defaults log_input, log_output
 

@@ -74,6 +74,7 @@ packages:
     - { tier: 'ha',     package: 'pcs',                                          node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'pacemaker',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'nmap',                                         node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'acl',                                          node_tier: 'hana',           state: 'present' }
@@ -196,6 +197,7 @@ packages:
     - { tier: 'ha',     package: 'pacemaker',                                    node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'nmap',                                         node_tier: 'all',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     # ------------------------- End - Packages required for Clustering ----------------------------------------8
@@ -335,6 +337,7 @@ packages:
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'db2',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'observer',       state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     # ------------------------- End - Packages required for Clustering --------------------------------------8
@@ -435,6 +438,7 @@ packages:
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'scs',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'db2',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-cloud',                        node_tier: 'observer',       state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents-sap-hana',                     node_tier: 'hana',           state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'resource-agents-sap',                          node_tier: 'scs',            state: 'present' }
     # ------------------------- End - Packages required for Clustering --------------------------------------8
@@ -637,6 +641,52 @@ packages:
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
     - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
   sles_sap15.7:
+    - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'python3-rpm',                                  node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }
+    - { tier: 'db2',    package: 'system-user-bin',                              node_tier: 'db2',            state: 'present' }
+    - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'sapstartsrv-resource-agents',                  node_tier: 'ers',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'ers',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
+  sles_sap16:
+    - { tier: 'os',     package: 'chrony',                                       node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'glibc',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'systemd',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'os',     package: 'tuned',                                        node_tier: 'all',            state: 'present' }
+    # --------------------------- Begin - Packages required for DB2 -----------------------------------------8
+    - { tier: 'os',     package: 'libaio',                                       node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'ksh',                                          node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'mksh',                                         node_tier: 'db2',            state: 'present' }
+    - { tier: 'os',     package: 'unzip',                                        node_tier: 'db2',            state: 'present' }
+    - { tier: 'db2',    package: 'acl',                                          node_tier: 'db2',            state: 'present' }
+    # --------------------------- End - Packages required for DB2 -------------------------------------------8
+    - { tier: 'sapos',  package: 'nfs-client',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'saptune',                                      node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'libgcc_s1',                                    node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'libstdc++6',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'libatomic1',                                   node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'uuidd',                                        node_tier: 'all',            state: 'present' }
+    - { tier: 'sapos',  package: 'acl',                                          node_tier: 'all',            state: 'present' }
+    # ----------------------- Begin - Packages required for Clustering --------------------------------------8
+    - { tier: 'ha',     package: 'acl',                                          node_tier: 'hana',           state: 'present' }
+    - { tier: 'ha',     package: 'socat',                                        node_tier: 'all' ,           state: 'present' }
+    - { tier: 'ha',     package: 'corosync',                                     node_tier: 'hana',           state: 'present' }
+    - { tier: 'ha',     package: 'resource-agents',                              node_tier: 'all',            state: 'present' }
+    - { tier: 'ha',     package: 'fence-agents-azure-arm',                       node_tier: 'hana',           state: 'present' }
+    - { tier: 'ha',     package: 'azure-cli',                                    node_tier: 'hana',           state: 'present' }
+    - { tier: 'ha',     package: 'azure-cli',                                    node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'azure-cli',                                    node_tier: 'ers',            state: 'present' }
+    - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'hana',           state: 'present' }
+    - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'scs',            state: 'present' }
+    - { tier: 'ha',     package: 'sap-suse-cluster-connector',                   node_tier: 'ers',            state: 'present' }
+    # --------------------------- Begin - Packages required for iSCSI ---------------------------------------8
+    - { tier: 'os',     package: 'targetcli-fb',                                 node_tier: 'iscsi',          state: 'present' }
+    # --------------------------- End - Packages required for iSCSI -----------------------------------------8
+    # ------------------------ End - packages required for Clustering ---------------------------------------8
+  # SUSE Linux 16 version-specific packages (distribution_full_id key)
+  sles_sap16.0:
     - { tier: 'os',     package: 'python3-xml',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'python3-rpm',                                  node_tier: 'all',            state: 'present' }
     - { tier: 'os',     package: 'azure-vm-utils',                               node_tier: 'all',            state: 'present' }

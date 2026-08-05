@@ -10,7 +10,7 @@ resource "azurerm_subnet" "admin" {
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_admin.prefix]
 
-  private_endpoint_network_policies    = var.use_private_endpoint ? "Enabled" : "Disabled"
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
 
   service_endpoints                    = var.use_service_endpoint ? (
                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "db" {
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_db.prefix]
 
-  private_endpoint_network_policies    = var.use_private_endpoint ? "Enabled" : "Disabled"
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            ) : (
@@ -62,7 +62,7 @@ resource "azurerm_subnet" "app" {
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_app.prefix]
 
-  private_endpoint_network_policies    = var.use_private_endpoint ? "Enabled" : "Disabled"
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -89,7 +89,7 @@ resource "azurerm_subnet" "web" {
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_web.prefix]
 
-  private_endpoint_network_policies    = var.use_private_endpoint ? "Enabled" : "Disabled"
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -117,7 +117,7 @@ resource "azurerm_subnet" "storage" {
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_storage.prefix]
 
-  private_endpoint_network_policies    = var.use_private_endpoint ? "Enabled" : "Disabled"
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -263,4 +263,3 @@ resource "azurerm_network_security_rule" "nsr_external_db" {
   source_address_prefix                = "*"
   destination_address_prefixes         = azurerm_subnet.db[0].address_prefixes
 }
-

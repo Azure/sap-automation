@@ -55,6 +55,7 @@ module "sap_landscape" {
   AFS_enable_encryption_in_transit             = var.AFS_enable_encryption_in_transit
   use_deployer                                 = length(var.deployer_tfstate_key) > 0
   use_private_endpoint                         = var.use_private_endpoint
+  private_endpoint_network_policies            = var.private_endpoint_network_policies
   use_service_endpoint                         = var.use_service_endpoint
   vm_settings                                  = local.vm_settings
   utility_storage_settings                     = local.utility_storage_settings
@@ -74,4 +75,3 @@ module "sap_namegenerator" {
   utility_vm_count                             = var.utility_vm_count
   utility_storage_count                        = length(local.utility_storage_settings)
 }
-

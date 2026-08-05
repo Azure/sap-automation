@@ -40,6 +40,18 @@ locals {
                                                   var.naming.storageaccount_names.LIBRARY.library_storageaccount_name
                                                 )
                                               )
+  sapbits_blob_endpoint                     = var.storage_account_sapbits.exists ? (
+                                                data.azurerm_storage_account.storage_sapbits[0].primary_blob_endpoint) : (
+                                                azurerm_storage_account.storage_sapbits[0].primary_blob_endpoint
+                                              )
+  sapbits_location_base_path                = format("%s/%s",
+                                                trimsuffix(local.sapbits_blob_endpoint, "/"),
+                                                var.storage_account_sapbits.sapbits_blob_container.name
+                                              )
+  tfstate_blob_endpoint                     = var.storage_account_tfstate.exists ? (
+                                                data.azurerm_storage_account.storage_tfstate[0].primary_blob_endpoint) : (
+                                                azurerm_storage_account.storage_tfstate[0].primary_blob_endpoint
+                                              )
 
   // Comment out code with users.object_id for the time being.
   // deployer_users_id = try(local.deployer.users.object_id, [])

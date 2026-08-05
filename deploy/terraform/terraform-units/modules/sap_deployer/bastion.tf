@@ -8,6 +8,7 @@
 #######################################4#######################################8
 
 resource "azurerm_subnet" "bastion" {
+  #checkov:skip=CKV2_AZURE_31: NSG not supported on AzureBastionSubnet
   count                                = var.bastion_deployment && !var.infrastructure.virtual_network.management.subnet_bastion.exists ? 1 : 0
   name                                 = "AzureBastionSubnet"
   resource_group_name                  = var.infrastructure.virtual_network.management.exists ? (

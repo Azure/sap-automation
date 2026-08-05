@@ -140,7 +140,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
-  count                                = var.hana_ANF_volumes.use_AVG_for_data && (var.database_server_count / length(var.database.zones) > 1) ? length(var.database.zones) : 0
+  count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG_for_data && (var.database_server_count / length(var.database.zones) > 1) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%sdata2_%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -233,7 +233,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
-  count                                = var.hana_ANF_volumes.use_AVG_for_data && (var.database_server_count / length(var.database.zones) > 2) ? length(var.database.zones) : 0
+  count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG_for_data && (var.database_server_count / length(var.database.zones) > 2) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%sdata3_%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -324,7 +324,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
-  count                                = var.hana_ANF_volumes.use_AVG_for_data && (var.database_server_count / length(var.database.zones) > 3) ? length(var.database.zones) : 0
+  count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG_for_data && (var.database_server_count / length(var.database.zones) > 3) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%sdata4_%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,

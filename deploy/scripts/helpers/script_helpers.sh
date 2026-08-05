@@ -1136,6 +1136,46 @@ function ReplaceResourceInStateFile {
 	return $?
 }
 
+# Terraform imports require the complete role-assignment resource ID, not only its GUID.
+function ResolveRoleAssignmentResourceID {
+	local role_assignment_id=$1
+	local role_assignment_name=$role_assignment_id
+	local resolved_role_assignment_id
+	local subscription_id
+	local subscription_ids
+
+	if [[ "$role_assignment_id" == /* ]]; then
+		echo "$role_assignment_id"
+		return 0
+	fi
+
+	if [[ "$role_assignment_name" =~ ^[[:xdigit:]]{32}$ ]]; then
+		role_assignment_name="${role_assignment_name:0:8}-${role_assignment_name:8:4}-${role_assignment_name:12:4}-${role_assignment_name:16:4}-${role_assignment_name:20:12}"
+	fi
+
+	if ! subscription_ids=$(az account list \
+		--query "[?state=='Enabled'].id" \
+		--output tsv); then
+		echo "Unable to query Azure subscriptions while resolving role assignment $role_assignment_id." >&2
+		return 1
+	fi
+
+	while IFS= read -r subscription_id; do
+		[[ -z "$subscription_id" ]] && continue
+		if resolved_role_assignment_id=$(az role assignment list \
+			--all \
+			--subscription "$subscription_id" \
+			--query "[?name=='${role_assignment_name}'].id | [0]" \
+			--output tsv) && [[ -n "$resolved_role_assignment_id" ]]; then
+			echo "$resolved_role_assignment_id"
+			return 0
+		fi
+	done <<<"$subscription_ids"
+
+	echo "Unable to resolve role assignment $role_assignment_id to its full Azure resource ID." >&2
+	return 1
+}
+
 #########################################################################################
 # Function to import resources and re-run apply                                         #
 # This function is used to import resources that already exist in Azure                 #
@@ -1163,6 +1203,7 @@ function ImportAndReRunApply {
 	local import_return_value
 	import_return_value=0
 	local msi_error_count=0
+	local msi_imported_count=0
 	local error_count=0
 
 	print_banner "ImportAndReRunApply" "In function ImportAndReRunApply" "info"
@@ -1216,14 +1257,22 @@ function ImportAndReRunApply {
 						moduleID=$(jq -c -r '.address ' <<<"$assignment_item")
 						roleAssignmentID="${errorMessage##*The ID of the existing role assignment is }"
 						roleAssignmentID="${roleAssignmentID%.}"   # remove trailing dot if present
+						if ! resolvedRoleAssignmentID=$(ResolveRoleAssignmentResourceID "$roleAssignmentID"); then
+							import_return_value=1
+							continue
+						fi
+						roleAssignmentID="$resolvedRoleAssignmentID"
 						echo "Trying to import $roleAssignmentID into $moduleID"
 						# shellcheck disable=SC2086
 						echo terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${roleAssignmentID}"
 						echo ""
 						# shellcheck disable=SC2086
 						if terraform -chdir="${terraform_module_directory}" import $importParameters "${moduleID}" "${roleAssignmentID}"; then
+							import_return_value=0
+							((msi_imported_count += 1))
 							echo "Successfully imported $roleAssignmentID into $moduleID"
 						else
+							import_return_value=$?
 							echo "Failed to import $roleAssignmentID into $moduleID"
 						fi
 					else
@@ -1289,6 +1338,7 @@ function ImportAndReRunApply {
 
 					print_banner "Installer" "Re-running Terraform apply after import" "info"
 					error_count=0
+					msi_imported_count=0
 
 					# shellcheck disable=SC2086
 					if terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee "$fileName"; then
@@ -1368,7 +1418,7 @@ function ImportAndReRunApply {
 	else
 		if [ "$error_count" -gt 0 ]; then
 
-			if [ "$error_count" -gt "$msi_error_count" ]; then
+			if [ "$error_count" -gt "$msi_imported_count" ]; then
 				print_banner "ImportAndReRunApply" "Errors occurred during the apply phase" "error"
 				echo "##vso[task.logissue type=error]Errors occurred during the apply phase"
 				import_return_value=5

@@ -168,6 +168,7 @@ resource "azurerm_network_interface_security_group_association" "iscsi" {
 
 // Manages Linux Virtual Machine for iSCSI
 resource "azurerm_linux_virtual_machine" "iscsi" {
+  #checkov:skip=CKV_AZURE_50: monitoring via monitoring_extension_iscsi_lnx
   provider                             = azurerm.main
   count                                = local.iscsi_count
   name                                 = format("%s%s%s%s%s",
@@ -437,10 +438,10 @@ data "azurerm_key_vault_secret" "iscsi_username" {
 // Using TF tls to generate SSH key pair for iscsi devices and store in user KV
 resource "tls_private_key" "iscsi" {
   count                                = (
-                                           var.key_vault.user.exists
-                                           && local.enable_iscsi_auth_key
-                                           && !local.iscsi_key_exist
-                                           && try(file(var.authentication.path_to_public_key), null) == null
+                                           var.key_vault.user.exists &&
+                                           local.enable_iscsi_auth_key &&
+                                           !local.iscsi_key_exist &&
+                                           try(file(var.authentication.path_to_public_key), null) == null
                                          ) ? 1 : 0
   algorithm                            = "RSA"
   rsa_bits                             = 2048

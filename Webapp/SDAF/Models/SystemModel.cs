@@ -114,7 +114,7 @@ namespace SDAFWebApp.Models
             get
             {
                 string storageDescription = string.Format("# Storage:               Premium Disks").PadRight(88);
-                if ((bool)database_use_premium_v2_storage)
+                if (database_use_premium_v2_storage == true)
                 {
                     storageDescription = string.Format("# Storage:               Premium Disks v2").PadRight(88);
                 }
@@ -129,7 +129,7 @@ namespace SDAFWebApp.Models
             get
             {
                 string vmssDescription = string.Format("# VMSS_Flex:             No scalesets in use").PadRight(88);
-                if ((bool)use_scalesets_for_deployment)
+                if (use_scalesets_for_deployment == true)
                 {
                     vmssDescription = string.Format("# VMSS_Flex:             In use").PadRight(88);
                 }
@@ -157,10 +157,10 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                int dbserverCount = (int)database_server_count;
-                if ((bool)database_high_availability)
+                int dbserverCount = database_server_count.GetValueOrDefault();
+                if (database_high_availability == true)
                 {
-                    dbserverCount = (int)database_server_count * 2;
+                    dbserverCount = database_server_count.GetValueOrDefault() * 2;
                 }
                 string dbServerDescription = string.Format("# Database servers:      N/A").PadRight(88);
                 if (database_vm_image != null)
@@ -175,10 +175,10 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                int scsServerCount = (int)scs_server_count;
-                if ((bool)scs_high_availability)
+                int scsServerCount = scs_server_count.GetValueOrDefault();
+                if (scs_high_availability == true)
                 {
-                    scsServerCount = (int)scs_server_count * 2;
+                    scsServerCount = scs_server_count.GetValueOrDefault() * 2;
                 }
 
                 string scsServerDescription = string.Format("# SCS servers:           N/A").PadRight(88);
@@ -229,7 +229,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string scaleoutDescription= string.Format("# HANA Scale-out:        {0}", (bool)database_HANA_use_scaleout_scenario ? "Yes" : "No").PadRight(88);
+                string scaleoutDescription= string.Format("# HANA Scale-out:        {0}", database_HANA_use_scaleout_scenario == true ? "Yes" : "No").PadRight(88);
                                             
                 scaleoutDescription += "#";
                 return scaleoutDescription;
@@ -239,7 +239,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string scaleoutDescription = string.Format("# Standby Server:        {0}", (bool)database_HANA_no_standby_role ? "No" : "Yes").PadRight(88);
+                string scaleoutDescription = string.Format("# Standby Server:        {0}", database_HANA_no_standby_role == true ? "No" : "Yes").PadRight(88);
                 scaleoutDescription += "#";
                 return scaleoutDescription;
             }
@@ -518,7 +518,7 @@ namespace SDAFWebApp.Models
         public bool? database_dual_nics {
             get
             {
-                if((bool)database_HANA_use_scaleout_scenario)
+                if (database_HANA_use_scaleout_scenario == true)
                 {
                     return true;
                 }
@@ -527,7 +527,7 @@ namespace SDAFWebApp.Models
             }
             set
             {
-                if ((bool)database_HANA_use_scaleout_scenario)
+                if (database_HANA_use_scaleout_scenario == true)
                 {
                     db_dual_nics = true;
                 }

@@ -116,6 +116,17 @@ output "storage_subnet_id"                      {
                                                                 )
                                                 }
 
+output "private_endpoint_network_policies"       {
+                                                  description = "Private endpoint network policy state for module-created workload zone subnets"
+                                                  value = {
+                                                    admin   = try(azurerm_subnet.admin[0].private_endpoint_network_policies, null)
+                                                    app     = try(azurerm_subnet.app[0].private_endpoint_network_policies, null)
+                                                    db      = try(azurerm_subnet.db[0].private_endpoint_network_policies, null)
+                                                    storage = try(azurerm_subnet.storage[0].private_endpoint_network_policies, null)
+                                                    web     = try(azurerm_subnet.web[0].private_endpoint_network_policies, null)
+                                                  }
+                                                }
+
 output "anf_subnet_id"                          {
                                                   description = "Azure resource identifier for the anf subnet"
                                                   value       = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
@@ -754,3 +765,97 @@ resource "local_file" "workload_zone_exports" {
   file_permission      = "0660"
   directory_permission = "0770"
 }
+###############################################################################
+#                            Test-support counts                              #
+#                                                                             #
+###############################################################################
+
+output "network_resource_counts"                    {
+                                                     description = "Cardinality (creation count) of workload-zone network resources for terraform test diagnostics. 1 = created (greenfield), 0 = looked up (brownfield)."
+                                                     value = {
+                                                       vnet                    = length(azurerm_virtual_network.vnet_sap)
+                                                       route_table             = length(azurerm_route_table.rt)
+                                                       keyvault                = length(azurerm_key_vault.kv_user)
+                                                       admin_subnet            = length(azurerm_subnet.admin)
+                                                       admin_nsg               = length(azurerm_network_security_group.admin)
+                                                       db_subnet               = length(azurerm_subnet.db)
+                                                       db_nsg                  = length(azurerm_network_security_group.db)
+                                                       app_subnet              = length(azurerm_subnet.app)
+                                                       app_nsg                 = length(azurerm_network_security_group.app)
+                                                       web_subnet              = length(azurerm_subnet.web)
+                                                       web_nsg                 = length(azurerm_network_security_group.web)
+                                                       storage_subnet          = length(azurerm_subnet.storage)
+                                                       storage_nsg             = length(azurerm_network_security_group.storage)
+                                                       anf_subnet              = length(azurerm_subnet.anf)
+                                                       anf_nsg                 = length(azurerm_network_security_group.anf)
+                                                       iscsi_subnet            = length(azurerm_subnet.iscsi)
+                                                       iscsi_nsg               = length(azurerm_network_security_group.iscsi)
+                                                       ams_subnet              = length(azurerm_subnet.ams)
+                                                       utility_storage_account = length(azurerm_storage_account.utility)
+                                                       nat_gateway             = length(azurerm_nat_gateway.ng)
+                                                       keyvault_private_endpoint = length(azurerm_private_endpoint.kv_user)
+                                                     }
+                                                    }
+
+output "vnet_tags"                                  {
+                                                     description = "Tags applied to the created workload VNet, if any"
+                                                     value       = try(azurerm_virtual_network.vnet_sap[0].tags, {})
+                                                    }
+
+output "netapp_resource_counts"                     {
+                                                     description = "Cardinality of NetApp account/pool resources for terraform test diagnostics"
+                                                     value = {
+                                                       account = length(azurerm_netapp_account.workload_netapp_account)
+                                                       pool    = length(azurerm_netapp_pool.workload_netapp_pool)
+                                                     }
+                                                    }
+
+output "dns_link_counts"                            {
+                                                     description = "Cardinality of Private Link DNS virtual-network links for terraform test diagnostics"
+                                                     value = {
+                                                       vnet_sap = length(azurerm_private_dns_zone_virtual_network_link.vnet_sap)
+                                                       file     = length(azurerm_private_dns_zone_virtual_network_link.vnet_sap_file)
+                                                       storage  = length(azurerm_private_dns_zone_virtual_network_link.storage)
+                                                       vault    = length(azurerm_private_dns_zone_virtual_network_link.vault)
+                                                     }
+                                                    }
+
+output "storage_account_counts"                     {
+                                                     description = "Cardinality of workload-zone storage account resources for terraform test diagnostics."
+                                                     value = {
+                                                      diagnostics = length(azurerm_storage_account.storage_bootdiag)
+                                                      witness     = length(azurerm_storage_account.witness_storage)
+                                                      transport   = length(azurerm_storage_account.transport)
+                                                      install     = length(azurerm_storage_account.install)
+                                                     }
+                                                    }
+
+output "ams_instance_created_count"                 {
+                                                     description = "Number of AMS instances created by this module"
+                                                     value       = length(azapi_resource.ams_instance)
+                                                    }
+
+output "iscsi_vm_count"                             {
+                                                     description = "Number of iSCSI VMs created by this module"
+                                                     value       = length(azurerm_linux_virtual_machine.iscsi)
+                                                    }
+
+output "resolved_iscsi_nic_ips"                     {
+                                                     description = "Resolved iSCSI NIC IP input list for terraform test diagnostics."
+                                                     value       = local.iscsi_nic_ips
+                                                    }
+
+output "utility_vm_count"                           {
+                                                     description = "Number of utility VMs created by this module"
+                                                     value       = length(azurerm_windows_virtual_machine.utility_vm) + length(azurerm_linux_virtual_machine.utility_vm)
+                                                    }
+
+output "utility_vm_computer_names"                  {
+                                                     description = "Planned utility VM computer names"
+                                                     value       = concat(azurerm_windows_virtual_machine.utility_vm[*].computer_name, azurerm_linux_virtual_machine.utility_vm[*].computer_name)
+                                                    }
+
+output "utility_vm_zones"                           {
+                                                     description = "Planned availability zones for utility VMs"
+                                                     value       = concat(azurerm_windows_virtual_machine.utility_vm[*].zone, azurerm_linux_virtual_machine.utility_vm[*].zone)
+                                                    }

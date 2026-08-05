@@ -55,6 +55,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Create")]
         public async Task<ActionResult> CreateAsync(EnvironmentModel environment, string newName, string description)
         {
@@ -87,6 +88,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Edit")]
         public async Task<ActionResult> EditAsync(EnvironmentModel environment, string newName, string description)
         {
