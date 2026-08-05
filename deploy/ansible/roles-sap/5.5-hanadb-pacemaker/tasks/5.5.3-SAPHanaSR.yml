@@ -104,6 +104,11 @@
       ansible.builtin.set_fact:
         saphanasr_provider_path:       /usr/share/SAPHanaSR
 
+    - name:                            "5.5.3 HANA Pacemaker - Set SAPHanaSR provider path for RHEL"
+      when:                            ansible_os_family | upper == "REDHAT"
+      ansible.builtin.set_fact:
+        saphanasr_provider_path:       /usr/share/SAPHanaSR/srHook
+
     - name:                            "5.5.3 HANA Pacemaker - Adjust global.ini on each cluster node (RHEL)"
       when:
         - ansible_os_family | upper == "REDHAT"
@@ -112,12 +117,12 @@
         block: |
                                        [ha_dr_provider_SAPHanaSR]
                                        provider = SAPHanaSR
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 1
 
                                        [ha_dr_provider_chksrv]
                                        provider = ChkSrv
-                                       path = /hana/shared/myHooks
+                                       path = {{ saphanasr_provider_path }}
                                        execution_order = 2
                                        action_on_lost = kill
 
@@ -480,7 +485,7 @@
                                        provider = ChkSrv
                                        path = /usr/share/sap-hana-ha/
                                        execution_order = 2
-                                       action_on_lost = stop
+                                       action_on_lost = fence
 
                                        [trace]
                                        ha_dr_hanasr = info

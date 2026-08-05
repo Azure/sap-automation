@@ -20,24 +20,24 @@ locals {
   deployer                             = {
                                            use                          = var.use_deployer
                                            application_configuration_id = trimspace(coalesce(var.application_configuration_id,
-                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "application_configuration_id") ? (
-                                                                                               data.terraform_remote_state.deployer[0].outputs.application_configuration_id) : (
+                                                                                             contains(keys(local.deployer_outputs), "application_configuration_id") ? (
+                                                                                               local.deployer_outputs.application_configuration_id) : (
                                                                                                " "),
                                                                                              " "))
                                            control_plane_name           = trimspace(coalesce(var.control_plane_name,
-                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "control_plane_name") ? (
-                                                                                               data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (
+                                                                                             contains(keys(local.deployer_outputs), "control_plane_name") ? (
+                                                                                               local.deployer_outputs.control_plane_name) : (
                                                                                                " "),
                                                                                              " "))
                                            resource_group_name          = format("%s-INFRASTRUCTURE", trimspace(coalesce(var.control_plane_name,
-                                                                                             contains(keys(data.terraform_remote_state.deployer[0].outputs), "control_plane_name") ? (
-                                                                                               data.terraform_remote_state.deployer[0].outputs.control_plane_name) : (
+                                                                                             contains(keys(local.deployer_outputs), "control_plane_name") ? (
+                                                                                               local.deployer_outputs.control_plane_name) : (
                                                                                                " "),
                                                                                              " ")))
                                           management_network_id          = var.management_network_id
                                          }
   key_vault                            = {
-                                           id                        = coalesce(try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id,""), var.spn_keyvault_id, local.spn_key_vault_arm_id)
+                                           id                        = coalesce(try(local.deployer_outputs.deployer_kv_user_arm_id, ""), var.spn_keyvault_id, local.spn_key_vault_arm_id)
                                          }
   storage_account_sapbits              = {
                                             id                       = var.library_sapmedia_arm_id
@@ -57,8 +57,9 @@ locals {
                                               name                   = coalesce(var.library_sapmedia_blob_container_name, module.sap_namegenerator.naming.resource_suffixes.sapbits)
                                             }
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
+                                           routing_preference_enabled                = var.routing_preference_enabled
                                            public_network_access_enabled             = try(
-                                                                                               data.terraform_remote_state.deployer[0].outputs.network_security_perimeter_deployment,
+                                                                                               local.deployer_outputs.network_security_perimeter_deployment,
                                                                                                true
                                                                                              ) && var.public_network_access_enabled
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage
@@ -87,8 +88,9 @@ locals {
                                                                                      }
 
                                            shared_access_key_enabled                 = var.shared_access_key_enabled
+                                           routing_preference_enabled                = var.routing_preference_enabled
                                            public_network_access_enabled             = try(
-                                                                                               data.terraform_remote_state.deployer[0].outputs.network_security_perimeter_deployment,
+                                                                                               local.deployer_outputs.network_security_perimeter_deployment,
                                                                                                true
                                                                                              ) && var.public_network_access_enabled
                                            enable_firewall_for_keyvaults_and_storage = var.enable_firewall_for_keyvaults_and_storage

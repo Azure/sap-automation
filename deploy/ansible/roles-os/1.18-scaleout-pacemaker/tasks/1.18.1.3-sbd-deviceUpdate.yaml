@@ -17,11 +17,21 @@
   when:
                                               - database_cluster_type == 'ASD'
 
+- name:                                       "Update Device Info: Determine NVMe ASD device"
+  ansible.builtin.set_fact:
+    nvme_asd_device:                          "{{ (use_nvme_disks | default(false) | bool) and (sdbMap_entry.lun | string | length > 0) }}"
+
+- name:                                       "Update Device Info: Set Azure disk path"
+  ansible.builtin.set_fact:
+    sbd_disk_by_lun_path:                     "{{ '/dev/disk/azure/data/by-lun/' if (nvme_asd_device | bool) else '/dev/disk/azure/scsi1/lun' }}{{ sbdMap[sdbMap_index].lun }}"
+  when:
+                                              - sdbMap_entry.lun | string | length > 0
+
 - name:                                       "Update Device Info: Get block device"
-  ansible.builtin.command:                    "readlink -f /dev/disk/azure/scsi1/lun{{ sbdMap[sdbMap_index].lun }}"
+  ansible.builtin.command:                    "readlink -f {{ sbd_disk_by_lun_path }}"
   register:                                   blockDevice_results
   when:
-                                              - database_cluster_type == 'ASD'
+                                              - sdbMap_entry.lun | string | length > 0
 
 
 - name:                                       "Update Device Info: Show block device results..."
@@ -29,7 +39,7 @@
     var:                                      blockDevice_results.stdout
     verbosity:                                2
   when:
-                                              - database_cluster_type == 'ASD'
+                                              - sdbMap_entry.lun | string | length > 0
 
 
 - name:                                       "Update Device Info: Find scsi by id..."
@@ -39,19 +49,21 @@
     file_type:                                link
     use_regex:                                false
   register:                                   sscsiById
+  when:
+                                              - not (nvme_asd_device | bool)
 
 - name:                                       "Update Device Info: Show scsi by id paths..."
   ansible.builtin.debug:
     var:                                      item.path
     verbosity:                                2
-  loop:                                       "{{ sscsiById.files }}"
+  loop:                                       "{{ sscsiById.files | default([]) }}"
 
 
 - name:                                       "Update Device Info: Translate block device to scsi by id..."
   ansible.builtin.stat:
     path:                                     "{{ item.path }}"
     follow:                                   false
-  loop:                                       "{{ sscsiById.files }}"
+  loop:                                       "{{ sscsiById.files | default([]) }}"
   register:                                   statById
 
 
@@ -66,10 +78,25 @@
                                               {% set _ = sbdMap[sdbMap_index].update({'diskById':   item.stat.path})               -%}
                                               {{ sbdMap }}
                                               "
-  loop:                                       "{{ statById.results }}"
+  loop:                                       "{{ statById.results | default([]) }}"
   when:
                                               - database_cluster_type == 'ASD'
+                                              - not (nvme_asd_device | bool)
                                               - item.stat.lnk_source == blockDevice_results.stdout
+
+- name:                                       "Update Device Info: Update SBD Dictionary - NVMe ASD"
+  ansible.builtin.set_fact:
+    sbdMap:                                   "{{ sbdMap_update }}"
+  vars:
+    sbdMap_update:                            "
+                                              {#-  -#}
+                                              {% set _ = sbdMap[sdbMap_index].update({'blockDev':   blockDevice_results.stdout})   -%}
+                                              {% set _ = sbdMap[sdbMap_index].update({'diskByLun':  sbd_disk_by_lun_path})          -%}
+                                              {% set _ = sbdMap[sdbMap_index].update({'diskById':   sbd_disk_by_lun_path})          -%}
+                                              {{ sbdMap }}
+                                              "
+  when:
+                                              - nvme_asd_device | bool
 
 - name:                                       "Update Device Info: Update SBD Dictionary - ISCSI"
   ansible.builtin.set_fact:
@@ -80,7 +107,7 @@
                                               {% set _ = sbdMap[sdbMap_index].update({'diskById':   item.stat.path})               -%}
                                               {{ sbdMap }}
                                               "
-  loop:                                       "{{ statById.results }}"
+  loop:                                       "{{ statById.results | default([]) }}"
   when:
                                               - database_cluster_type == 'ISCSI'
                                               - ansible_hostname == sbdMap[sdbMap_index].host

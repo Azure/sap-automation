@@ -99,7 +99,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string NATDescription = string.Format("# NAT:                {0}", (bool)deploy_nat_gateway ? "Will be deployed" : "No").PadRight(88);
+                string NATDescription = string.Format("# NAT:                {0}", deploy_nat_gateway == true ? "Will be deployed" : "No").PadRight(88);
                 NATDescription += "#";
                 return NATDescription;
             }
@@ -595,6 +595,8 @@ namespace SDAFWebApp.Models
 
         [IpAddressValidator]
         public string[] utility_vm_nic_ips { get; set; }
+
+        public string[] utility_vm_zones { get; set; }
 
         public string storage_account_replication_type { get; set; } = "LRS";
 

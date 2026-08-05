@@ -277,9 +277,8 @@ if [ "${FORCE_RESET:-false}" == "true" ] || [ "${FORCE_RESET:-False}" == "True" 
 		echo -e "$bold_red--- Resetting the environment file ---$reset"
 	fi
 	echo "Running on:            $THIS_AGENT"
-	sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
-	sed -i 's/step=2/step=0/' "$deployer_environment_file_name"
-	sed -i 's/step=3/step=0/' "$deployer_environment_file_name"
+	step=0
+	save_config_var "step" "$deployer_environment_file_name"
 
 	if [ -v TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME ]; then
 		tfstate_resource_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME' | project id, name, subscription" --query data[0].id --output tsv)

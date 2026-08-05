@@ -401,17 +401,21 @@ locals {
 
   dns_label                            = try(var.landscape_tfstate.dns_label, "")
 
-  ANF_pool_settings                    = try(var.landscape_tfstate.ANF_pool_settings,
+  ANF_pool_settings                    = length(try(var.landscape_tfstate.ANF_pool_settings, {})) > 0 ? (
+                                           var.landscape_tfstate.ANF_pool_settings
+                                           ) : (
                                            {
                                              use_ANF             = false
                                              account_name        = ""
                                              account_id          = ""
                                              pool_name           = ""
+                                             qos_type            = ""
                                              service_level       = ""
-                                             size_in_tb          = ""
+                                             size_in_tb          = 0
                                              subnet_id           = ""
                                              resource_group_name = ""
                                              location            = ""
+                                             value               = ""
                                            }
                                          )
 

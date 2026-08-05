@@ -97,18 +97,21 @@ locals {
                                            database_cluster_disk_type      = var.database_cluster_disk_type
                                            database_cluster_type           = var.database_cluster_type
                                            database_server_count           = var.database_high_availability ? 2 * var.database_server_count : var.database_server_count
-                                           database_hana_use_saphanasr_angi =  upper(var.database_platform) == "HANA" ? (
-                                                                                 var.database_high_availability ? (
-                                                                                     var.use_saphanasr_angi || var.use_sles_saphanasr_angi
-                                                                                     ) : (
-                                                                                       false
-                                                                                     )
-                                                                                 ) : (
-                                                                                   false
+                                           database_hana_use_saphanasr_angi = upper(var.database_platform) == "HANA" && var.database_high_availability ? (
+                                                                                 startswith(coalesce(try(var.database_vm_image.offer, null), "UNSET"), "sles-sap-16") ? (
+                                                                                   true) : (
+                                                                                   var.use_saphanasr_angi || var.use_sles_saphanasr_angi
                                                                                  )
+                                                                               ) : (
+                                                                                 false
+                                                                               )
 
                                            database_vm_sku                 = var.database_vm_sku
-                                           db_sizing_key                   = coalesce(var.db_sizing_dictionary_key, var.database_size, "Optimized")
+                                           db_sizing_key                   = coalesce(
+                                                                               length(trimspace(var.db_sizing_dictionary_key)) > 0 ? var.db_sizing_dictionary_key : null,
+                                                                               length(trimspace(var.database_size)) > 0 ? var.database_size : null,
+                                                                               "Default"
+                                                                             )
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                            dual_network_interfaces         = var.database_dual_nics
@@ -119,7 +122,8 @@ locals {
                                                                                   upper(var.database_platform) == "HANA" ? (
                                                                                     "HDB"
                                                                                     ) : (
-                                                                                  substr(var.database_platform, 0, 3))
+                                                                                  substr(var.database_platform, 0, 3)),
+                                                                                  " "
                                                                                 ))
                                                                                 number = coalesce(var.database_instance_number,"00")
                                                                               }
@@ -141,28 +145,27 @@ locals {
                                            scale_out                       = var.database_HANA_use_scaleout_scenario
                                            stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
-
                                            disk_controller_type_database_tier   = var.disk_controller_type_database_tier
                                          }
 
   db_os                             = {
-                                        source_image_id                 = try(var.database_vm_image.source_image_id,  "")
-                                        publisher                       = try(var.database_vm_image.publisher,        "")
-                                        offer                           = try(var.database_vm_image.offer,            "")
-                                        sku                             = try(var.database_vm_image.sku,              "")
-                                        version                         = try(var.database_vm_image.version,          "")
+                                        source_image_id                 = try(var.database_vm_image.source_image_id, null) == null ? "" : try(var.database_vm_image.source_image_id, "")
+                                        publisher                       = coalesce(try(var.database_vm_image.publisher, null), "SUSE")
+                                        offer                           = coalesce(try(var.database_vm_image.offer, null), "sles-sap-15-sp5")
+                                        sku                             = coalesce(try(var.database_vm_image.sku, null), "gen2")
+                                        version                         = coalesce(try(var.database_vm_image.version, null), "latest")
                                         type                            = try(var.database_vm_image.type,             "marketplace")
                                         # os_type                         = length(var.database_vm_image.source_image_id) == 0 ? (
                                         #                                     upper(var.database_vm_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.database_vm_image.os_type, "LINUX)") : (
                                         #                                     length(var.database_vm_image.os_type) == 0 ? "LINUX" : var.database_vm_image.os_type
                                         #                                   )
-                                        os_type                         = (length(var.database_vm_image.source_image_id) == 0                                                 # - if true
+                                        os_type                         = (try(length(var.database_vm_image.source_image_id), 0) == 0                                           # - if true
                                                                           ) ? (                                                                                               # - then
-                                                                            (upper(var.database_vm_image.publisher) == "MICROSOFTWINDOWSSERVER"                               # --  if true
+                                                                            (upper(coalesce(try(var.database_vm_image.publisher, null), "UNSET")) == "MICROSOFTWINDOWSSERVER"             # --  if true
                                                                             ) ? (                                                                                             # --  then
                                                                               "WINDOWS"
                                                                             ) : (                                                                                             # --  else
-                                                                              (length(var.database_vm_image.os_type) == 0                                                     # ---   if true
+                                                                              (length(try(var.database_vm_image.os_type, "")) == 0                                            # ---   if true
                                                                               ) ? (                                                                                           # ---   then
                                                                                 "LINUX"
                                                                               ) : (                                                                                           # ---   else
@@ -170,11 +173,11 @@ locals {
                                                                               )                                                                                               # ---   end if
                                                                             )                                                                                                 # --  end if
                                                                           ) : (                                                                                               # - else
-                                                                            (length(var.database_vm_image.os_type) == 0                                                       # -- if true
+                                                                            (length(try(var.database_vm_image.os_type, "")) == 0                                              # -- if true
                                                                             ) ? (                                                                                             # -- then
                                                                               "LINUX"
                                                                             ) : (                                                                                             # -- else
-                                                                              var.database_vm_image.os_type
+                                                                              try(var.database_vm_image.os_type, "LINUX")
                                                                             )                                                                                                 # -- end if
                                                                           )                                                                                                   # - end if
                                       }
@@ -283,23 +286,23 @@ locals {
   web_tags                          = var.webdispatcher_server_tags
 
   app_os = {
-    source_image_id                 = try(var.application_server_image.source_image_id, "")
-    publisher                       = try(var.application_server_image.publisher,       "SUSE")
-    offer                           = try(var.application_server_image.offer,           "sles-sap-15-sp5")
-    sku                             = try(var.application_server_image.sku,             "gen2")
-    version                         = try(var.application_server_image.version,         "latest")
-    type                            = try(var.database_vm_image.type,                   "marketplace")
+    source_image_id                 = try(var.application_server_image.source_image_id, null) == null ? "" : try(var.application_server_image.source_image_id, "")
+    publisher                       = coalesce(try(var.application_server_image.publisher, null), "SUSE")
+    offer                           = coalesce(try(var.application_server_image.offer, null), "sles-sap-15-sp5")
+    sku                             = coalesce(try(var.application_server_image.sku, null), "gen2")
+    version                         = coalesce(try(var.application_server_image.version, null), "latest")
+    type                            = try(var.application_server_image.type,                 "marketplace")
     # os_type = length(var.application_server_image.source_image_id) == 0 ? (
     #   upper(var.application_server_image.publisher) == "MICROSOFTWINDOWSSERVER") ? "WINDOWS" : try(var.application_server_image.os_type, "LINUX") : (
     #   length(var.application_server_image.os_type) == 0 ? "LINUX" : var.application_server_image.os_type
     # )
-    os_type                         = (length(var.application_server_image.source_image_id) == 0                                          # - if true
+    os_type                         = (try(length(var.application_server_image.source_image_id), 0) == 0                                 # - if true
                                       ) ? (                                                                                               # - then
-                                        (upper(var.application_server_image.publisher) == "MICROSOFTWINDOWSSERVER"                        # --  if true
+                                        (upper(coalesce(try(var.application_server_image.publisher, null), "UNSET")) == "MICROSOFTWINDOWSSERVER"     # --  if true
                                         ) ? (                                                                                             # --  then
                                           "WINDOWS"
                                         ) : (                                                                                             # --  else
-                                          (length(var.application_server_image.os_type) == 0                                              # ---   if true
+                                          (length(try(var.application_server_image.os_type, "")) == 0                                     # ---   if true
                                           ) ? (                                                                                           # ---   then
                                             "LINUX"
                                           ) : (                                                                                           # ---   else
@@ -307,11 +310,11 @@ locals {
                                           )                                                                                               # ---   end if
                                         )                                                                                                 # --  end if
                                       ) : (                                                                                               # - else
-                                        (length(var.application_server_image.os_type) == 0                                                # -- if true
+                                        (length(try(var.application_server_image.os_type, "")) == 0                                       # -- if true
                                         ) ? (                                                                                             # -- then
                                           "LINUX"
                                         ) : (                                                                                             # -- else
-                                          var.application_server_image.os_type
+                                          try(var.application_server_image.os_type, "LINUX")
                                         )                                                                                                 # -- end if
                                       )                                                                                                   # - end if
   }
@@ -319,36 +322,41 @@ locals {
   app_os_specified                  = (length(local.app_os.source_image_id) + length(local.app_os.publisher)) > 0
 
   scs_os                            = {
-                                        os_type         = coalesce(var.scs_server_image.os_type, var.application_server_image.os_type, "LINUX")
-                                        source_image_id = trimspace(coalesce(var.scs_server_image.source_image_id, var.application_server_image.source_image_id, " "))
-                                        publisher       = coalesce(var.scs_server_image.publisher, var.application_server_image.publisher, "SUSE")
-                                        offer           = coalesce(var.scs_server_image.offer, var.application_server_image.offer, "sles-sap-15-sp5")
-                                        sku             = coalesce(var.scs_server_image.sku, var.application_server_image.sku, "gen2")
-                                        version         = coalesce(var.scs_server_image.version, var.application_server_image.version, "latest")
-                                        type            = coalesce(var.database_vm_image.type, "marketplace")
+                                        os_type         = coalesce(try(var.scs_server_image.os_type, null), try(var.application_server_image.os_type, null), "LINUX")
+                                        source_image_id = trimspace(coalesce(try(var.scs_server_image.source_image_id, null), try(var.application_server_image.source_image_id, null), " "))
+                                        publisher       = coalesce(try(var.scs_server_image.publisher, null), try(var.application_server_image.publisher, null), "SUSE")
+                                        offer           = coalesce(try(var.scs_server_image.offer, null), try(var.application_server_image.offer, null), "sles-sap-15-sp5")
+                                        sku             = coalesce(try(var.scs_server_image.sku, null), try(var.application_server_image.sku, null), "gen2")
+                                        version         = coalesce(try(var.scs_server_image.version, null), try(var.application_server_image.version, null), "latest")
+                                        type            = length(trimspace(try(var.scs_server_image.source_image_id, ""))) > 0 ? (
+                                                            coalesce(try(var.scs_server_image.type, null), "custom")) : (
+                                                            coalesce(try(var.application_server_image.type, null), "marketplace")
+                                                          )
                                       }
 
   scs_os_specified                  = (length(local.scs_os.source_image_id) + length(local.scs_os.publisher)) > 0
 
-  validated_use_simple_mount        = var.use_simple_mount ? (
-                                        upper(local.scs_os.publisher) != "SUSE" || !(var.scs_high_availability) ? (
-                                         false) : (
-                                         contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5", "sles-sap-15-sp6"], local.scs_os.offer) ? (
-                                           var.use_simple_mount) : (
-                                           false
-                                         )
-                                       )) : (
-                                       false
-                                       )
+  validated_use_simple_mount        = var.scs_high_availability && (
+                                        upper(local.scs_os.publisher) == "SUSE" ? (
+                                          startswith(local.scs_os.offer, "sles-sap-16") || (
+                                            var.use_simple_mount && contains(["sles-sap-15-sp3", "sles-sap-15-sp4", "sles-sap-15-sp5", "sles-sap-15-sp6", "sles-sap-15-sp7"], local.scs_os.offer)
+                                          )
+                                        ) : (
+                                          upper(local.scs_os.publisher) == "REDHAT" && var.use_simple_mount && !startswith(local.scs_os.sku, "7") && !startswith(local.scs_os.sku, "8")
+                                        )
+                                      )
 
   web_os                            = {
-                                        os_type         = coalesce(var.webdispatcher_server_image.os_type, var.application_server_image.os_type, "LINUX")
-                                        source_image_id = coalesce(var.webdispatcher_server_image.source_image_id, var.application_server_image.source_image_id, " ")
-                                        publisher       = coalesce(var.webdispatcher_server_image.publisher, var.application_server_image.publisher, "SUSE")
-                                        offer           = coalesce(var.webdispatcher_server_image.offer, var.application_server_image.offer, "sles-sap-15-sp5")
-                                        sku             = coalesce(var.webdispatcher_server_image.sku, var.application_server_image.sku, "gen2")
-                                        version         = coalesce(var.webdispatcher_server_image.version, var.application_server_image.version, "latest")
-                                        type            = coalesce(var.database_vm_image.type, "marketplace")
+                                        os_type         = coalesce(try(var.webdispatcher_server_image.os_type, null), try(var.application_server_image.os_type, null), "LINUX")
+                                        source_image_id = coalesce(try(var.webdispatcher_server_image.source_image_id, null), try(var.application_server_image.source_image_id, null), " ")
+                                        publisher       = coalesce(try(var.webdispatcher_server_image.publisher, null), try(var.application_server_image.publisher, null), "SUSE")
+                                        offer           = coalesce(try(var.webdispatcher_server_image.offer, null), try(var.application_server_image.offer, null), "sles-sap-15-sp5")
+                                        sku             = coalesce(try(var.webdispatcher_server_image.sku, null), try(var.application_server_image.sku, null), "gen2")
+                                        version         = coalesce(try(var.webdispatcher_server_image.version, null), try(var.application_server_image.version, null), "latest")
+                                        type            = length(trimspace(try(var.webdispatcher_server_image.source_image_id, ""))) > 0 ? (
+                                                            coalesce(try(var.webdispatcher_server_image.type, null), "custom")) : (
+                                                            coalesce(try(var.application_server_image.type, null), "marketplace")
+                                                          )
                                       }
   web_os_specified                     = (length(local.web_os.source_image_id) + length(local.web_os.publisher)) > 0
 
@@ -553,26 +561,26 @@ locals {
 
   key_vault                            = {
                                            user                                   = {
-                                                                                      id     = coalesce(
+                                                                                      id     = try(coalesce(
                                                                                                  local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.workload_credentials_vault[0].value : "",
                                                                                                  contains(keys(data.terraform_remote_state.landscape.outputs),"user_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.user_credential_vault_id : "",
-                                                                                                 var.user_keyvault_id)
-                                                                                      exists = length(coalesce(
+                                                                                                 var.user_keyvault_id), "")
+                                                                                      exists = length(try(coalesce(
                                                                                                  local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.workload_credentials_vault[0].value : "",
                                                                                                  contains(keys(data.terraform_remote_state.landscape.outputs),"user_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.user_credential_vault_id : "",
-                                                                                                 var.user_keyvault_id)) > 0
+                                                                                                 var.user_keyvault_id), "")) > 0
                                                                                     }
                                            spn                                    = {
-                                                                                      id     = coalesce(
+                                                                                      id     = try(coalesce(
                                                                                         local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.credentials_vault[0].value : "",
                                                                                         contains(keys(data.terraform_remote_state.landscape.outputs),"spn_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.spn_credential_vault_id : "",
                                                                                         contains(keys(data.terraform_remote_state.landscape.outputs),"spn_kv_id") ? data.terraform_remote_state.landscape.outputs.spn_kv_id : "",
-                                                                                        var.spn_keyvault_id)
-                                                                                      exists = length(coalesce(
+                                                                                        var.spn_keyvault_id), "")
+                                                                                      exists = length(try(coalesce(
                                                                                         local.infrastructure.use_application_configuration ? data.azurerm_app_configuration_key.credentials_vault[0].value : "",
                                                                                         contains(keys(data.terraform_remote_state.landscape.outputs),"spn_credential_vault_id") ? data.terraform_remote_state.landscape.outputs.spn_credential_vault_id : "",
                                                                                         contains(keys(data.terraform_remote_state.landscape.outputs),"spn_kv_id") ? data.terraform_remote_state.landscape.outputs.spn_kv_id : "",
-                                                                                        var.spn_keyvault_id)) > 0
+                                                                                        var.spn_keyvault_id), "")) > 0
                                                                                     }
                                           #  private_key_secret_name                = var.workload_zone_private_key_secret_name
                                           #  public_key_secret_name                 = var.workload_zone_public_key_secret_name

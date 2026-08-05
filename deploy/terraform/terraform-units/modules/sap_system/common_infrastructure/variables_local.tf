@@ -77,7 +77,7 @@ locals {
 
   default_filepath                     = format("%s%s",
                                            path.module,
-                                           format("/../../../../../configs/%s_sizes.json", lower(var.database.platform))
+                                           format("/../../../../../configs/%s_sizes.json", lower(var.database.platform) == "ase" ? "sybase" : lower(var.database.platform))
                                          )
 
   custom_sizing                        = length(var.custom_disk_sizes_filename) > 0
@@ -202,7 +202,7 @@ locals {
                                         )
 
   admin_subnet_name                    = var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (
-                                           coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id)[10],
+                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id)[10], ""),
                                                     var.infrastructure.virtual_networks.sap.subnet_admin.name,
                                                     format("%s%s%s%s",
                                                       var.naming.resource_prefixes.admin_subnet,
@@ -245,7 +245,7 @@ locals {
 
 
   database_subnet_name                 = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
-                                        coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10],
+                                        coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id)[10], ""),
                                                  var.infrastructure.virtual_networks.sap.subnet_db.name,
                                                  format("%s%s%s%s",
                                                    var.naming.resource_prefixes.db_subnet,
@@ -327,7 +327,7 @@ locals {
   //Storage subnet
 
   storage_subnet_name                  = var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
-                                         coalesce(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10],
+                                         coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id)[10], ""),
                                                   var.infrastructure.virtual_networks.sap.subnet_storage.name,
                                                   format("%s%s%s%s",
                                                     var.naming.resource_prefixes.storage_subnet,

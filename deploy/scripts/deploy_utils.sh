@@ -128,7 +128,7 @@ function fail_if_null {
 }
 
 function getAndStoreTerraformStateStorageAccountDetails {
-	local REMOTE_STATE_SA="${1}"
+	REMOTE_STATE_SA="${1}"
 	local config_file_name="${2}"
 
 	echo "Trying to find the storage account:  ${REMOTE_STATE_SA}"
@@ -145,6 +145,7 @@ function getAndStoreTerraformStateStorageAccountDetails {
 		TF_VAR_tfstate_resource_id=$tfstate_resource_id
 		TF_VAR_management_subscription_id=$STATE_SUBSCRIPTION
 
+		export REMOTE_STATE_SA
 		export REMOTE_STATE_RG
 		export STATE_SUBSCRIPTION
 		export TF_VAR_tfstate_resource_id
@@ -341,20 +342,21 @@ function set_azure_cloud_environment() {
 
 	# set the azure cloud environment variables
 	local azure_cloud_environment=''
+	local azure_environment_name=''
 
-	unset AZURE_ENVIRONMENT
+	unset ARM_ENVIRONMENT
 
 	# check the azure environment in which we are running
-	AZURE_ENVIRONMENT=$(az cloud show --query name --output tsv)
+	azure_environment_name=$(az cloud show --query name --output tsv)
 
-	if [ -n "${AZURE_ENVIRONMENT}" ]; then
+	if [ -n "${azure_environment_name}" ]; then
 
-		case $AZURE_ENVIRONMENT in
+		case $azure_environment_name in
 		AzureCloud)
 			azure_cloud_environment='public'
 			;;
 		AzureUSGovernment)
-			azure_cloud_environment='usgov'
+			azure_cloud_environment='usgovernment'
 			;;
 		AzureChinaCloud)
 			azure_cloud_environment='china'
@@ -364,7 +366,7 @@ function set_azure_cloud_environment() {
 			;;
 		esac
 
-		export AZURE_ENVIRONMENT=${azure_cloud_environment}
+		export ARM_ENVIRONMENT=${azure_cloud_environment}
 		echo -e "\t\t[set_azure_cloud_environment]: Azure cloud environment: ${azure_cloud_environment}"
 	else
 		echo -e "\t\t[set_azure_cloud_environment]: Unable to determine the Azure cloud environment"
@@ -606,6 +608,9 @@ function get_region_code() {
 		"uaenorth")             export region_code="UANO" ;;
 		"uksouth")              export region_code="UKSO" ;;
 		"ukwest")               export region_code="UKWE" ;;
+		"usgovarizona")         export region_code="USAR" ;;
+		"usgovtexas")           export region_code="USTE" ;;
+		"usgovvirginia")        export region_code="USVI" ;;
 		"westcentralus")        export region_code="WCUS" ;;
 		"westeurope")           export region_code="WEEU" ;;
 		"westindia")            export region_code="WEIN" ;;

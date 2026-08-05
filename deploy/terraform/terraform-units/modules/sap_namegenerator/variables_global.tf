@@ -246,6 +246,9 @@ variable "region_mapping" {
     "uaenorth"           = "uano"
     "uksouth"            = "ukso"
     "ukwest"             = "ukwe"
+    "usgovarizona"       = "usar"
+    "usgovtexas"         = "uste"
+    "usgovvirginia"      = "usvi"
     "westcentralus"      = "wcus"
     "westeurope"         = "weeu"
     "westindia"          = "wein"
@@ -606,4 +609,3 @@ variable "scale_out" {
   type    = bool
   default = false
 }
-

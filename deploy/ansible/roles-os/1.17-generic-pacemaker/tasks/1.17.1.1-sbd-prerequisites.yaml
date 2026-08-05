@@ -1,0 +1,20 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+- name:                                "1.17.1 SBD prerequisites (SUSE)"
+  when:                                (ansible_os_family | upper) == "SUSE"
+  become:                              true
+  community.general.zypper:
+    name:                              sbd
+    state:                             present
+
+- name:                                "1.17.1 SBD prerequisites (REDHAT)"
+  when:                                (ansible_os_family | upper) == "REDHAT"
+  become:                              true
+  ansible.builtin.dnf:
+    name:
+      - sbd
+      - fence-agents-sbd
+    state:                             present

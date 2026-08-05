@@ -51,6 +51,7 @@
       ansible.builtin.set_fact:
         fencing_spn_subscription_id:              "{{ azure_metadata.json.compute.subscriptionId }}"
         resource_group_name:                      "{{ azure_metadata.json.compute.resourceGroupName }}"
+        fencing_azure_cloud_parameter:            "{{ 'cloud=usgov' if (azure_metadata.json.compute.azEnvironment | default('') | lower) == 'azureusgovernmentcloud' else '' }}"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -128,6 +129,12 @@
     - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Set SSH fact"
       ansible.builtin.set_fact:
         cluster_public_ssh_key:                   "{{ cluster_public_ssh_key.stdout }}"
+
+    - name:                                       "1.18.0 Generic Pacemaker - Scale Out - Add public key to authorized_keys for root user"
+      ansible.posix.authorized_key:
+        user:                                     root
+        key:                                      "{{ cluster_public_ssh_key }}"
+        state:                                    present
   when:
     - ansible_os_family | upper == "SUSE"
 

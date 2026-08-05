@@ -247,16 +247,14 @@ namespace SDAFWebApp.Controllers
                         };
                         options.Add(li);
                     }
-                    catch (System.Exception Ex)
+                    catch (System.Exception)
                     {
-                        string errorMessage = Ex.Message;
                     }
 
                 }
             }
-            catch (System.Exception Ex)
+            catch (System.Exception)
             {
-                string errorMessage = Ex.Message;
             }
             return Json(options);
         }

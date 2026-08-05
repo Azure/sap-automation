@@ -109,7 +109,7 @@ resource "azurerm_app_configuration_key" "SAPLibraryStorageAccountId" {
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPLibraryStorageAccountId", var.deployer.control_plane_name)
   label                                = var.deployer.control_plane_name
-  value                                = var.storage_account_tfstate.exists ? (
+  value                                = var.storage_account_sapbits.exists ? (
                                                             data.azurerm_storage_account.storage_sapbits[0].id) : (
                                                             try(azurerm_storage_account.storage_sapbits[0].id, "")
                                                           )
@@ -138,9 +138,7 @@ resource "azurerm_app_configuration_key" "SAPMediaPath" {
   configuration_store_id               = data.azurerm_app_configuration.app_config[0].id
   key                                  = format("%s_SAPMediaPath", var.deployer.control_plane_name)
   label                                = var.deployer.control_plane_name
-  value                                = format("https://%s.blob.core.windows.net/%s", var.storage_account_sapbits.exists ?
-                                                             split("/", var.storage_account_sapbits.id)[8] : local.storage_account_SAPmedia,
-                                                             var.storage_account_sapbits.sapbits_blob_container.name)
+  value                                = local.sapbits_location_base_path
   content_type                         = "text/plain"
   type                                 = "kv"
   tags                                 = merge(var.infrastructure.tags, {
@@ -175,7 +173,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
                                              azurerm_resource_group.library[0].name
                                          ))
   private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
-  virtual_network_id                   = var.deployer_tfstate.vnet_mgmt_id
+  virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
 }

@@ -290,6 +290,12 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
+variable "routing_preference_enabled"           {
+                                                  description = "Controls whether routing preferences and route-specific Microsoft endpoints are configured for storage accounts."
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
                                                   default     = true

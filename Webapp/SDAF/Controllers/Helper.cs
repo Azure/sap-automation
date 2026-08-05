@@ -73,6 +73,9 @@ namespace SDAFWebApp.Controllers
                 {"uaenorth", "uano"},
                 {"uksouth", "ukso"},
                 {"ukwest", "ukwe"},
+                {"usgovarizona", "usar"},
+                {"usgovtexas", "uste"},
+                {"usgovvirginia", "usvi"},
                 {"westcentralus", "wcus"},
                 {"westeurope", "weeu"},
                 {"westindia", "wein"},
@@ -278,15 +281,40 @@ namespace SDAFWebApp.Controllers
         public static string MapRegion(string region)
         {
             if (region == null) return "";
-            if (regionMapping.ContainsKey(region))
+            if (regionMapping.TryGetValue(region, out string mappedRegion))
             {
-                return regionMapping[region];
+                return mappedRegion;
             }
             else
             {
                 throw new KeyNotFoundException("location is not a valid Azure region");
             }
         }
+
+        /// <summary>
+        /// Makes a caller-supplied value safe to write to a log sink by stripping
+        /// line-breaking characters and capping the length.
+        /// </summary>
+        /// <param name="value">The untrusted value to sanitize.</param>
+        /// <returns>A single-line, length-bounded representation of <paramref name="value"/>.</returns>
+        public static string SanitizeForLog(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+
+            const int maxLength = 256;
+            StringBuilder sanitized = new(Math.Min(value.Length, maxLength));
+            foreach (char c in value)
+            {
+                if (sanitized.Length >= maxLength) break;
+                // char.IsControl does not cover U+2028/U+2029.
+                bool isLineBreaking = char.IsControl(c) || c == '\u2028' || c == '\u2029';
+                sanitized.Append(isLineBreaking ? '_' : c);
+            }
+
+            if (value.Length > maxLength) sanitized.Append("...");
+            return sanitized.ToString();
+        }
+
         public static async Task<byte[]> ProcessFormFile(IFormFile formFile,
             ModelStateDictionary modelState, string[] permittedExtensions,
             long sizeLimit)
@@ -394,7 +422,7 @@ namespace SDAFWebApp.Controllers
 
         public static string TfvarToJson(string hclString)
         {
-            StringReader stringReader = new(hclString);
+            using StringReader stringReader = new(hclString);
             StringBuilder jsonString = new();
             jsonString.AppendLine("{");
             string jsonFormattedOutput;
@@ -403,13 +431,13 @@ namespace SDAFWebApp.Controllers
                 string currLine = stringReader.ReadLine();
                 if (currLine == null)
                 {
-                    jsonFormattedOutput = jsonString.ToString().Trim();
-                    while (jsonFormattedOutput.EndsWith(',') || jsonFormattedOutput.EndsWith('\n') || jsonFormattedOutput.EndsWith('\r') || jsonFormattedOutput.EndsWith(' '))
+                    while (jsonString.Length > 0 && (jsonString[^1] == ',' || jsonString[^1] == '\n' || jsonString[^1] == '\r' || char.IsWhiteSpace(jsonString[^1])))
                     {
-                        jsonFormattedOutput = jsonFormattedOutput[..^1];
+                        jsonString.Length--;
                     }
 
-                    jsonFormattedOutput += "}";
+                    jsonString.Append('}');
+                    jsonFormattedOutput = jsonString.ToString();
                     break;
                 }
                 else if (currLine.StartsWith('#') || currLine == "")
@@ -435,7 +463,8 @@ namespace SDAFWebApp.Controllers
                         Console.WriteLine(key);
                         if (key.EndsWith("tags\""))
                         {
-                            value += "[";
+                            StringBuilder valueBuilder = new();
+                            valueBuilder.Append('[');
                             currLine = stringReader.ReadLine();
                             while (!currLine.StartsWith('}'))
                             {
@@ -446,13 +475,12 @@ namespace SDAFWebApp.Controllers
                                     tagKey = "\"" + tagKey + "\"";
                                 }
                                 var tagValue = currLine[(equalIndex + 1)..].Trim();
-                                value += "{";
-                                value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
-                                value += "},";
+                                valueBuilder.Append('{');
+                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
+                                valueBuilder.Append("},");
                                 currLine = stringReader.ReadLine().TrimStart();
                             }
-                            value = value.Trim(',');
-                            value += "],";
+                            value = valueBuilder.ToString().Trim(',') + "],";
                         }
                         else if (key.ToLower() == "\"network_address_space\"")
                         {
@@ -470,7 +498,8 @@ namespace SDAFWebApp.Controllers
                         }
                         else if (key.EndsWith("configuration_settings\""))
                         {
-                            value += "[";
+                            StringBuilder valueBuilder = new();
+                            valueBuilder.Append('[');
                             currLine = stringReader.ReadLine();
                             while (!currLine.StartsWith('}'))
                             {
@@ -481,13 +510,12 @@ namespace SDAFWebApp.Controllers
                                     tagKey = "\"" + tagKey + "\"";
                                 }
                                 var tagValue = currLine[(equalIndex + 1)..].Trim();
-                                value += "{";
-                                value += "\"Key\":" + tagKey + "," + "\"Value\":" + tagValue.Trim(',');
-                                value += "},";
+                                valueBuilder.Append('{');
+                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
+                                valueBuilder.Append("},");
                                 currLine = stringReader.ReadLine();
                             }
-                            value = value.Trim(',');
-                            value += "],";
+                            value = valueBuilder.ToString().Trim(',') + "],";
                         }
                         else
                         {

@@ -1,0 +1,65 @@
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.venv
+  | \.git
+  | Webapp
+)/
+'''
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = [
+  # Repository root: enables full dotted-path imports, e.g.
+  # "deploy.ansible.filter_plugins.custom_filters", via PEP 420 implicit
+  # namespace packages (no __init__.py files needed in production dirs).
+  ".",
+  # These two source directories contain hyphens/dots in their path segments
+  # (e.g. "roles-sap-os", "2.4-hosts-file", "SDAF-GitHub-Actions"), which are
+  # not valid in a dotted Python import path. They are added directly so
+  # their modules/packages can still be imported by bare name.
+  "deploy/ansible/roles-sap-os/2.4-hosts-file/filter_plugins",
+  "deploy/scripts/py_scripts/SDAF-GitHub-Actions",
+]
+addopts = "--cov --cov-report=term-missing --cov-fail-under=85"
+
+[tool.pyright]
+# Mirror the pytest ``pythonpath`` entries above.
+extraPaths = [
+  ".",
+  "deploy/ansible/roles-sap-os/2.4-hosts-file/filter_plugins",
+  "deploy/scripts/py_scripts/SDAF-GitHub-Actions",
+]
+exclude = [
+  "**/.venv",
+  "**/__pycache__",
+  "Webapp",
+]
+
+[[tool.pyright.executionEnvironments]]
+root = "deploy/ansible/lookup_plugins"
+reportIncompatibleMethodOverride = "none"
+
+[tool.coverage.run]
+source = [
+  "deploy/ansible/filter_plugins",
+  "deploy/ansible/lookup_plugins",
+  "deploy/ansible/roles-sap-os/2.4-hosts-file/filter_plugins",
+  "deploy/scripts/py_scripts/SDAF-GitHub-Actions",
+]
+omit = [
+  "*/tests/*",
+  "*/.venv/*",
+]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+exclude_lines = [
+  "pragma: no cover",
+  "if __name__ == .__main__.:",
+]

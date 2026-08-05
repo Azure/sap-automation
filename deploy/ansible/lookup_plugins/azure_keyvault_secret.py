@@ -73,7 +73,6 @@ from azure.identity import (
 )
 from azure.keyvault.secrets import SecretClient
 from azure.core.exceptions import HttpResponseError
-import requests
 import time
 import logging
 
@@ -84,6 +83,29 @@ logger = logging.getLogger(__name__)
 display = Display()
 
 
+def describe_exception(error):
+    """
+    Build a log-safe description of an exception raised by the Key Vault SDK.
+
+    Key Vault echoes the requested secret name back inside its error message, so
+    only the exception type, HTTP status and service error code are reported.
+
+    :param error: The exception to describe.
+    :return: A string safe to write to a log sink.
+    """
+    parts = [type(error).__name__]
+
+    status_code = getattr(error, "status_code", None)
+    if status_code is not None:
+        parts.append(f"status={status_code}")
+
+    error_code = getattr(getattr(error, "error", None), "code", None)
+    if error_code:
+        parts.append(f"code={error_code}")
+
+    return " ".join(parts)
+
+
 class AzureKeyVaultHelper:
     """
     A helper class for retrieving secrets from Azure Key Vault.
@@ -91,9 +113,7 @@ class AzureKeyVaultHelper:
     credential selection, and secret retrieval.
     """
 
-    def __init__(
-        self, vault_url, client_id=None, client_secret=None, tenant_id=None, timeout=5
-    ):
+    def __init__(self, vault_url, client_id=None, client_secret=None, tenant_id=None, timeout=5):
         """
         Initialize the helper with the provided Key Vault URL and credentials.
         :param vault_url: The base URL for Azure Key Vault.
@@ -117,9 +137,7 @@ class AzureKeyVaultHelper:
         :return: A responsive URL string.
         """
         public_url = vault_url
-        private_url = vault_url.replace(
-            ".vault.azure.net", ".privatelink.vault.azure.net"
-        )
+        private_url = vault_url.replace(".vault.azure.net", ".privatelink.vault.azure.net")
 
         for url in [private_url, public_url]:
             attempts = 3
@@ -135,17 +153,11 @@ class AzureKeyVaultHelper:
                     logger.info(f"Using responsive URL: {url}")
                     return url
                 except HttpResponseError as e:
-                    display.v(
-                        f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}"
-                    )
-                    logger.warning(
-                        f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}"
-                    )
+                    display.v(f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}")
+                    logger.warning(f"Attempt {attempt + 1}: URL {url} returned an HTTP error: {e}")
                 except Exception as e:
                     display.v(f"Attempt {attempt + 1}: URL {url} not responsive: {e}")
-                    logger.error(
-                        f"Attempt {attempt + 1}: URL {url} not responsive: {e}"
-                    )
+                    logger.error(f"Attempt {attempt + 1}: URL {url} not responsive: {e}")
                 time.sleep(delay)
                 delay *= 2  # exponential backoff
 
@@ -181,23 +193,26 @@ class AzureKeyVaultHelper:
         """
         try:
             display.v(
-                f"Fetching secret: {secret_name} from {self.vault_url} using {type(self.credential).__name__}"
+                f"Fetching secret from {self.vault_url} using {type(self.credential).__name__}"
             )
             logger.info(
-                f"Fetching secret: {secret_name} from {self.vault_url} using {type(self.credential).__name__}"
+                "Fetching secret from %s using %s",
+                self.vault_url,
+                type(self.credential).__name__,
             )
             secret = self.client.get_secret(secret_name)
-            display.v(f"Successfully fetched secret: {secret_name}")
-            logger.info(f"Successfully fetched secret: {secret_name}")
+            display.v(f"Successfully fetched secret from {self.vault_url}")
+            logger.info("Successfully fetched secret from %s", self.vault_url)
             return secret.value
         except Exception as e:
-            display.error(
-                f"Failed to fetch secret {secret_name} from {self.vault_url}. Error: {str(e)}"
-            )
+            reason = describe_exception(e)
+            display.error(f"Failed to fetch secret from {self.vault_url}. Error: {reason}")
             logger.error(
-                f"Failed to fetch secret {secret_name} from {self.vault_url}. Error: {str(e)}"
+                "Failed to fetch secret from %s. Error: %s",
+                self.vault_url,
+                reason,
             )
-            raise AnsibleError(f"Failed to fetch secret {secret_name}: {str(e)}")
+            raise AnsibleError(f"Failed to fetch secret from {self.vault_url}: {reason}")
 
 
 class LookupModule(LookupBase):
@@ -205,7 +220,7 @@ class LookupModule(LookupBase):
     Ansible lookup module for retrieving secrets from Azure Key Vault.
     """
 
-    def run(self, terms, variables, **kwargs):
+    def run(self, terms, variables=None, **kwargs):
         vault_url = kwargs.get("vault_url")
         client_id = kwargs.get("client_id")
         client_secret = kwargs.get("client_secret")
@@ -218,18 +233,17 @@ class LookupModule(LookupBase):
             raise AnsibleError("Failed to get a valid vault url.")
 
         # Initialize the helper with the provided timeout value.
-        helper = AzureKeyVaultHelper(
-            vault_url, client_id, client_secret, tenant_id, timeout
-        )
+        helper = AzureKeyVaultHelper(vault_url, client_id, client_secret, tenant_id, timeout)
         ret = []
 
-        for term in terms:
+        for index, term in enumerate(terms):
             try:
                 secret_value = helper.get_secret(term)
                 ret.append(secret_value)
             except AnsibleError as e:
-                display.error(str(e))
-                logger.error(str(e))
+                message = f"{str(e)} (lookup term index {index})"
+                display.error(message)
+                logger.error(message)
                 raise
 
         return ret

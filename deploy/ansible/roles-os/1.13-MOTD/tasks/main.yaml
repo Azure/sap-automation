@@ -76,24 +76,71 @@
 # Update printmotd if commented. We do not change it is explicitly set to no
 # Update sshd
 # -------------------------------------+---------------------------------------8
-- name:                                "1.13 MOTD - Update PrintMotd when commented"
+- name:                                "1.13 MOTD - Ensure /etc/ssh/sshd_config.d directory exists"
+  ansible.builtin.file:
+    path:                              /etc/ssh/sshd_config.d
+    state:                             directory
+    mode:                              '0755'
+    owner:                             root
+    group:                             root
+  become:                              true
+
+- name:                                "1.13 MOTD - Check for a distribution sshd_config"
+  ansible.builtin.stat:
+    path:                              /etc/ssh/sshd_config
+  become:                              true
+  register:                            motd_sshd_config
+
+# SLES 16 ships no /etc/ssh/sshd_config; its vendor /usr/etc copy already includes the drop-in directory.
+- name:                                "1.13 MOTD - Ensure SSH drop-in loader is configured"
   ansible.builtin.lineinfile:
-    state:                             present
-    dest:                              /etc/ssh/sshd_config
-    regexp:                            '#PrintMotd'
-    line:                              'PrintMotd yes'
+    path:                              /etc/ssh/sshd_config
+    regexp:                            '^\s*Include\s+/etc/ssh/sshd_config\.d/\*\.conf\s*$'
+    line:                              'Include /etc/ssh/sshd_config.d/*.conf'
+    insertbefore:                       BOF
+    validate:                           '/usr/sbin/sshd -t -f %s'
+  become:                              true
+  when:                                motd_sshd_config.stat.exists
+  notify:
+    - "1.13 MOTD - Restart sshd service"
+
+- name:                                "1.13 MOTD - Remove obsolete late-loading drop-in"
+  ansible.builtin.file:
+    path:                              /etc/ssh/sshd_config.d/99-sap-motd.conf
+    state:                             absent
   become:                              true
   notify:
     - "1.13 MOTD - Restart sshd service"
 
-- name:                                "1.13 MOTD - Update default Banner path"
-  ansible.builtin.lineinfile:
-    state:                             present
-    dest:                              /etc/ssh/sshd_config
-    regexp:                            '#Banner'
-    line:                              'Banner /etc/issue.net'
+- name:                                "1.13 MOTD - Update PrintMotd and Banner via drop-in"
+  ansible.builtin.copy:
+    dest:                              /etc/ssh/sshd_config.d/00-sap-motd.conf
+    mode:                              '0600'
+    owner:                             root
+    group:                             root
+    content: |
+      PrintMotd yes
+      Banner /etc/issue.net
   become:                              true
   notify:
     - "1.13 MOTD - Restart sshd service"
+
+- name:                                "1.13 MOTD - Validate SSH configuration syntax"
+  ansible.builtin.command:             /usr/sbin/sshd -t
+  become:                              true
+  changed_when:                        false
+
+- name:                                "1.13 MOTD - Read effective SSH configuration"
+  ansible.builtin.command:             /usr/sbin/sshd -T
+  become:                              true
+  changed_when:                        false
+  register:                            motd_sshd_effective_configuration
+
+- name:                                "1.13 MOTD - Verify drop-in configuration is effective"
+  ansible.builtin.assert:
+    that:
+      - "'printmotd yes' in motd_sshd_effective_configuration.stdout"
+      - "'banner /etc/issue.net' in motd_sshd_effective_configuration.stdout"
+    fail_msg:                          The SSH daemon did not load the MOTD drop-in configuration.
 
 ...

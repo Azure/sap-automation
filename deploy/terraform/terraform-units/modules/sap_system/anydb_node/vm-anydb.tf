@@ -110,6 +110,7 @@ resource "azurerm_network_interface" "anydb_admin" {
 #                                                                              #
 #######################################4#######################################8
 resource "azurerm_linux_virtual_machine" "dbserver" {
+  #checkov:skip=CKV_AZURE_50: monitoring via monitoring_extension_db_lnx
   provider                             = azurerm.main
   depends_on                           = [var.anchor_vm]
   count                                = local.enable_deployment ? (
@@ -258,6 +259,7 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
 #                                                                              #
 #######################################4#######################################8
 resource "azurerm_windows_virtual_machine" "dbserver" {
+  #checkov:skip=CKV_AZURE_50: monitoring via monitoring_extension_db_win
   provider                             = azurerm.main
   count                                = local.enable_deployment ? (
                                            upper(local.anydb_ostype) == "WINDOWS" ? (
@@ -402,6 +404,7 @@ locals {
 }
 
 resource "azurerm_managed_disk" "disks" {
+  #checkov:skip=CKV_AZURE_251: disk export via private endpoint not used
   provider                             = azurerm.main
   count                                = local.enable_deployment ? length(local.anydb_disks) : 0
   name                                 = format("%s%s%s%s%s",

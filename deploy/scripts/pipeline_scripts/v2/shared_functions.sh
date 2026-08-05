@@ -224,6 +224,9 @@ function region_with_region_map() {
 	"UANO") LOCATION_IN_FILENAME="uaenorth" ;;
 	"UKSO") LOCATION_IN_FILENAME="uksouth" ;;
 	"UKWE") LOCATION_IN_FILENAME="ukwest" ;;
+	"USAR") LOCATION_IN_FILENAME="usgovarizona" ;;
+	"USTE") LOCATION_IN_FILENAME="usgovtexas" ;;
+	"USVI") LOCATION_IN_FILENAME="usgovvirginia" ;;
 	"WCUS") LOCATION_IN_FILENAME="westcentralus" ;;
 	"WEEU") LOCATION_IN_FILENAME="westeurope" ;;
 	"WEIN") LOCATION_IN_FILENAME="westindia" ;;

@@ -412,7 +412,7 @@ sles)
 	ansible_venv_bin="${ansible_venv}/bin"
 	ansible_collections="${ansible_base}/collections"
 	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv
+	sudo python3 -m pip install virtualenv==20.26.6
 	;;
 rhel)
 	echo "we are inside RHEL"
@@ -426,7 +426,7 @@ rhel)
 	ansible_venv_bin="${ansible_venv}/bin"
 	ansible_collections="${ansible_base}/collections"
 	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv
+	sudo python3 -m pip install virtualenv==20.26.6
 	;;
 *)
 	echo "we are in the default case statement"

@@ -1,5 +1,43 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+import hashlib
 import json
 from .utils import run_az_command
+
+AZURE_OIDC_CONFIG = {
+    "AzureCloud": {
+        "environment": "AzureCloud",
+        "audience": "api://AzureADTokenExchange",
+        "terraform_environment": "public",
+    },
+    "AzureUSGovernment": {
+        "environment": "AzureUSGovernment",
+        "audience": "api://AzureADTokenExchangeUSGov",
+        "terraform_environment": "usgovernment",
+    },
+}
+
+
+def get_azure_oidc_config():
+    """Return the ``azure/login`` environment and audience for the active CLI cloud."""
+    result = run_az_command(
+        ["account", "show", "--query", "environmentName", "-o", "tsv"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Unable to determine the active Azure cloud: {result.stderr}")
+
+    cloud_name = result.stdout.strip()
+    if cloud_name not in AZURE_OIDC_CONFIG:
+        supported = ", ".join(AZURE_OIDC_CONFIG)
+        raise ValueError(
+            f"Azure cloud '{cloud_name}' is not supported. Supported clouds: {supported}"
+        )
+
+    return AZURE_OIDC_CONFIG[cloud_name].copy()
+
 
 def verify_azure_login():
     """
@@ -8,7 +46,9 @@ def verify_azure_login():
     """
     print("\nVerifying Azure CLI login status...\n")
     try:
-        result = run_az_command(["account", "show", "--query", "name", "-o", "tsv"], capture_output=True, text=True)
+        result = run_az_command(
+            ["account", "show", "--query", "name", "-o", "tsv"], capture_output=True, text=True
+        )
         if result.returncode == 0 and result.stdout.strip():
             print(f"Currently logged in to Azure account: {result.stdout.strip()}")
             return True
@@ -18,6 +58,7 @@ def verify_azure_login():
     except Exception as e:
         print(f"Error verifying Azure login: {str(e)}")
         return False
+
 
 def verify_subscription(subscription_id):
     """
@@ -30,7 +71,9 @@ def verify_subscription(subscription_id):
         True if subscription set successfully, False otherwise.
     """
     try:
-        result = run_az_command(["account", "set", "--subscription", subscription_id], capture_output=True, text=True)
+        result = run_az_command(
+            ["account", "set", "--subscription", subscription_id], capture_output=True, text=True
+        )
         if result.returncode == 0:
             print(f"Set subscription context to: {subscription_id}")
             return True
@@ -40,6 +83,7 @@ def verify_subscription(subscription_id):
     except Exception as e:
         print(f"Error verifying subscription: {str(e)}")
         return False
+
 
 def verify_resource_group(resource_group, subscription_id):
     """
@@ -54,7 +98,16 @@ def verify_resource_group(resource_group, subscription_id):
     """
     try:
         # First check that the subscription exists and is accessible
-        sub_check_args = ["account", "show", "--subscription", subscription_id, "--query", "name", "-o", "tsv"]
+        sub_check_args = [
+            "account",
+            "show",
+            "--subscription",
+            subscription_id,
+            "--query",
+            "name",
+            "-o",
+            "tsv",
+        ]
         sub_result = run_az_command(sub_check_args, capture_output=True, text=True)
 
         if sub_result.returncode != 0:
@@ -71,13 +124,16 @@ def verify_resource_group(resource_group, subscription_id):
             print(f"✓ Resource group '{resource_group}' exists in subscription '{subscription_id}'")
             return True
         else:
-            print(f"! Resource group '{resource_group}' does not exist in subscription '{subscription_id}'")
+            print(
+                f"! Resource group '{resource_group}' does not exist in subscription '{subscription_id}'"
+            )
             print("The resource group will need to be created before proceeding.")
             return False
 
     except Exception as e:
         print(f"Error verifying resource group: {str(e)}")
         return False
+
 
 def create_user_assigned_identity(identity_name, resource_group, subscription_id, location):
     """
@@ -92,7 +148,9 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
     Returns:
         Dictionary with identity details if successful, None otherwise.
     """
-    print(f"\nCreating user-assigned identity '{identity_name}' in resource group '{resource_group}'...\n")
+    print(
+        f"\nCreating user-assigned identity '{identity_name}' in resource group '{resource_group}'...\n"
+    )
 
     # Define the roles to assign
     roles = [
@@ -102,7 +160,7 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
         "Storage Table Data Contributor",
         "Key Vault Administrator",
         "App Configuration Data Owner",
-        "Network Contributor"
+        "Network Contributor",
     ]
 
     # Verify Azure login
@@ -120,14 +178,24 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
 
     # Create the user-assigned identity
     try:
-        identity_result = run_az_command([
-            "identity", "create",
-            "--name", identity_name,
-            "--resource-group", resource_group,
-            "--location", location,
-            "--query", "{id:id, principalId:principalId, clientId:clientId}",
-            "-o", "json"
-        ], capture_output=True, text=True)
+        identity_result = run_az_command(
+            [
+                "identity",
+                "create",
+                "--name",
+                identity_name,
+                "--resource-group",
+                resource_group,
+                "--location",
+                location,
+                "--query",
+                "{id:id, principalId:principalId, clientId:clientId}",
+                "-o",
+                "json",
+            ],
+            capture_output=True,
+            text=True,
+        )
 
         if identity_result.returncode != 0:
             print(f"Failed to create user-assigned identity: {identity_result.stderr}")
@@ -145,30 +213,41 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
 
         for role_name in roles:
             print(f"Assigning role {role_name} to the Managed Identity")
-            role_result = run_az_command([
-                "role", "assignment", "create",
-                "--assignee-object-id", identity['principalId'],
-                "--assignee-principal-type", "ServicePrincipal",
-                "--role", role_name,
-                "--scope", f"/subscriptions/{subscription_id}",
-                "--query", "id",
-                "--output", "tsv",
-                "--only-show-errors"
-            ], capture_output=True, text=True)
+            role_result = run_az_command(
+                [
+                    "role",
+                    "assignment",
+                    "create",
+                    "--assignee-object-id",
+                    identity["principalId"],
+                    "--assignee-principal-type",
+                    "ServicePrincipal",
+                    "--role",
+                    role_name,
+                    "--scope",
+                    f"/subscriptions/{subscription_id}",
+                    "--query",
+                    "id",
+                    "--output",
+                    "tsv",
+                    "--only-show-errors",
+                ],
+                capture_output=True,
+                text=True,
+            )
 
             if role_result.returncode == 0:
                 print(f"✓ Successfully assigned {role_name} role to identity")
-                role_assignments.append({
-                    "role": role_name,
-                    "id": role_result.stdout.strip()
-                })
+                role_assignments.append({"role": role_name, "id": role_result.stdout.strip()})
             else:
                 print(f"✗ Failed to assign {role_name} role")
                 roles_failed.append(role_name)
 
         # Show warning if role assignment failed
         if roles_failed:
-            print("\n\033[1;33mWARNING: Not all roles could be assigned to the Managed Identity.\033[0m")
+            print(
+                "\n\033[1;33mWARNING: Not all roles could be assigned to the Managed Identity.\033[0m"
+            )
             print("Your user account may not have permission to assign the following roles:")
             for role in roles_failed:
                 print(f"  - {role}")
@@ -178,7 +257,9 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
                 print(f"  - {role}")
 
             print(f"\nPlease have an Azure subscription administrator assign these roles")
-            print(f"to the Managed Identity '{identity_name}' (Principal ID: {identity['principalId']}).")
+            print(
+                f"to the Managed Identity '{identity_name}' (Principal ID: {identity['principalId']})."
+            )
             print("The script will continue, but deployment may fail without proper permissions.")
 
         # Return the identity details
@@ -189,12 +270,13 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
             "identityId": identity["id"],
             "principalId": identity["principalId"],
             "clientId": identity["clientId"],
-            "roleAssignments": role_assignments
+            "roleAssignments": role_assignments,
         }
 
     except Exception as e:
         print(f"An error occurred while creating the identity: {str(e)}")
         return None
+
 
 def create_azure_service_principal(user_data):
     """
@@ -221,17 +303,17 @@ def create_azure_service_principal(user_data):
 
         if not object_id:
             print("\n\033[1;33mWARNING: Object ID is missing. Using placeholder value.\033[0m")
-            print("This may cause issues during deployment. You should verify the Object ID manually.")
+            print(
+                "This may cause issues during deployment. You should verify the Object ID manually."
+            )
             object_id = "PLACEHOLDER-OBJECT-ID"
 
-        spn_data = {
-            "appId": app_id,
-            "password": password,
-            "object_id": object_id
-        }
+        spn_data = {"appId": app_id, "password": password, "object_id": object_id}
 
         # Diagnose any potential issues with the Service Principal
-        success, diagnosis = diagnose_service_principal_issues(user_data["spn_appid"], user_data["subscription_id"])
+        success, diagnosis = diagnose_service_principal_issues(
+            user_data["spn_appid"], user_data["subscription_id"]
+        )
         print(diagnosis)
 
         # Continue with verifying and assigning required roles
@@ -245,7 +327,7 @@ def create_azure_service_principal(user_data):
             "Storage Table Data Contributor",
             "Key Vault Administrator",
             "App Configuration Data Owner",
-            "Network Contributor"
+            "Network Contributor",
         ]
 
         # Track which roles were successfully assigned or already exist
@@ -309,7 +391,9 @@ def create_azure_service_principal(user_data):
 
         # Show warning if any role assignments failed
         if roles_failed:
-            print("\n\033[1;33mWARNING: Not all roles could be assigned to the Service Principal.\033[0m")
+            print(
+                "\n\033[1;33mWARNING: Not all roles could be assigned to the Service Principal.\033[0m"
+            )
             print("Your user account may not have permission to assign the following roles:")
             for role in roles_failed:
                 print(f"  - {role}")
@@ -366,7 +450,9 @@ def create_azure_service_principal(user_data):
             )
             print(spn_show_result.stderr)
             print("\n\033[1;33mWARNING: Using a placeholder value for Object ID.\033[0m")
-            print("This may cause issues during deployment. You should verify the Object ID manually.")
+            print(
+                "This may cause issues during deployment. You should verify the Object ID manually."
+            )
             spn_data["object_id"] = "PLACEHOLDER-OBJECT-ID"
         else:
             try:
@@ -379,7 +465,9 @@ def create_azure_service_principal(user_data):
                 )
                 print(spn_show_result.stdout)
                 print("\n\033[1;33mWARNING: Using a placeholder value for Object ID.\033[0m")
-                print("This may cause issues during deployment. You should verify the Object ID manually.")
+                print(
+                    "This may cause issues during deployment. You should verify the Object ID manually."
+                )
                 spn_data["object_id"] = "PLACEHOLDER-OBJECT-ID"
 
         # Assign required roles
@@ -393,11 +481,10 @@ def create_azure_service_principal(user_data):
             "Storage Table Data Contributor",
             "Key Vault Administrator",
             "App Configuration Data Owner",
-            "Network Contributor"
+            "Network Contributor",
         ]
 
         # Try to assign roles
-        roles_assigned = False
         roles_failed = []
 
         for role_name in recommended_roles:
@@ -412,14 +499,13 @@ def create_azure_service_principal(user_data):
                 role_name,
                 "--scope",
                 f"/subscriptions/{user_data['subscription_id']}",
-                "--only-show-errors"
+                "--only-show-errors",
             ]
 
             try:
                 role_result = run_az_command(role_assignment_args, capture_output=True, text=True)
                 if role_result.returncode == 0:
                     print(f"✓ Successfully assigned {role_name} role.")
-                    roles_assigned = True
                 else:
                     print(f"✗ Failed to assign {role_name} role.")
                     roles_failed.append(role_name)
@@ -429,13 +515,17 @@ def create_azure_service_principal(user_data):
 
         # Show warning if role assignment failed
         if roles_failed:
-            print("\n\033[1;33mWARNING: Not all roles could be assigned to the Service Principal.\033[0m")
+            print(
+                "\n\033[1;33mWARNING: Not all roles could be assigned to the Service Principal.\033[0m"
+            )
             print("Your user account may not have permission to assign the following roles:")
             for role in roles_failed:
                 print(f"  - {role}")
 
             print("\nPlease have an Azure subscription administrator assign these roles")
-            print(f"to the Service Principal '{user_data['spn_name']}' (App ID: {spn_data['appId']}).")
+            print(
+                f"to the Service Principal '{user_data['spn_name']}' (App ID: {spn_data['appId']})."
+            )
             print("The script will continue, but deployment may fail without proper permissions.")
 
     return spn_data
@@ -451,34 +541,71 @@ def configure_federated_identity(user_data, spn_data):
     parameters = {
         "name": "GitHubActions",
         "issuer": "https://token.actions.githubusercontent.com",
-        "subject": f"repo:{user_data['repo_name']}:environment:{user_data['environment_name']}",
+        "subject": user_data["federated_subject"],
         "description": f"{user_data['environment_name']}-deploy",
-        "audiences": ["api://AzureADTokenExchange"]
+        "audiences": [user_data["azure_audience"]],
     }
 
-    # Convert parameters to a JSON string
-    parameters_json = json.dumps(parameters)
+    list_result = run_az_command(
+        ["ad", "app", "federated-credential", "list", "--id", spn_data["appId"]],
+        capture_output=True,
+        text=True,
+    )
+    if list_result.returncode != 0:
+        print("Warning: Unable to inspect existing federated identity credentials.")
+        print(f"Error: {list_result.stderr}")
+        return
 
-    # Create the federated credential
-    federated_args = [
-        "ad",
-        "app",
-        "federated-credential",
-        "create",
-        "--id",
-        spn_data['appId'],
-        "--parameters",
-        parameters_json
-    ]
+    try:
+        credentials = json.loads(list_result.stdout or "[]")
+        existing = next(
+            (
+                credential
+                for credential in credentials
+                if credential.get("name") == parameters["name"]
+                and credential.get("issuer") == parameters["issuer"]
+                and credential.get("subject") == parameters["subject"]
+                and credential.get("audiences") == parameters["audiences"]
+            ),
+            None,
+        )
+    except json.JSONDecodeError:
+        print("Warning: Unable to parse existing federated identity credentials.")
+        return
+
+    if not existing and any(
+        credential.get("name") == parameters["name"] for credential in credentials
+    ):
+        identity = "|".join([parameters["issuer"], parameters["subject"], *parameters["audiences"]])
+        suffix = hashlib.sha256(identity.encode("utf-8")).hexdigest()[:12]
+        parameters["name"] = f"GitHubActions-{suffix}"
+        existing = next(
+            (
+                credential
+                for credential in credentials
+                if credential.get("name") == parameters["name"]
+                and credential.get("issuer") == parameters["issuer"]
+                and credential.get("subject") == parameters["subject"]
+                and credential.get("audiences") == parameters["audiences"]
+            ),
+            None,
+        )
+
+    operation = "update" if existing else "create"
+    federated_args = ["ad", "app", "federated-credential", operation, "--id", spn_data["appId"]]
+    if existing:
+        federated_args.extend(["--federated-credential-id", existing["id"]])
+    federated_args.extend(["--parameters", json.dumps(parameters)])
 
     result = run_az_command(federated_args, capture_output=True, text=True)
 
     if result.returncode == 0:
-        print("Federated identity credential configured successfully.")
+        print(f"Federated identity credential {operation}d successfully.")
     else:
         print("Warning: There was an issue configuring federated identity credential.")
         print(f"Error: {result.stderr}")
         print("You may need to set it up manually in the Azure portal.")
+
 
 def diagnose_service_principal_issues(spn_appid, subscription_id):
     """
@@ -516,7 +643,7 @@ def diagnose_service_principal_issues(spn_appid, subscription_id):
             "--assignee",
             spn_appid,
             "--scope",
-            f"/subscriptions/{subscription_id}"
+            f"/subscriptions/{subscription_id}",
         ]
         sub_role_result = run_az_command(sub_role_args, capture_output=True, text=True)
 
@@ -527,10 +654,16 @@ def diagnose_service_principal_issues(spn_appid, subscription_id):
             try:
                 roles = json.loads(sub_role_result.stdout)
                 if not roles:
-                    issues.append(f"Service Principal has no role assignments on subscription {subscription_id}.")
+                    issues.append(
+                        f"Service Principal has no role assignments on subscription {subscription_id}."
+                    )
                     success = False
                 else:
-                    role_names = [role.get("roleDefinitionName") for role in roles if "roleDefinitionName" in role]
+                    role_names = [
+                        role.get("roleDefinitionName")
+                        for role in roles
+                        if "roleDefinitionName" in role
+                    ]
                     print(f"✓ Service Principal has the following roles: {', '.join(role_names)}")
 
                     # Check if it has the required roles
@@ -538,7 +671,9 @@ def diagnose_service_principal_issues(spn_appid, subscription_id):
                     missing_roles = [role for role in required_roles if role not in role_names]
 
                     if missing_roles:
-                        issues.append(f"Service Principal is missing the following recommended roles: {', '.join(missing_roles)}")
+                        issues.append(
+                            f"Service Principal is missing the following recommended roles: {', '.join(missing_roles)}"
+                        )
             except json.JSONDecodeError:
                 issues.append("Unable to parse role assignments response.")
                 success = False
@@ -559,11 +694,16 @@ def diagnose_service_principal_issues(spn_appid, subscription_id):
         diagnosis += "   - User Access Administrator: For assigning roles to other identities\n"
         diagnosis += "   - Storage Blob Data Owner: For accessing blob storage data\n"
         diagnosis += "   - Key Vault Administrator: For managing secrets in Key Vault\n\n"
-        diagnosis += "If you don't have permissions to assign these roles, please contact your Azure\n"
+        diagnosis += (
+            "If you don't have permissions to assign these roles, please contact your Azure\n"
+        )
         diagnosis += "subscription administrator to assign them before deploying SAP workloads.\n"
-        diagnosis += "The script will continue, but deployment may fail without proper permissions.\n"
+        diagnosis += (
+            "The script will continue, but deployment may fail without proper permissions.\n"
+        )
 
     return success, diagnosis
+
 
 def get_current_subscription_info():
     """
@@ -584,14 +724,11 @@ def get_current_subscription_info():
         return False, None, None
 
     # Get current subscription info
-    show_result = run_az_command([
-        "account",
-        "show",
-        "--query",
-        "{name:name, id:id}",
-        "--output",
-        "json"
-    ], capture_output=True, text=True)
+    show_result = run_az_command(
+        ["account", "show", "--query", "{name:name, id:id}", "--output", "json"],
+        capture_output=True,
+        text=True,
+    )
 
     if show_result.returncode != 0:
         print(f"Error retrieving subscription information: {show_result.stderr}")
@@ -613,6 +750,7 @@ def get_current_subscription_info():
         print("Failed to parse subscription data.")
         print(show_result.stdout)
         return False, None, None
+
 
 def create_app_registration(application_name, service_management_reference=None):
     """
@@ -637,10 +775,14 @@ def create_app_registration(application_name, service_management_reference=None)
 
     # Check whether an app registration with this exact display name already exists
     list_args = [
-        "ad", "app", "list",
+        "ad",
+        "app",
+        "list",
         "--all",
-        "--filter", f"startswith(displayName, '{application_name}')",
-        "--query", f"[?displayName=='{application_name}'] | [0]",
+        "--filter",
+        f"startswith(displayName, '{application_name}')",
+        "--query",
+        f"[?displayName=='{application_name}'] | [0]",
         "--only-show-errors",
     ]
     list_result = run_az_command(list_args, capture_output=True, text=True)
@@ -664,9 +806,7 @@ def create_app_registration(application_name, service_management_reference=None)
     manifest = [
         {
             "resourceAppId": "00000003-0000-0000-c000-000000000000",
-            "resourceAccess": [
-                {"id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d", "type": "Scope"}
-            ],
+            "resourceAccess": [{"id": "e1fe6dd8-ba31-4d61-89e7-88639da4683d", "type": "Scope"}],
         }
     ]
 
@@ -677,13 +817,21 @@ def create_app_registration(application_name, service_management_reference=None)
             json.dump(manifest, f)
 
         create_args = [
-            "ad", "app", "create",
-            "--display-name", application_name,
-            "--enable-id-token-issuance", "true",
-            "--sign-in-audience", "AzureADMyOrg",
-            "--required-resource-access", f"@{manifest_path}",
-            "--query", "appId",
-            "--output", "tsv",
+            "ad",
+            "app",
+            "create",
+            "--display-name",
+            application_name,
+            "--enable-id-token-issuance",
+            "true",
+            "--sign-in-audience",
+            "AzureADMyOrg",
+            "--required-resource-access",
+            f"@{manifest_path}",
+            "--query",
+            "appId",
+            "--output",
+            "tsv",
         ]
 
         if service_management_reference:
@@ -701,10 +849,14 @@ def create_app_registration(application_name, service_management_reference=None)
         # Retrieve the object ID by querying the newly created registration
         list_result2 = run_az_command(
             [
-                "ad", "app", "list",
+                "ad",
+                "app",
+                "list",
                 "--all",
-                "--filter", f"startswith(displayName, '{application_name}')",
-                "--query", f"[?displayName=='{application_name}'] | [0]",
+                "--filter",
+                f"startswith(displayName, '{application_name}')",
+                "--query",
+                f"[?displayName=='{application_name}'] | [0]",
                 "--only-show-errors",
             ],
             capture_output=True,
