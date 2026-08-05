@@ -188,7 +188,12 @@ variable "azlimits" {
 variable "region_mapping" {
   type        = map(string)
   description = "Region Mapping: Full = Single CHAR, 4-CHAR"
-  # 42 Regions
+  # 66 regions. Keep this map in sync with the region lookups in
+  # deploy/scripts/deploy_utils.sh, deploy/scripts/pipeline_scripts/helper.sh,
+  # deploy/scripts/pipeline_scripts/v2/shared_functions.sh,
+  # deploy/scripts/pipeline_scripts/v2/shared_functions_v2.sh, and
+  # deploy/scripts/pipeline_scripts/22-sample-deployer-configuration.ps1.
+  # See docs/region-codes.md.
   default = {
     "australiacentral"   = "auce"
     "australiacentral2"  = "auc2"
@@ -212,6 +217,7 @@ variable "region_mapping" {
     "francecentral"      = "frce"
     "francesouth"        = "frso"
     "germanynorth"       = "geno"
+    "germanywest"        = "gewe"
     "germanywestcentral" = "gewc"
     "indonesiacentral"   = "ince"
     "israelcentral"      = "isce"
@@ -224,11 +230,11 @@ variable "region_mapping" {
     "koreasouth"         = "koso"
     "malaysiawest"       = "mawe"
     "mexicocentral"      = "mece"
+    "newzealandnorth"    = "nzno"
     "northcentralus"     = "ncus"
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
     "norwaywest"         = "nowe"
-    "newzealandnorth"   =  "nzno"
     "polandcentral"      = "plce"
     "qatarcentral"       = "qace"
     "southafricanorth"   = "sano"
@@ -255,7 +261,6 @@ variable "region_mapping" {
     "westus"             = "weus"
     "westus2"            = "wus2"
     "westus3"            = "wus3"
-    "newzealandnorth"    = "nzno"
   }
 }
 

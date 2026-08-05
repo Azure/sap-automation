@@ -185,8 +185,8 @@ function region_with_region_map() {
 	"DEEA") LOCATION_IN_FILENAME="denmarkeast" ;;
 	"EAAS") LOCATION_IN_FILENAME="eastasia" ;;
 	"EAUS") LOCATION_IN_FILENAME="eastus" ;;
-	"EUSA") LOCATION_IN_FILENAME="eastus2euap" ;;
 	"EUS2") LOCATION_IN_FILENAME="eastus2" ;;
+	"EUSA") LOCATION_IN_FILENAME="eastus2euap" ;;
 	"EUSG") LOCATION_IN_FILENAME="eastusstg" ;;
 	"FRCE") LOCATION_IN_FILENAME="francecentral" ;;
 	"FRSO") LOCATION_IN_FILENAME="francesouth" ;;
@@ -204,6 +204,7 @@ function region_with_region_map() {
 	"KOSO") LOCATION_IN_FILENAME="koreasouth" ;;
 	"MAWE") LOCATION_IN_FILENAME="malaysiawest" ;;
 	"MECE") LOCATION_IN_FILENAME="mexicocentral" ;;
+	"NZNO") LOCATION_IN_FILENAME="newzealandnorth" ;;
 	"NCUS") LOCATION_IN_FILENAME="northcentralus" ;;
 	"NOEU") LOCATION_IN_FILENAME="northeurope" ;;
 	"NOEA") LOCATION_IN_FILENAME="norwayeast" ;;
@@ -218,6 +219,7 @@ function region_with_region_map() {
 	"SOIN") LOCATION_IN_FILENAME="southindia" ;;
 	"SPCE") LOCATION_IN_FILENAME="spaincentral" ;;
 	"SECE") LOCATION_IN_FILENAME="swedencentral" ;;
+	"SESO") LOCATION_IN_FILENAME="swedensouth" ;;
 	"SWNO") LOCATION_IN_FILENAME="switzerlandnorth" ;;
 	"SWWE") LOCATION_IN_FILENAME="switzerlandwest" ;;
 	"UACE") LOCATION_IN_FILENAME="uaecentral" ;;

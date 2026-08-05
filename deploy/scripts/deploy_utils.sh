@@ -571,6 +571,8 @@ function get_region_code() {
 		"centralindia")         export region_code="CEIN" ;;
 		"centralus")            export region_code="CEUS" ;;
 		"centraluseuap")        export region_code="CEUA" ;;
+		"chilecentral")         export region_code="CHCE" ;;
+		"denmarkeast")          export region_code="DEEA" ;;
 		"eastasia")             export region_code="EAAS" ;;
 		"eastus")               export region_code="EAUS" ;;
 		"eastus2")              export region_code="EUS2" ;;
@@ -579,6 +581,7 @@ function get_region_code() {
 		"francecentral")        export region_code="FRCE" ;;
 		"francesouth")          export region_code="FRSO" ;;
 		"germanynorth")         export region_code="GENO" ;;
+		"germanywest")          export region_code="GEWE" ;;
 		"germanywestcentral")   export region_code="GEWC" ;;
 		"indonesiacentral")     export region_code="INCE" ;;
 		"israelcentral")        export region_code="ISCE" ;;
@@ -589,6 +592,9 @@ function get_region_code() {
 		"jioindiawest")         export region_code="JINW" ;;
 		"koreacentral")         export region_code="KOCE" ;;
 		"koreasouth")           export region_code="KOSO" ;;
+		"malaysiawest")         export region_code="MAWE" ;;
+		"mexicocentral")        export region_code="MECE" ;;
+		"newzealandnorth")      export region_code="NZNO" ;;
 		"northcentralus")       export region_code="NCUS" ;;
 		"northeurope")          export region_code="NOEU" ;;
 		"norwayeast")           export region_code="NOEA" ;;
@@ -601,7 +607,9 @@ function get_region_code() {
 		"southcentralusstg")    export region_code="SCUG" ;;
 		"southeastasia")        export region_code="SOEA" ;;
 		"southindia")           export region_code="SOIN" ;;
+		"spaincentral")         export region_code="SPCE" ;;
 		"swedencentral")        export region_code="SECE" ;;
+		"swedensouth")          export region_code="SESO" ;;
 		"switzerlandnorth")     export region_code="SWNO" ;;
 		"switzerlandwest")      export region_code="SWWE" ;;
 		"uaecentral")           export region_code="UACE" ;;
@@ -617,7 +625,6 @@ function get_region_code() {
 		"westus")               export region_code="WEUS" ;;
 		"westus2")              export region_code="WUS2" ;;
 		"westus3")              export region_code="WUS3" ;;
-		"newzealandnorth")      export region_code="NZNO" ;;
 		*)                      export region_code="UNKN" ;;
 	esac
 }

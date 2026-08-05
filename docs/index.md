@@ -23,6 +23,7 @@ configuration and automation assets for the first deployment stage.
 | Understand the framework architecture | [SDAF architecture](architecture.md) |
 | Review extension options | [Extend SDAF](extensibility.md) |
 | Check technical supportability | [SDAF supportability](supportability.md) |
+| Look up an Azure region code | [Azure region codes](region-codes.md) |
 | Compare execution models | [Choose an SDAF deployment option](deployment-options.md) |
 | Understand repository ownership | [SDAF repositories](repositories.md) |
 | Use GitHub Actions | [Start with GitHub Actions](deployment-options.md#github-actions) |
