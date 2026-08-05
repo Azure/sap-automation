@@ -344,7 +344,12 @@ if [ -f sap-parameters.yaml ]; then
 	git add sap-parameters.yaml
 	added=1
 else
-	return_code=1
+	# sap-parameters.yaml is produced by the Terraform apply. It is legitimately
+	# absent for plan-only/test runs and for runs that deploy no new infrastructure.
+	# Do not overwrite the deployment's own return code from a file-staging check -
+	# doing so fails the job even when "Return code from deployment: 0".
+	# (02-sap-workload-zone.sh intentionally does not set a return code here either.)
+	echo "INFO: sap-parameters.yaml not present - nothing to stage (expected for plan-only runs)."
 fi
 
 if [ -f "${SID}_hosts.yaml" ]; then
