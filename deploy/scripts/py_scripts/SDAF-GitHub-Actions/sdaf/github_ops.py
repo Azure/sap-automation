@@ -73,9 +73,23 @@ def add_repository_variables(github_client, repo_full_name, variables):
                 variable_name,
                 repo_full_name,
             )
-        except Exception as e:
-            logger.error("Error adding variable %s: %s", variable_name, str(e))
-            logger.info("Continuing with other variables...")
+        except Exception as create_error:
+            # The variable already exists; update it so re-running setup is idempotent.
+            try:
+                repo.get_variable(variable_name).edit(str(variable_value))
+                logger.info(
+                    "*** Variable %s updated in repository %s.***",
+                    variable_name,
+                    repo_full_name,
+                )
+            except Exception as update_error:
+                logger.error(
+                    "Error adding variable %s: %s (update also failed: %s)",
+                    variable_name,
+                    str(create_error),
+                    str(update_error),
+                )
+                logger.info("Continuing with other variables...")
 
 
 def add_repository_secrets(github_client, repo_full_name, secrets):
@@ -135,9 +149,24 @@ def add_environment_variables(github_client, repo_full_name, environment_name, v
                 environment_name,
                 repo_full_name,
             )
-        except Exception as e:
-            logger.error("Error adding variable %s: %s", variable_name, str(e))
-            logger.info("Continuing with other variables...")
+        except Exception as create_error:
+            # The variable already exists; update it so re-running setup is idempotent.
+            try:
+                environment.get_variable(variable_name).edit(str(variable_value))
+                logger.info(
+                    "*** Variable %s updated in environment %s in %s.***",
+                    variable_name,
+                    environment_name,
+                    repo_full_name,
+                )
+            except Exception as update_error:
+                logger.error(
+                    "Error adding variable %s: %s (update also failed: %s)",
+                    variable_name,
+                    str(create_error),
+                    str(update_error),
+                )
+                logger.info("Continuing with other variables...")
 
 
 def generate_repository_secrets(user_data, app_id, private_key):
