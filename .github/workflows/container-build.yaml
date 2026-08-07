@@ -11,12 +11,14 @@ on:
     branches:
       - main
       - "development-*"
+      - "release/**"
     tags:
       - "v*.*.*.*"
   pull_request:
     branches:
       - main
       - "development-*"
+      - "release/**"
   workflow_dispatch:
 
 permissions:
@@ -79,7 +81,7 @@ jobs:
           echo "Docker image validation successful"
 
   push:
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
     needs: validate
     runs-on: ubuntu-latest
     permissions:
@@ -123,7 +125,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}
           tags: |
             type=ref,event=tag,enable=${{ startsWith(github.ref, 'refs/tags/') }}
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=release,enable=${{ startsWith(github.ref, 'refs/heads/release/') }}
             type=raw,value=${{ github.sha }}
 
       - name: Build and push Docker image

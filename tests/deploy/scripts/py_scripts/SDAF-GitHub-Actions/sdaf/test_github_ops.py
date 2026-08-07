@@ -80,6 +80,15 @@ class _CallRecorder:
         assert self.call_count == 0
 
 
+class _FakeVariable:
+    """
+    Stand-in for a PyGithub ``Variable`` object.
+    """
+
+    def __init__(self):
+        self.edit = _CallRecorder()
+
+
 class _FakeEnvironment:
     """
     Stand-in for a PyGithub ``Environment`` object.
@@ -88,6 +97,7 @@ class _FakeEnvironment:
     def __init__(self):
         self.create_secret = _CallRecorder()
         self.create_variable = _CallRecorder()
+        self.get_variable = _CallRecorder(return_value=_FakeVariable())
 
 
 class _FakeRepo:
@@ -117,6 +127,7 @@ class _FakeRepo:
             },
         )()
         self.create_variable = _CallRecorder()
+        self.get_variable = _CallRecorder(return_value=_FakeVariable())
         self.create_secret = _CallRecorder()
         self.get_environment = _CallRecorder(return_value=_FakeEnvironment())
 
@@ -278,6 +289,23 @@ class TestGithubOps:
 
         assert repo.create_variable.call_count == 2
 
+    def test_add_repository_variables_updates_existing_variable(self, mocker):
+        """
+        :func:`sdaf.github_ops.add_repository_variables` updates a variable
+        that already exists instead of leaving the stale value in place.
+
+        :param mocker: pytest-mock fixture used to build a fake GitHub
+            client.
+        """
+        client = _FakeGithubClient()
+        repo = client.get_repo.return_value
+        repo.create_variable.side_effect = [Exception("409 Already exists")]
+
+        sdaf.github_ops.add_repository_variables(client, "org/repo", {"KEY": "new-value"})
+
+        repo.get_variable.assert_called_once_with("KEY")
+        repo.get_variable.return_value.edit.assert_called_once_with("new-value")
+
     def test_add_repository_secrets_adds_all_secrets(self, mocker):
         """
         Happy path for :func:`sdaf.github_ops.add_repository_secrets`.
@@ -388,6 +416,24 @@ class TestGithubOps:
         )
 
         assert environment.create_variable.call_count == 2
+
+    def test_add_environment_variables_updates_existing_variable(self, mocker):
+        """
+        :func:`sdaf.github_ops.add_environment_variables` updates a variable
+        that already exists instead of leaving the stale value in place.
+
+        :param mocker: pytest-mock fixture used to build a fake GitHub
+            client.
+        """
+        client = _FakeGithubClient()
+        repo = client.get_repo.return_value
+        environment = repo.get_environment.return_value
+        environment.create_variable.side_effect = [Exception("409 Already exists")]
+
+        sdaf.github_ops.add_environment_variables(client, "org/repo", "MGMT", {"KEY": "new-value"})
+
+        environment.get_variable.assert_called_once_with("KEY")
+        environment.get_variable.return_value.edit.assert_called_once_with("new-value")
 
     def test_generate_repository_secrets_returns_expected_secret_dict(self):
         """

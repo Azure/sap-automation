@@ -188,7 +188,6 @@ variable "azlimits" {
 variable "region_mapping" {
   type        = map(string)
   description = "Region Mapping: Full = Single CHAR, 4-CHAR"
-  # 42 Regions
   default = {
     "australiacentral"   = "auce"
     "australiacentral2"  = "auc2"
@@ -212,6 +211,7 @@ variable "region_mapping" {
     "francecentral"      = "frce"
     "francesouth"        = "frso"
     "germanynorth"       = "geno"
+    "germanywest"        = "gewe"
     "germanywestcentral" = "gewc"
     "indonesiacentral"   = "ince"
     "israelcentral"      = "isce"
@@ -224,11 +224,11 @@ variable "region_mapping" {
     "koreasouth"         = "koso"
     "malaysiawest"       = "mawe"
     "mexicocentral"      = "mece"
+    "newzealandnorth"    = "nzno"
     "northcentralus"     = "ncus"
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
     "norwaywest"         = "nowe"
-    "newzealandnorth"   =  "nzno"
     "polandcentral"      = "plce"
     "qatarcentral"       = "qace"
     "southafricanorth"   = "sano"
@@ -255,7 +255,6 @@ variable "region_mapping" {
     "westus"             = "weus"
     "westus2"            = "wus2"
     "westus3"            = "wus3"
-    "newzealandnorth"    = "nzno"
   }
 }
 
