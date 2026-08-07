@@ -74,7 +74,6 @@ def add_repository_variables(github_client, repo_full_name, variables):
                 repo_full_name,
             )
         except Exception as create_error:
-            # The variable already exists; update it so re-running setup is idempotent.
             try:
                 repo.get_variable(variable_name).edit(str(variable_value))
                 logger.info(
@@ -150,7 +149,6 @@ def add_environment_variables(github_client, repo_full_name, environment_name, v
                 repo_full_name,
             )
         except Exception as create_error:
-            # The variable already exists; update it so re-running setup is idempotent.
             try:
                 environment.get_variable(variable_name).edit(str(variable_value))
                 logger.info(

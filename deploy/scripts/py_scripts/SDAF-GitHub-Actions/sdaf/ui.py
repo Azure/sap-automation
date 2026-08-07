@@ -321,8 +321,6 @@ def get_user_input():
                 identity_show_data = json.loads(identity_show_result.stdout)
                 identity_principal_id = identity_show_data["principalId"]
                 identity_id = identity_show_data["id"]
-                # The region is required later to create the deployer resource group.
-                # Derive it from the existing identity instead of asking again.
                 region_map = identity_show_data.get("location", "")
                 print(f"Successfully retrieved Principal ID: {identity_principal_id}")
             except (json.JSONDecodeError, KeyError):

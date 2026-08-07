@@ -126,8 +126,6 @@ def verify_resource_group(resource_group, subscription_id):
         print(f"Error verifying resource group: {str(e)}")
         return False
 
-    # Report the result outside the try block. A failure to write to the
-    # console must not be caught above and turned into a false negative.
     if exists:
         print(f"[OK] Resource group '{resource_group}' exists in subscription '{subscription_id}'")
     else:

@@ -188,12 +188,6 @@ variable "azlimits" {
 variable "region_mapping" {
   type        = map(string)
   description = "Region Mapping: Full = Single CHAR, 4-CHAR"
-  # 66 regions. Keep this map in sync with the region lookups in
-  # deploy/scripts/deploy_utils.sh, deploy/scripts/pipeline_scripts/helper.sh,
-  # deploy/scripts/pipeline_scripts/v2/shared_functions.sh,
-  # deploy/scripts/pipeline_scripts/v2/shared_functions_v2.sh, and
-  # deploy/scripts/pipeline_scripts/22-sample-deployer-configuration.ps1.
-  # See docs/region-codes.md.
   default = {
     "australiacentral"   = "auce"
     "australiacentral2"  = "auc2"

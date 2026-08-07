@@ -164,8 +164,8 @@ variable "use_private_endpoint"                 {
                                                 }
 
 variable "private_endpoint_network_policies"    {
-                                                  description = "Controls network policy support for private endpoints on workload zone subnets. Must be 'Disabled' when 'use_private_endpoint' is true, otherwise Azure rejects private endpoint creation with 'PrivateEndpointCannotBeCreatedInSubnetThatHasNetworkPoliciesEnabled'."
-                                                  default     = "Disabled"
+                                                  description = "Controls network policy support for private endpoints on workload zone subnets"
+                                                  default     = "Enabled"
                                                   type        = string
                                                   validation {
                                                     condition     = contains(["Disabled", "Enabled", "NetworkSecurityGroupEnabled", "RouteTableEnabled"], var.private_endpoint_network_policies)
