@@ -6,7 +6,7 @@
     { "file": "plan_shape_compute.tftest.hcl", "runs": 17 },
     { "file": "plan_shape_cross_sub.tftest.hcl", "runs": 16 },
     { "file": "validation_inputs.tftest.hcl", "runs": 48 },
-    { "file": "validation_constraints.tftest.hcl", "runs": 49 }
+    { "file": "validation_constraints.tftest.hcl", "runs": 48 }
   ],
-  "total_runs": 176
+  "total_runs": 175
 }
