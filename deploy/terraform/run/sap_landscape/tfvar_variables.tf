@@ -1207,6 +1207,15 @@ variable "utility_storage_accounts"                {
                                                        ])))
                                                        error_message = "Utility blob containers with immutability policies must have unique account and container name pairs."
                                                      }
+                                                     validation {
+                                                       condition = alltrue(flatten([
+                                                         for account in var.utility_storage_accounts : [
+                                                           for container in account.blob_containers :
+                                                           container.immutability_policy == null || account.account_kind != "FileStorage"
+                                                         ]
+                                                       ]))
+                                                       error_message = "Utility blob container immutability policies are not supported on FileStorage accounts; use a StorageV2 account for blob containers."
+                                                     }
                                                    }
 
 variable "patch_mode"                           {

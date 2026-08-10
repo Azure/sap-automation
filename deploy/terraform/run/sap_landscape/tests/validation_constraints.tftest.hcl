@@ -947,3 +947,26 @@ run "utility_container_policy_identity_must_be_unique" {
     var.utility_storage_accounts,
   ]
 }
+
+run "utility_container_policy_rejected_on_file_storage_account" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name         = "utilfile01"
+        account_kind = "FileStorage"
+        blob_containers = [
+          {
+            name                = "archive"
+            immutability_policy = {}
+          },
+        ]
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}

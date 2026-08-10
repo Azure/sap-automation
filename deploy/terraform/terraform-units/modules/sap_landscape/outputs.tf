@@ -802,12 +802,12 @@ output "network_resource_counts"                    {
 output "utility_container_immutability_policy_settings" {
                                                      description = "Resolved utility container immutability policy settings for terraform test diagnostics"
                                                      value = {
-                                                       for policy_key, policy in local.utility_blob_container_immutability_policies : policy_key => {
-                                                         container_index                    = policy.container_index
+                                                       for policy_key, policy in azurerm_storage_container_immutability_policy.utility : policy_key => {
+                                                         container_index                    = local.utility_blob_container_immutability_policies[policy_key].container_index
                                                          immutability_period_in_days         = policy.immutability_period_in_days
                                                          locked                             = policy.locked
-                                                         protected_append_writes_enabled     = policy.protected_append_writes == "append_blobs"
-                                                         protected_append_writes_all_enabled = policy.protected_append_writes == "all"
+                                                         protected_append_writes_enabled     = policy.protected_append_writes_enabled
+                                                         protected_append_writes_all_enabled = policy.protected_append_writes_all_enabled
                                                        }
                                                      }
                                                     }
