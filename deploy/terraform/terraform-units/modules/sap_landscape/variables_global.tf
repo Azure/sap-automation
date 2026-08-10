@@ -268,7 +268,7 @@ variable "vm_settings"                                   {
                                                          }
 
 variable "utility_storage_settings"                      {
-                                                           description = "List of utility storage account configurations normalized from transform.tf. Container immutability policies are optional. A locked policy cannot be unlocked, shortened or deleted: Azure never permits deleting a locked time-based retention policy, and Terraform must destroy the policy before its container and storage account. Locking therefore blocks the normal terraform destroy path for the container, the storage account and the workload zone permanently; waiting for retention to expire does not unblock it. Teardown then requires an out-of-band procedure (empty and delete the container through the control plane once retention has expired, then remove the policy from state)."
+                                                           description = "List of utility storage account configurations normalized from transform.tf."
                                                            type = list(object({
                                                              name                       = string
                                                              account_kind               = string
