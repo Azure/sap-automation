@@ -1123,7 +1123,7 @@ variable "utility_vm_zones"                        {
 #########################################################################################
 
 variable "utility_storage_accounts"                {
-                                                     description = "List of utility storage account configurations for the workload zone. Container immutability policies are optional; locked policies cannot be unlocked or deleted."
+                                                     description = "List of utility storage account configurations for the workload zone. Container immutability policies are optional. A locked policy cannot be unlocked, shortened or deleted, and because Terraform must destroy the policy before its container and storage account, locking also blocks a normal workload zone destroy until every protected blob has passed its retention period."
                                                      type = list(object({
                                                        name                     = optional(string, "")
                                                        account_kind             = optional(string, "FileStorage")
@@ -1179,7 +1179,7 @@ variable "utility_storage_accounts"                {
                                                            )
                                                          ]
                                                        ]))
-                                                       error_message = "A locked utility blob container immutability policy requires allow_irreversible_lock to be true."
+                                                       error_message = "A locked utility blob container immutability policy requires allow_irreversible_lock to be true. Locking is irreversible: the policy cannot be unlocked, shortened or deleted, and it blocks destroying the container, the storage account and the workload zone until every protected blob has passed its retention period."
                                                      }
                                                      validation {
                                                        condition = alltrue(flatten([
