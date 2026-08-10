@@ -15,14 +15,14 @@ The file variables\_local.tf contains the local variables that are required by t
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) | 2.7.0 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_azapi"></a> [azapi](#provider\_azapi) | 2.7.0 |
 | <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.80.0 |
 | <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.80.0 |
@@ -43,7 +43,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [azapi_resource.ams_instance](https://registry.terraform.io/providers/azure/azapi/2.7.0/docs/resources/resource) | resource |
 | [azurerm_app_configuration_key.KeyVaultName](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
 | [azurerm_app_configuration_key.KeyVaultResourceId](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
@@ -233,7 +233,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_NFS_provider"></a> [NFS\_provider](#input\_NFS\_provider) | Describes the NFS solution used | `any` | n/a | yes |
 | <a name="input_additional_users_to_add_to_keyvault_policies"></a> [additional\_users\_to\_add\_to\_keyvault\_policies](#input\_additional\_users\_to\_add\_to\_keyvault\_policies) | Additional users to add to the key vault policies | `any` | n/a | yes |
 | <a name="input_create_transport_storage"></a> [create\_transport\_storage](#input\_create\_transport\_storage) | Boolean file indicating if storage should be created for SAP transport | `any` | n/a | yes |
@@ -279,7 +279,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_ANF_pool_settings"></a> [ANF\_pool\_settings](#output\_ANF\_pool\_settings) | json structure with ANF information |
 | <a name="output_admin_nsg_id"></a> [admin\_nsg\_id](#output\_admin\_nsg\_id) | Azure resource identifier for the admin subnet network security group |
 | <a name="output_admin_subnet_id"></a> [admin\_subnet\_id](#output\_admin\_subnet\_id) | Azure resource identifier for the admin subnet |
