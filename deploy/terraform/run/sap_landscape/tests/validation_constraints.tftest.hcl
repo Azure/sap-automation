@@ -970,3 +970,123 @@ run "utility_container_policy_rejected_on_file_storage_account" {
     var.utility_storage_accounts,
   ]
 }
+
+run "utility_account_version_level_immutability_requires_versioning" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name                       = "utilvlw01"
+        account_kind               = "StorageV2"
+        version_level_immutability = {}
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "utility_account_versioning_rejected_on_file_storage_account" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name               = "utilvlw02"
+        account_kind       = "FileStorage"
+        versioning_enabled = true
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "utility_account_version_level_immutability_rejects_period_below_range" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name               = "utilvlw03"
+        account_kind       = "StorageV2"
+        versioning_enabled = true
+        version_level_immutability = {
+          immutability_period_in_days = 0
+        }
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "utility_account_version_level_immutability_rejects_period_above_range" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name               = "utilvlw04"
+        account_kind       = "StorageV2"
+        versioning_enabled = true
+        version_level_immutability = {
+          immutability_period_in_days = 146001
+        }
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "utility_account_version_level_immutability_rejects_invalid_state" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name               = "utilvlw05"
+        account_kind       = "StorageV2"
+        versioning_enabled = true
+        version_level_immutability = {
+          state = "Enabled"
+        }
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "utility_account_version_level_immutability_locked_requires_acknowledgement" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name               = "utilvlw06"
+        account_kind       = "StorageV2"
+        versioning_enabled = true
+        version_level_immutability = {
+          state = "Locked"
+        }
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}

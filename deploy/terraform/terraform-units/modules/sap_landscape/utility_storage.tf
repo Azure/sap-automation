@@ -124,6 +124,24 @@ resource "azurerm_storage_account" "utility" {
                   bypass                      = ["Metrics", "Logging", "AzureServices"]
                 }
 
+  dynamic "blob_properties" {
+    for_each                                  = var.utility_storage_settings[count.index].versioning_enabled ? [1] : []
+    content {
+      versioning_enabled                      = true
+    }
+  }
+
+  dynamic "immutability_policy" {
+    for_each                                  = var.utility_storage_settings[count.index].version_level_immutability == null ? [] : [
+                                                var.utility_storage_settings[count.index].version_level_immutability
+                                              ]
+    content {
+      state                                   = immutability_policy.value.state
+      period_since_creation_in_days           = immutability_policy.value.immutability_period_in_days
+      allow_protected_append_writes           = immutability_policy.value.allow_protected_append_writes
+    }
+  }
+
   tags                                 = var.tags
 
   lifecycle {

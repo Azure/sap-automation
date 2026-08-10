@@ -1123,7 +1123,7 @@ variable "utility_vm_zones"                        {
 #########################################################################################
 
 variable "utility_storage_accounts"                {
-                                                     description = "List of utility storage account configurations for the workload zone. Container immutability policies are optional. A locked policy cannot be unlocked, shortened or deleted: Azure never permits deleting a locked time-based retention policy, and Terraform must destroy the policy before its container and storage account. Locking therefore blocks the normal terraform destroy path for the container, the storage account and the workload zone permanently; waiting for retention to expire does not unblock it. Teardown then requires an out-of-band procedure (empty and delete the container through the control plane once retention has expired, then remove the policy from state)."
+                                                     description = "List of utility storage account configurations for the workload zone. Container immutability policies are optional. A locked policy cannot be unlocked, shortened or deleted: Azure never permits deleting a locked time-based retention policy, and Terraform must destroy the policy before its container and storage account. Locking therefore blocks the normal terraform destroy path for the container, the storage account and the workload zone permanently; waiting for retention to expire does not unblock it. Teardown then requires an out-of-band procedure (empty and delete the container through the control plane once retention has expired, then remove the policy from state). Account-level version_level_immutability is separate from container immutability and requires versioning_enabled: Azure only accepts it when the storage account is created, so adding it to an account that already exists replaces that account and destroys its data. Set it only on new utility storage accounts. It is also mutually exclusive with point-in-time restore."
                                                      type = list(object({
                                                        name                     = optional(string, "")
                                                        account_kind             = optional(string, "FileStorage")
@@ -1143,6 +1143,13 @@ variable "utility_storage_accounts"                {
                                                            protected_append_writes     = optional(string, "none")
                                                          }), null)
                                                        })), [])
+                                                       versioning_enabled = optional(bool, false)
+                                                       version_level_immutability = optional(object({
+                                                         immutability_period_in_days   = optional(number, 30)
+                                                         state                         = optional(string, "Unlocked")
+                                                         allow_protected_append_writes = optional(bool, false)
+                                                         allow_irreversible_lock       = optional(bool, false)
+                                                       }), null)
                                                      }))
                                                      default     = []
                                                      validation {
@@ -1215,6 +1222,50 @@ variable "utility_storage_accounts"                {
                                                          ]
                                                        ]))
                                                        error_message = "Utility blob container immutability policies are not supported on FileStorage accounts; use a StorageV2 account for blob containers."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue([
+                                                         for account in var.utility_storage_accounts :
+                                                         account.version_level_immutability == null || account.versioning_enabled
+                                                       ])
+                                                       error_message = "A utility storage account with version_level_immutability must also set versioning_enabled to true. Azure requires blob versioning before version-level immutability can be enabled."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue([
+                                                         for account in var.utility_storage_accounts :
+                                                         !account.versioning_enabled || contains(["StorageV2", "BlockBlobStorage"], account.account_kind)
+                                                       ])
+                                                       error_message = "Blob versioning and version-level immutability are only supported on StorageV2 or BlockBlobStorage utility storage accounts; they are not available on FileStorage accounts."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue([
+                                                         for account in var.utility_storage_accounts :
+                                                         account.version_level_immutability == null ? true : (
+                                                           account.version_level_immutability.immutability_period_in_days >= 1 &&
+                                                           account.version_level_immutability.immutability_period_in_days <= 146000
+                                                         )
+                                                       ])
+                                                       error_message = "Each configured utility storage account version-level immutability period must be between 1 and 146000 days."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue([
+                                                         for account in var.utility_storage_accounts :
+                                                         account.version_level_immutability == null ? true : contains(
+                                                           ["Disabled", "Unlocked", "Locked"],
+                                                           account.version_level_immutability.state
+                                                         )
+                                                       ])
+                                                       error_message = "Each configured utility storage account version-level immutability state must be Disabled, Unlocked, or Locked."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue([
+                                                         for account in var.utility_storage_accounts :
+                                                         account.version_level_immutability == null ? true : (
+                                                           account.version_level_immutability.state != "Locked" ||
+                                                           account.version_level_immutability.allow_irreversible_lock
+                                                         )
+                                                       ])
+                                                       error_message = "A Locked utility storage account version-level immutability policy requires allow_irreversible_lock to be true. Locking is irreversible: Azure never permits returning the account policy to Unlocked or Disabled, and the account cannot be deleted until every protected blob version is removed after its retention period."
                                                      }
                                                    }
 

@@ -68,7 +68,7 @@ data "azurerm_key_vault_secret" "client_id" {
   }
 }
 
-ephemeral "azurerm_key_vault_secret" "client_secret" {
+data "azurerm_key_vault_secret" "client_secret" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-secret", local.environment_name)
   key_vault_id                         = local.key_vault.spn.id
@@ -109,7 +109,7 @@ data "azurerm_key_vault_secret" "cp_client_id" {
   }
 }
 
-ephemeral "azurerm_key_vault_secret" "cp_client_secret" {
+data "azurerm_key_vault_secret" "cp_client_secret" {
   count                                = local.retrieve_cp_credentials ? 1 : 0
   name                                 = format("%s-client-secret", local.control_plane_name_resolved)
   key_vault_id                         = local.key_vault.spn.id

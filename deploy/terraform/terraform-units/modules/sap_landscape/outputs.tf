@@ -812,6 +812,18 @@ output "utility_container_immutability_policy_settings" {
                                                      }
                                                     }
 
+output "utility_account_version_level_immutability_settings" {
+                                                     description = "Resolved utility storage account version-level immutability settings for terraform test diagnostics"
+                                                     value = {
+                                                       for account_index, account in azurerm_storage_account.utility : account_index => {
+                                                         versioning_enabled            = length(account.blob_properties) > 0 ? account.blob_properties[0].versioning_enabled : false
+                                                         state                         = length(account.immutability_policy) > 0 ? account.immutability_policy[0].state : null
+                                                         immutability_period_in_days   = length(account.immutability_policy) > 0 ? account.immutability_policy[0].period_since_creation_in_days : null
+                                                         allow_protected_append_writes = length(account.immutability_policy) > 0 ? account.immutability_policy[0].allow_protected_append_writes : null
+                                                       }
+                                                     }
+                                                    }
+
 output "vnet_tags"                                  {
                                                      description = "Tags applied to the created workload VNet, if any"
                                                      value       = try(azurerm_virtual_network.vnet_sap[0].tags, {})
