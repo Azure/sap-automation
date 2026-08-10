@@ -200,6 +200,16 @@ fi
 
 setup_parameters="$new_parameters $qa_parameters"
 
+# The framework authenticates with 'az login --identity'. On an agent that has
+# more than one user assigned identity that call is ambiguous unless a client id
+# is supplied. SDAF already knows which identity the agent uses, so this is
+# derived rather than left to the caller.
+if [ "true" == "${USE_MSI:-false}" ] && [ -n "${ARM_CLIENT_ID:-}" ]; then
+	identity_parameters="-e user_assigned_identity_client_id=${ARM_CLIENT_ID}"
+else
+	identity_parameters=""
+fi
+
 # The execution stage runs the framework's playbook, which loads its own
 # vars/input-api.yaml. It needs two things from the setup stage: the resolved
 # test selection, which is too deeply nested to pass on the command line, and
@@ -207,7 +217,8 @@ setup_parameters="$new_parameters $qa_parameters"
 # to the artifacts subfolder, but the framework writes logs/ and
 # quality_assurance/ relative to it, so it is overridden here. Ansible honours
 # the last -e for a given name and EXTRA_PARAMS is appended after the default.
-execution_parameters="$new_parameters -e _workspace_directory=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
+execution_parameters="$new_parameters $identity_parameters"
+execution_parameters="$execution_parameters -e _workspace_directory=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 execution_parameters="$execution_parameters -e @$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME/artifacts/qa_test_selection.json"
 
 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
