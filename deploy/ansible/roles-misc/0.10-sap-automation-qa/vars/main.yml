@@ -8,34 +8,21 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
-# Location of the Azure/sap-automation-qa clone on the controller.
 sap_automation_qa_repository_url:      "https://github.com/{{ sap_automation_qa_fork }}/sap-automation-qa.git"
 sap_automation_qa_source_directory:    "{{ sap_automation_qa_directory }}/src"
 
-# Ansible collections are installed beside the clone so that the quality
-# assurance run never depends on collections installed for SDAF itself.
 sap_automation_qa_collections_path:    "{{ sap_automation_qa_directory }}/.ansible/collections"
 sap_automation_qa_collection_requirements: "{{ sap_automation_qa_directory }}/collections/requirements.yml"
 
-# Source of truth for the test catalogue, and the filter that turns a test group
-# and an optional test-case list into the variables the QA playbooks consume.
+sap_automation_qa_requirements:        "{{ sap_automation_qa_directory }}/requirements.txt"
+sap_automation_qa_virtualenv:          "{{ sap_automation_qa_directory }}/.venv"
+
 sap_automation_qa_input_api:           "{{ sap_automation_qa_source_directory }}/vars/input-api.yaml"
 sap_automation_qa_filter_script:       "{{ sap_automation_qa_source_directory }}/module_utils/filter_tests.py"
 
-# 05-run-ansible.sh sets _workspace_directory to the artifacts subfolder, but the
-# quality assurance framework expects the SYSTEM configuration folder - that is
-# what its own wrapper passes, and where it writes logs/ and quality_assurance/.
-# The pipeline therefore supplies the SYSTEM folder explicitly; the fallback
-# keeps the role usable when it is run outside the pipeline.
 sap_automation_qa_workspace_directory: "{{ sap_automation_qa_system_directory | default('', true) | ternary(sap_automation_qa_system_directory, _workspace_directory) }}"
 
-# The resolved selection is read by the execution stage through '-e @<file>'.
-# It has to be a file because the catalogue it overrides is a nested structure.
-# Every other override, telemetry included, is a scalar and travels as a plain
-# '-e name=value' through the pipeline 'extra_params' field.
 sap_automation_qa_artifacts_directory: "{{ sap_automation_qa_workspace_directory }}/artifacts"
 sap_automation_qa_selection_file:      "{{ sap_automation_qa_artifacts_directory }}/qa_test_selection.json"
-
-# Results are written by the QA framework to the SYSTEM configuration folder,
-# which is where templates/collect-log-files.yaml already looks for them.
 sap_automation_qa_results_directory:   "{{ sap_automation_qa_workspace_directory }}/quality_assurance"
+sap_automation_qa_logs_directory:      "{{ sap_automation_qa_workspace_directory }}/logs"

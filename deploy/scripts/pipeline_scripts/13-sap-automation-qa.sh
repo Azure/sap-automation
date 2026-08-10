@@ -152,17 +152,8 @@ else
 	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
 fi
 
-# The quality assurance playbooks are executed directly, so this script only has
-# to tell the execution stage which playbook to run and where the framework
-# keeps its modules. Telemetry and any other framework setting is a plain
-# Ansible variable and is supplied through the pipeline 'extra_params' field,
-# for example '-e telemetry_data_destination=azureloganalytics'.
 QA_DIRECTORY="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
 
-# This map mirrors get_playbook_name() in the framework's own
-# scripts/sap_automation_qa.sh. The setup playbook re-resolves the functional
-# test type from the requested test groups and fails the run if the two
-# disagree, so a stale entry here can never silently test the wrong stack.
 if [ "ConfigurationChecks" == "${TEST_TYPE:-}" ]; then
 	qa_playbook="playbook_00_configuration_checks"
 elif [ "true" == "${OFFLINE_MODE:-false}" ] &&
@@ -200,26 +191,19 @@ fi
 
 setup_parameters="$new_parameters $qa_parameters"
 
-# The framework authenticates with 'az login --identity'. On an agent that has
-# more than one user assigned identity that call is ambiguous unless a client id
-# is supplied. SDAF already knows which identity the agent uses, so this is
-# derived rather than left to the caller.
 if [ "true" == "${USE_MSI:-false}" ] && [ -n "${ARM_CLIENT_ID:-}" ]; then
 	identity_parameters="-e user_assigned_identity_client_id=${ARM_CLIENT_ID}"
 else
 	identity_parameters=""
 fi
 
-# The execution stage runs the framework's playbook, which loads its own
-# vars/input-api.yaml. It needs two things from the setup stage: the resolved
-# test selection, which is too deeply nested to pass on the command line, and
-# the SYSTEM configuration folder. 05-run-ansible.sh sets _workspace_directory
-# to the artifacts subfolder, but the framework writes logs/ and
-# quality_assurance/ relative to it, so it is overridden here. Ansible honours
-# the last -e for a given name and EXTRA_PARAMS is appended after the default.
 execution_parameters="$new_parameters $identity_parameters"
 execution_parameters="$execution_parameters -e _workspace_directory=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 execution_parameters="$execution_parameters -e @$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME/artifacts/qa_test_selection.json"
+
+qa_python_version="$(python3 -c 'import sys; print("python%d.%d" % sys.version_info[:2])')"
+qa_python_path="${QA_DIRECTORY}/.venv/lib/${qa_python_version}/site-packages"
+qa_log_path="$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME/logs/execution_$(date +%Y%m%d_%H%M%S).log"
 
 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
 echo "##vso[task.setvariable variable=SAP_PARAMETERS;isOutput=true]sap-parameters.yaml"
@@ -236,6 +220,8 @@ echo "##vso[task.setvariable variable=QA_ANSIBLE_CONFIG;isOutput=true]${QA_DIREC
 echo "##vso[task.setvariable variable=QA_LIBRARY;isOutput=true]${QA_DIRECTORY}/src/modules"
 echo "##vso[task.setvariable variable=QA_MODULE_UTILS;isOutput=true]${QA_DIRECTORY}/src/module_utils"
 echo "##vso[task.setvariable variable=QA_COLLECTIONS;isOutput=true]${QA_DIRECTORY}/.ansible/collections"
+echo "##vso[task.setvariable variable=QA_PYTHON_PATH;isOutput=true]${qa_python_path}"
+echo "##vso[task.setvariable variable=QA_LOG_PATH;isOutput=true]${qa_log_path}"
 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]${control_plane_subscription}"
 
 az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"

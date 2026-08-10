@@ -13,6 +13,7 @@ parameters:
   ansibleConfigPath: ''
   ansibleFilePath: ''
   ansibleLibraryPath: ''
+  ansibleLogPath: ''
   ansibleModuleUtilsPath: ''
   ansibleCollectionsPath: ''
   controlPlaneName: ''
@@ -21,6 +22,7 @@ parameters:
   extraParams: ''
   parametersFolder: ''
   passwordSecretName: ''
+  pythonPath: ''
   sapParams: ''
   secretName: ''
   sidHosts:  ''
@@ -48,6 +50,10 @@ steps:
       ANSIBLE_LIBRARY:               ${{ parameters.ansibleLibraryPath }}
     ${{ if ne(parameters.ansibleModuleUtilsPath, '') }}:
       ANSIBLE_MODULE_UTILS:          ${{ parameters.ansibleModuleUtilsPath }}
+    ${{ if ne(parameters.ansibleLogPath, '') }}:
+      ANSIBLE_LOG_PATH:              ${{ parameters.ansibleLogPath }}
+    ${{ if ne(parameters.pythonPath, '') }}:
+      PYTHONPATH:                    ${{ parameters.pythonPath }}
     ANSIBLE_DISPLAY_SKIPPED_HOSTS:   false
     ANSIBLE_FILE_PATH:               ${{ parameters.ansibleFilePath }}
     ANSIBLE_HOST_KEY_CHECKING:       false
