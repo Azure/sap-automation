@@ -1,0 +1,28 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# --------------------------------------+--------------------------------------8
+#                                                                              |
+# Defines the parameters and variables for the SAP Quality Assurance tests     |
+#                                                                              |
+# --------------------------------------+--------------------------------------8
+
+parameters:
+  environment: ""
+
+variables:
+  - group:                             "SDAF-General"
+
+  - group:                             SDAF-${{ parameters.environment }}
+
+  - name:                              agent_name
+    value:                             $[coalesce(variables['POOL'], variables['AGENT'])]
+
+  - name:                              this_agent
+    value:                             $[lower(coalesce(variables['POOL'], variables['AGENT']))]
+
+  - name:                              variable_group
+    value:                             SDAF-${{ parameters.environment }}
+
+  - name:                              workload_zone_name
+    value:                             ${{ parameters.environment }}

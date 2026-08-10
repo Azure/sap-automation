@@ -1,0 +1,137 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |         Prepare the controller to run the Azure/sap-automation-qa           |
+# |         playbooks directly, without the sap_automation_qa.sh wrapper.       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "SAP Automation QA: - create the framework directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_directory }}"
+    state:                             directory
+    mode:                              "0755"
+    owner:                             "{{ orchestration_ansible_user }}"
+
+# These live inside the configuration repository, which the agent already owns.
+# Creating them as root would change the ownership of tracked content.
+- name:                                "SAP Automation QA: - create the workspace directories"
+  ansible.builtin.file:
+    path:                              "{{ item }}"
+    state:                             directory
+    mode:                              "0755"
+  loop:
+    - "{{ sap_automation_qa_artifacts_directory }}"
+    - "{{ sap_automation_qa_results_directory }}"
+
+# The clone is pinned to a release tag so that a quality assurance release can
+# never change SDAF behaviour without a deliberate version bump.
+- name:                                "SAP Automation QA: - fetch sap-automation-qa {{ sap_automation_qa_version }}"
+  ansible.builtin.git:
+    repo:                              "{{ sap_automation_qa_repository_url }}"
+    dest:                              "{{ sap_automation_qa_directory }}"
+    version:                           "{{ sap_automation_qa_version }}"
+    clone:                             true
+    single_branch:                     false
+    force:                             true
+
+- name:                                "SAP Automation QA: - install ansible collections"
+  ansible.builtin.command:
+    cmd: >-
+      ansible-galaxy collection install
+      -r {{ sap_automation_qa_collection_requirements }}
+      -p {{ sap_automation_qa_collections_path }}
+    chdir:                             "{{ sap_automation_qa_directory }}"
+  register:                            sap_automation_qa_collections
+  changed_when:                        "'Nothing to do' not in sap_automation_qa_collections.stdout"
+
+- name:                                "SAP Automation QA: - assert the test type is supported"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_test_type in ['SAPFunctionalTests', 'ConfigurationChecks']
+    fail_msg: >-
+      TEST_TYPE '{{ sap_automation_qa_test_type }}' is not supported.
+      Use 'SAPFunctionalTests' or 'ConfigurationChecks'.
+
+# filter_tests.py is the only supported way to resolve a test group to a
+# functional test type and to narrow a group to individual test cases. Using it
+# keeps SDAF from carrying a copy of the catalogue that would drift on every
+# quality assurance release.
+- name:                                "SAP Automation QA: - resolve the requested tests"
+  ansible.builtin.command:
+    cmd: >-
+      python3 {{ sap_automation_qa_filter_script }}
+      {{ sap_automation_qa_input_api }}
+      {{ sap_automation_qa_test_groups | default('', true) | ternary(sap_automation_qa_test_groups, 'null') }}
+      {{ sap_automation_qa_test_cases | default('', true) | ternary(sap_automation_qa_test_cases, 'null') }}
+  register:                            sap_automation_qa_selection
+  changed_when:                        false
+  when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
+
+- name:                                "SAP Automation QA: - parse the resolved selection"
+  ansible.builtin.set_fact:
+    sap_automation_qa_selected:        "{{ sap_automation_qa_selection.stdout | from_json }}"
+  when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
+
+# A test group that resolves to no functional test type, or to an empty case
+# list, means the caller mistyped a name. Failing here is far cheaper than
+# failing after the QA playbook has already connected to the cluster.
+- name:                                "SAP Automation QA: - assert the selection is not empty"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_selected.test_groups | default([]) | length > 0
+      - sap_automation_qa_selected.test_groups
+        | map(attribute='test_cases') | flatten | selectattr('enabled', 'equalto', true) | list | length > 0
+    fail_msg: >-
+      No enabled test cases matched test_groups='{{ sap_automation_qa_test_groups }}'
+      and test_cases='{{ sap_automation_qa_test_cases }}'. Check the names against
+      {{ sap_automation_qa_input_api }} in sap-automation-qa {{ sap_automation_qa_version }}.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_test_groups | default('', true) | length > 0
+
+# The pipeline resolved the playbook from SAP_FUNCTIONAL_TEST_TYPE before the
+# clone existed. If --test-groups resolves to a different type the pipeline
+# would run the wrong playbook, so stop instead of testing the wrong stack.
+- name:                                "SAP Automation QA: - assert the resolved type matches the pipeline"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_selected.SAP_FUNCTIONAL_TEST_TYPE == SAP_FUNCTIONAL_TEST_TYPE
+    fail_msg: >-
+      Test group '{{ sap_automation_qa_test_groups }}' resolves to
+      '{{ sap_automation_qa_selected.SAP_FUNCTIONAL_TEST_TYPE }}' but the pipeline selected
+      '{{ SAP_FUNCTIONAL_TEST_TYPE }}'. Set SAP_FUNCTIONAL_TEST_TYPE to match the test group.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_test_groups | default('', true) | length > 0
+    - sap_automation_qa_selected.SAP_FUNCTIONAL_TEST_TYPE is defined
+
+- name:                                "SAP Automation QA: - write the test selection"
+  ansible.builtin.copy:
+    dest:                              "{{ sap_automation_qa_selection_file }}"
+    content:                           "{{ sap_automation_qa_selected | to_nice_json }}"
+    mode:                              "0644"
+  when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
+
+# An unfiltered run must not carry a stale selection from a previous run.
+- name:                                "SAP Automation QA: - write an empty test selection"
+  ansible.builtin.copy:
+    dest:                              "{{ sap_automation_qa_selection_file }}"
+    content:                           "{}\n"
+    mode:                              "0644"
+  when:                                sap_automation_qa_test_type != "SAPFunctionalTests"
+
+- name:                                "SAP Automation QA: - show the prepared run"
+  ansible.builtin.debug:
+    msg:
+      - "framework version:   {{ sap_automation_qa_version }} ({{ sap_automation_qa_fork }})"
+      - "test type:           {{ sap_automation_qa_test_type }}"
+      - "functional type:     {{ SAP_FUNCTIONAL_TEST_TYPE | default('(not applicable)', true) }}"
+      - "test groups:         {{ sap_automation_qa_test_groups | default('(all)', true) }}"
+      - "test cases:          {{ sap_automation_qa_test_cases | default('(all)', true) }}"
+      - "workspace directory: {{ sap_automation_qa_workspace_directory }}"
+      - "results directory:   {{ sap_automation_qa_results_directory }}"
