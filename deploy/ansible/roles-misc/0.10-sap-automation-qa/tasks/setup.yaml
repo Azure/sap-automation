@@ -9,6 +9,11 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
+# A previous installation may have been made by root, in which case git refuses
+# to operate on the tree ("dubious ownership"). Taking ownership fixes the cause
+# rather than masking it with a global git safe.directory exception. The mode is
+# deliberately not recursed, so that file permissions inside the clone are left
+# as the framework ships them.
 - name:                                "SAP Automation QA: - create the framework directory"
   become:                              true
   ansible.builtin.file:
@@ -16,6 +21,14 @@
     state:                             directory
     mode:                              "0755"
     owner:                             "{{ orchestration_ansible_user }}"
+
+- name:                                "SAP Automation QA: - take ownership of the framework directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_directory }}"
+    state:                             directory
+    owner:                             "{{ orchestration_ansible_user }}"
+    recurse:                           true
 
 # These live inside the configuration repository, which the agent already owns.
 # Creating them as root would change the ownership of tracked content.
