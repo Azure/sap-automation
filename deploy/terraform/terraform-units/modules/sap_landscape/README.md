@@ -15,14 +15,14 @@ The file variables\_local.tf contains the local variables that are required by t
 ## Requirements
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) | 2.7.0 |
 | <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
 
 ## Providers
 
 | Name | Version |
-| ---- | ------- |
+|------|---------|
 | <a name="provider_azapi"></a> [azapi](#provider\_azapi) | 2.7.0 |
 | <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.80.0 |
 | <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.80.0 |
@@ -43,7 +43,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-| ---- | ---- |
+|------|------|
 | [azapi_resource.ams_instance](https://registry.terraform.io/providers/azure/azapi/2.7.0/docs/resources/resource) | resource |
 | [azurerm_app_configuration_key.KeyVaultName](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
 | [azurerm_app_configuration_key.KeyVaultResourceId](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
@@ -134,6 +134,7 @@ No modules.
 | [azurerm_storage_blob.tfvars](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.tfvars_state](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_blob) | resource |
 | [azurerm_storage_container.utility](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_container) | resource |
+| [azurerm_storage_container_immutability_policy.utility](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_container_immutability_policy) | resource |
 | [azurerm_storage_share.install](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_share) | resource |
 | [azurerm_storage_share.install_smb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_share) | resource |
 | [azurerm_storage_share.transport](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_share) | resource |
@@ -232,7 +233,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
+|------|-------------|------|---------|:--------:|
 | <a name="input_NFS_provider"></a> [NFS\_provider](#input\_NFS\_provider) | Describes the NFS solution used | `any` | n/a | yes |
 | <a name="input_additional_users_to_add_to_keyvault_policies"></a> [additional\_users\_to\_add\_to\_keyvault\_policies](#input\_additional\_users\_to\_add\_to\_keyvault\_policies) | Additional users to add to the key vault policies | `any` | n/a | yes |
 | <a name="input_create_transport_storage"></a> [create\_transport\_storage](#input\_create\_transport\_storage) | Boolean file indicating if storage should be created for SAP transport | `any` | n/a | yes |
@@ -271,14 +272,14 @@ No modules.
 | <a name="input_use_AFS_for_shared_storage"></a> [use\_AFS\_for\_shared\_storage](#input\_use\_AFS\_for\_shared\_storage) | If true, will use AFS for installation media. | `bool` | `false` | no |
 | <a name="input_use_private_endpoint"></a> [use\_private\_endpoint](#input\_use\_private\_endpoint) | Boolean value indicating if private endpoint should be used for the deployment | `bool` | `false` | no |
 | <a name="input_use_service_endpoint"></a> [use\_service\_endpoint](#input\_use\_service\_endpoint) | Boolean value indicating if service endpoints should be used for the deployment | `bool` | `false` | no |
-| <a name="input_utility_storage_settings"></a> [utility\_storage\_settings](#input\_utility\_storage\_settings) | List of utility storage account configurations (normalized from transform.tf) | <pre>list(object({<br/>                                                             name                       = string<br/>                                                             account_kind               = string<br/>                                                             account_tier               = string<br/>                                                             account_replication_type    = string<br/>                                                             https_traffic_only_enabled = bool<br/>                                                             file_shares = list(object({<br/>                                                               name     = string<br/>                                                               quota    = number<br/>                                                               protocol = string<br/>                                                             }))<br/>                                                             blob_containers = list(object({<br/>                                                               name = string<br/>                                                             }))<br/>                                                           }))</pre> | `[]` | no |
+| <a name="input_utility_storage_settings"></a> [utility\_storage\_settings](#input\_utility\_storage\_settings) | List of utility storage account configurations normalized from transform.tf. Container immutability policies are optional; locked policies cannot be unlocked or deleted. | <pre>list(object({<br/>                                                             name                       = string<br/>                                                             account_kind               = string<br/>                                                             account_tier               = string<br/>                                                             account_replication_type    = string<br/>                                                             https_traffic_only_enabled = bool<br/>                                                             file_shares = list(object({<br/>                                                               name     = string<br/>                                                               quota    = number<br/>                                                               protocol = string<br/>                                                             }))<br/>                                                             blob_containers = list(object({<br/>                                                               name = string<br/>                                                               immutability_policy = optional(object({<br/>                                                                 immutability_period_in_days = optional(number, 30)<br/>                                                                 locked                      = optional(bool, false)<br/>                                                                 allow_irreversible_lock     = optional(bool, false)<br/>                                                                 protected_append_writes     = optional(string, "none")<br/>                                                               }), null)<br/>                                                             }))<br/>                                                           }))</pre> | `[]` | no |
 | <a name="input_vm_settings"></a> [vm\_settings](#input\_vm\_settings) | Details of the jumpbox to deploy | `map` | <pre>{<br/>  "count": 0<br/>}</pre> | no |
 | <a name="input_witness_storage_account"></a> [witness\_storage\_account](#input\_witness\_storage\_account) | Storage account information for witness storage account | `map` | <pre>{<br/>  "arm_id": ""<br/>}</pre> | no |
 
 ## Outputs
 
 | Name | Description |
-| ---- | ----------- |
+|------|-------------|
 | <a name="output_ANF_pool_settings"></a> [ANF\_pool\_settings](#output\_ANF\_pool\_settings) | json structure with ANF information |
 | <a name="output_admin_nsg_id"></a> [admin\_nsg\_id](#output\_admin\_nsg\_id) | Azure resource identifier for the admin subnet network security group |
 | <a name="output_admin_subnet_id"></a> [admin\_subnet\_id](#output\_admin\_subnet\_id) | Azure resource identifier for the admin subnet |
@@ -328,6 +329,7 @@ No modules.
 | <a name="output_subnet_mgmt_id"></a> [subnet\_mgmt\_id](#output\_subnet\_mgmt\_id) | Azure resource identifier for the management subnet |
 | <a name="output_transport_storage_account_id"></a> [transport\_storage\_account\_id](#output\_transport\_storage\_account\_id) | Transport storage account ID |
 | <a name="output_user_credential_vault_id"></a> [user\_credential\_vault\_id](#output\_user\_credential\_vault\_id) | Azure resource identifier for the user credential keyvault |
+| <a name="output_utility_container_immutability_policy_settings"></a> [utility\_container\_immutability\_policy\_settings](#output\_utility\_container\_immutability\_policy\_settings) | Resolved utility container immutability policy settings for terraform test diagnostics |
 | <a name="output_utility_storage_account_ids"></a> [utility\_storage\_account\_ids](#output\_utility\_storage\_account\_ids) | List of utility storage account IDs |
 | <a name="output_utility_storage_account_names"></a> [utility\_storage\_account\_names](#output\_utility\_storage\_account\_names) | List of utility storage account names |
 | <a name="output_utility_vm_computer_names"></a> [utility\_vm\_computer\_names](#output\_utility\_vm\_computer\_names) | Planned utility VM computer names |

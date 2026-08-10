@@ -1123,7 +1123,7 @@ variable "utility_vm_zones"                        {
 #########################################################################################
 
 variable "utility_storage_accounts"                {
-                                                     description = "List of utility storage account configurations for the workload zone"
+                                                     description = "List of utility storage account configurations for the workload zone. Container immutability policies are optional; locked policies cannot be unlocked or deleted."
                                                      type = list(object({
                                                        name                     = optional(string, "")
                                                        account_kind             = optional(string, "FileStorage")
@@ -1136,9 +1136,77 @@ variable "utility_storage_accounts"                {
                                                        })), [])
                                                        blob_containers = optional(list(object({
                                                          name = optional(string, "")
+                                                         immutability_policy = optional(object({
+                                                           immutability_period_in_days = optional(number, 30)
+                                                           locked                      = optional(bool, false)
+                                                           allow_irreversible_lock     = optional(bool, false)
+                                                           protected_append_writes     = optional(string, "none")
+                                                         }), null)
                                                        })), [])
                                                      }))
                                                      default     = []
+                                                     validation {
+                                                       condition = alltrue(flatten([
+                                                         for account in var.utility_storage_accounts : [
+                                                           for container in account.blob_containers :
+                                                           container.immutability_policy == null ? true : (
+                                                             container.immutability_policy.immutability_period_in_days >= 1 &&
+                                                             container.immutability_policy.immutability_period_in_days <= 146000
+                                                           )
+                                                         ]
+                                                       ]))
+                                                       error_message = "Each configured utility blob container immutability period must be between 1 and 146000 days."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue(flatten([
+                                                         for account in var.utility_storage_accounts : [
+                                                           for container in account.blob_containers :
+                                                           container.immutability_policy == null ? true : contains(
+                                                             ["none", "append_blobs", "all"],
+                                                             container.immutability_policy.protected_append_writes
+                                                           )
+                                                         ]
+                                                       ]))
+                                                       error_message = "Each configured utility blob container protected append mode must be none, append_blobs, or all."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue(flatten([
+                                                         for account in var.utility_storage_accounts : [
+                                                           for container in account.blob_containers :
+                                                           container.immutability_policy == null ? true : (
+                                                             !container.immutability_policy.locked ||
+                                                             container.immutability_policy.allow_irreversible_lock
+                                                           )
+                                                         ]
+                                                       ]))
+                                                       error_message = "A locked utility blob container immutability policy requires allow_irreversible_lock to be true."
+                                                     }
+                                                     validation {
+                                                       condition = alltrue(flatten([
+                                                         for account in var.utility_storage_accounts : [
+                                                           for container in account.blob_containers :
+                                                           container.immutability_policy == null ? true : (
+                                                             length(trimspace(account.name)) > 0 &&
+                                                             length(trimspace(container.name)) > 0
+                                                           )
+                                                         ]
+                                                       ]))
+                                                       error_message = "Utility storage accounts and blob containers with an immutability policy must have explicit non-empty names."
+                                                     }
+                                                     validation {
+                                                       condition = length(flatten([
+                                                         for account in var.utility_storage_accounts : [
+                                                           for container in account.blob_containers : "${account.name}/${container.name}"
+                                                           if container.immutability_policy != null
+                                                         ]
+                                                       ])) == length(distinct(flatten([
+                                                         for account in var.utility_storage_accounts : [
+                                                           for container in account.blob_containers : "${account.name}/${container.name}"
+                                                           if container.immutability_policy != null
+                                                         ]
+                                                       ])))
+                                                       error_message = "Utility blob containers with immutability policies must have unique account and container name pairs."
+                                                     }
                                                    }
 
 variable "patch_mode"                           {

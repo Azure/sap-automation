@@ -792,8 +792,23 @@ output "network_resource_counts"                    {
                                                        iscsi_nsg               = length(azurerm_network_security_group.iscsi)
                                                        ams_subnet              = length(azurerm_subnet.ams)
                                                        utility_storage_account = length(azurerm_storage_account.utility)
+                                                       utility_blob_container  = length(azurerm_storage_container.utility)
+                                                       utility_container_immutability_policy = length(azurerm_storage_container_immutability_policy.utility)
                                                        nat_gateway             = length(azurerm_nat_gateway.ng)
                                                        keyvault_private_endpoint = length(azurerm_private_endpoint.kv_user)
+                                                     }
+                                                    }
+
+output "utility_container_immutability_policy_settings" {
+                                                     description = "Resolved utility container immutability policy settings for terraform test diagnostics"
+                                                     value = {
+                                                       for policy_key, policy in local.utility_blob_container_immutability_policies : policy_key => {
+                                                         container_index                    = policy.container_index
+                                                         immutability_period_in_days         = policy.immutability_period_in_days
+                                                         locked                             = policy.locked
+                                                         protected_append_writes_enabled     = policy.protected_append_writes == "append_blobs"
+                                                         protected_append_writes_all_enabled = policy.protected_append_writes == "all"
+                                                       }
                                                      }
                                                     }
 

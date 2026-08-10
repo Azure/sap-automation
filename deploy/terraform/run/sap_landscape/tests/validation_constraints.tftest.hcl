@@ -815,3 +815,135 @@ run "invalid_private_endpoint_network_policies" {
     var.private_endpoint_network_policies,
   ]
 }
+
+run "invalid_utility_container_immutability_period_below_minimum" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name         = "utilsv201"
+        account_kind = "StorageV2"
+        blob_containers = [{
+          name                = "archive"
+          immutability_policy = { immutability_period_in_days = 0 }
+        }]
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "invalid_utility_container_immutability_period_above_maximum" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name         = "utilsv201"
+        account_kind = "StorageV2"
+        blob_containers = [{
+          name                = "archive"
+          immutability_policy = { immutability_period_in_days = 146001 }
+        }]
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "invalid_utility_container_protected_append_mode" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name         = "utilsv201"
+        account_kind = "StorageV2"
+        blob_containers = [{
+          name                = "archive"
+          immutability_policy = { protected_append_writes = "invalid" }
+        }]
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "locked_utility_container_policy_requires_irreversible_acknowledgement" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name         = "utilsv201"
+        account_kind = "StorageV2"
+        blob_containers = [{
+          name = "archive"
+          immutability_policy = {
+            locked = true
+          }
+        }]
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "utility_container_policy_requires_explicit_names" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        account_kind = "StorageV2"
+        blob_containers = [{
+          immutability_policy = {}
+        }]
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
+
+run "utility_container_policy_identity_must_be_unique" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name         = "utilsv201"
+        account_kind = "StorageV2"
+        blob_containers = [
+          {
+            name                = "archive"
+            immutability_policy = {}
+          },
+          {
+            name                = "archive"
+            immutability_policy = {}
+          },
+        ]
+      },
+    ]
+  }
+
+  expect_failures = [
+    var.utility_storage_accounts,
+  ]
+}
