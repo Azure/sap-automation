@@ -29,6 +29,7 @@ configuration and automation assets for the first deployment stage.
 | Use GitHub Actions | [Start with GitHub Actions](deployment-options.md#github-actions) |
 | Use Azure DevOps | [Start with Azure DevOps](deployment-options.md#azure-devops) |
 | Run SDAF directly | [Run SDAF locally](local/README.md) |
+| Validate a deployed SAP system | [Validate a local deployment with quality assurance tests](local/07-10-quality-assurance.md) |
 | Find Terraform samples and SAP BOMs | [`Azure/SAP-automation-samples`](https://github.com/Azure/SAP-automation-samples) |
 
 ## Understand the framework source

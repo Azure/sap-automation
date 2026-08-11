@@ -150,6 +150,8 @@ separate.
    files.
 7. Ansible configures the operating system, database, high availability, and
    SAP application and processes the selected BOM.
+8. The quality assurance framework validates the configured system and writes
+   a report and results log to the SAP-system directory.
 
 > [!IMPORTANT]
 > Terraform state is an operational dependency, not a generated sample.
@@ -187,6 +189,7 @@ both layers.
 | Infrastructure | Azure resources, dependencies, and Terraform outputs | [`deploy/terraform`](../deploy/terraform/) |
 | Configuration | OS, database, HA, SAP software, and application configuration | [`deploy/ansible`](../deploy/ansible/) |
 | Deployment inputs | Environment parameters, optional extensions, SAP definitions, and BOM selection | Configuration and samples repositories |
+| Validation | Configuration checks and SAP functional tests against a deployed system | [`Azure/sap-automation-qa`](https://github.com/Azure/sap-automation-qa), installed by [`roles-misc/0.10-sap-automation-qa`](../deploy/ansible/roles-misc/0.10-sap-automation-qa/) |
 
 ## Availability and deployment patterns
 
