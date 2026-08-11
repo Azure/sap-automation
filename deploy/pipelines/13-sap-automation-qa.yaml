@@ -163,7 +163,6 @@ stages:
               ansibleModuleUtilsPath:             $(Preparation.QA_MODULE_UTILS)
               ansibleCollectionsPath:             $(Preparation.QA_COLLECTIONS)
               ansibleLogPath:                     $(Preparation.QA_LOG_PATH)
-              pythonPath:                         $(Preparation.QA_PYTHON_PATH)
               ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:                $(Preparation.ARM_SUBSCRIPTION_ID)

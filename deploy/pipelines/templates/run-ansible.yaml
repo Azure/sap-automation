@@ -22,7 +22,6 @@ parameters:
   extraParams: ''
   parametersFolder: ''
   passwordSecretName: ''
-  pythonPath: ''
   sapParams: ''
   secretName: ''
   sidHosts:  ''
@@ -52,8 +51,6 @@ steps:
       ANSIBLE_MODULE_UTILS:          ${{ parameters.ansibleModuleUtilsPath }}
     ${{ if ne(parameters.ansibleLogPath, '') }}:
       ANSIBLE_LOG_PATH:              ${{ parameters.ansibleLogPath }}
-    ${{ if ne(parameters.pythonPath, '') }}:
-      PYTHONPATH:                    ${{ parameters.pythonPath }}
     ANSIBLE_DISPLAY_SKIPPED_HOSTS:   false
     ANSIBLE_FILE_PATH:               ${{ parameters.ansibleFilePath }}
     ANSIBLE_HOST_KEY_CHECKING:       false

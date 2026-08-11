@@ -16,6 +16,7 @@ sap_automation_qa_collection_requirements: "{{ sap_automation_qa_directory }}/co
 
 sap_automation_qa_requirements:        "{{ sap_automation_qa_directory }}/requirements.txt"
 sap_automation_qa_virtualenv:          "{{ sap_automation_qa_directory }}/.venv"
+sap_automation_qa_interpreter:         "/usr/bin/python3"
 
 sap_automation_qa_input_api:           "{{ sap_automation_qa_source_directory }}/vars/input-api.yaml"
 sap_automation_qa_filter_script:       "{{ sap_automation_qa_source_directory }}/module_utils/filter_tests.py"

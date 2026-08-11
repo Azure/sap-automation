@@ -201,8 +201,6 @@ execution_parameters="$new_parameters $identity_parameters"
 execution_parameters="$execution_parameters -e _workspace_directory=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 execution_parameters="$execution_parameters -e @$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME/artifacts/qa_test_selection.json"
 
-qa_python_version="$(python3 -c 'import sys; print("python%d.%d" % sys.version_info[:2])')"
-qa_python_path="${QA_DIRECTORY}/.venv/lib/${qa_python_version}/site-packages"
 qa_log_path="$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME/logs/execution_$(date +%Y%m%d_%H%M%S).log"
 
 echo "##vso[task.setvariable variable=SID;isOutput=true]${SID}"
@@ -220,7 +218,6 @@ echo "##vso[task.setvariable variable=QA_ANSIBLE_CONFIG;isOutput=true]${QA_DIREC
 echo "##vso[task.setvariable variable=QA_LIBRARY;isOutput=true]${QA_DIRECTORY}/src/modules"
 echo "##vso[task.setvariable variable=QA_MODULE_UTILS;isOutput=true]${QA_DIRECTORY}/src/module_utils"
 echo "##vso[task.setvariable variable=QA_COLLECTIONS;isOutput=true]${QA_DIRECTORY}/.ansible/collections"
-echo "##vso[task.setvariable variable=QA_PYTHON_PATH;isOutput=true]${qa_python_path}"
 echo "##vso[task.setvariable variable=QA_LOG_PATH;isOutput=true]${qa_log_path}"
 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]${control_plane_subscription}"
 

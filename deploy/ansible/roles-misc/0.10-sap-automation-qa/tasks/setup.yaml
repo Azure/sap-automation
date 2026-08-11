@@ -69,11 +69,25 @@
   register:                            sap_automation_qa_site_packages
   changed_when:                        false
 
-- name:                                "SAP Automation QA: - assert the dependencies resolve"
+- name:                                "SAP Automation QA: - locate the system site packages"
   ansible.builtin.command:
-    cmd:                               python3 -c "import azure.mgmt.loganalytics"
-  environment:
-    PYTHONPATH:                        "{{ sap_automation_qa_site_packages.stdout | trim }}"
+    cmd: >-
+      {{ sap_automation_qa_interpreter }} -c
+      "import sysconfig; print(sysconfig.get_paths()['purelib'])"
+  register:                            sap_automation_qa_system_site_packages
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - publish the packages to the module interpreter"
+  become:                              true
+  ansible.builtin.copy:
+    dest:                              "{{ sap_automation_qa_system_site_packages.stdout | trim }}/sap-automation-qa.pth"
+    content:                           "{{ sap_automation_qa_site_packages.stdout | trim }}\n"
+    mode:                              "0644"
+
+- name:                                "SAP Automation QA: - assert the dependencies resolve"
+  become:                              true
+  ansible.builtin.command:
+    cmd:                               "{{ sap_automation_qa_interpreter }} -c \"import azure.mgmt.loganalytics\""
   changed_when:                        false
 
 - name:                                "SAP Automation QA: - assert the test type is supported"
