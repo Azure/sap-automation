@@ -792,8 +792,35 @@ output "network_resource_counts"                    {
                                                        iscsi_nsg               = length(azurerm_network_security_group.iscsi)
                                                        ams_subnet              = length(azurerm_subnet.ams)
                                                        utility_storage_account = length(azurerm_storage_account.utility)
+                                                       utility_blob_container  = length(azurerm_storage_container.utility)
+                                                       utility_container_immutability_policy = length(azurerm_storage_container_immutability_policy.utility)
                                                        nat_gateway             = length(azurerm_nat_gateway.ng)
                                                        keyvault_private_endpoint = length(azurerm_private_endpoint.kv_user)
+                                                     }
+                                                    }
+
+output "utility_container_immutability_policy_settings" {
+                                                     description = "Resolved utility container immutability policy settings for terraform test diagnostics"
+                                                     value = {
+                                                       for policy_key, policy in azurerm_storage_container_immutability_policy.utility : policy_key => {
+                                                         container_index                    = local.utility_blob_container_immutability_policies[policy_key].container_index
+                                                         immutability_period_in_days         = policy.immutability_period_in_days
+                                                         locked                             = policy.locked
+                                                         protected_append_writes_enabled     = policy.protected_append_writes_enabled
+                                                         protected_append_writes_all_enabled = policy.protected_append_writes_all_enabled
+                                                       }
+                                                     }
+                                                    }
+
+output "utility_account_version_level_immutability_settings" {
+                                                     description = "Resolved utility storage account version-level immutability settings for terraform test diagnostics"
+                                                     value = {
+                                                       for account_index, account in azurerm_storage_account.utility : account_index => {
+                                                         versioning_enabled            = length(account.blob_properties) > 0 ? account.blob_properties[0].versioning_enabled : false
+                                                         state                         = length(account.immutability_policy) > 0 ? account.immutability_policy[0].state : null
+                                                         immutability_period_in_days   = length(account.immutability_policy) > 0 ? account.immutability_policy[0].period_since_creation_in_days : null
+                                                         allow_protected_append_writes = length(account.immutability_policy) > 0 ? account.immutability_policy[0].allow_protected_append_writes : null
+                                                       }
                                                      }
                                                     }
 

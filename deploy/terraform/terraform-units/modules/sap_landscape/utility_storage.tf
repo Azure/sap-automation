@@ -25,11 +25,22 @@ locals {
   utility_blob_containers = flatten([
     for acct_idx, acct in var.utility_storage_settings : [
       for container in acct.blob_containers : {
-        acct_index = acct_idx
-        name       = container.name
+        acct_index          = acct_idx
+        policy_key          = format("%s/%s", acct.name, container.name)
+        name                = container.name
+        immutability_policy = container.immutability_policy
       }
     ]
   ])
+
+  utility_blob_container_immutability_policies = {
+    for container_idx, container in local.utility_blob_containers : container.policy_key => {
+      container_index            = container_idx
+      immutability_period_in_days = container.immutability_policy.immutability_period_in_days
+      locked                      = container.immutability_policy.locked
+      protected_append_writes     = container.immutability_policy.protected_append_writes
+    } if container.immutability_policy != null
+  }
 
   # Account indices that have at least one file share (for file PEs)
   utility_accounts_with_file_shares = [
@@ -53,6 +64,7 @@ resource "azurerm_storage_account" "utility" {
   #checkov:skip=CKV_AZURE_35: public access needed for utility share
   #checkov:skip=CKV2_AZURE_38: soft-delete not required by default
   #checkov:skip=CKV2_AZURE_1: no CMK infra provisioned by default
+  #checkov:skip=CKV_AZURE_36: bypass includes AzureServices, checkov cannot resolve it past the dynamic blocks
   provider                             = azurerm.main
   count                                = length(var.utility_storage_settings)
   depends_on                           = [
@@ -113,6 +125,24 @@ resource "azurerm_storage_account" "utility" {
                   bypass                      = ["Metrics", "Logging", "AzureServices"]
                 }
 
+  dynamic "blob_properties" {
+    for_each                                  = var.utility_storage_settings[count.index].versioning_enabled ? [1] : []
+    content {
+      versioning_enabled                      = true
+    }
+  }
+
+  dynamic "immutability_policy" {
+    for_each                                  = var.utility_storage_settings[count.index].version_level_immutability == null ? [] : [
+                                                var.utility_storage_settings[count.index].version_level_immutability
+                                              ]
+    content {
+      state                                   = immutability_policy.value.state
+      period_since_creation_in_days           = immutability_policy.value.immutability_period_in_days
+      allow_protected_append_writes           = immutability_policy.value.allow_protected_append_writes
+    }
+  }
+
   tags                                 = var.tags
 
   lifecycle {
@@ -153,6 +183,19 @@ resource "azurerm_storage_container" "utility" {
   name                                 = local.utility_blob_containers[count.index].name
   storage_account_id                   = azurerm_storage_account.utility[local.utility_blob_containers[count.index].acct_index].id
   container_access_type                = "private"
+
+}
+
+
+resource "azurerm_storage_container_immutability_policy" "utility" {
+  provider                              = azurerm.main
+  for_each                              = local.utility_blob_container_immutability_policies
+
+  storage_container_resource_manager_id = azurerm_storage_container.utility[each.value.container_index].id
+  immutability_period_in_days            = each.value.immutability_period_in_days
+  locked                                 = each.value.locked
+  protected_append_writes_enabled        = each.value.protected_append_writes == "append_blobs"
+  protected_append_writes_all_enabled    = each.value.protected_append_writes == "all"
 
 }
 
