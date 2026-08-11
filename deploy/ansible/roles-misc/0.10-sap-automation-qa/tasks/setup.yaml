@@ -142,6 +142,19 @@
     sap_automation_qa_selected:        "{{ sap_automation_qa_selection.stdout | from_json }}"
   when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
 
+- name:                                "SAP Automation QA: - assert a test case selection names its test group"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_test_groups | default('', true) | length > 0
+    fail_msg: >-
+      test_cases='{{ sap_automation_qa_test_cases }}' was supplied without a test group.
+      A case-only selection is resolved across every test group, so it can enable a case
+      that the playbook for '{{ SAP_FUNCTIONAL_TEST_TYPE }}' never reads, producing a run
+      with no executed cases. Set the test group that owns the selected cases.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_test_cases | default('', true) | length > 0
+
 - name:                                "SAP Automation QA: - assert the selection is not empty"
   ansible.builtin.assert:
     that:

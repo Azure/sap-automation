@@ -158,9 +158,21 @@ Review the following before you start a run:
 
    ```bash
    TEST_GROUPS="HA_SCS" \
-   TEST_CASES="Manual ASCS Migration" \
+   TEST_CASES="ascs-migration" \
    "$SAP_AUTOMATION_REPO_PATH/deploy/ansible/quality_assurance_menu.sh"
    ```
+
+   `TEST_GROUPS` takes a single exact group name, such as `HA_DB_HANA`,
+   `HA_SCS` or `BACKUP_DB_HANA`. `TEST_CASES` takes a comma-separated list of
+   `task_name` values, such as `ascs-migration`, `resource-migration`,
+   `primary-node-crash` or `block-network`. The framework matches `task_name`,
+   not the display name, so `Manual ASCS Migration` is not a valid value. The
+   authoritative list is `src/vars/input-api.yaml` in the pinned framework.
+
+   Always set `TEST_GROUPS` when you set `TEST_CASES`. A case-only selection is
+   resolved across every group, so it can enable a case that the playbook for
+   the selected functional test type never reads, producing a run with no
+   executed cases.
 
    The preparation playbook fails with the resolved selection when a group or
    case name does not match the framework version in use.

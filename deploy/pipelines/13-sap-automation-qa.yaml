@@ -44,7 +44,7 @@ parameters:
     default:                                      ""
 
   - name:                                         test_cases
-    displayName:                                  "Test case task names to run, comma separated, for example 'ascs-migration' (empty runs the whole group)"
+    displayName:                                  "Test case task names to run, comma separated, for example 'ascs-migration' (empty runs the whole group; requires a test group)"
     type:                                         string
     default:                                      ""
 

@@ -10,16 +10,17 @@ bold_red="\e[1;31m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
+grand_parent_directory="$(dirname "$parent_directory")"
 
 banner_title="SAP Quality Assurance"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
-source "${parent_directory}/deploy_utils.sh"
+source "${grand_parent_directory}/deploy_utils.sh"
 
 #call stack has full script name when using source
 # shellcheck disable=SC1091
-source "${script_directory}/helper.sh"
+source "${parent_directory}/helper.sh"
 
 DEBUG=false
 
@@ -222,7 +223,15 @@ echo "##vso[task.setvariable variable=QA_LOG_PATH;isOutput=true]${qa_log_path}"
 echo "##vso[task.setvariable variable=WORKLOAD_ZONE_NAME;isOutput=true]${workload_prefix}"
 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]${control_plane_subscription}"
 
-az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+workload_key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$workload_key_vault' | project id, name, subscription" --query data[0].id --output tsv)
+workload_key_vault_subscription=$(echo "$workload_key_vault_id" | cut -d '/' -f 3)
+
+if [ -z "$workload_key_vault_subscription" ]; then
+	echo "##[warning]Key Vault subscription not found for vault '$workload_key_vault'; falling back to the control plane subscription."
+	workload_key_vault_subscription=$control_plane_subscription
+fi
+
+az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$workload_key_vault_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 sudo chmod 600 "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.

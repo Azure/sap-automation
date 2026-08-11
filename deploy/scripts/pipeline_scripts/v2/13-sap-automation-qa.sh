@@ -112,15 +112,22 @@ if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 fi
 
 workload_key_vault=""
+workload_key_vault_subscription=""
 
 if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
 	workload_key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
+	workload_key_vault_subscription=$(echo "$key_vault_id" | cut -d'/' -f3)
 fi
 
 if [ -z "$workload_key_vault" ]; then
 	if [ -v KEYVAULT ]; then
 		workload_key_vault=$KEYVAULT
+		# The execution stage runs v2/05-run-ansible.sh, which resolves the key vault
+		# exclusively from Application Configuration and ignores VAULT_NAME. This
+		# fallback therefore only carries the preparation stage.
+		print_banner "$banner_title" "Key Vault resolved from the KEYVAULT variable" "warning" \
+			"Add '${WORKLOAD_ZONE_NAME}_KeyVaultResourceId' to Application Configuration; the execution stage requires it."
 	else
 		exit_error "Key Vault name is not defined." 2
 	fi
@@ -232,7 +239,7 @@ set_output_variable "CP_SUBSCRIPTION" "${control_plane_subscription}"
 set_output_variable "WORKLOAD_ZONE_NAME" "${WORKLOAD_ZONE_NAME}"
 set_output_variable "ARM_SUBSCRIPTION_ID" "${control_plane_subscription}"
 
-az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
+az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "${workload_key_vault_subscription:-$control_plane_subscription}" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 chmod 600 "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
