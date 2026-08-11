@@ -123,6 +123,12 @@ if [ -z $installation_pipeline_id ] ; then
   installation_pipeline_id=$(az pipelines create --name 'Configuration and SAP installation' --branch main --description 'Configures the Operating System and installs the SAP application' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/05-DB-and-SAP-installation.yml --repository $repo_id --repository-type tfsgit --output none)
 fi
 
+pipeline_name='SAP Quality Assurance'
+pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
+if [ -z $pipeline_id ] ; then
+  az pipelines create --name 'SAP Quality Assurance' --branch main --description 'Runs the SAP quality assurance tests and configuration checks' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/13-sap-automation-qa.yml --repository $repo_id --repository-type tfsgit --output none
+fi
+
 pipeline_name='Remove deployments'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $pipeline_id ] ; then

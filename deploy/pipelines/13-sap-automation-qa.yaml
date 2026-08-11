@@ -122,6 +122,7 @@ stages:
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               EXTRA_PARAMETERS:                   $(EXTRA_PARAMETERS)
+              KEYVAULT:                           $(KEYVAULT)
               OFFLINE_MODE:                       ${{ parameters.offline_mode }}
               PIPELINE_EXTRA_PARAMETERS:          ${{ parameters.extra_params }}
               SAP_FUNCTIONAL_TEST_TYPE:           ${{ parameters.sap_functional_test_type }}

@@ -51,6 +51,10 @@ repository provides:
   configuration.
 - Workflows that deploy each infrastructure stage.
 - Workflows for software download, installation, and removal.
+- Workflow `13 - SAP Quality Assurance` runs the SAP quality-assurance
+  functional tests and configuration checks against a deployed SAP system.
+  See [SAP quality assurance](local/07-10-quality-assurance.md) for the test
+  types, prerequisites, and result locations.
 
 > [!WARNING]
 > Do not dispatch workflow `07 - Operating System Configuration and
@@ -86,8 +90,13 @@ variable groups, and agent pools own the deployment process.
 The
 [`Azure/sap-automation-bootstrap`](https://github.com/Azure/sap-automation-bootstrap)
 repository provides wrapper pipelines for control-plane, workload-zone,
-SAP-system, software-download, installation, update, and removal
-operations.
+SAP-system, software-download, installation, quality-assurance, update, and
+removal operations.
+
+Pipeline `13-sap-automation-qa.yml` runs the SAP quality-assurance functional
+tests and configuration checks against a deployed SAP system. See
+[SAP quality assurance](local/07-10-quality-assurance.md) for the test types,
+prerequisites, and result locations.
 
 Azure DevOps does not currently provide verified one-to-one equivalents for
 all GitHub stage-specific configuration-generation workflows. Pipeline

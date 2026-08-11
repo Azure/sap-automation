@@ -594,6 +594,20 @@ $bodyText.pipelines += @{
   authorized = $true
 }
 
+$pipeline_name = 'SAP Quality Assurance'
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+if ($pipeline_id.Length -eq 0) {
+  az pipelines create --name $pipeline_name --branch main --description 'Runs the SAP quality assurance tests and configuration checks' --skip-run --yaml-path "/pipelines/13-sap-automation-qa.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
+  $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+}
+$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+Add-Content -Path $fname -Value $log
+$bodyText.pipelines += @{
+  id         = $pipeline_id
+  authorized = $true
+}
+
 $pipeline_name = 'Remove System or Workload Zone'
 $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
