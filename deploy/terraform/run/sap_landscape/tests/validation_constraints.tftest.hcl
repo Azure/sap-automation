@@ -1070,7 +1070,7 @@ run "utility_account_version_level_immutability_rejects_invalid_state" {
   ]
 }
 
-run "utility_account_version_level_immutability_rejects_locked_state" {
+run "utility_account_version_level_immutability_locked_requires_acknowledgement" {
   command = plan
 
   variables {
