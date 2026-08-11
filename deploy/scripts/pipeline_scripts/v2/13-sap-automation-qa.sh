@@ -29,7 +29,7 @@ LOCATION=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $2}' | xarg
 NETWORK=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $3}' | xargs)
 SID=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $4}' | xargs)
 workload_prefix=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | cut -d'-' -f1-3)
-WORKLOAD_ZONE_NAME="${WORKLOAD_ZONE_NAME:-$workload_prefix}"
+WORKLOAD_ZONE_NAME="$workload_prefix"
 export WORKLOAD_ZONE_NAME
 
 if [ "$PLATFORM" == "devops" ]; then
@@ -229,6 +229,7 @@ set_output_variable "QA_MODULE_UTILS" "${QA_DIRECTORY}/src/module_utils"
 set_output_variable "QA_COLLECTIONS" "${QA_DIRECTORY}/.ansible/collections"
 set_output_variable "QA_LOG_PATH" "${qa_log_path}"
 set_output_variable "CP_SUBSCRIPTION" "${control_plane_subscription}"
+set_output_variable "WORKLOAD_ZONE_NAME" "${WORKLOAD_ZONE_NAME}"
 set_output_variable "ARM_SUBSCRIPTION_ID" "${control_plane_subscription}"
 
 az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"

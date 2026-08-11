@@ -54,7 +54,17 @@
   register:                            sap_automation_qa_collections
   changed_when:                        "'Nothing to do' not in sap_automation_qa_collections.stdout"
 
+- name:                                "SAP Automation QA: - create the root owned dependency directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_dependencies_directory }}"
+    state:                             directory
+    owner:                             root
+    group:                             root
+    mode:                              "0755"
+
 - name:                                "SAP Automation QA: - install the python dependencies"
+  become:                              true
   ansible.builtin.pip:
     requirements:                      "{{ sap_automation_qa_requirements }}"
     virtualenv:                        "{{ sap_automation_qa_virtualenv }}"
@@ -82,7 +92,24 @@
   ansible.builtin.copy:
     dest:                              "{{ sap_automation_qa_system_site_packages.stdout | trim }}/sap-automation-qa.pth"
     content:                           "{{ sap_automation_qa_site_packages.stdout | trim }}\n"
+    owner:                             root
+    group:                             root
     mode:                              "0644"
+
+- name:                                "SAP Automation QA: - assert the published path is not user writable"
+  become:                              true
+  ansible.builtin.command:
+    argv:
+      - find
+      - "{{ sap_automation_qa_site_packages.stdout | trim }}"
+      - -maxdepth
+      - "0"
+      - -not
+      - -user
+      - root
+  register:                            sap_automation_qa_ownership
+  changed_when:                        false
+  failed_when:                         sap_automation_qa_ownership.stdout | length > 0
 
 - name:                                "SAP Automation QA: - assert the dependencies resolve"
   become:                              true
@@ -100,11 +127,12 @@
 
 - name:                                "SAP Automation QA: - resolve the requested tests"
   ansible.builtin.command:
-    cmd: >-
-      python3 {{ sap_automation_qa_filter_script }}
-      {{ sap_automation_qa_input_api }}
-      {{ sap_automation_qa_test_groups | default('', true) | ternary(sap_automation_qa_test_groups, 'null') }}
-      {{ sap_automation_qa_test_cases | default('', true) | ternary(sap_automation_qa_test_cases, 'null') }}
+    argv:
+      - python3
+      - "{{ sap_automation_qa_filter_script }}"
+      - "{{ sap_automation_qa_input_api }}"
+      - "{{ sap_automation_qa_test_groups | default('', true) | ternary(sap_automation_qa_test_groups, 'null') }}"
+      - "{{ sap_automation_qa_test_cases | default('', true) | ternary(sap_automation_qa_test_cases, 'null') }}"
   register:                            sap_automation_qa_selection
   changed_when:                        false
   when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
@@ -126,7 +154,8 @@
       {{ sap_automation_qa_input_api }} in sap-automation-qa {{ sap_automation_qa_version }}.
   when:
     - sap_automation_qa_test_type == "SAPFunctionalTests"
-    - sap_automation_qa_test_groups | default('', true) | length > 0
+    - (sap_automation_qa_test_groups | default('', true) | length > 0) or
+      (sap_automation_qa_test_cases | default('', true) | length > 0)
 
 - name:                                "SAP Automation QA: - assert the resolved type matches the pipeline"
   ansible.builtin.assert:

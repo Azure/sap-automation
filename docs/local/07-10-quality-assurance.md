@@ -80,10 +80,15 @@ For a quality assurance run, identify:
 
 The framework writes results under the SAP-system directory:
 
-- `quality_assurance/` contains the HTML report and the machine-readable
-  results log.
+- `quality_assurance/` contains the HTML report,
+  `<test_group_name>_<test_group_invocation_id>.html`.
+- `logs/<test_group_invocation_id>.log` contains the machine-readable JSONL
+  results that the report is rendered from.
 - `logs/execution_<timestamp>.log` contains the Ansible execution log that the
   report embeds.
+
+Retain the `logs/` files alongside the report. The JSONL results are the only
+machine-readable record of the run.
 
 The menu selection maps to a framework playbook as follows:
 

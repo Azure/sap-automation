@@ -55,6 +55,7 @@ export ANSIBLE_PASSWORD
 
 workspace_directory="$(pwd)"
 qa_directory="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
+orchestration_user="${ORCHESTRATION_ANSIBLE_USER:-${USER:-$(id -un)}}"
 qa_log_path="${workspace_directory}/logs/execution_$(date +%Y%m%d_%H%M%S).log"
 
 export ANSIBLE_HOST_KEY_CHECKING=False
@@ -135,6 +136,7 @@ setup_parameters=(
 	--extra-vars="SAP_FUNCTIONAL_TEST_TYPE=${functional_test_type}"
 	--extra-vars="sap_automation_qa_test_groups=${TEST_GROUPS:-}"
 	--extra-vars="sap_automation_qa_test_cases=${TEST_CASES:-}"
+	--extra-vars="orchestration_ansible_user=${orchestration_user}"
 	"${@}"
 )
 

@@ -53,8 +53,11 @@ repository provides:
 - Workflows for software download, installation, and removal.
 - Workflow `13 - SAP Quality Assurance` runs the SAP quality-assurance
   functional tests and configuration checks against a deployed SAP system.
-  See [SAP quality assurance](local/07-10-quality-assurance.md) for the test
-  types, prerequisites, and result locations.
+  This workflow is proposed in
+  [`Azure/sap-automation-gh-bootstrap#28`](https://github.com/Azure/sap-automation-gh-bootstrap/pull/28)
+  and is not available until that pull request merges. See
+  [SAP quality assurance](local/07-10-quality-assurance.md) for the test types,
+  prerequisites, and result locations.
 
 > [!WARNING]
 > Do not dispatch workflow `07 - Operating System Configuration and

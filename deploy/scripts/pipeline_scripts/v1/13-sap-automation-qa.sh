@@ -219,6 +219,7 @@ echo "##vso[task.setvariable variable=QA_LIBRARY;isOutput=true]${QA_DIRECTORY}/s
 echo "##vso[task.setvariable variable=QA_MODULE_UTILS;isOutput=true]${QA_DIRECTORY}/src/module_utils"
 echo "##vso[task.setvariable variable=QA_COLLECTIONS;isOutput=true]${QA_DIRECTORY}/.ansible/collections"
 echo "##vso[task.setvariable variable=QA_LOG_PATH;isOutput=true]${qa_log_path}"
+echo "##vso[task.setvariable variable=WORKLOAD_ZONE_NAME;isOutput=true]${workload_prefix}"
 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]${control_plane_subscription}"
 
 az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "$control_plane_subscription" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"

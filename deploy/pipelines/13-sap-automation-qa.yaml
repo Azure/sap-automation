@@ -24,10 +24,10 @@ parameters:
   - name:                                         test_type
     displayName:                                  Test type
     type:                                         string
-    default:                                      SAPFunctionalTests
+    default:                                      ConfigurationChecks
     values:
-      - SAPFunctionalTests
       - ConfigurationChecks
+      - SAPFunctionalTests
 
   - name:                                         sap_functional_test_type
     displayName:                                  SAP functional test type
@@ -39,12 +39,12 @@ parameters:
       - AzureBackupDatabase
 
   - name:                                         test_groups
-    displayName:                                  "Test groups to run, comma separated (empty runs the whole test type)"
+    displayName:                                  "Test group to run, a single exact group name (empty runs the whole test type)"
     type:                                         string
     default:                                      ""
 
   - name:                                         test_cases
-    displayName:                                  "Test cases to run, comma separated (empty runs the whole group)"
+    displayName:                                  "Test case task names to run, comma separated, for example 'ascs-migration' (empty runs the whole group)"
     type:                                         string
     default:                                      ""
 
@@ -154,6 +154,8 @@ stages:
               sidHosts:                           $(Preparation.HOSTS)
               userNameSecretName:                 $(Preparation.USERNAME_KEY_NAME)
               vaultName:                          $(Preparation.VAULT_NAME)
+              workloadZoneName:                   $(Preparation.WORKLOAD_ZONE_NAME)
+              controlPlaneName:                   $(CONTROL_PLANE_NAME)
 
           - template:                             templates\run-ansible.yaml
             parameters:
@@ -180,6 +182,8 @@ stages:
               sidHosts:                           $(Preparation.HOSTS)
               userNameSecretName:                 $(Preparation.USERNAME_KEY_NAME)
               vaultName:                          $(Preparation.VAULT_NAME)
+              workloadZoneName:                   $(Preparation.WORKLOAD_ZONE_NAME)
+              controlPlaneName:                   $(CONTROL_PLANE_NAME)
 
           - template:                             templates\collect-log-files.yaml
             parameters:
