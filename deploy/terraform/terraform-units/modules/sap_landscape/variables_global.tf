@@ -294,7 +294,6 @@ variable "utility_storage_settings"                      {
                                                                immutability_period_in_days   = optional(number, 30)
                                                                state                         = optional(string, "Unlocked")
                                                                allow_protected_append_writes = optional(bool, false)
-                                                               allow_irreversible_lock       = optional(bool, false)
                                                              }), null)
                                                            }))
                                                            default = []
@@ -388,21 +387,11 @@ variable "utility_storage_settings"                      {
                                                              condition = alltrue([
                                                                for account in var.utility_storage_settings :
                                                                account.version_level_immutability == null ? true : contains(
-                                                                 ["Disabled", "Unlocked", "Locked"],
+                                                                 ["Disabled", "Unlocked"],
                                                                  account.version_level_immutability.state
                                                                )
                                                              ])
-                                                             error_message = "Each configured utility storage account version-level immutability state must be Disabled, Unlocked, or Locked."
-                                                           }
-                                                           validation {
-                                                             condition = alltrue([
-                                                               for account in var.utility_storage_settings :
-                                                               account.version_level_immutability == null ? true : (
-                                                                 account.version_level_immutability.state != "Locked" ||
-                                                                 account.version_level_immutability.allow_irreversible_lock
-                                                               )
-                                                             ])
-                                                             error_message = "A Locked utility storage account version-level immutability policy requires allow_irreversible_lock to be true. Locking is irreversible: Azure never permits returning the account policy to Unlocked or Disabled, and the account cannot be deleted until every protected blob version is removed after its retention period."
+                                                             error_message = "Each configured utility storage account version-level immutability state must be Disabled or Unlocked."
                                                            }
                                                          }
 
