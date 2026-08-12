@@ -15,14 +15,21 @@
     path:                              "{{ sap_automation_qa_directory }}"
     state:                             directory
     mode:                              "0755"
-    owner:                             "{{ orchestration_ansible_user }}"
+    owner:                             root
+    group:                             root
 
-- name:                                "SAP Automation QA: - take ownership of the framework directory"
+# The framework directory is held root-owned for the whole privileged phase
+# below. The privileged pip installation consumes the dependency manifest from
+# this tree, so allowing orchestration_ansible_user to own it beforehand would
+# let that user substitute a manifest whose build code then runs as root.
+# Ownership is handed over only after the privileged phase completes.
+- name:                                "SAP Automation QA: - hold root ownership for the privileged phase"
   become:                              true
   ansible.builtin.file:
     path:                              "{{ sap_automation_qa_directory }}"
     state:                             directory
-    owner:                             "{{ orchestration_ansible_user }}"
+    owner:                             root
+    group:                             root
     recurse:                           true
 
 - name:                                "SAP Automation QA: - create the workspace directories"
@@ -36,6 +43,7 @@
     - "{{ sap_automation_qa_logs_directory }}"
 
 - name:                                "SAP Automation QA: - fetch sap-automation-qa {{ sap_automation_qa_version }}"
+  become:                              true
   ansible.builtin.git:
     repo:                              "{{ sap_automation_qa_repository_url }}"
     dest:                              "{{ sap_automation_qa_directory }}"
@@ -43,16 +51,6 @@
     clone:                             true
     single_branch:                     false
     force:                             true
-
-- name:                                "SAP Automation QA: - install ansible collections"
-  ansible.builtin.command:
-    cmd: >-
-      ansible-galaxy collection install
-      -r {{ sap_automation_qa_collection_requirements }}
-      -p {{ sap_automation_qa_collections_path }}
-    chdir:                             "{{ sap_automation_qa_directory }}"
-  register:                            sap_automation_qa_collections
-  changed_when:                        "'Nothing to do' not in sap_automation_qa_collections.stdout"
 
 - name:                                "SAP Automation QA: - create the root owned dependency directory"
   become:                              true
@@ -63,6 +61,29 @@
     group:                             root
     mode:                              "0755"
 
+- name:                                "SAP Automation QA: - assert the dependency manifest is root owned"
+  become:                              true
+  ansible.builtin.command:
+    argv:
+      - find
+      - "{{ sap_automation_qa_requirements }}"
+      - -maxdepth
+      - "0"
+      - -not
+      - -user
+      - root
+  register:                            sap_automation_qa_manifest_ownership
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - fail when the dependency manifest is not root owned"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_manifest_ownership.stdout | trim | length == 0
+    fail_msg: >-
+      {{ sap_automation_qa_requirements }} is not owned by root. The privileged
+      dependency installation would execute build code from a manifest that an
+      unprivileged user can modify.
+
 - name:                                "SAP Automation QA: - install the python dependencies"
   become:                              true
   ansible.builtin.pip:
@@ -70,6 +91,24 @@
     virtualenv:                        "{{ sap_automation_qa_virtualenv }}"
     virtualenv_command:                "python3 -m venv"
     extra_args:                        "--require-hashes"
+
+- name:                                "SAP Automation QA: - hand the framework directory to the orchestration user"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_directory }}"
+    state:                             directory
+    owner:                             "{{ orchestration_ansible_user }}"
+    recurse:                           true
+
+- name:                                "SAP Automation QA: - install ansible collections"
+  ansible.builtin.command:
+    cmd: >-
+      ansible-galaxy collection install
+      -r {{ sap_automation_qa_collection_requirements }}
+      -p {{ sap_automation_qa_collections_path }}
+    chdir:                             "{{ sap_automation_qa_directory }}"
+  register:                            sap_automation_qa_collections
+  changed_when:                        "'Nothing to do' not in sap_automation_qa_collections.stdout"
 
 - name:                                "SAP Automation QA: - locate the installed packages"
   ansible.builtin.command:

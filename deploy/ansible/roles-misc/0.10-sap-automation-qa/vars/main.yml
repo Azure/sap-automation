@@ -17,9 +17,11 @@ sap_automation_qa_collection_requirements: "{{ sap_automation_qa_directory }}/co
 sap_automation_qa_requirements:        "{{ sap_automation_qa_directory }}/requirements.txt"
 
 # The dependency environment is deliberately kept outside the framework
-# directory. The framework directory is owned by orchestration_ansible_user so
-# the clone can be updated without elevation, while this environment stays
-# root-owned because it is published to the system interpreter below.
+# directory because it is published to the system interpreter below and must
+# stay root-owned. The framework directory itself is held root-owned for the
+# whole privileged phase of the setup role and is handed to
+# orchestration_ansible_user only after the privileged pip installation has
+# completed, so that user can never supply the manifest that root installs.
 sap_automation_qa_dependencies_directory: "/opt/microsoft/sap_automation_qa_dependencies"
 sap_automation_qa_virtualenv:          "{{ sap_automation_qa_dependencies_directory }}/.venv"
 sap_automation_qa_interpreter:         "/usr/bin/python3"
