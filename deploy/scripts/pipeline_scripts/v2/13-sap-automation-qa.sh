@@ -163,14 +163,15 @@ echo "Test groups:                         ${TEST_GROUPS:-(all)}"
 echo "Test cases:                          ${TEST_CASES:-(all)}"
 echo "Offline mode:                        ${OFFLINE_MODE:-false}"
 
-if [ "${EXTRA_PARAMETERS:-''}" = '$(EXTRA_PARAMETERS)' ]; then
+if [ -z "${EXTRA_PARAMETERS:-}" ] || [ "${EXTRA_PARAMETERS:-}" = '$(EXTRA_PARAMETERS)' ]; then
 	new_parameters="$PIPELINE_EXTRA_PARAMETERS"
 else
-	log_warning "Extra parameters were provided - '${EXTRA_PARAMETERS:-''}'"
-	new_parameters="${EXTRA_PARAMETERS:-''} $PIPELINE_EXTRA_PARAMETERS"
+	log_warning "Extra parameters were provided - '${EXTRA_PARAMETERS}'"
+	new_parameters="${EXTRA_PARAMETERS} $PIPELINE_EXTRA_PARAMETERS"
 fi
 
 QA_DIRECTORY="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
+QA_COLLECTIONS_PATH="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_collections}"
 
 if [ "ConfigurationChecks" == "${TEST_TYPE:-}" ]; then
 	qa_playbook="playbook_00_configuration_checks"
@@ -205,7 +206,12 @@ if [ -n "${TEST_CASES:-}" ]; then
 	qa_parameters="$qa_parameters -e sap_automation_qa_test_cases=${TEST_CASES}"
 fi
 
-setup_parameters="$new_parameters $qa_parameters"
+# The setup playbook runs privileged git and pip operations, so it is given
+# only the parameters this script constructs. Free-form queue time parameters
+# reach the unprivileged execution playbook alone, otherwise anyone able to
+# queue the pipeline could override the framework repository or directory and
+# have their own code run as root on the agent.
+setup_parameters="$qa_parameters"
 
 if [ "true" == "${USE_MSI:-false}" ] && [ -n "${ARM_CLIENT_ID:-}" ]; then
 	identity_parameters="-e user_assigned_identity_client_id=${ARM_CLIENT_ID}"
@@ -233,7 +239,7 @@ set_output_variable "QA_PLAYBOOK_PATH" "${QA_DIRECTORY}/src/${qa_playbook}.yml"
 set_output_variable "QA_ANSIBLE_CONFIG" "${QA_DIRECTORY}/src/ansible.cfg"
 set_output_variable "QA_LIBRARY" "${QA_DIRECTORY}/src/modules"
 set_output_variable "QA_MODULE_UTILS" "${QA_DIRECTORY}/src/module_utils"
-set_output_variable "QA_COLLECTIONS" "${QA_DIRECTORY}/.ansible/collections"
+set_output_variable "QA_COLLECTIONS" "${QA_COLLECTIONS_PATH}"
 set_output_variable "QA_LOG_PATH" "${qa_log_path}"
 set_output_variable "CP_SUBSCRIPTION" "${control_plane_subscription}"
 set_output_variable "WORKLOAD_ZONE_NAME" "${WORKLOAD_ZONE_NAME}"

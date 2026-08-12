@@ -55,6 +55,7 @@ export ANSIBLE_PASSWORD
 
 workspace_directory="$(pwd)"
 qa_directory="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
+qa_collections_path="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_collections}"
 orchestration_user="${ORCHESTRATION_ANSIBLE_USER:-${USER:-$(id -un)}}"
 qa_log_path="${workspace_directory}/logs/execution_$(date +%Y%m%d_%H%M%S).log"
 
@@ -191,7 +192,7 @@ print_banner "Quality Assurance" "Executing '${qa_playbook}.yml'" "info" "Result
 ANSIBLE_CONFIG="${qa_directory}/src/ansible.cfg" \
 	ANSIBLE_LIBRARY="${qa_directory}/src/modules" \
 	ANSIBLE_MODULE_UTILS="${qa_directory}/src/module_utils" \
-	ANSIBLE_COLLECTIONS_PATH="${qa_directory}/.ansible/collections:${HOME}/.ansible/collections:/opt/ansible/collections" \
+	ANSIBLE_COLLECTIONS_PATH="${qa_collections_path}:${HOME}/.ansible/collections:/opt/ansible/collections" \
 	ANSIBLE_LOG_PATH="${qa_log_path}" \
 	${DEBUG:+echo} ansible-playbook \
 	"${execution_parameters[@]}" \

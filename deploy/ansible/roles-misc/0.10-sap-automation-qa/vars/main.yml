@@ -11,18 +11,21 @@
 sap_automation_qa_repository_url:      "https://github.com/{{ sap_automation_qa_fork }}/sap-automation-qa.git"
 sap_automation_qa_source_directory:    "{{ sap_automation_qa_directory }}/src"
 
-sap_automation_qa_collections_path:    "{{ sap_automation_qa_directory }}/.ansible/collections"
+sap_automation_qa_collections_path:    "{{ sap_automation_qa_collections_directory }}"
 sap_automation_qa_collection_requirements: "{{ sap_automation_qa_directory }}/collections/requirements.yml"
 
 sap_automation_qa_requirements:        "{{ sap_automation_qa_directory }}/requirements.txt"
 
 # The dependency environment is deliberately kept outside the framework
 # directory because it is published to the system interpreter below and must
-# stay root-owned. The framework directory itself is held root-owned for the
-# whole privileged phase of the setup role and is handed to
-# orchestration_ansible_user only after the privileged pip installation has
-# completed, so that user can never supply the manifest that root installs.
+# stay root-owned. The framework directory itself stays root-owned permanently:
+# both the privileged checkout and the privileged dependency installation read
+# from it, so no unprivileged user may supply the repository hooks, the
+# repository configuration or the manifest that root acts on. The ansible
+# collections are the one part that the orchestration user must be able to
+# write, so they are installed outside that tree instead.
 sap_automation_qa_dependencies_directory: "/opt/microsoft/sap_automation_qa_dependencies"
+sap_automation_qa_collections_directory: "/opt/microsoft/sap_automation_qa_collections"
 sap_automation_qa_virtualenv:          "{{ sap_automation_qa_dependencies_directory }}/.venv"
 sap_automation_qa_interpreter:         "/usr/bin/python3"
 

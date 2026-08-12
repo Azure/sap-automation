@@ -154,6 +154,7 @@ else
 fi
 
 QA_DIRECTORY="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
+QA_COLLECTIONS_PATH="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_collections}"
 
 if [ "ConfigurationChecks" == "${TEST_TYPE:-}" ]; then
 	qa_playbook="playbook_00_configuration_checks"
@@ -190,7 +191,12 @@ if [ -n "${TEST_CASES:-}" ]; then
 	qa_parameters="$qa_parameters -e sap_automation_qa_test_cases=${TEST_CASES}"
 fi
 
-setup_parameters="$new_parameters $qa_parameters"
+# The setup playbook runs privileged git and pip operations, so it is given
+# only the parameters this script constructs. Free-form queue time parameters
+# reach the unprivileged execution playbook alone, otherwise anyone able to
+# queue the pipeline could override the framework repository or directory and
+# have their own code run as root on the agent.
+setup_parameters="$qa_parameters"
 
 if [ "true" == "${USE_MSI:-false}" ] && [ -n "${ARM_CLIENT_ID:-}" ]; then
 	identity_parameters="-e user_assigned_identity_client_id=${ARM_CLIENT_ID}"
@@ -218,7 +224,7 @@ echo "##vso[task.setvariable variable=QA_PLAYBOOK_PATH;isOutput=true]${QA_DIRECT
 echo "##vso[task.setvariable variable=QA_ANSIBLE_CONFIG;isOutput=true]${QA_DIRECTORY}/src/ansible.cfg"
 echo "##vso[task.setvariable variable=QA_LIBRARY;isOutput=true]${QA_DIRECTORY}/src/modules"
 echo "##vso[task.setvariable variable=QA_MODULE_UTILS;isOutput=true]${QA_DIRECTORY}/src/module_utils"
-echo "##vso[task.setvariable variable=QA_COLLECTIONS;isOutput=true]${QA_DIRECTORY}/.ansible/collections"
+echo "##vso[task.setvariable variable=QA_COLLECTIONS;isOutput=true]${QA_COLLECTIONS_PATH}"
 echo "##vso[task.setvariable variable=QA_LOG_PATH;isOutput=true]${qa_log_path}"
 echo "##vso[task.setvariable variable=WORKLOAD_ZONE_NAME;isOutput=true]${workload_prefix}"
 echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]${control_plane_subscription}"

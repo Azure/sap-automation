@@ -18,19 +18,43 @@
     owner:                             root
     group:                             root
 
-# The framework directory is held root-owned for the whole privileged phase
-# below. The privileged pip installation consumes the dependency manifest from
-# this tree, so allowing orchestration_ansible_user to own it beforehand would
-# let that user substitute a manifest whose build code then runs as root.
-# Ownership is handed over only after the privileged phase completes.
-- name:                                "SAP Automation QA: - hold root ownership for the privileged phase"
+# The framework directory stays root-owned permanently. Both the privileged
+# git checkout and the privileged pip installation read from this tree, so an
+# unprivileged owner could substitute repository hooks, repository level git
+# configuration or a dependency manifest whose build code then runs as root.
+# Restoring ownership would not be enough on its own, because content planted
+# during an earlier run survives a change of owner, so a tree that is not
+# entirely root-owned is discarded and cloned again from scratch.
+- name:                                "SAP Automation QA: - detect a checkout that is not root owned"
+  become:                              true
+  ansible.builtin.command:
+    argv:
+      - find
+      - "{{ sap_automation_qa_directory }}"
+      - -not
+      - -user
+      - root
+      - -print
+      - -quit
+  register:                            sap_automation_qa_tree_ownership
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - discard the untrusted checkout"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_directory }}"
+    state:                             absent
+  when:                                sap_automation_qa_tree_ownership.stdout | trim | length > 0
+
+- name:                                "SAP Automation QA: - recreate the framework directory"
   become:                              true
   ansible.builtin.file:
     path:                              "{{ sap_automation_qa_directory }}"
     state:                             directory
+    mode:                              "0755"
     owner:                             root
     group:                             root
-    recurse:                           true
+  when:                                sap_automation_qa_tree_ownership.stdout | trim | length > 0
 
 - name:                                "SAP Automation QA: - create the workspace directories"
   ansible.builtin.file:
@@ -92,13 +116,16 @@
     virtualenv_command:                "python3 -m venv"
     extra_args:                        "--require-hashes"
 
-- name:                                "SAP Automation QA: - hand the framework directory to the orchestration user"
+# The collections are the only part of the framework that has to be writable
+# by the orchestration user, so they live outside the root-owned checkout
+# instead of forcing that checkout to be handed over.
+- name:                                "SAP Automation QA: - create the collections directory"
   become:                              true
   ansible.builtin.file:
-    path:                              "{{ sap_automation_qa_directory }}"
+    path:                              "{{ sap_automation_qa_collections_path }}"
     state:                             directory
     owner:                             "{{ orchestration_ansible_user }}"
-    recurse:                           true
+    mode:                              "0755"
 
 - name:                                "SAP Automation QA: - install ansible collections"
   ansible.builtin.command:
