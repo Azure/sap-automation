@@ -27,7 +27,7 @@ function showhelp {
 	echo "#                                                                                       #"
 	echo "#   [REPO-ROOT]deploy/scripts/sync_deployer.sh \                                        #"
 	echo "#      --storageaccountname mgmtweeutfstate### \                                        #"
-	echo "#      --state_subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx                        #"
+	echo "#      --subscription xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx                              #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 }
