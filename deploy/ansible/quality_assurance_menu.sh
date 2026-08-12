@@ -59,6 +59,14 @@ qa_collections_path="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_col
 orchestration_user="${ORCHESTRATION_ANSIBLE_USER:-${USER:-$(id -un)}}"
 qa_log_path="${workspace_directory}/logs/execution_$(date +%Y%m%d_%H%M%S).log"
 
+# The private key retrieved below must not survive this script, including when
+# it is interrupted, so the removal is registered before the key can exist
+# rather than only on the explicitly handled return paths.
+remove_ssh_key() {
+	rm -f -- "${workspace_directory}/sshkey"
+}
+trap remove_ssh_key EXIT INT TERM
+
 export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_INVENTORY="${sap_sid%$'\r'}_hosts.yaml"
 export ANSIBLE_PRIVATE_KEY_FILE=sshkey

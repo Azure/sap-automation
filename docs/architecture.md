@@ -150,8 +150,9 @@ separate.
    files.
 7. Ansible configures the operating system, database, high availability, and
    SAP application and processes the selected BOM.
-8. The quality assurance framework validates the configured system and writes
-   a report and results log to the SAP-system directory.
+8. The quality assurance framework optionally validates the configured system
+   when an operator selects it, and writes a report and results log to the
+   SAP-system directory.
 
 > [!IMPORTANT]
 > Terraform state is an operational dependency, not a generated sample.

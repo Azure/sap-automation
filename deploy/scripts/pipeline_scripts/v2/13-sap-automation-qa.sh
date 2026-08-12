@@ -163,12 +163,30 @@ echo "Test groups:                         ${TEST_GROUPS:-(all)}"
 echo "Test cases:                          ${TEST_CASES:-(all)}"
 echo "Offline mode:                        ${OFFLINE_MODE:-false}"
 
+# The downstream runner splices these free-form values into a command string
+# that it executes with eval, so shell metacharacters here would run as
+# commands on the agent rather than being passed to ansible-playbook. Only
+# ansible extra-variable syntax is accepted. This is validated after the
+# unexpanded Azure DevOps token has been discarded below, because that token
+# legitimately contains parentheses.
+validate_extra_parameters() {
+	local value="$1"
+
+	case "$value" in
+	*[\;\|\&\`\$\<\>\(\)\{\}\!]* | *$'\n'*)
+		exit_error "The extra parameters contain shell metacharacters and were rejected. Pass ansible extra variables only, for example -e key=value." 2
+		;;
+	esac
+}
+
 if [ -z "${EXTRA_PARAMETERS:-}" ] || [ "${EXTRA_PARAMETERS:-}" = '$(EXTRA_PARAMETERS)' ]; then
 	new_parameters="$PIPELINE_EXTRA_PARAMETERS"
 else
 	log_warning "Extra parameters were provided - '${EXTRA_PARAMETERS}'"
 	new_parameters="${EXTRA_PARAMETERS} $PIPELINE_EXTRA_PARAMETERS"
 fi
+
+validate_extra_parameters "$new_parameters"
 
 QA_DIRECTORY="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
 QA_COLLECTIONS_PATH="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_collections}"
@@ -245,8 +263,6 @@ set_output_variable "CP_SUBSCRIPTION" "${control_plane_subscription}"
 set_output_variable "WORKLOAD_ZONE_NAME" "${WORKLOAD_ZONE_NAME}"
 set_output_variable "ARM_SUBSCRIPTION_ID" "${control_plane_subscription}"
 
-az keyvault secret show --name "${workload_prefix}-sid-sshkey" --vault-name "$workload_key_vault" --subscription "${workload_key_vault_subscription:-$control_plane_subscription}" --query value -o tsv >"artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
-chmod 600 "artifacts/${SAP_SYSTEM_CONFIGURATION_NAME}_sshkey"
 cp sap-parameters.yaml artifacts/.
 cp "${SID}_hosts.yaml" artifacts/.
 
