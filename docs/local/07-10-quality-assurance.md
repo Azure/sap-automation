@@ -18,7 +18,12 @@ Confirm the following:
   `<SAP_SID>_hosts.yaml` inventory.
 - You are signed in to Azure with `az login` and can read the workload-zone
   Key Vault that holds the SAP-system SSH key and password.
-- The execution host can reach every host in the inventory over SSH.
+- The execution host can reach every host in the inventory over SSH. The
+  wrapper connects as the deployment administrator, read from the
+  `<prefix>-sid-username` secret in the workload-zone Key Vault, which is not
+  necessarily the account you are running as. If that secret is missing, the
+  wrapper warns and falls back to the local account; set `ANSIBLE_REMOTE_USER`
+  to override.
 - The execution host can reach `https://github.com`. The setup role clones and
   updates the quality assurance framework on every run, so it contacts the
   remote even when the framework is already present locally.

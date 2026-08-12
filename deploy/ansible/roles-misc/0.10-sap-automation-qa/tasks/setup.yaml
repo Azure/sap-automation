@@ -260,11 +260,23 @@
     - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
 
 # The offline test cases read cluster information that was captured earlier,
-# from <workspace>/offline_validation/<hostname>/cib. When that data is absent
-# the framework finds no files, skips the validation, reports that it was not
-# run and still ends successfully, so an offline run with nothing to validate
-# looks the same as one that passed. The data is required, so its absence is
-# treated as an error here rather than as an empty run.
+# from <workspace>/offline_validation/<hostname>/cib. When no file matches a
+# host of the layer under test the framework finds nothing to do, skips the
+# validation, reports that it was not run and still ends successfully, so an
+# offline run with nothing to validate looks the same as one that passed. The
+# hosts are resolved the same way the framework resolves them, from the
+# inventory groups, so that a capture belonging to an unrelated or retired host
+# cannot satisfy this check.
+- name:                                "SAP Automation QA: - resolve the hosts under test"
+  ansible.builtin.set_fact:
+    sap_automation_qa_offline_hosts:   "{{ groups | default({}) | dict2items
+                                        | selectattr('key', 'match', sap_automation_qa_offline_host_pattern)
+                                        | map(attribute='value') | flatten | unique }}"
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
 - name:                                "SAP Automation QA: - find the captured cluster information"
   ansible.builtin.find:
     paths:                             "{{ sap_automation_qa_offline_validation_directory }}"
@@ -276,16 +288,32 @@
     - sap_automation_qa_offline_mode | default(false) | bool
     - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
 
+- name:                                "SAP Automation QA: - select the captures belonging to the hosts under test"
+  ansible.builtin.set_fact:
+    sap_automation_qa_matched_cib:     "{{ sap_automation_qa_captured_cib.files | default([])
+                                        | selectattr('path', 'match', '.*offline_validation/('
+                                          + (sap_automation_qa_offline_hosts | join('|')) + ')/cib$')
+                                        | map(attribute='path') | list }}"
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+    - sap_automation_qa_offline_hosts | default([]) | length > 0
+
 - name:                                "SAP Automation QA: - assert the captured cluster information is present"
   ansible.builtin.assert:
     that:
-      - sap_automation_qa_captured_cib.files | default([]) | length > 0
+      - sap_automation_qa_offline_hosts | default([]) | length > 0
+      - sap_automation_qa_matched_cib | default([]) | length > 0
     fail_msg: >-
-      Offline mode validates cluster information that was captured beforehand, but no
-      'cib' file was found under {{ sap_automation_qa_offline_validation_directory }}.
-      The framework would report that validation was not run and still finish
-      successfully, so the run is stopped instead. Capture the information first, one
-      directory per host named after the inventory host name, each holding a file named
+      Offline mode validates cluster information that was captured beforehand, and the
+      framework reads only the captures belonging to the hosts under test, resolved from
+      the inventory groups matching '{{ sap_automation_qa_offline_host_pattern }}'.
+      Hosts under test: {{ sap_automation_qa_offline_hosts | default([]) | join(', ') | default('none', true) }}.
+      Captures found: {{ sap_automation_qa_captured_cib.files | default([]) | map(attribute='path') | join(', ') | default('none', true) }}.
+      None of them match, so the framework would report that validation was not run and
+      still finish successfully. Capture the information first, one directory per host
+      named exactly as the host appears in the inventory, each holding a file named
       'cib', for example
       {{ sap_automation_qa_offline_validation_directory }}/<hostname>/cib.
   when:

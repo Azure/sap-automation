@@ -42,3 +42,7 @@ sap_automation_qa_logs_directory:      "{{ sap_automation_qa_workspace_directory
 # The offline test cases read cluster information captured earlier, one
 # directory per inventory host, each holding a file named 'cib'.
 sap_automation_qa_offline_validation_directory: "{{ sap_automation_qa_workspace_directory }}/offline_validation"
+
+# The framework reads only the hosts of the layer under test, resolved from the
+# inventory group names. These patterns mirror the ones it applies itself.
+sap_automation_qa_offline_host_pattern: "{{ '.*_DB$' if SAP_FUNCTIONAL_TEST_TYPE == 'DatabaseHighAvailability' else '.*_(SCS|ERS)$' }}"

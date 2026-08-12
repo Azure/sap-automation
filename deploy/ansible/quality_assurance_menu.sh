@@ -53,6 +53,18 @@ password_secret_name=$prefix-sid-password
 ANSIBLE_PASSWORD=$(az keyvault secret show --vault-name "${workload_vault_name}" --name "${password_secret_name}" --query value --output tsv)
 export ANSIBLE_PASSWORD
 
+# The inventory hosts accept the deployment administrator, which is not
+# necessarily the account running this wrapper. The pipeline reads the same
+# secret for the same reason. The local account is used only as a last resort,
+# so that a host whose vault predates this secret still works.
+username_secret_name=$prefix-sid-username
+remote_user=$(az keyvault secret show --vault-name "${workload_vault_name}" --name "${username_secret_name}" --query value --output tsv 2>/dev/null)
+if [ -z "${remote_user}" ]; then
+	remote_user="${ANSIBLE_REMOTE_USER:-${USER:-$(id -un)}}"
+	print_banner "Quality Assurance" "Secret '${username_secret_name}' not found in '${workload_vault_name}'" "warning" \
+		"Connecting as '${remote_user}'. Set ANSIBLE_REMOTE_USER if the inventory hosts expect a different account."
+fi
+
 workspace_directory="$(pwd)"
 qa_directory="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
 qa_collections_path="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_collections}"
@@ -70,7 +82,7 @@ trap remove_ssh_key EXIT INT TERM
 export ANSIBLE_HOST_KEY_CHECKING=False
 export ANSIBLE_INVENTORY="${sap_sid%$'\r'}_hosts.yaml"
 export ANSIBLE_PRIVATE_KEY_FILE=sshkey
-export ANSIBLE_REMOTE_USER=$USER
+export ANSIBLE_REMOTE_USER=$remote_user
 export ANSIBLE_PYTHON_INTERPRETER=auto_silent
 export ANSIBLE_DISPLAY_SKIPPED_HOSTS=false
 

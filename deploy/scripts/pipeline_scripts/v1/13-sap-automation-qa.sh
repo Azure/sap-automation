@@ -153,7 +153,7 @@ echo "Offline mode:                        ${OFFLINE_MODE:-false}"
 # -e key=value arguments is accepted. This is validated after the unexpanded
 # Azure DevOps token has been discarded below, because that token legitimately
 # contains parentheses.
-qa_extra_parameters_pattern='^([[:space:]]*-e[[:space:]]+[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.,:/@+-]*)*[[:space:]]*$'
+qa_extra_parameters_pattern='^([[:blank:]]*-e[[:blank:]]+[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.,:/@+-]*)*[[:blank:]]*$'
 
 validate_extra_parameters() {
 	local description="$1"
