@@ -125,6 +125,7 @@ stages:
               KEYVAULT:                           $(KEYVAULT)
               OFFLINE_MODE:                       ${{ parameters.offline_mode }}
               PIPELINE_EXTRA_PARAMETERS:          ${{ parameters.extra_params }}
+              QA_IDENTITY_CLIENT_ID:              $(QA_IDENTITY_CLIENT_ID)
               SAP_FUNCTIONAL_TEST_TYPE:           ${{ parameters.sap_functional_test_type }}
               SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)

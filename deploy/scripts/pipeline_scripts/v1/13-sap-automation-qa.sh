@@ -178,9 +178,19 @@ validate_extra_parameters "extra parameters" "$new_parameters"
 QA_DIRECTORY="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
 QA_COLLECTIONS_PATH="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_collections}"
 
+# Azure DevOps renders a boolean template parameter as 'True' or 'False', while
+# a GitHub workflow input arrives lowercase. Normalise once here rather than
+# comparing at each use, because getting this wrong selects the disruptive
+# online playbook when the operator asked for the offline one.
+offline_mode="$(echo "${OFFLINE_MODE:-false}" | tr '[:upper:]' '[:lower:]')"
+case "$offline_mode" in
+true) offline_mode="true" ;;
+*) offline_mode="false" ;;
+esac
+
 if [ "ConfigurationChecks" == "${TEST_TYPE:-}" ]; then
 	qa_playbook="playbook_00_configuration_checks"
-elif [ "true" == "${OFFLINE_MODE:-false}" ] &&
+elif [ "true" == "$offline_mode" ] &&
 	{ [ "DatabaseHighAvailability" == "${SAP_FUNCTIONAL_TEST_TYPE:-}" ] ||
 		[ "CentralServicesHighAvailability" == "${SAP_FUNCTIONAL_TEST_TYPE:-}" ]; }; then
 	qa_playbook="playbook_01_ha_offline_tests"
@@ -203,7 +213,7 @@ qa_parameters="-e sap_automation_qa_test_type=${TEST_TYPE:-SAPFunctionalTests}"
 qa_parameters="$qa_parameters -e sap_automation_qa_directory=${QA_DIRECTORY}"
 qa_parameters="$qa_parameters -e sap_automation_qa_system_directory=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
 
-qa_parameters="$qa_parameters -e sap_automation_qa_offline_mode=${OFFLINE_MODE:-false}"
+qa_parameters="$qa_parameters -e sap_automation_qa_offline_mode=${offline_mode}"
 
 if [ -n "${SAP_FUNCTIONAL_TEST_TYPE:-}" ]; then
 	qa_parameters="$qa_parameters -e SAP_FUNCTIONAL_TEST_TYPE=${SAP_FUNCTIONAL_TEST_TYPE}"
@@ -228,11 +238,20 @@ validate_extra_parameters "quality assurance parameters" "$qa_parameters"
 # have their own code run as root on the agent.
 setup_parameters="$qa_parameters"
 
-if [ "true" == "${USE_MSI:-false}" ] && [ -n "${ARM_CLIENT_ID:-}" ]; then
+# The framework authenticates with a managed identity regardless of how the
+# pipeline itself authenticates, so the identity has to be selectable in
+# service principal mode too. ARM_CLIENT_ID cannot serve that purpose there,
+# because in service principal mode it holds the application id rather than a
+# managed identity client id, so a dedicated value is used when one is given.
+if [ -n "${QA_IDENTITY_CLIENT_ID:-}" ] && [ "${QA_IDENTITY_CLIENT_ID:-}" != '$(QA_IDENTITY_CLIENT_ID)' ]; then
+	identity_parameters="-e user_assigned_identity_client_id=${QA_IDENTITY_CLIENT_ID}"
+elif [ "true" == "${USE_MSI:-false}" ] && [ -n "${ARM_CLIENT_ID:-}" ]; then
 	identity_parameters="-e user_assigned_identity_client_id=${ARM_CLIENT_ID}"
 else
 	identity_parameters=""
 fi
+
+validate_extra_parameters "quality assurance identity parameters" "$identity_parameters"
 
 execution_parameters="$new_parameters $identity_parameters"
 execution_parameters="$execution_parameters -e _workspace_directory=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
