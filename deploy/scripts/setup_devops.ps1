@@ -603,12 +603,14 @@ if ($pipeline_id.Length -eq 0) {
     Write-Warning "Could not create the '$pipeline_name' pipeline. This definition needs /pipelines/13-sap-automation-qa.yml in the configuration repository. Update the configuration repository and rerun this script to add the pipeline."
   }
 }
-$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
-$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $fname -Value $log
-$bodyText.pipelines += @{
-  id         = $pipeline_id
-  authorized = $true
+if ($pipeline_id.Length -gt 0) {
+  $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+  $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+  Add-Content -Path $fname -Value $log
+  $bodyText.pipelines += @{
+    id         = $pipeline_id
+    authorized = $true
+  }
 }
 
 $pipeline_name = 'Remove System or Workload Zone'

@@ -156,11 +156,12 @@ echo "Offline mode:                        ${OFFLINE_MODE:-false}"
 qa_extra_parameters_pattern='^([[:space:]]*-e[[:space:]]+[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.,:/@+-]*)*[[:space:]]*$'
 
 validate_extra_parameters() {
-	local value="$1"
+	local description="$1"
+	local value="$2"
 
 	if ! [[ "$value" =~ $qa_extra_parameters_pattern ]]; then
-		echo -e "$bold_red--- Rejected extra parameters ---$reset"
-		echo "##vso[task.logissue type=error]The extra parameters must be a sequence of '-e key=value' arguments. Quoting, shell metacharacters and positional arguments such as playbook paths are not accepted."
+		echo -e "$bold_red--- Rejected $description ---$reset"
+		echo "##vso[task.logissue type=error]The $description must be a sequence of '-e key=value' arguments. Quoting, shell metacharacters and positional arguments such as playbook paths are not accepted."
 		exit 2
 	fi
 }
@@ -172,7 +173,7 @@ else
 	new_parameters="$EXTRA_PARAMETERS $PIPELINE_EXTRA_PARAMETERS"
 fi
 
-validate_extra_parameters "$new_parameters"
+validate_extra_parameters "extra parameters" "$new_parameters"
 
 QA_DIRECTORY="${QA_DIRECTORY:-/opt/microsoft/sap_automation_qa}"
 QA_COLLECTIONS_PATH="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_collections}"
@@ -213,6 +214,12 @@ fi
 if [ -n "${TEST_CASES:-}" ]; then
 	qa_parameters="$qa_parameters -e sap_automation_qa_test_cases=${TEST_CASES}"
 fi
+
+# The test type, test group and test case values are queue time inputs as well,
+# so the completed string is validated too. It is published as NEW_PARAMETERS
+# and reaches the privileged setup play, where the runner interpolates it into
+# an eval command.
+validate_extra_parameters "quality assurance parameters" "$qa_parameters"
 
 # The setup playbook runs privileged git and pip operations, so it is given
 # only the parameters this script constructs. Free-form queue time parameters

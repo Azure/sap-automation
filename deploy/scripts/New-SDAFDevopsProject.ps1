@@ -1000,11 +1000,13 @@ if ($pipeline_id.Length -eq 0) {
               -ForegroundColor Yellow
 }
 
-$pipelines.Add($pipeline_id)
+if ($pipeline_id.Length -gt 0) {
+  $pipelines.Add($pipeline_id)
 
-$this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
-$log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
-Add-Content -Path $wikiFileName -Value $log
+  $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+  $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+  Add-Content -Path $wikiFileName -Value $log
+}
 
 # Pipeline: Remove System or Workload Zone
 #-------------------------------------------------------------------------------
