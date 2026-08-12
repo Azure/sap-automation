@@ -164,19 +164,20 @@ echo "Test cases:                          ${TEST_CASES:-(all)}"
 echo "Offline mode:                        ${OFFLINE_MODE:-false}"
 
 # The downstream runner splices these free-form values into a command string
-# that it executes with eval, so shell metacharacters here would run as
-# commands on the agent rather than being passed to ansible-playbook. Only
-# ansible extra-variable syntax is accepted. This is validated after the
-# unexpanded Azure DevOps token has been discarded below, because that token
-# legitimately contains parentheses.
+# that it executes with eval, so anything other than ansible extra variables
+# would be interpreted by the shell, and a bare path would be taken by
+# ansible-playbook as an additional playbook to run. Only a sequence of
+# -e key=value arguments is accepted. This is validated after the unexpanded
+# Azure DevOps token has been discarded below, because that token legitimately
+# contains parentheses.
+qa_extra_parameters_pattern='^([[:space:]]*-e[[:space:]]+[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.,:/@+-]*)*[[:space:]]*$'
+
 validate_extra_parameters() {
 	local value="$1"
 
-	case "$value" in
-	*[\;\|\&\`\$\<\>\(\)\{\}\!]* | *$'\n'*)
-		exit_error "The extra parameters contain shell metacharacters and were rejected. Pass ansible extra variables only, for example -e key=value." 2
-		;;
-	esac
+	if ! [[ "$value" =~ $qa_extra_parameters_pattern ]]; then
+		exit_error "The extra parameters must be a sequence of '-e key=value' arguments. Quoting, shell metacharacters and positional arguments such as playbook paths are not accepted." 2
+	fi
 }
 
 if [ -z "${EXTRA_PARAMETERS:-}" ] || [ "${EXTRA_PARAMETERS:-}" = '$(EXTRA_PARAMETERS)' ]; then
@@ -213,6 +214,8 @@ echo "Quality assurance playbook:          ${qa_playbook}.yml"
 qa_parameters="-e sap_automation_qa_test_type=${TEST_TYPE:-SAPFunctionalTests}"
 qa_parameters="$qa_parameters -e sap_automation_qa_directory=${QA_DIRECTORY}"
 qa_parameters="$qa_parameters -e sap_automation_qa_system_directory=$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
+
+qa_parameters="$qa_parameters -e sap_automation_qa_offline_mode=${OFFLINE_MODE:-false}"
 
 if [ -n "${SAP_FUNCTIONAL_TEST_TYPE:-}" ]; then
 	qa_parameters="$qa_parameters -e SAP_FUNCTIONAL_TEST_TYPE=${SAP_FUNCTIONAL_TEST_TYPE}"

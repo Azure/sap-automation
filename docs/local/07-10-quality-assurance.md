@@ -107,7 +107,9 @@ The menu selection maps to a framework playbook as follows:
 Review the following before you start a run:
 
 - Whether the selected test type disrupts the system. Configuration checks are
-  read-only. Functional tests are not.
+  read-only, and the offline high availability tests validate captured cluster
+  configuration rather than the running cluster. The online functional tests
+  act on the running system and are disruptive.
 - The maintenance window, the approver, and the rollback expectation for a
   disrupted cluster.
 - The inventory scope. Functional tests act on the cluster nodes in

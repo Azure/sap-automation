@@ -599,6 +599,9 @@ $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
 if ($pipeline_id.Length -eq 0) {
   az pipelines create --name $pipeline_name --branch main --description 'Runs the SAP quality assurance tests and configuration checks' --skip-run --yaml-path "/pipelines/13-sap-automation-qa.yml" --repository $repo_id --repository-type tfsgit --output none --only-show-errors
   $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+  if ($pipeline_id.Length -eq 0) {
+    Write-Warning "Could not create the '$pipeline_name' pipeline. This definition needs /pipelines/13-sap-automation-qa.yml in the configuration repository. Update the configuration repository and rerun this script to add the pipeline."
+  }
 }
 $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")

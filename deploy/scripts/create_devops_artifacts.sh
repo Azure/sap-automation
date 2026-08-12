@@ -126,7 +126,14 @@ fi
 pipeline_name='SAP Quality Assurance'
 pipeline_id=$(az pipelines list --org "${ADO_ORGANIZATION}" --project "${ADO_PROJECT}" --query "[?name=='${pipeline_name}'].id | [0]" | tr -d \")
 if [ -z $pipeline_id ] ; then
-  az pipelines create --name 'SAP Quality Assurance' --branch main --description 'Runs the SAP quality assurance tests and configuration checks' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/13-sap-automation-qa.yml --repository $repo_id --repository-type tfsgit --output none
+  # The wrapper this definition points at ships with the configuration
+  # repository. Provisioning must not abort when that repository predates it,
+  # so the definition is created on a best-effort basis and reported instead.
+  if ! az pipelines create --name 'SAP Quality Assurance' --branch main --description 'Runs the SAP quality assurance tests and configuration checks' --org  $ADO_ORGANIZATION --project $id --skip-run --yaml-path /pipelines/13-sap-automation-qa.yml --repository $repo_id --repository-type tfsgit --output none ; then
+    echo -e "${bold_red}Could not create the 'SAP Quality Assurance' pipeline.${reset_formatting}"
+    echo "This definition needs /pipelines/13-sap-automation-qa.yml in the configuration repository."
+    echo "Update the configuration repository and rerun this script to add the pipeline."
+  fi
 fi
 
 pipeline_name='Remove deployments'

@@ -236,6 +236,29 @@
     - (sap_automation_qa_test_groups | default('', true) | length > 0) or
       (sap_automation_qa_test_cases | default('', true) | length > 0)
 
+# The offline playbook does not run the enabled cases as such: it narrows them
+# to the cases whose task_name contains 'offline'. A selection that names an
+# online case therefore passes the assertion above and then silently resolves
+# to a different case, or to none at all, once the offline playbook applies its
+# own filter. That substitution is rejected here instead.
+- name:                                "SAP Automation QA: - assert the selection is runnable offline"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_selected.test_groups | default([])
+        | map(attribute='test_cases') | flatten
+        | selectattr('enabled', 'equalto', true)
+        | selectattr('task_name', 'search', 'offline') | list | length > 0
+    fail_msg: >-
+      Offline mode runs only the test cases whose task name contains 'offline', but
+      test_groups='{{ sap_automation_qa_test_groups }}' and
+      test_cases='{{ sap_automation_qa_test_cases }}' enabled no such case. The requested
+      selection would be replaced by a different test or by no test at all. Select an
+      offline case, or run with offline mode disabled.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
 - name:                                "SAP Automation QA: - assert the resolved type matches the pipeline"
   ansible.builtin.assert:
     that:

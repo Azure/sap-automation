@@ -640,6 +640,10 @@ function New-SDAFADOProject {
 			if ($PipelineId.Length -eq 0) {
 				az pipelines create --name $PipelineName --branch main --description $Description --skip-run --yaml-path $YamlName --repository $RepositoryId --repository-type tfsgit --output none --only-show-errors
 				$PipelineId = (az pipelines list --query "[?name=='$PipelineName'].id | [0]")
+				if ($PipelineId.Length -eq 0) {
+					Write-Warning "Could not create the '$PipelineName' pipeline. This definition needs $YamlName in the configuration repository. Update the configuration repository and rerun to add the pipeline."
+					return $null
+				}
 			}
 			$ThisPipelineUrl = $AdoOrganization + "/" + [uri]::EscapeDataString($AdoProject) + "/_build?definitionId=" + $PipelineId
 			$LogEntry = ("[" + $PipelineName + "](" + $ThisPipelineUrl + ")")

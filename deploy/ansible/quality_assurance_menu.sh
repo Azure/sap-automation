@@ -133,6 +133,10 @@ select opt in "${options[@]}"; do
 	test_type="${test_types[$((REPLY - 1))]}"
 	functional_test_type="${functional_types[$((REPLY - 1))]}"
 	qa_playbook="${qa_playbooks[$((REPLY - 1))]}"
+	offline_mode="false"
+	if [[ "${qa_playbook}" == "playbook_01_ha_offline_tests" ]]; then
+		offline_mode="true"
+	fi
 	break
 done
 
@@ -140,6 +144,7 @@ setup_parameters=(
 	--extra-vars="_workspace_directory=${workspace_directory}"
 	--extra-vars="@${workspace_directory}/${sap_params_file}"
 	--extra-vars="sap_automation_qa_test_type=${test_type}"
+	--extra-vars="sap_automation_qa_offline_mode=${offline_mode}"
 	--extra-vars="sap_automation_qa_directory=${qa_directory}"
 	--extra-vars="sap_automation_qa_system_directory=${workspace_directory}"
 	--extra-vars="SAP_FUNCTIONAL_TEST_TYPE=${functional_test_type}"
