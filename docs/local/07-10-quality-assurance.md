@@ -19,8 +19,9 @@ Confirm the following:
 - You are signed in to Azure with `az login` and can read the workload-zone
   Key Vault that holds the SAP-system SSH key and password.
 - The execution host can reach every host in the inventory over SSH.
-- The execution host can reach `https://github.com` to clone the quality
-  assurance framework, or the framework is already present locally.
+- The execution host can reach `https://github.com`. The setup role clones and
+  updates the quality assurance framework on every run, so it contacts the
+  remote even when the framework is already present locally.
 - You have `sudo` rights on the execution host. The wrapper installs the
   framework and its Python dependencies under `/opt/microsoft`.
 - `ARM_CLIENT_ID` identifies the managed identity to use when the execution

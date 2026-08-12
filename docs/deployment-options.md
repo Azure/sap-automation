@@ -97,7 +97,10 @@ SAP-system, software-download, installation, quality-assurance, update, and
 removal operations.
 
 Pipeline `13-sap-automation-qa.yml` runs the SAP quality-assurance functional
-tests and configuration checks against a deployed SAP system. See
+tests and configuration checks against a deployed SAP system. This pipeline is
+proposed in
+[`Azure/sap-automation-bootstrap#9`](https://github.com/Azure/sap-automation-bootstrap/pull/9)
+and is not available until that pull request merges. See
 [SAP quality assurance](local/07-10-quality-assurance.md) for the test types,
 prerequisites, and result locations.
 

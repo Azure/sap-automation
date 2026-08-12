@@ -186,7 +186,10 @@
 - name:                                "SAP Automation QA: - write the test selection"
   ansible.builtin.copy:
     dest:                              "{{ sap_automation_qa_selection_file }}"
-    content:                           "{{ sap_automation_qa_selected | to_nice_json }}"
+    content: >-
+      {{ sap_automation_qa_selected
+         | combine({'SAP_FUNCTIONAL_TEST_TYPE': SAP_FUNCTIONAL_TEST_TYPE})
+         | to_nice_json }}
     mode:                              "0644"
   when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
 
