@@ -71,6 +71,14 @@ qa_collections_path="${QA_COLLECTIONS_PATH:-/opt/microsoft/sap_automation_qa_col
 orchestration_user="${ORCHESTRATION_ANSIBLE_USER:-${USER:-$(id -un)}}"
 qa_log_path="${workspace_directory}/logs/execution_$(date +%Y%m%d_%H%M%S).log"
 
+# The framework dependencies are installed for the system interpreter, so the
+# modules delegated to localhost have to run there as well. Interpreter
+# discovery would otherwise select the interpreter running Ansible itself,
+# which cannot import them, and the telemetry module that records the test
+# results fails silently because its task is not allowed to fail. The pipeline
+# pins the same interpreter in 05-run-ansible.sh.
+qa_python_interpreter="${QA_PYTHON_INTERPRETER:-/usr/bin/python3}"
+
 # The private key retrieved below must not survive this script, including when
 # it is interrupted, so the removal is registered before the key can exist
 # rather than only on the explicitly handled return paths.
@@ -163,6 +171,7 @@ setup_parameters=(
 	--extra-vars="sap_automation_qa_test_groups=${TEST_GROUPS:-}"
 	--extra-vars="sap_automation_qa_test_cases=${TEST_CASES:-}"
 	--extra-vars="orchestration_ansible_user=${orchestration_user}"
+	--extra-vars="ansible_python_interpreter=${qa_python_interpreter}"
 	"${@}"
 )
 
@@ -203,6 +212,7 @@ execution_parameters=(
 	--extra-vars="_workspace_directory=${workspace_directory}"
 	--extra-vars="@${workspace_directory}/${sap_params_file}"
 	--extra-vars="@${workspace_directory}/artifacts/qa_test_selection.json"
+	--extra-vars="ansible_python_interpreter=${qa_python_interpreter}"
 	-e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'
 )
 
