@@ -51,7 +51,7 @@ if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
       set -x                                                                    # Enable debug mode
       export DEBUG=True
       echo "Environment variables:"
-      printenv | sort
+      printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 else
       export DEBUG=False
 fi
@@ -638,7 +638,7 @@ if [ 0 != "$step" ]; then
             allParameters+=(--tenant_id "${tenant_id:-$ARM_TENANT_ID}")
             allParameters+=(--spn_id "${client_id:-$ARM_CLIENT_ID}")
             # ss
-            if [ "$deploy_using_msi_only" -eq 0 ]; then
+            if [ "$deploy_using_msi_only" -eq 0 ] && [ "${ARM_USE_OIDC:-false}" != "true" ]; then
                 allParameters+=(--spn_secret "${client_secret:-$ARM_CLIENT_SECRET}")
             else
                 allParameters+=(--msi)

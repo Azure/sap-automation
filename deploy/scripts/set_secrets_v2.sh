@@ -34,7 +34,7 @@ if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
       set -x                                                                    # Enable debug mode
       export DEBUG=True
       echo "Environment variables:"
-      printenv | sort
+      printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 else
       export DEBUG=False
 fi
@@ -502,11 +502,6 @@ function parse_arguments() {
 			fi
 		fi
 
-		[[ -z "$client_secret" ]] && {
-			print_banner "$banner_title" "client_secret is required" "error"
-			return 10
-		}
-
 		if [ -z "$tenant_id" ]; then
 			print_banner "$banner_title" "correct tenant_id is required" "error"
 			return 10
@@ -515,6 +510,13 @@ function parse_arguments() {
 				print_banner "$banner_title" "correct tenant_id is required" "error"
 				return 10
 			fi
+		fi
+
+		if [ "${ARM_USE_OIDC:-false}" != "true" ]; then
+			[[ -z "$client_secret" ]] && {
+				print_banner "$banner_title" "client_secret is required" "error"
+				return 10
+			}
 		fi
 
 	fi
@@ -639,7 +641,7 @@ function set_all_secrets() {
 		return 20
 	fi
 
-  if [ "$USE_MSI" != "true" ]; then
+  if [ "$USE_MSI" != "true" ] && [ "${ARM_USE_OIDC:-false}" != "true" ]; then
 		secret_name="${prefix}"-client-secret
 		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "$ARM_CLIENT_SECRET" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"

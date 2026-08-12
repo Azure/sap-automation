@@ -34,7 +34,7 @@ if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
       set -x                                                                    # Enable debug mode
       export DEBUG=True
       echo "Environment variables:"
-      printenv | sort
+      printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 else
       export DEBUG=False
 fi
@@ -117,6 +117,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
+configure_service_connection_authentication
+
 if [ "$USE_MSI" != "true" ]; then
 
     if ! printenv ARM_SUBSCRIPTION_ID; then
@@ -125,7 +127,7 @@ if [ "$USE_MSI" != "true" ]; then
         exit 2
     fi
 
-    if ! printenv ARM_CLIENT_SECRET; then
+    if [ "${ARM_USE_OIDC:-false}" != "true" ] && ! printenv ARM_CLIENT_SECRET; then
         echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
         print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
         exit 2
@@ -375,14 +377,20 @@ if [ "$USE_MSI" != "true" ]; then
 
     export TF_VAR_use_spn=true
 
+    allParameters=(
+        --deployer_parameter_file "${deployer_tfvars_file_name}"
+        --library_parameter_file "${library_tfvars_file_name}"
+        --subscription "$ARM_SUBSCRIPTION_ID"
+        --tenant_id "$ARM_TENANT_ID"
+        --auto-approve
+        --ado
+    )
+    if [ "${ARM_USE_OIDC:-false}" != "true" ]; then
+        allParameters+=(--spn_secret "$ARM_CLIENT_SECRET")
+    fi
+
     if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh" \
-    --deployer_parameter_file "${deployer_tfvars_file_name}" \
-    --library_parameter_file "${library_tfvars_file_name}" \
-    --subscription "$ARM_SUBSCRIPTION_ID" \
-    --spn_secret "$ARM_CLIENT_SECRET" \
-    --tenant_id "$ARM_TENANT_ID" \
-    --auto-approve --ado \
-    "${storage_account_parameter}" "${keyvault_parameter}"; then
+        "${allParameters[@]}" "${storage_account_parameter}" "${keyvault_parameter}"; then
         return_code=$?
         if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh" ]; then
             source "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/exports.sh"

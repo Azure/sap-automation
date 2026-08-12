@@ -34,7 +34,7 @@ if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
       set -x                                                                    # Enable debug mode
       export DEBUG=True
       echo "Environment variables:"
-      printenv | sort
+      printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 else
       export DEBUG=False
 fi
@@ -118,4 +118,3 @@ return_code=0
 echo -e "\n${cyan}Exiting script:  ${BASH_SOURCE[0]}${reset}"
 echo -e   "${cyan}   Return code:  ${return_code}${reset}"
 exit $return_code
-

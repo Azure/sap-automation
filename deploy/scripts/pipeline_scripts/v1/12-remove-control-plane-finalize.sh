@@ -34,26 +34,9 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 
 	configureNonDeployer "$TF_VERSION"
 
-	ARM_CLIENT_ID="$servicePrincipalId"
-	export ARM_CLIENT_ID
+	configure_service_connection_authentication
 	TF_VAR_spn_id=$ARM_CLIENT_ID
 	export TF_VAR_spn_id
-
-	if printenv servicePrincipalKey; then
-		unset ARM_OIDC_TOKEN
-		ARM_CLIENT_SECRET="$servicePrincipalKey"
-		export ARM_CLIENT_SECRET
-
-	else
-		ARM_OIDC_TOKEN="$idToken"
-		export ARM_OIDC_TOKEN
-		ARM_USE_OIDC=true
-		export ARM_USE_OIDC
-		unset ARM_CLIENT_SECRET
-	fi
-
-	ARM_TENANT_ID="$tenantId"
-	export ARM_TENANT_ID
 
 	ARM_USE_AZUREAD=true
 	export ARM_USE_AZUREAD

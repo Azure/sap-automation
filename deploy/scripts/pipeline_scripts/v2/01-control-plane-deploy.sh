@@ -21,7 +21,7 @@ if [ "$PLATFORM" == "devops" ]; then
         export TF_LOG
 
         echo "Environment variables:"
-        printenv | sort
+        printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
     fi
 fi
 
@@ -381,7 +381,7 @@ fi
 
 if [ "${DEBUG:-false}" == "true" ]; then
     echo "ARM Environment variables:"
-    printenv | grep ARM_
+    printenv | grep '^ARM_' | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN)='
 fi
 echo -e "$green--- Control Plane deployment---$reset_formatting"
 

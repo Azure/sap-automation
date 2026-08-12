@@ -18,7 +18,7 @@ if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	debug=true
 	export debug
-	printenv | sort
+	printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 fi
 
 if [ "${#PAT}" -gt 0 ]; then

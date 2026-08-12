@@ -34,7 +34,7 @@ if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
       set -x                                                                    # Enable debug mode
       export DEBUG=True
       echo "Environment variables:"
-      printenv | sort
+      printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 else
       export DEBUG=False
 fi
@@ -311,7 +311,7 @@ if [ $deploy_using_msi_only = 0 ]; then
 fi
 
 
-if [ 0 = "${deploy_using_msi_only:-}" ]; then
+if [ 0 = "${deploy_using_msi_only:-}" ] && [ "${ARM_USE_OIDC:-false}" != "true" ]; then
 
 	if [ -z "$client_secret" ]; then
 		#do not output the secret to screen
@@ -372,7 +372,7 @@ else
 	exit 20
 fi
 
-if [ 0 = "${deploy_using_msi_only:-}" ]; then
+if [ 0 = "${deploy_using_msi_only:-}" ] && [ "${ARM_USE_OIDC:-false}" != "true" ]; then
 
 	secret_name="${ZONE_NAME}"-client-secret
 	if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "${client_secret}" "secret"; then

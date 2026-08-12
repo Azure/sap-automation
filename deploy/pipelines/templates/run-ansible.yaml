@@ -27,13 +27,17 @@ parameters:
   workloadZoneName: ''
 
 steps:
-- task:                              Bash@3
+- task:                              AzureCLI@2
   name:                              ${{ parameters.name }}
   displayName:                       ${{ parameters.displayName }}
   inputs:
-    targetType:                      'filePath'
-    filePath:                        "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-run-ansible.sh"
-    failOnStderr:                    false
+    azureSubscription:               $(AZURE_CONNECTION_NAME)
+    scriptType:                      bash
+    scriptLocation:                  'scriptPath'
+    scriptPath:                      "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-run-ansible.sh"
+    addSpnToEnvironment:             true
+    visibleAzLogin:                  false
+    failOnStandardError:             false
     workingDirectory:                "$(System.DefaultWorkingDirectory)"
   env:
     ANSIBLE_COLLECTIONS_PATH:        ~/.ansible/collections:/opt/ansible/collections

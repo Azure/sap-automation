@@ -78,11 +78,15 @@ stages:
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   $(tf_version)
-          - task:                                 Bash@3
+          - task:                                 AzureCLI@2
             inputs:
-              targetType:                         'filePath'
-              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-system.sh"
-              failOnStderr:                       false
+              azureSubscription:                  $(AZURE_CONNECTION_NAME)
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-system.sh"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
               workingDirectory:                   "$(System.DefaultWorkingDirectory)"
 
             displayName:                          "Remove SAP system"
@@ -128,11 +132,15 @@ stages:
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   $(tf_version)
-          - task:                                 Bash@3
+          - task:                                 AzureCLI@2
             inputs:
-              targetType:                         'filePath'
-              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-workload-zone.sh"
-              failOnStderr:                       false
+              azureSubscription:                  $(AZURE_CONNECTION_NAME)
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/10-remover-terraform-workload-zone.sh"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
               workingDirectory:                   "$(System.DefaultWorkingDirectory)"
             displayName:                          Remove SAP workload_zone
             env:

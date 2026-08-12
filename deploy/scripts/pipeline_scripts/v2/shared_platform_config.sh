@@ -9,8 +9,7 @@ if [[ "${SYSTEM_DEBUG:-False}" == 'True' || "${RUNNER_DEBUG:-0}" == "1" ]]; then
 	set -x
 	# Exit on error
 	set -o errexit
-	echo "Environment variables:"
-	printenv | sort
+	echo "Debug logging enabled"
 	DEBUG=true
 else
 	DEBUG=false

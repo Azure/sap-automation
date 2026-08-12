@@ -35,7 +35,7 @@ if [ "$PLATFORM" == "devops" ]; then
         set -x
         DEBUG=True
         echo "Environment variables:"
-        printenv | sort
+        printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
     fi
     export DEBUG
     AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN

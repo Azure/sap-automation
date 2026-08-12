@@ -133,34 +133,16 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
     configureNonDeployer "${tf_version:-1.15.7}"
 
-    if [ "$PLATFORM" == "devops" ]; then
-        ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"
-        export ARM_CLIENT_ID
-        TF_VAR_spn_id=$ARM_CLIENT_ID
-        export TF_VAR_spn_id
+    configure_service_connection_authentication
+    TF_VAR_spn_id=$ARM_CLIENT_ID
+    export TF_VAR_spn_id
 
-        # Azure DevOps specific authentication logic
-        if printenv servicePrincipalKey; then
-            unset ARM_OIDC_TOKEN
-            ARM_CLIENT_SECRET="$servicePrincipalKey"
-            export ARM_CLIENT_SECRET
-        else
-            ARM_OIDC_TOKEN="$idToken"
-            export ARM_OIDC_TOKEN
-            ARM_USE_OIDC=true
-            export ARM_USE_OIDC
-            unset ARM_CLIENT_SECRET
-        fi
-        elif [ "$PLATFORM" == "github" ]; then
+    if [ "$PLATFORM" == "github" ]; then
         # GitHub Actions uses standard ARM_CLIENT_SECRET
         echo "Using standard Azure authentication for GitHub Actions"
     fi
 
-    if [ -v tenantId ]; then
-        # If tenantId is set, use it
-        ARM_TENANT_ID="${tenantId}"
-    else
-        # Otherwise, use the default ARM_TENANT_ID
+    if [ -z "${ARM_TENANT_ID:-}" ]; then
         ARM_TENANT_ID=$(az account show --query tenantId -o tsv)
     fi
     export ARM_TENANT_ID
@@ -267,7 +249,7 @@ fi
 
 if [ "${DEBUG:-false}" == true ]; then
     echo "ARM Environment variables:"
-    printenv | grep ARM_
+    printenv | grep '^ARM_' | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN)='
 fi
 echo -e "$green--- Control Plane deployment---$reset_formatting"
 
