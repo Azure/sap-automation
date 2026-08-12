@@ -102,6 +102,28 @@ The menu selection maps to a framework playbook as follows:
 | Database high availability offline tests | `SAPFunctionalTests` | `playbook_01_ha_offline_tests.yml` |
 | Central services high availability offline tests | `SAPFunctionalTests` | `playbook_01_ha_offline_tests.yml` |
 
+## Offline tests need captured cluster information
+
+The offline tests do not read the running cluster. They read a cluster
+information bundle captured beforehand, under the system workspace:
+
+```text
+<workspace>/offline_validation/<inventory host name>/cib
+```
+
+Each host has its own directory, named exactly as the host appears in
+`<SAP_SID>_hosts.yaml`, and each directory holds a file named `cib` containing
+the output of `cibadmin --query` taken from that host.
+
+Only the hosts belonging to the layer under test are read: the SCS and ERS
+hosts for central services, the database hosts for the database tests. Files
+for other hosts are ignored.
+
+If this data is missing, the run is stopped before any test starts. The
+framework itself does not treat missing data as an error, it reports that
+validation was not run and finishes successfully, which is indistinguishable
+from a run that genuinely passed.
+
 ## Review before execution
 
 Review the following before you start a run:

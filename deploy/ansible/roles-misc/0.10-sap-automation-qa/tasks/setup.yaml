@@ -259,6 +259,40 @@
     - sap_automation_qa_offline_mode | default(false) | bool
     - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
 
+# The offline test cases read cluster information that was captured earlier,
+# from <workspace>/offline_validation/<hostname>/cib. When that data is absent
+# the framework finds no files, skips the validation, reports that it was not
+# run and still ends successfully, so an offline run with nothing to validate
+# looks the same as one that passed. The data is required, so its absence is
+# treated as an error here rather than as an empty run.
+- name:                                "SAP Automation QA: - find the captured cluster information"
+  ansible.builtin.find:
+    paths:                             "{{ sap_automation_qa_offline_validation_directory }}"
+    patterns:                          "cib"
+    recurse:                           true
+  register:                            sap_automation_qa_captured_cib
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
+- name:                                "SAP Automation QA: - assert the captured cluster information is present"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_captured_cib.files | default([]) | length > 0
+    fail_msg: >-
+      Offline mode validates cluster information that was captured beforehand, but no
+      'cib' file was found under {{ sap_automation_qa_offline_validation_directory }}.
+      The framework would report that validation was not run and still finish
+      successfully, so the run is stopped instead. Capture the information first, one
+      directory per host named after the inventory host name, each holding a file named
+      'cib', for example
+      {{ sap_automation_qa_offline_validation_directory }}/<hostname>/cib.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
 - name:                                "SAP Automation QA: - assert the resolved type matches the pipeline"
   ansible.builtin.assert:
     that:

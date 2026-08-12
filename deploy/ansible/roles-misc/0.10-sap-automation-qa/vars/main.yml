@@ -38,3 +38,7 @@ sap_automation_qa_artifacts_directory: "{{ sap_automation_qa_workspace_directory
 sap_automation_qa_selection_file:      "{{ sap_automation_qa_artifacts_directory }}/qa_test_selection.json"
 sap_automation_qa_results_directory:   "{{ sap_automation_qa_workspace_directory }}/quality_assurance"
 sap_automation_qa_logs_directory:      "{{ sap_automation_qa_workspace_directory }}/logs"
+
+# The offline test cases read cluster information captured earlier, one
+# directory per inventory host, each holding a file named 'cib'.
+sap_automation_qa_offline_validation_directory: "{{ sap_automation_qa_workspace_directory }}/offline_validation"
