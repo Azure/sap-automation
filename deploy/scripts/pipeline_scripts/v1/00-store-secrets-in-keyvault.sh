@@ -34,7 +34,7 @@ if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
       set -x                                                                    # Enable debug mode
       export DEBUG=True
       echo "Environment variables:"
-      printenv | sort
+      printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 else
       export DEBUG=False
 fi
@@ -86,6 +86,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
+configure_service_connection_authentication
+
 if [ "$USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
@@ -94,7 +96,7 @@ if [ "$USE_MSI" != "true" ]; then
 		exit 2
 	fi
 
-	if ! printenv ARM_CLIENT_SECRET; then
+	if [ "${ARM_USE_OIDC:-false}" != "true" ] && ! printenv ARM_CLIENT_SECRET; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2
@@ -204,9 +206,13 @@ keyvault_subscription_id=$(az graph query -q                                    
 															--output tsv)
 
 if [ "$USE_MSI" != "true" ]; then
+	allParameters=(--prefix "${ZONE}" --key_vault "${DEPLOYER_KEYVAULT}" --keyvault_subscription "$keyvault_subscription_id")
+	allParameters+=(--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_tenant_id "$ARM_TENANT_ID" --ado)
+	if [ "${ARM_USE_OIDC:-false}" != "true" ]; then
+		allParameters+=(--client_secret "$ARM_CLIENT_SECRET")
+	fi
 
-	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${ZONE}" --key_vault "${DEPLOYER_KEYVAULT}" --keyvault_subscription "$keyvault_subscription_id" \
-		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_secret "$ARM_CLIENT_SECRET" --client_tenant_id "$ARM_TENANT_ID" --ado; then
+	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" "${allParameters[@]}"; then
 		return_code=$?
 	else
 		return_code=$?

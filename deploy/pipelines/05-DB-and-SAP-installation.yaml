@@ -164,11 +164,15 @@ stages:
             inputs:
               terraformVersion:                   $(tf_version)
 
-          - task:                                 Bash@3
+          - task:                                 AzureCLI@2
             inputs:
-              targetType:                         'filePath'
-              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-DB-and-SAP-installation-prepare.sh"
-              failOnStderr:                       false
+              azureSubscription:                  $(AZURE_CONNECTION_NAME)
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/05-DB-and-SAP-installation-prepare.sh"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
               workingDirectory:                   "$(System.DefaultWorkingDirectory)"
             name:                                 Preparation
             displayName:                          Preparation for Ansible

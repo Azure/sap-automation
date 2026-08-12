@@ -23,7 +23,7 @@ if [ "$PLATFORM" == "devops" ]; then
 		set -x
 		DEBUG=true
 		echo "Environment variables:"
-		printenv | sort
+		printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 	fi
 fi
 
@@ -48,6 +48,8 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
+configure_service_connection_authentication
+
 if [ "$USE_MSI" != "true" ]; then
 	print_banner "$banner_title" "Using Service Principals for deployment" "info"
 
@@ -61,7 +63,7 @@ if [ "$USE_MSI" != "true" ]; then
 		exit 2
 	fi
 
-	if ! printenv ARM_CLIENT_SECRET; then
+	if [ "${ARM_USE_OIDC:-false}" != "true" ] && ! printenv ARM_CLIENT_SECRET; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		exit 2
 	fi
@@ -191,8 +193,10 @@ fi
 
 if [ "$USE_MSI" != "true" ]; then
 	allParameters+=(--client_id "$ARM_CLIENT_ID")
-	allParameters+=(--client_secret "$ARM_CLIENT_SECRET")
 	allParameters+=(--client_tenant_id "$ARM_TENANT_ID")
+	if [ "${ARM_USE_OIDC:-false}" != "true" ]; then
+		allParameters+=(--client_secret "$ARM_CLIENT_SECRET")
+	fi
 fi
 
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh"

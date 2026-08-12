@@ -77,11 +77,15 @@ stages:
             name:                                 AnsibleInstallation
             displayName:                          Install Ansible
 
-          - task:                                 Bash@3
+          - task:                                 AzureCLI@2
             inputs:
-              targetType:                         'filePath'
-              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download-prepare.sh"
-              failOnStderr:                       false
+              azureSubscription:                  $(AZURE_CONNECTION_NAME)
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download-prepare.sh"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
               workingDirectory:                   "$(System.DefaultWorkingDirectory)"
             displayName:                          Prepare download
             name:                                 Preparation
@@ -125,11 +129,15 @@ stages:
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   $(tf_version)
-          - task:                                 Bash@3
+          - task:                                 AzureCLI@2
             inputs:
-              targetType:                         'filePath'
-              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download.sh"
-              failOnStderr:                       false
+              azureSubscription:                  $(AZURE_CONNECTION_NAME)
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/04-sap-software-download.sh"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
               workingDirectory:                   "$(System.DefaultWorkingDirectory)"
             displayName:                          Download
             name:                                 download

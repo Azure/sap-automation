@@ -198,18 +198,76 @@ function configureNonDeployer() {
     fi
 }
 
+function configure_service_connection_authentication() {
+    local restore_xtrace=false
+    if [[ $- == *x* ]]; then
+        set +x
+        restore_xtrace=true
+    fi
+
+    if [ "${USE_MSI:-false}" == "true" ]; then
+        unset ARM_CLIENT_SECRET ARM_OIDC_TOKEN ARM_USE_OIDC
+    else
+        if [ -n "${servicePrincipalId:-}" ]; then
+            ARM_CLIENT_ID="$servicePrincipalId"
+            export ARM_CLIENT_ID
+        fi
+
+        if [ -n "${tenantId:-}" ]; then
+            ARM_TENANT_ID="$tenantId"
+            export ARM_TENANT_ID
+        fi
+
+        if [ -n "${idToken:-}" ]; then
+            ARM_OIDC_TOKEN="$idToken"
+            ARM_USE_OIDC=true
+            ARM_USE_AZUREAD=true
+            export ARM_OIDC_TOKEN ARM_USE_OIDC ARM_USE_AZUREAD
+            unset ARM_CLIENT_SECRET
+        elif [ -n "${servicePrincipalKey:-}" ]; then
+            ARM_CLIENT_SECRET="$servicePrincipalKey"
+            export ARM_CLIENT_SECRET
+            unset ARM_OIDC_TOKEN ARM_USE_OIDC
+        fi
+    fi
+
+    if [ "$restore_xtrace" == "true" ]; then
+        set -x
+    fi
+}
+
 function LogonToAzure() {
     local useMSI=$1
     local subscriptionId=$ARM_SUBSCRIPTION_ID
+
+    configure_service_connection_authentication
+
     if [ "$useMSI" != "true" ]; then
         echo "Deployment credentials:              Service Principal"
         echo "Deployment credential ID (SPN):      $ARM_CLIENT_ID"
         unset ARM_USE_MSI
+        if [ "${ARM_USE_OIDC:-false}" == "true" ]; then
+            if ! az account show >/dev/null 2>&1; then
+                local restore_xtrace=false
+                if [[ $- == *x* ]]; then
+                    set +x
+                    restore_xtrace=true
+                fi
+                az login --service-principal --username "$ARM_CLIENT_ID" --federated-token "$ARM_OIDC_TOKEN" --tenant "$ARM_TENANT_ID" --output none
+                if [ "$restore_xtrace" == "true" ]; then
+                    set -x
+                fi
+            fi
+        elif [ -n "${ARM_CLIENT_SECRET:-}" ]; then
         # <BEGIN> MKD 20260217
         # AZ CLI 2.83 - syntax for --service-principal user --username NOT --client-id
         # az login --service-principal --client-id "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
         az login --service-principal --username "$ARM_CLIENT_ID" --password="$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" --output none
         # <END>   MKD 20260217
+        else
+            echo "##vso[task.logissue type=error]No service principal authentication credential was provided."
+            return 2
+        fi
         echo "Logged on as:"
         az account show --query user --output yaml
         TF_VAR_use_spn=true
@@ -223,11 +281,7 @@ function LogonToAzure() {
 						ARM_CLIENT_ID=$(az identity show --ids "$MSI_ID" --query clientId -o tsv)
 						if [ -n "$ARM_CLIENT_ID" ]; then
 							export ARM_CLIENT_ID
-							if az account show > /dev/null 2>&1; then
-								echo "Already logged in with MSI, skipping az login."
-							else
-								az login --identity --allow-no-subscriptions --resource-id "$MSI_ID" --output none
-							fi
+							az login --identity --allow-no-subscriptions --resource-id "$MSI_ID" --output none
 						else
 							echo "##vso[task.logissue type=error]Unable to retrieve client ID for the provided MSI_ID: $MSI_ID."
 						fi

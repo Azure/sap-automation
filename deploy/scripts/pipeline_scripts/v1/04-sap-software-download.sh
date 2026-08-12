@@ -30,7 +30,7 @@ if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   DEBUG=True
 	echo "Environment variables:"
-	printenv | sort
+	printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 
 fi
 export DEBUG
@@ -38,13 +38,15 @@ set -eu
 
 cd "$CONFIG_REPO_PATH" || exit
 
+configure_service_connection_authentication
+
 if [ "$USE_MSI" != "true" ]; then
   if [ -z "$ARM_CLIENT_ID" ]; then
     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
     exit 2
   fi
 
-  if [ -z "$ARM_CLIENT_SECRET" ]; then
+  if [ "${ARM_USE_OIDC:-false}" != "true" ] && [ -z "${ARM_CLIENT_SECRET:-}" ]; then
     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined."
     exit 2
   fi

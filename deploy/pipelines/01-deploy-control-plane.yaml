@@ -152,11 +152,15 @@ stages:
           - template:                             templates\download.yaml
             parameters:
               getLatestFromBranch:                true
-          - task:                                 Bash@3
+          - task:                                 AzureCLI@2
             inputs:
-              targetType:                         'filePath'
-              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
-              failOnStderr:                       false
+              azureSubscription:                  ${{parameters.connection_name}}
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/00-store-secrets-in-keyvault.sh"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
               workingDirectory:                   "$(System.DefaultWorkingDirectory)"
             name:                                 StoreSecrets
             displayName:                          Store deployment credentials in Key Vault
@@ -207,11 +211,15 @@ stages:
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   $(tf_version)
-          - task:                                 Bash@3
+          - task:                                 AzureCLI@2
             inputs:
-              targetType:                         'filePath'
-              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-deploy.sh"
-              failOnStderr:                       false
+              azureSubscription:                  ${{parameters.connection_name}}
+              scriptType:                         bash
+              scriptLocation:                     'scriptPath'
+              scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/01-control-plane-deploy.sh"
+              addSpnToEnvironment:                true
+              visibleAzLogin:                     false
+              failOnStandardError:                false
               workingDirectory:                   "$(System.DefaultWorkingDirectory)"
             displayName:                          Deploy control plane Part 2
             env:

@@ -32,7 +32,7 @@ if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	DEBUG=True
 	echo "Environment variables:"
-	printenv | sort
+	printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 
 fi
 export DEBUG
@@ -50,6 +50,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
+configure_service_connection_authentication
+
 if [ "$USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
@@ -58,7 +60,7 @@ if [ "$USE_MSI" != "true" ]; then
 		exit 2
 	fi
 
-	if ! printenv ARM_CLIENT_SECRET; then
+	if [ "${ARM_USE_OIDC:-false}" != "true" ] && ! printenv ARM_CLIENT_SECRET; then
 		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
 		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
 		exit 2

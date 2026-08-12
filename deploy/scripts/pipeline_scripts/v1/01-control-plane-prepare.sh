@@ -34,7 +34,7 @@ if  [[ ${SYSTEM_DEBUG:-False} = True ]] || \
       set -x                                                                    # Enable debug mode
       export DEBUG=True
       echo "Environment variables:"
-      printenv | sort
+      printenv | grep -Ev '^(ARM_CLIENT_SECRET|ARM_OIDC_TOKEN|idToken|servicePrincipalKey|SYSTEM_ACCESSTOKEN|AZURE_DEVOPS_EXT_PAT)=' | sort
 else
       export DEBUG=False
 fi
@@ -108,29 +108,9 @@ else
 
 fi
 
-if [ -v servicePrincipalId ]; then
-	ARM_CLIENT_ID="$servicePrincipalId"
-	export ARM_CLIENT_ID
-	TF_VAR_spn_id=$ARM_CLIENT_ID
-	export TF_VAR_spn_id
-fi
-
-if [ -v servicePrincipalKey ]; then
-	unset ARM_OIDC_TOKEN
-	ARM_CLIENT_SECRET="$servicePrincipalKey"
-	export ARM_CLIENT_SECRET
-else
-	ARM_OIDC_TOKEN="$idToken"
-	export ARM_OIDC_TOKEN
-	ARM_USE_OIDC=true
-	export ARM_USE_OIDC
-	unset ARM_CLIENT_SECRET
-fi
-
-if [ -v tenantId ]; then
-	ARM_TENANT_ID="$tenantId"
-	export ARM_TENANT_ID
-fi
+configure_service_connection_authentication
+TF_VAR_spn_id=$ARM_CLIENT_ID
+export TF_VAR_spn_id
 
 if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
