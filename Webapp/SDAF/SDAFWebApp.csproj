@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="4.13.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.13.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="NuGet.Packaging" Version="7.6.0" />
+    <PackageReference Include="NuGet.Packaging" Version="7.9.0" />
     <PackageReference Include="Octokit" Version="14.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
     <PackageReference Include="System.Linq.Async" Version="7.0.1" />
