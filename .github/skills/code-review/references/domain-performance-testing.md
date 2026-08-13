@@ -135,8 +135,17 @@ unit modules — `sap_deployer`, `sap_landscape`, `sap_library`, `sap_namegenera
 `sap_system` — have **zero** tests of their own.
 
 A change to a unit module should add or extend a test for **that module**, not rely on a
-root-level test to cover it transitively. Say that explicitly; the gap is structural, not
-accidental.
+root-level test to cover it transitively. The gap is structural, not accidental.
+
+**But the coverage gate cannot accept such a test today.** `terraform-checks.yml` derives a
+module key by normalizing exactly two path levels below `deploy/terraform/` (`sed
+'s|^\(deploy/terraform/[^/]*/[^/]*\)/tests/…'`, ~l.277-279), so a file at
+`terraform-units/modules/<mod>/tests/` collapses to `deploy/terraform/terraform-units/modules`
+and can never match a manifest's `.module`; the full-run path (~l.181-188) hardcodes the root
+modules. So: raise the missing unit-module test as a **Suggestion**, and say that
+`terraform-checks.yml` must be taught the `terraform-units/modules/<mod>` layout before such a
+test can be added without failing the gate. Do not raise it as Blocking, and do not tell the
+author to add a manifest entry that the gate will reject.
 
 ## The shard manifest is part of the test
 

@@ -5,14 +5,15 @@ dimension. When this file and a dimension rule disagree, this file wins.
 
 ## Evidence tiers
 
-Every finding carries a tier. State it implicitly through wording — never post a Verified
-claim you cannot support.
+Every finding carries a tier, stated **explicitly** as the `Evidence:` line of the output block
+(`Evidence: Verified` or `Evidence: Probable`) — never post a Verified claim you cannot
+support. Word the finding body to match the tier as well.
 
-| Tier | You have | How to word it |
-|---|---|---|
-| **Verified** | Read the code path end to end, in this diff or in files you opened | Direct assertion. `variables_local.tf` never reads `var.new_flag`, so the module deploys with the default regardless of the tfvar. |
-| **Probable** | A strong pattern match, but one link is unread | Name the unread link. This looks like X; I could not open `run/sap_system/variables_global.tf` to confirm — can you check? |
-| **Unverified** | A suspicion | **Do not post it.** |
+| Tier | You have | `Evidence:` line | How to word the body |
+|---|---|---|---|
+| **Verified** | Read the code path end to end, in this diff or in files you opened | `Evidence: Verified` | Direct assertion. `variables_local.tf` never reads `var.new_flag`, so the module deploys with the default regardless of the tfvar. |
+| **Probable** | A strong pattern match, but one link is unread | `Evidence: Probable` | Name the unread link. This looks like X; I could not open `run/sap_system/variables_global.tf` to confirm — can you check? |
+| **Unverified** | A suspicion | — | **Do not post it.** |
 
 ## Hard prohibitions
 
@@ -68,8 +69,10 @@ Do not use "consider", "might want to", or "it would be nice if" as a severity. 
 Nit regardless of what follows, and they bury real findings.
 
 Special case: **a change that triggers a resource replace on an existing landscape is
-Blocking** until the PR carries a `moved {}` block or a state-move runbook, regardless of how
-small the diff is.
+Blocking**, regardless of how small the diff is, until the PR carries the remedy that matches
+the cause — a `moved {}` block or state-move runbook for a Terraform **address** change, or a
+replacement and data-migration plan for a provider **`ForceNew` argument** change. A `moved {}`
+block does not clear a `ForceNew` argument change.
 
 ## Volume control
 

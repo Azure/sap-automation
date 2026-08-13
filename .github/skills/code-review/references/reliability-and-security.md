@@ -112,17 +112,22 @@ Name the concrete injecting input. Without one the finding is Probable at best.
 `terraform-units/modules/sap_deployer/role_assignments.tf` grants roles at **two different
 scopes**, and the distinction matters:
 
-| Scope | Assignments | Role |
+| Scope | Assignment | Actual role |
 |---|---|---|
-| Subscription (`data.azurerm_subscription.primary.id`) | `subscription_contributor_msi`, `subscription_contributor_system_identity` | Contributor |
+| Subscription | `subscription_contributor_msi` | Contributor |
 | Subscription | `subscription_useraccessadmin_msi` | User Access Administrator |
-| Resource group (`azurerm_resource_group.deployer[0].id`) | `resource_group_user_access_admin_msi` | User Access Administrator |
+| Subscription | `subscription_contributor_system_identity` | **Reader** — despite the name |
+| Resource group | `resource_group_user_access_admin_msi` | User Access Administrator |
 | Resource group | `resource_group_user_access_admin_spn` | Role Based Access Control Administrator |
 
-**Role Based Access Control Administrator is resource-group scoped today.** Do not assume any
-role is already subscription-wide — a diff that promotes a resource-group assignment to
-subscription scope is a privilege escalation, and it is exactly the change a reviewer misses
-when they believe the broader grant already exists.
+**Read `role_definition_name`, never the resource name.**
+`subscription_contributor_system_identity` is assigned `"Reader"` at
+`role_assignments.tf:54-59`. A diff that changes that value to `Contributor` is a
+subscription-scope privilege escalation that the resource name makes almost invisible.
+
+Note the scope split too: RBAC Administrator is **resource-group** scoped today. A diff that
+promotes a resource-group assignment to subscription scope is an escalation, and it is exactly
+the change a reviewer misses when they believe the broader grant already exists.
 
 Flag any diff that:
 
@@ -206,7 +211,7 @@ scanner reads them. Review them as such.
 |---|---|
 | Action pinning | A new `uses:` pinned to a **tag or branch** rather than a full commit SHA. A tag is mutable. |
 | Trigger | `pull_request_target` or `workflow_run` **combined with a checkout of the PR head** hands fork-authored code a privileged token. There are none today; a new one is Blocking. |
-| `permissions:` | A job added without an explicit block (inheriting the default), or an existing block widened. Name the specific permission. |
+| `permissions:` | For a **new workflow file**, a missing top-level `permissions:` block (inheriting the repo default). For an **existing** workflow, a job-level block that *widens* what the workflow-level block already grants. A job with no block inherits the workflow-level block, which is already restrictive here — `terraform-checks.yml` jobs do exactly that. Do not flag that. Evaluate the **effective** permission, and name it. |
 | Untrusted interpolation | `${{ github.event.pull_request.title }}`, `…head_ref`, `…body`, or any `github.event.*` field interpolated into a `run:` block is script injection. Require an intermediate `env:` variable. |
 | Terraform output | `terraform plan`/`apply` output uploaded as an artifact or echoed unmasked — plan output routinely contains resolved secret values. |
 | Dependency pinning | A new unpinned `pip install`, `ansible-galaxy install`, or `terraform` version in a workflow. |

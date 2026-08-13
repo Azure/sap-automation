@@ -52,22 +52,44 @@ If you cannot open the sibling, say so and phrase the finding as a question nami
 
 ### Replace-triggering changes
 
-Changing any of these on an existing landscape destroys and recreates the resource:
+Changing any of these on an existing landscape destroys and recreates the resource. **The cause
+determines the remedy**, so classify it before you propose one:
+
+**Group A — Terraform *address* changes.** The remote object is unchanged; only its address in
+state moves. A `moved {}` block or `terraform state mv` genuinely fixes these.
+
+| Change | Consequence |
+|---|---|
+| A resource moved between modules, or its Terraform label renamed | Destroy + create unless the address is migrated |
+| A `for_each` **key** | The old key is destroyed, the new one created |
+| `count` ↔ `for_each` conversion | The entire collection is re-keyed |
+
+**Group B — provider `ForceNew` *argument* changes.** The remote object's identity changes.
+**`moved {}` and `terraform state mv` do nothing here** — they only remap addresses, and the
+provider still plans a replace. Requiring one of them is an ineffective mitigation, and
+accepting one as sufficient is itself a Blocking-level review error.
 
 | Attribute | Consequence |
 |---|---|
 | `name` / any `*_custom_name` input | VM, disk, or storage account replaced |
 | `resource_group_name`, `location` | Everything in the module moves |
-| Subnet `address_prefixes` | Subnet replace, dependent NICs replaced |
-| A `for_each` **key** | The old key is destroyed, the new one created |
-| `count` ↔ `for_each` conversion | The entire collection is re-keyed |
+| Subnet `name` or `virtual_network_name` | Subnet replaced, dependent NICs replaced |
+
+Note that subnet `address_prefixes` is **not** `ForceNew` in the pinned AzureRM 4.80.0 schema —
+the update path handles `HasChange("address_prefixes")`, so an in-place prefix change is not a
+replacement. Do not raise it as one.
 
 Flag any diff that alters how a name is computed — `sap_namegenerator` logic, prefix/suffix
 handling, a `*_custom_name` default — or that moves a resource between modules.
 
-**Required in the finding:** either a `moved {}` block in the diff, or an explicit
-`terraform state mv` runbook in the PR description. "It's just a rename" is not an answer;
-neither is "no one has deployed this yet".
+**Required in the finding:**
+
+- **Group A** — a `moved {}` block in the diff, or an explicit `terraform state mv` runbook in
+  the PR description.
+- **Group B** — a replacement and data-migration plan: what is destroyed, what is lost, the
+  downtime, and the order of operations. A `moved {}` block does **not** satisfy this.
+
+"It's just a rename" is not an answer; neither is "no one has deployed this yet".
 
 ### Ordered-index keys
 
@@ -123,8 +145,9 @@ with a value nobody chose.
 
 - `count = var.x ? 1 : 0` where `var.x` is an optional variable — unset is `null`, not
   `false`, and `null ? … : …` is an error. Require `var.x != null && var.x`, or a `default`.
-- A ternary whose two branches return different types fails at plan time on the untaken path's
-  input.
+- A ternary whose branches return types that **cannot unify** — an object and a list, a map and
+  a string. Terraform does auto-convert compatible types (a number and a string both unify to
+  string), so differing types alone is not a finding; name why these two cannot converge.
 - A `local` that references a variable only declared in one root module.
 - A `dynamic` block whose `for_each` can be `null` rather than `[]`.
 
@@ -137,5 +160,7 @@ modules, and that a major bump has a note about resource-schema changes.
 ## 7. State and import semantics
 
 `imports.tf` blocks are load-bearing. An import block whose `id` expression changes shape will
-either import the wrong resource or fail the plan. A removed import block on a resource that
-is still in state orphans it. Treat both as Blocking.
+either import the wrong resource or fail the plan — Blocking. **Removing an already-applied
+import block is safe** and is the documented cleanup: the resource stays in state. Do not flag
+it. Only flag a removed import block whose import has **not** yet been applied everywhere the
+configuration is deployed, and say which landscape that is.
