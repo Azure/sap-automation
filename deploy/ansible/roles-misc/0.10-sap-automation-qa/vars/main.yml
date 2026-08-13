@@ -1,0 +1,48 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |          Role variables for the SAP Automation QA setup role               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+sap_automation_qa_repository_url:      "https://github.com/{{ sap_automation_qa_fork }}/sap-automation-qa.git"
+sap_automation_qa_source_directory:    "{{ sap_automation_qa_directory }}/src"
+
+sap_automation_qa_collections_path:    "{{ sap_automation_qa_collections_directory }}"
+sap_automation_qa_collection_requirements: "{{ sap_automation_qa_directory }}/collections/requirements.yml"
+
+sap_automation_qa_requirements:        "{{ sap_automation_qa_directory }}/requirements.txt"
+
+# The dependency environment is deliberately kept outside the framework
+# directory because it is published to the system interpreter below and must
+# stay root-owned. The framework directory itself stays root-owned permanently:
+# both the privileged checkout and the privileged dependency installation read
+# from it, so no unprivileged user may supply the repository hooks, the
+# repository configuration or the manifest that root acts on. The ansible
+# collections are the one part that the orchestration user must be able to
+# write, so they are installed outside that tree instead.
+sap_automation_qa_dependencies_directory: "/opt/microsoft/sap_automation_qa_dependencies"
+sap_automation_qa_collections_directory: "/opt/microsoft/sap_automation_qa_collections"
+sap_automation_qa_virtualenv:          "{{ sap_automation_qa_dependencies_directory }}/.venv"
+sap_automation_qa_interpreter:         "/usr/bin/python3"
+
+sap_automation_qa_input_api:           "{{ sap_automation_qa_source_directory }}/vars/input-api.yaml"
+sap_automation_qa_filter_script:       "{{ sap_automation_qa_source_directory }}/module_utils/filter_tests.py"
+
+sap_automation_qa_workspace_directory: "{{ sap_automation_qa_system_directory | default('', true) | ternary(sap_automation_qa_system_directory, _workspace_directory) }}"
+
+sap_automation_qa_artifacts_directory: "{{ sap_automation_qa_workspace_directory }}/artifacts"
+sap_automation_qa_selection_file:      "{{ sap_automation_qa_artifacts_directory }}/qa_test_selection.json"
+sap_automation_qa_results_directory:   "{{ sap_automation_qa_workspace_directory }}/quality_assurance"
+sap_automation_qa_logs_directory:      "{{ sap_automation_qa_workspace_directory }}/logs"
+
+# The offline test cases read cluster information captured earlier, one
+# directory per inventory host, each holding a file named 'cib'.
+sap_automation_qa_offline_validation_directory: "{{ sap_automation_qa_workspace_directory }}/offline_validation"
+
+# The framework reads only the hosts of the layer under test, resolved from the
+# inventory group names. These patterns mirror the ones it applies itself.
+sap_automation_qa_offline_host_pattern: "{{ '.*_DB$' if SAP_FUNCTIONAL_TEST_TYPE == 'DatabaseHighAvailability' else '.*_(SCS|ERS)$' }}"

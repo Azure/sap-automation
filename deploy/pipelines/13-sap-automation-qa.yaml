@@ -1,0 +1,193 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |               This pipeline performs the SAP quality assurance             |
+# |              tests and must run on a self hosted deployment agent          |
+# |                      due to long run time.                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+parameters:
+  - name:                                         sap_system_configuration_name
+    displayName:                                  "SAP System configuration name, use the following syntax: ENV-LOCA-VNET-SID"
+    type:                                         string
+    default:                                      DEV-WEEU-SAP01-X00
+
+  - name:                                         environment
+    displayName:                                  Workload Environment (DEV, QUA, PRD, ...)
+    type:                                         string
+    default:                                      DEV
+
+  - name:                                         test_type
+    displayName:                                  Test type
+    type:                                         string
+    default:                                      ConfigurationChecks
+    values:
+      - ConfigurationChecks
+      - SAPFunctionalTests
+
+  - name:                                         sap_functional_test_type
+    displayName:                                  SAP functional test type
+    type:                                         string
+    default:                                      DatabaseHighAvailability
+    values:
+      - DatabaseHighAvailability
+      - CentralServicesHighAvailability
+      - AzureBackupDatabase
+
+  - name:                                         test_groups
+    displayName:                                  "Test group to run, a single exact group name (empty runs the whole test type)"
+    type:                                         string
+    default:                                      ""
+
+  - name:                                         test_cases
+    displayName:                                  "Test case task names to run, comma separated, for example 'ascs-migration' (empty runs the whole group; requires a test group)"
+    type:                                         string
+    default:                                      ""
+
+  - name:                                         offline_mode
+    displayName:                                  Run the high availability tests in offline mode
+    type:                                         boolean
+    default:                                      false
+
+  - name:                                         extra_params
+    displayName:                                  "Extra Parameters, for example '-e telemetry_data_destination=azureloganalytics -e laws_workspace_id=<id>'"
+    type:                                         string
+    default:                                      ""
+
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
+
+  - name:                                         config_repo_path
+    displayName:                                  The local path on the agent where the config repo can be found
+    type:                                         string
+
+stages:
+  - stage:                                        Quality_Assurance
+    condition:                                    and(not(failed()), not(canceled()))
+    variables:
+      - template:                                 variables/13-sap-automation-qa-variables.yaml
+        parameters:
+          environment:                            ${{ parameters.environment }}
+    displayName:                                  SAP Quality Assurance Tests
+    jobs:
+      - job:                                      Quality_Assurance_step
+        displayName:                              SAP Quality Assurance Tests
+        timeoutInMinutes:                         0
+        workspace:
+          clean:                                  all
+        steps:
+          - template:                             templates\download.yaml
+            parameters:
+              getLatestFromBranch:                true
+
+          - task:                                 PostBuildCleanup@4
+
+          - task:                                 Bash@3
+            inputs:
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/install-ansible.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            env:
+              ansible_core_version:               $(ansible_core_version)
+            name:                                 AnsibleInstallation
+            displayName:                          Install Ansible
+
+          - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
+            displayName:                          Install Terraform
+            inputs:
+              terraformVersion:                   $(tf_version)
+
+          - task:                                 Bash@3
+            inputs:
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/13-sap-automation-qa.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            name:                                 Preparation
+            displayName:                          Preparation for Ansible
+            env:
+              ANSIBLE_COLLECTIONS_PATH:           /opt/ansible/collections
+              ANSIBLE_HOST_KEY_CHECKING:          false
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(USE_MSI)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+              EXTRA_PARAMETERS:                   $(EXTRA_PARAMETERS)
+              KEYVAULT:                           $(KEYVAULT)
+              OFFLINE_MODE:                       ${{ parameters.offline_mode }}
+              PIPELINE_EXTRA_PARAMETERS:          ${{ parameters.extra_params }}
+              QA_IDENTITY_CLIENT_ID:              $(QA_IDENTITY_CLIENT_ID)
+              SAP_FUNCTIONAL_TEST_TYPE:           ${{ parameters.sap_functional_test_type }}
+              SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              TEST_CASES:                         ${{ parameters.test_cases }}
+              TEST_GROUPS:                        ${{ parameters.test_groups }}
+              TEST_TYPE:                          ${{ parameters.test_type }}
+              USE_MSI:                            $(USE_MSI)
+
+          - template:                             templates\run-ansible.yaml
+            parameters:
+              displayName:                        "Quality Assurance Setup"
+              ansibleConfigPath:                  ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
+              ansibleFilePath:                    ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_06_03_00_sap_functional_tests.yaml
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(Preparation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              USE_MSI:                            $(USE_MSI)
+              controlPlaneSubscriptionId:         $(Preparation.ARM_SUBSCRIPTION_ID)
+              extraParams:                        $(Preparation.NEW_PARAMETERS)
+              parametersFolder:                   $(Preparation.FOLDER)
+              passwordSecretName:                 $(Preparation.PASSWORD_KEY_NAME)
+              sapParams:                          ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+              secretName:                         $(Preparation.SSH_KEY_NAME)
+              sidHosts:                           $(Preparation.HOSTS)
+              userNameSecretName:                 $(Preparation.USERNAME_KEY_NAME)
+              vaultName:                          $(Preparation.VAULT_NAME)
+              workloadZoneName:                   $(Preparation.WORKLOAD_ZONE_NAME)
+              controlPlaneName:                   $(CONTROL_PLANE_NAME)
+
+          - template:                             templates\run-ansible.yaml
+            parameters:
+              displayName:                        "Quality Assurance Execution"
+              ansibleConfigPath:                  $(Preparation.QA_ANSIBLE_CONFIG)
+              ansibleFilePath:                    $(Preparation.QA_PLAYBOOK_PATH)
+              ansibleLibraryPath:                 $(Preparation.QA_LIBRARY)
+              ansibleModuleUtilsPath:             $(Preparation.QA_MODULE_UTILS)
+              ansibleCollectionsPath:             $(Preparation.QA_COLLECTIONS)
+              ansibleLogPath:                     $(Preparation.QA_LOG_PATH)
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(Preparation.ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              USE_MSI:                            $(USE_MSI)
+              controlPlaneSubscriptionId:         $(Preparation.ARM_SUBSCRIPTION_ID)
+              extraParams:                        $(Preparation.QA_PARAMETERS)
+              parametersFolder:                   $(Preparation.FOLDER)
+              passwordSecretName:                 $(Preparation.PASSWORD_KEY_NAME)
+              sapParams:                          ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
+              secretName:                         $(Preparation.SSH_KEY_NAME)
+              sidHosts:                           $(Preparation.HOSTS)
+              userNameSecretName:                 $(Preparation.USERNAME_KEY_NAME)
+              vaultName:                          $(Preparation.VAULT_NAME)
+              workloadZoneName:                   $(Preparation.WORKLOAD_ZONE_NAME)
+              controlPlaneName:                   $(CONTROL_PLANE_NAME)
+
+          - template:                             templates\collect-log-files.yaml
+            parameters:
+              logPath:                            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
+              qualityAssuranceResultsPath:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/quality_assurance
+              collectQualityChecks:               true

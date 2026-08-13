@@ -1,0 +1,363 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |         Prepare the controller to run the Azure/sap-automation-qa           |
+# |         playbooks directly, without the sap_automation_qa.sh wrapper.       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "SAP Automation QA: - create the framework directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_directory }}"
+    state:                             directory
+    mode:                              "0755"
+    owner:                             root
+    group:                             root
+
+# The framework directory stays root-owned permanently. Both the privileged
+# git checkout and the privileged pip installation read from this tree, so an
+# unprivileged owner could substitute repository hooks, repository level git
+# configuration or a dependency manifest whose build code then runs as root.
+# Restoring ownership would not be enough on its own, because content planted
+# during an earlier run survives a change of owner, so a tree that is not
+# entirely root-owned is discarded and cloned again from scratch.
+- name:                                "SAP Automation QA: - detect a checkout that is not root owned"
+  become:                              true
+  ansible.builtin.command:
+    argv:
+      - find
+      - "{{ sap_automation_qa_directory }}"
+      - -not
+      - -user
+      - root
+      - -print
+      - -quit
+  register:                            sap_automation_qa_tree_ownership
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - discard the untrusted checkout"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_directory }}"
+    state:                             absent
+  when:                                sap_automation_qa_tree_ownership.stdout | trim | length > 0
+
+- name:                                "SAP Automation QA: - recreate the framework directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_directory }}"
+    state:                             directory
+    mode:                              "0755"
+    owner:                             root
+    group:                             root
+  when:                                sap_automation_qa_tree_ownership.stdout | trim | length > 0
+
+- name:                                "SAP Automation QA: - create the workspace directories"
+  ansible.builtin.file:
+    path:                              "{{ item }}"
+    state:                             directory
+    mode:                              "0755"
+  loop:
+    - "{{ sap_automation_qa_artifacts_directory }}"
+    - "{{ sap_automation_qa_results_directory }}"
+    - "{{ sap_automation_qa_logs_directory }}"
+
+- name:                                "SAP Automation QA: - fetch sap-automation-qa {{ sap_automation_qa_version }}"
+  become:                              true
+  ansible.builtin.git:
+    repo:                              "{{ sap_automation_qa_repository_url }}"
+    dest:                              "{{ sap_automation_qa_directory }}"
+    version:                           "{{ sap_automation_qa_version }}"
+    clone:                             true
+    single_branch:                     false
+    force:                             true
+
+- name:                                "SAP Automation QA: - create the root owned dependency directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_dependencies_directory }}"
+    state:                             directory
+    owner:                             root
+    group:                             root
+    mode:                              "0755"
+
+- name:                                "SAP Automation QA: - assert the dependency manifest is root owned"
+  become:                              true
+  ansible.builtin.command:
+    argv:
+      - find
+      - "{{ sap_automation_qa_requirements }}"
+      - -maxdepth
+      - "0"
+      - -not
+      - -user
+      - root
+  register:                            sap_automation_qa_manifest_ownership
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - fail when the dependency manifest is not root owned"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_manifest_ownership.stdout | trim | length == 0
+    fail_msg: >-
+      {{ sap_automation_qa_requirements }} is not owned by root. The privileged
+      dependency installation would execute build code from a manifest that an
+      unprivileged user can modify.
+
+- name:                                "SAP Automation QA: - install the python dependencies"
+  become:                              true
+  ansible.builtin.pip:
+    requirements:                      "{{ sap_automation_qa_requirements }}"
+    virtualenv:                        "{{ sap_automation_qa_virtualenv }}"
+    virtualenv_command:                "python3 -m venv"
+    extra_args:                        "--require-hashes"
+
+# The collections are the only part of the framework that has to be writable
+# by the orchestration user, so they live outside the root-owned checkout
+# instead of forcing that checkout to be handed over.
+- name:                                "SAP Automation QA: - create the collections directory"
+  become:                              true
+  ansible.builtin.file:
+    path:                              "{{ sap_automation_qa_collections_path }}"
+    state:                             directory
+    owner:                             "{{ orchestration_ansible_user }}"
+    mode:                              "0755"
+
+- name:                                "SAP Automation QA: - install ansible collections"
+  ansible.builtin.command:
+    cmd: >-
+      ansible-galaxy collection install
+      -r {{ sap_automation_qa_collection_requirements }}
+      -p {{ sap_automation_qa_collections_path }}
+    chdir:                             "{{ sap_automation_qa_directory }}"
+  register:                            sap_automation_qa_collections
+  changed_when:                        "'Nothing to do' not in sap_automation_qa_collections.stdout"
+
+- name:                                "SAP Automation QA: - locate the installed packages"
+  ansible.builtin.command:
+    cmd: >-
+      {{ sap_automation_qa_virtualenv }}/bin/python -c
+      "import sysconfig; print(sysconfig.get_paths()['purelib'])"
+  register:                            sap_automation_qa_site_packages
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - locate the system site packages"
+  ansible.builtin.command:
+    cmd: >-
+      {{ sap_automation_qa_interpreter }} -c
+      "import sysconfig; print(sysconfig.get_paths()['purelib'])"
+  register:                            sap_automation_qa_system_site_packages
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - publish the packages to the module interpreter"
+  become:                              true
+  ansible.builtin.copy:
+    dest:                              "{{ sap_automation_qa_system_site_packages.stdout | trim }}/sap-automation-qa.pth"
+    content:                           "{{ sap_automation_qa_site_packages.stdout | trim }}\n"
+    owner:                             root
+    group:                             root
+    mode:                              "0644"
+
+- name:                                "SAP Automation QA: - assert the published path is not user writable"
+  become:                              true
+  ansible.builtin.command:
+    argv:
+      - find
+      - "{{ sap_automation_qa_site_packages.stdout | trim }}"
+      - -maxdepth
+      - "0"
+      - -not
+      - -user
+      - root
+  register:                            sap_automation_qa_ownership
+  changed_when:                        false
+  failed_when:                         sap_automation_qa_ownership.stdout | length > 0
+
+- name:                                "SAP Automation QA: - assert the dependencies resolve"
+  become:                              true
+  ansible.builtin.command:
+    cmd:                               "{{ sap_automation_qa_interpreter }} -c \"import azure.mgmt.loganalytics\""
+  changed_when:                        false
+
+- name:                                "SAP Automation QA: - assert the test type is supported"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_test_type in ['SAPFunctionalTests', 'ConfigurationChecks']
+    fail_msg: >-
+      TEST_TYPE '{{ sap_automation_qa_test_type }}' is not supported.
+      Use 'SAPFunctionalTests' or 'ConfigurationChecks'.
+
+- name:                                "SAP Automation QA: - resolve the requested tests"
+  ansible.builtin.command:
+    argv:
+      - python3
+      - "{{ sap_automation_qa_filter_script }}"
+      - "{{ sap_automation_qa_input_api }}"
+      - "{{ sap_automation_qa_test_groups | default('', true) | ternary(sap_automation_qa_test_groups, 'null') }}"
+      - "{{ sap_automation_qa_test_cases | default('', true) | ternary(sap_automation_qa_test_cases, 'null') }}"
+  register:                            sap_automation_qa_selection
+  changed_when:                        false
+  when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
+
+- name:                                "SAP Automation QA: - parse the resolved selection"
+  ansible.builtin.set_fact:
+    sap_automation_qa_selected:        "{{ sap_automation_qa_selection.stdout | from_json }}"
+  when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
+
+- name:                                "SAP Automation QA: - assert a test case selection names its test group"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_test_groups | default('', true) | length > 0
+    fail_msg: >-
+      test_cases='{{ sap_automation_qa_test_cases }}' was supplied without a test group.
+      A case-only selection is resolved across every test group, so it can enable a case
+      that the playbook for '{{ SAP_FUNCTIONAL_TEST_TYPE }}' never reads, producing a run
+      with no executed cases. Set the test group that owns the selected cases.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_test_cases | default('', true) | length > 0
+
+- name:                                "SAP Automation QA: - assert the selection is not empty"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_selected.test_groups | default([]) | length > 0
+      - sap_automation_qa_selected.test_groups
+        | map(attribute='test_cases') | flatten | selectattr('enabled', 'equalto', true) | list | length > 0
+    fail_msg: >-
+      No enabled test cases matched test_groups='{{ sap_automation_qa_test_groups }}'
+      and test_cases='{{ sap_automation_qa_test_cases }}'. Check the names against
+      {{ sap_automation_qa_input_api }} in sap-automation-qa {{ sap_automation_qa_version }}.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - (sap_automation_qa_test_groups | default('', true) | length > 0) or
+      (sap_automation_qa_test_cases | default('', true) | length > 0)
+
+# The offline playbook does not run the enabled cases as such: it narrows them
+# to the cases whose task_name contains 'offline'. A selection that names an
+# online case therefore passes the assertion above and then silently resolves
+# to a different case, or to none at all, once the offline playbook applies its
+# own filter. That substitution is rejected here instead.
+- name:                                "SAP Automation QA: - assert the selection is runnable offline"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_selected.test_groups | default([])
+        | map(attribute='test_cases') | flatten
+        | selectattr('enabled', 'equalto', true)
+        | selectattr('task_name', 'search', 'offline') | list | length > 0
+    fail_msg: >-
+      Offline mode runs only the test cases whose task name contains 'offline', but
+      test_groups='{{ sap_automation_qa_test_groups }}' and
+      test_cases='{{ sap_automation_qa_test_cases }}' enabled no such case. The requested
+      selection would be replaced by a different test or by no test at all. Select an
+      offline case, or run with offline mode disabled.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
+# The offline test cases read cluster information that was captured earlier,
+# from <workspace>/offline_validation/<hostname>/cib. When no file matches a
+# host of the layer under test the framework finds nothing to do, skips the
+# validation, reports that it was not run and still ends successfully, so an
+# offline run with nothing to validate looks the same as one that passed. The
+# hosts are resolved the same way the framework resolves them, from the
+# inventory groups, so that a capture belonging to an unrelated or retired host
+# cannot satisfy this check.
+- name:                                "SAP Automation QA: - resolve the hosts under test"
+  ansible.builtin.set_fact:
+    sap_automation_qa_offline_hosts:   "{{ groups | default({}) | dict2items
+                                        | selectattr('key', 'match', sap_automation_qa_offline_host_pattern)
+                                        | map(attribute='value') | flatten | unique }}"
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
+- name:                                "SAP Automation QA: - find the captured cluster information"
+  ansible.builtin.find:
+    paths:                             "{{ sap_automation_qa_offline_validation_directory }}"
+    patterns:                          "cib"
+    recurse:                           true
+  register:                            sap_automation_qa_captured_cib
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
+- name:                                "SAP Automation QA: - select the captures belonging to the hosts under test"
+  ansible.builtin.set_fact:
+    sap_automation_qa_matched_cib:     "{{ sap_automation_qa_captured_cib.files | default([])
+                                        | selectattr('path', 'match', '.*offline_validation/('
+                                          + (sap_automation_qa_offline_hosts | join('|')) + ')/cib$')
+                                        | map(attribute='path') | list }}"
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+    - sap_automation_qa_offline_hosts | default([]) | length > 0
+
+- name:                                "SAP Automation QA: - assert the captured cluster information is present"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_offline_hosts | default([]) | length > 0
+      - sap_automation_qa_matched_cib | default([]) | length > 0
+    fail_msg: >-
+      Offline mode validates cluster information that was captured beforehand, and the
+      framework reads only the captures belonging to the hosts under test, resolved from
+      the inventory groups matching '{{ sap_automation_qa_offline_host_pattern }}'.
+      Hosts under test: {{ sap_automation_qa_offline_hosts | default([]) | join(', ') | default('none', true) }}.
+      Captures found: {{ sap_automation_qa_captured_cib.files | default([]) | map(attribute='path') | join(', ') | default('none', true) }}.
+      None of them match, so the framework would report that validation was not run and
+      still finish successfully. Capture the information first, one directory per host
+      named exactly as the host appears in the inventory, each holding a file named
+      'cib', for example
+      {{ sap_automation_qa_offline_validation_directory }}/<hostname>/cib.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_offline_mode | default(false) | bool
+    - SAP_FUNCTIONAL_TEST_TYPE in ['DatabaseHighAvailability', 'CentralServicesHighAvailability']
+
+- name:                                "SAP Automation QA: - assert the resolved type matches the pipeline"
+  ansible.builtin.assert:
+    that:
+      - sap_automation_qa_selected.SAP_FUNCTIONAL_TEST_TYPE == SAP_FUNCTIONAL_TEST_TYPE
+    fail_msg: >-
+      Test group '{{ sap_automation_qa_test_groups }}' resolves to
+      '{{ sap_automation_qa_selected.SAP_FUNCTIONAL_TEST_TYPE }}' but the pipeline selected
+      '{{ SAP_FUNCTIONAL_TEST_TYPE }}'. Set SAP_FUNCTIONAL_TEST_TYPE to match the test group.
+  when:
+    - sap_automation_qa_test_type == "SAPFunctionalTests"
+    - sap_automation_qa_test_groups | default('', true) | length > 0
+    - sap_automation_qa_selected.SAP_FUNCTIONAL_TEST_TYPE is defined
+
+- name:                                "SAP Automation QA: - write the test selection"
+  ansible.builtin.copy:
+    dest:                              "{{ sap_automation_qa_selection_file }}"
+    content: >-
+      {{ sap_automation_qa_selected
+         | combine({'SAP_FUNCTIONAL_TEST_TYPE': SAP_FUNCTIONAL_TEST_TYPE})
+         | to_nice_json }}
+    mode:                              "0644"
+  when:                                sap_automation_qa_test_type == "SAPFunctionalTests"
+
+- name:                                "SAP Automation QA: - write an empty test selection"
+  ansible.builtin.copy:
+    dest:                              "{{ sap_automation_qa_selection_file }}"
+    content:                           "{}\n"
+    mode:                              "0644"
+  when:                                sap_automation_qa_test_type != "SAPFunctionalTests"
+
+- name:                                "SAP Automation QA: - show the prepared run"
+  ansible.builtin.debug:
+    msg:
+      - "framework version:   {{ sap_automation_qa_version }} ({{ sap_automation_qa_fork }})"
+      - "test type:           {{ sap_automation_qa_test_type }}"
+      - "functional type:     {{ SAP_FUNCTIONAL_TEST_TYPE | default('(not applicable)', true) }}"
+      - "test groups:         {{ sap_automation_qa_test_groups | default('(all)', true) }}"
+      - "test cases:          {{ sap_automation_qa_test_cases | default('(all)', true) }}"
+      - "workspace directory: {{ sap_automation_qa_workspace_directory }}"
+      - "results directory:   {{ sap_automation_qa_results_directory }}"
