@@ -203,8 +203,10 @@ Any diff that adds an `eval`, or routes a new parameter, filename, environment v
 `tfvars`-sourced value into **any** existing `eval` — `_v2` or not — is a finding. Require an
 allow-list or an argument array, not a deny-list of characters.
 
-Same rule for an Ansible `shell:`/`command:` task interpolating a variable that originates
-outside the repository.
+Same rule for an Ansible `shell:` task interpolating a variable that originates outside the
+repository. `command:` is **not** the same sink — it does not invoke a shell, so metacharacters
+are not interpreted; there the risk is executable or argument manipulation, addressed with
+`argv`. Flag `command:` only when you can show the argument boundary actually breaks.
 
 ### RBAC scope
 
@@ -225,15 +227,22 @@ Blocking finding. Any diff that adds a
 role assignment, widens an existing `scope`, or moves a scope from resource-group to
 subscription is a finding: name the role, the scope, and what it now reaches.
 
-Prefer a resource-group or resource scope; prefer a managed identity over a secret. Flag a new
-`azurerm_role_assignment` whose scope is broader than the resources the module owns.
+**Adding a role assignment is a review *trigger*, not a finding by itself.** A new assignment
+whose role and scope are demonstrably least-privileged and required by the module is correct —
+posting a comment on it manufactures a finding with no wrong outcome. The finding exists only
+when the privilege or scope exceeds what the module's own resources need. Prefer a
+resource-group or resource scope; prefer a managed identity over a secret.
 
 ### Network exposure
 
 Wildcards already exist in this repository — `sap_deployer/firewall.tf` uses `0.0.0.0/0` and
 `["*"]`, and `sap_system/hdb_node/anf.tf` uses `allowed_clients = ["0.0.0.0/0"]`. Do not
-re-litigate existing lines. **Do** flag any diff that **adds** one, or that widens an NSG
-rule, a firewall rule, an ANF export policy, or a storage-account network rule.
+re-litigate existing lines. **Do** flag any diff that **adds** a wildcard to an
+**access-control** resource — an NSG rule, a firewall rule, an ANF export policy, or a
+storage-account or Key Vault network ACL — or that widens one.
+
+A wildcard is not automatically exposure: `firewall.tf:141` is an `azurerm_route` forcing all
+traffic to a VirtualAppliance, which is a control. Confirm the resource type before flagging.
 
 ### Permissiveness drift
 
@@ -245,7 +254,10 @@ change silently reconfigures every landscape that does not override it — say t
 ### Secrets
 
 - `sensitive = true` on any variable or output carrying a secret, key, password, or
-  connection string. A secret in an output is written to state **and** printed.
+  connection string. A secret in an output is written to state in **cleartext**; Terraform
+  redacts it from normal CLI output, but `terraform output -raw`/`-json` and the state file
+  both expose it. Keep the two risks distinct — claiming it is "printed to the console"
+  produces a false leak finding.
 - `no_log: true` on Ansible tasks handling credentials.
 - No secret in a log line, a captured stdout, an exception message, or a telemetry payload.
 - When a diff changes an environment-filter or exclusion list, check **every** caller — each
@@ -355,7 +367,7 @@ reference would express the same ordering.
 There are 22 `*.tftest.hcl` files and **all of them are root-level**. Every unit module —
 `sap_deployer`, `sap_landscape`, `sap_library`, `sap_namegenerator`, `sap_system` — has
 **zero**. A change to a unit module should add or extend a test for that module, not rely on a
-root-level test to cover it transitively. Raise this as a **Suggestion**, not Blocking: the
+root-level test to cover it transitively. Raise this as **Should fix**, not Blocking: the
 `coverage-gate` in `terraform-checks.yml` only normalizes two path levels, so a
 `terraform-units/modules/<mod>/tests/` file cannot match a manifest and the workflow must be
 updated first. Say so in the finding — see
@@ -454,7 +466,7 @@ Close with one line: `No blocking findings.` or `N blocking, M should-fix.`
       vs **`ForceNew` argument** change (needs a replacement and data-migration plan)
 - [ ] No comment restates the diff
 - [ ] No formatting comment, and no `terraform fmt` proposal
-- [ ] At most one nit, batched
+- [ ] At most two nits, batched
 - [ ] Resolved threads checked — no rejected finding repeated
 
 ## Compatibility

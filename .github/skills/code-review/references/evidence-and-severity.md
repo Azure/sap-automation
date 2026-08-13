@@ -21,9 +21,12 @@ Violating any of these is worse than missing the finding.
 
 1. **Never invent a line number, symbol, file path, resource name, or error message.** If you
    cannot cite it, describe the location in prose instead.
-2. **Never state what a tool reports without its output.** Do not write "checkov flags this",
-   "tflint will fail", "the coverage gate rejects this", or "CI will reject this" unless you
-   have the run's actual output. Your prediction is not the tool's verdict.
+2. **Never fabricate tool output.** Do not write "checkov flags this" or "tflint will fail"
+   unless you have the run's actual output — your guess about a heuristic scanner is not its
+   verdict. This does **not** bar you from analysing a **deterministic** gate whose rule you
+   read: if you have opened `terraform-checks.yml` and traced that a missing `total_runs`
+   update fails the coverage gate, state it — and cite the workflow lines you read. Verified
+   analysis of a rule you can quote is evidence; an invented scanner verdict is not.
 3. **Never claim a sibling module is unfixed without opening it.** This repository's structure
    makes that assumption tempting and frequently wrong. If you cannot open it, ask a question
    naming the file.

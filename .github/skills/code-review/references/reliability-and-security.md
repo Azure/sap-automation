@@ -102,8 +102,11 @@ Rules:
 - Validate the **completed** command, not a fragment assembled earlier.
 - **Allow-list, not deny-list.** A deny-list of dangerous characters is not a control.
 - Prefer an argument array over a constructed string.
-- The same applies to an Ansible `shell:`/`command:` task interpolating a variable that
-  originates outside the repository.
+- The same applies to an Ansible `shell:` task interpolating a variable that originates
+  outside the repository. `ansible.builtin.command` does **not** run through a shell, so
+  metacharacters in an interpolated value are not interpreted as commands — distinguish it.
+  For `command:` the risk is executable or argument manipulation; the remedy is `argv`, and
+  the finding requires showing how the argument boundary breaks.
 
 Name the concrete injecting input. Without one the finding is Probable at best.
 
@@ -131,24 +134,38 @@ the change a reviewer misses when they believe the broader grant already exists.
 
 Flag any diff that:
 
+**Scrutinise — but do not automatically flag —** a diff that:
+
 - adds an `azurerm_role_assignment`;
 - widens an existing `scope` — resource → resource group → subscription;
-- grants a role broader than the resources the module owns;
 - introduces a new secret where a managed identity would work.
+
+**The finding** is excess privilege or excess scope: a role broader than the resources the
+module owns, or a scope wider than those resources occupy. An added assignment that is
+least-privileged and required is not a defect — say nothing.
 
 The finding must name **the role, the scope, and what it now reaches**. "Least privilege" as a
 phrase is not a finding.
 
 ## Network exposure
 
-Existing wildcards — do not re-litigate these lines:
+Existing wildcards — do not re-litigate these lines, and note what each one *is*:
 
 ```text
-sap_deployer/firewall.tf                    0.0.0.0/0 , ["*"]
-sap_system/hdb_node/anf.tf                  allowed_clients = ["0.0.0.0/0"]
+sap_deployer/firewall.tf:141   address_prefix = "0.0.0.0/0"  → azurerm_route to a
+                               VirtualAppliance. This is a forced-tunnel default route, a
+                               security *control*, not exposure. Never flag it as exposure.
+sap_deployer/firewall.tf       ["*"] in a firewall rule collection
+sap_system/hdb_node/anf.tf     allowed_clients = ["0.0.0.0/0"]
 ```
 
-**Do** flag a diff that **adds** one, or that widens:
+**Scope this rule to access-control resources.** A wildcard is only exposure in an NSG rule, a
+firewall network/application rule, an ANF export policy, or a storage-account or Key Vault
+network ACL. A `0.0.0.0/0` in an `azurerm_route`, a UDR, or a default-route table is routing —
+flag it only if the `next_hop_type` change *removes* an inspection hop.
+
+**Do** flag a diff that **adds** a wildcard to one of the access-control resources above, or
+that widens:
 
 - an NSG rule's source prefix, destination, or port range;
 - a firewall network or application rule;
@@ -170,7 +187,10 @@ Flag defaults moving in the permissive direction: `false → true` on public acc
 ## Secrets
 
 - `sensitive = true` on every variable or output carrying a secret, key, password, or
-  connection string. **A secret in an output is written to state and printed to the console.**
+  connection string. **A secret in an output is stored in state in cleartext.** Terraform
+  redacts a `sensitive` output from normal CLI output — it is *not* "printed to the console" —
+  but `terraform output -raw` / `-json` and the state file itself both expose the value. State
+  those two risks separately; conflating them manufactures a leak finding.
 - `no_log: true` on Ansible tasks handling credentials.
 - No secret in a log line, a captured stdout, an exception message, or telemetry.
 - When a diff changes an environment-filter or credential-exclusion list, check **every**

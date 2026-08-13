@@ -77,12 +77,14 @@ alone.
 ## Per-item shell in a loop
 
 ```yaml
-# one fork per item — pattern at
-# deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-custom-disks.yml
-- name: Create filesystem
-  community.general.filesystem:
-    dev: "{{ dev_path_from_lv_item }}"
-  loop: "{{ custom_logical_volumes }}"
+# one fork and one SSH round trip per item — shape at
+# deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-nvme-preflight.yml:185
+- name: Replace /dev/sd* entries with UUID in fstab
+  ansible.builtin.shell: |
+    device={{ item }}
+    uuid=$(ls -l /dev/disk/by-uuid | grep "$device" | ...)
+    ...
+  with_items: "{{ sd_devices.stdout_lines }}"
 ```
 
 A `shell`/`command` inside `loop`/`with_items` over discovered devices, disks, or files costs
@@ -90,6 +92,10 @@ one process fork and one SSH round trip per item — `with_items: "{{ sd_devices
 and `"{{ azure_scsi_devices.stdout_lines }}"` in the fstab UUID-conversion tasks are the shape
 to watch. On a system with many devices this dominates the role. Prefer a single script that
 emits structured output, or a batched form.
+
+Note the contrast: a looped **module** such as `community.general.filesystem` in
+`roles-os/1.5-disk-setup/tasks/1.5-custom-disks.yml` is not this anti-pattern — it forks no
+shell. Flag the looped `shell`/`command`, not every loop.
 
 ## Controller serialisation
 
@@ -142,7 +148,7 @@ module key by normalizing exactly two path levels below `deploy/terraform/` (`se
 's|^\(deploy/terraform/[^/]*/[^/]*\)/tests/…'`, ~l.277-279), so a file at
 `terraform-units/modules/<mod>/tests/` collapses to `deploy/terraform/terraform-units/modules`
 and can never match a manifest's `.module`; the full-run path (~l.181-188) hardcodes the root
-modules. So: raise the missing unit-module test as a **Suggestion**, and say that
+modules. So: raise the missing unit-module test as **Should fix**, and say that
 `terraform-checks.yml` must be taught the `terraform-units/modules/<mod>` layout before such a
 test can be added without failing the gate. Do not raise it as Blocking, and do not tell the
 author to add a manifest entry that the gate will reject.
