@@ -262,10 +262,10 @@ change silently reconfigures every landscape that does not override it — say t
   redacts it from normal CLI output, but `terraform output -raw`/`-json` and the state file
   both expose it — keep the two risks distinct, since claiming it is "printed to the console"
   produces a false leak finding.
-- `no_log: true` on Ansible tasks handling credentials.
 - No secret in a log line, a captured stdout, an exception message, or a telemetry payload.
-- When a diff changes an environment-filter or exclusion list, check **every** caller — each
+  When a diff changes an environment-filter or exclusion list, check **every** caller — each
   script receives a different set of injected credentials.
+- `no_log: true` on Ansible tasks handling credentials.
 
 ### What the scanners already own
 
