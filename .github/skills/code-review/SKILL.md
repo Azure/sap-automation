@@ -97,11 +97,10 @@ The top rule in this repository. The parallel structures:
 
 Terraform merges every root-module `.tf` file into one namespace, so those two files are
 **alternative** declaration sites, not sequential links — `sa_connection_string` lives in
-`tfvar_variables.tf`, `deployers` in `variables_global.tf`. Do not ask for a declaration in
-both; that is a duplicate and fails `terraform validate`. Instead find the one declaration,
-follow it through any transform, across the module boundary, and to the resource. A variable
-declared and never consumed is silently ignored — the deployment succeeds with the default.
-Name the link that drops it.
+`tfvar_variables.tf`, `deployers` in `variables_global.tf`. Asking for both requests a
+duplicate and fails `terraform validate`. Find the one declaration, follow it through any
+transform and across the module boundary. A variable declared and never consumed is silently
+ignored — the deployment succeeds with the default. Name the link that drops it.
 
 **Use the discriminator before commenting**: repetition that is *correct in the sibling* is
 this repository's convention — stay silent. Repetition that is *wrong in the sibling too* is
@@ -169,11 +168,9 @@ leaves a landscape in an unknown state.
 
 - `set -o pipefail` before any pipeline whose exit code matters, especially `| tee`. Without
   it the status is `tee`'s, which is almost always `0`.
-- `set -e` alone does not cover pipelines or `if` conditions. Command substitution is
-  context-dependent: Bash clears `errexit` **inside** the substitution subshell, but a plain
-  assignment such as `x=$(false)` still returns the substitution's status and can trip `set -e`
-  in the caller — and `inherit_errexit` or POSIX mode changes the inner behaviour. State which
-  case applies before calling it a defect.
+- `set -e` alone does not cover pipelines or `if` conditions, and its behaviour with command
+  substitution is context-dependent — see
+  [reliability-and-security.md](references/reliability-and-security.md) before raising it.
 - Check the exit status of every `az`, `terraform`, and `ansible-playbook` invocation whose
   failure should stop the run.
 - **Validate all parameters before the first side effect.** A script that provisions and then
@@ -188,12 +185,9 @@ counters incremented outside a guard.
 
 ### Ansible reliability
 
-- `failed_when: false` / `ignore_errors: true` on a task whose failure is then **never
-  interpreted** — the result feeds a later condition, or is dropped, without any `rc`/`failed`
-  check. A deliberate state probe that suppresses the exit status precisely so it can branch on
-  `rc` (`roles-os/1.17-generic-pacemaker/tasks/1.17.1-pre_checks.yml:132-140` sets
-  `cluster_existence_check` from `rc == 0`) is correct idempotency logic, not a finding.
-  Best-effort cleanup and `rescue` blocks are legitimate too — say which applies.
+- `failed_when: false` / `ignore_errors: true` where the failure is then **never interpreted**.
+  A state probe that suppresses the exit status precisely so it can branch on `rc`
+  (`1.17.1-pre_checks.yml:132-140`), best-effort cleanup, and `rescue` are all legitimate.
 - A `when:` guard using `is defined` or `| default([])` on a fact the role **requires** on the
   active path, turning a missing value into a **skipped** check rather than an error. Optional
   features and optional lists use exactly this idiom legitimately — establish the value is
