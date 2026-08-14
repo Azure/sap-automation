@@ -3,7 +3,7 @@ name: code-review
 description: >
   Review pull requests in the SAP Deployment Automation Framework. Use when reviewing a diff,
   a pull request, or staged changes touching Terraform modules, Ansible roles and playbooks,
-  the deployer shell scripts, or the Python helpers. Reviews for correctness, reliability,
+  the deployer shell scripts, the Python helpers, or the GitHub Actions workflows. Reviews for correctness, reliability,
   security, Azure/SAP domain rules, performance, test coverage, and maintainability — in that
   priority order. Finds defects that change one sibling module and not the other four, widen a
   network or an RBAC scope without saying so, break idempotency and force a resource replace,
@@ -93,11 +93,15 @@ The top rule in this repository. The parallel structures:
 | Root modules | `run/sap_deployer`, `run/sap_landscape`, `run/sap_library`, `run/sap_system` (+ `bootstrap/sap_deployer`, `bootstrap/sap_library`) |
 | Unit modules | `terraform-units/modules/sap_deployer`, `sap_landscape`, `sap_library`, `sap_namegenerator`, `sap_system` |
 | Per-module files | `variables_global.tf`, `variables_local.tf`, `imports.tf`, `providers.tf`, `output.tf`, `tfvar_variables.tf` |
-| Wiring chain | `tfvar_variables.tf` → `variables_global.tf` → module block → unit `variables_local.tf` → resource |
+| Wiring chain | root-module variable declaration (`tfvar_variables.tf` **or** `variables_global.tf`) → module block → unit `variables_local.tf` → resource |
 
-A new variable must be threaded through **every** link. A variable declared and never consumed
-is silently ignored — the deployment succeeds with the default. Trace it and name the link
-that drops it.
+Terraform merges every root-module `.tf` file into one namespace, so those two files are
+**alternative** declaration sites, not sequential links — `sa_connection_string` lives in
+`tfvar_variables.tf`, `deployers` in `variables_global.tf`. Do not ask for a declaration in
+both; that is a duplicate and fails `terraform validate`. Instead find the one declaration,
+follow it through any transform, across the module boundary, and to the resource. A variable
+declared and never consumed is silently ignored — the deployment succeeds with the default.
+Name the link that drops it.
 
 **Use the discriminator before commenting**: repetition that is *correct in the sibling* is
 this repository's convention — stay silent. Repetition that is *wrong in the sibling too* is
@@ -165,7 +169,11 @@ leaves a landscape in an unknown state.
 
 - `set -o pipefail` before any pipeline whose exit code matters, especially `| tee`. Without
   it the status is `tee`'s, which is almost always `0`.
-- `set -e` alone does not cover pipelines, command substitutions, or `if` conditions.
+- `set -e` alone does not cover pipelines or `if` conditions. Command substitution is
+  context-dependent: Bash clears `errexit` **inside** the substitution subshell, but a plain
+  assignment such as `x=$(false)` still returns the substitution's status and can trip `set -e`
+  in the caller — and `inherit_errexit` or POSIX mode changes the inner behaviour. State which
+  case applies before calling it a defect.
 - Check the exit status of every `az`, `terraform`, and `ansible-playbook` invocation whose
   failure should stop the run.
 - **Validate all parameters before the first side effect.** A script that provisions and then
@@ -186,8 +194,10 @@ counters incremented outside a guard.
   `rc` (`roles-os/1.17-generic-pacemaker/tasks/1.17.1-pre_checks.yml:132-140` sets
   `cluster_existence_check` from `rc == 0`) is correct idempotency logic, not a finding.
   Best-effort cleanup and `rescue` blocks are legitimate too — say which applies.
-- A `when:` guard using `is defined` or `| default([])` that turns a **missing** fact into a
-  **skipped** check rather than an error.
+- A `when:` guard using `is defined` or `| default([])` on a fact the role **requires** on the
+  active path, turning a missing value into a **skipped** check rather than an error. Optional
+  features and optional lists use exactly this idiom legitimately — establish the value is
+  mandatory first, and name the check that gets skipped.
 - `retries`/`delay` whose worst case is minutes — ask what condition lets it exit sooner.
 - A block that changes cluster state with no `rescue` and no cleanup on failure.
 
@@ -285,10 +295,12 @@ below. Neither tool reads workflow files, Ansible, or shell scripts at all.
 
 - **CI/workflow security** — a `uses:` pinned to a tag not a SHA, `pull_request_target` with a
   PR-head checkout, a widened `permissions:` block, a *contributor-controlled* `github.event.*`
-  field (title, body, `head_ref`, comment text) interpolated into `run:`,
-  `terraform plan` output uploaded as an artifact.
-- **Privilege escalation** — a *new* `become` / `become_user: root` / `NOPASSWD` entry.
-  `become` itself is the baseline (~1,570 uses); only deltas are findings.
+  field (title, body, `head_ref`, comment text) interpolated into `run:`, a **saved** plan file
+  or `terraform show -json` output uploaded as an artifact.
+- **Privilege escalation** — a *new* `become` / `become_user: root` / `NOPASSWD` entry **whose
+  elevation is broader than the task needs**. `become` itself is the baseline (~1,570 uses),
+  and many package, filesystem, and cluster tasks legitimately require it; name the account or
+  capability that is unnecessary.
 - **Transport** — a *new* `StrictHostKeyChecking=no`, `validate_certs: false`, `curl -k`, or a
   lowered `min_tls_version`. The existing `ANSIBLE_HOST_KEY_CHECKING=False` is pre-existing.
 - **Deserialization** — `yaml.load` without a safe loader, `pickle`, or command output piped
@@ -370,9 +382,11 @@ occurrence. A new one on a common path needs a justification or a faster exit co
 
 ### Terraform plan cost
 
-A `for_each` over a large computed collection, or a `depends_on` that serialises a graph that
-could run in parallel, both show up as apply time. Flag a `depends_on` added where an implicit
-reference would express the same ordering.
+A `for_each` over a large computed collection, or a `depends_on` that introduces an
+**unnecessary or broader** edge — a module-scope dependency standing in for a single resource
+reference — serialises a graph that could run in parallel, and shows up as apply time. A
+`depends_on` restating an edge an expression reference already creates adds no serialisation;
+that is redundancy, a maintainability note at most. Flag the added edge, not the duplicate one.
 
 ## Dimension 6 — Testing Coverage
 
@@ -490,7 +504,7 @@ Close with one line: `No blocking findings.` or `N blocking, M should-fix.`
 | Repository | `Azure/sap-automation` (SDAF) |
 | Copilot | Copilot code review with agent skills (`.github/skills/`) |
 | Tools | None — this skill ships no scripts and executes nothing |
-| Scope | Terraform modules, Ansible roles and playbooks, deployer shell scripts, Python helpers |
+| Scope | Terraform modules, Ansible roles and playbooks, deployer shell scripts, Python helpers, GitHub Actions workflows |
 
 ## Related Skills
 

@@ -24,8 +24,11 @@ set -o pipefail
 terraform apply -auto-approve | tee "${log}"
 ```
 
-`set -e` alone does **not** cover pipelines, command substitutions, or commands in an `if`
-condition. State that explicitly when you raise it.
+`set -e` alone does **not** cover pipelines or commands in an `if` condition. Command
+substitution is context-dependent: Bash clears `errexit` inside the substitution subshell, but
+a bare assignment (`x=$(false)`) still returns the substitution's status and can terminate the
+outer shell, and `inherit_errexit` / POSIX mode change the inner behaviour. Say which case you
+are relying on when you raise it — the blanket claim produces false findings.
 
 ### Check the status of every consequential call
 
@@ -57,7 +60,7 @@ A script that fails midway must be safe to re-run. Flag:
 | Pattern | Why it is a finding |
 |---|---|
 | `failed_when: false` / `ignore_errors: true` where the failure is **never interpreted** | Turns a failure into a false negative. A state probe that suppresses the status so it can branch on `rc` — `1.17.1-pre_checks.yml:132-140` — is correct. So are best-effort cleanup and `rescue`; say which applies |
-| `when: x is defined` / `\| default([])` with no preceding `assert` | A **missing** fact becomes a **skipped** check rather than an error |
+| `when: x is defined` / `\| default([])` with no preceding `assert`, **on a value the role requires** | A **missing** mandatory fact becomes a **skipped** check rather than an error. Optional features and optional lists use the same idiom correctly — prove the value is required on the active path and name the check that is skipped |
 | `retries` / `delay` with a multi-minute worst case | Ask what condition would let it exit sooner |
 | A cluster-mutating block with no `rescue` | A mid-block failure leaves the cluster in a transient state |
 | `changed_when` omitted on a `shell`/`command` task **that does not always mutate** | A read-only or conditionally idempotent command reports changed every run, masking real drift. A command that genuinely changes state on every run — `crm resource cleanup` in `1.17.2.0-cluster-Suse.yml` — is correct without it. Do not flag that |
@@ -245,7 +248,7 @@ scanner reads them. Review them as such.
 | Trigger | `pull_request_target` or `workflow_run` **combined with a checkout of the PR head** hands fork-authored code a privileged token. There are none today; a new one is Blocking. |
 | `permissions:` | For a **new workflow file**, a missing top-level `permissions:` block (inheriting the repo default). For an **existing** workflow, a top-level block that grants more than before — it widens every job that does not override it, a repository-wide escalation. A job-level block is **not** a finding merely because it exceeds the workflow default: that is the intended way to give one job a narrow capability, as `codeql.yml` does with `security-events: write`. Flag a job-level grant only where you can show the effective permission exceeds what that job does. A job with no block inherits the workflow-level block, which is already restrictive here — `terraform-checks.yml` jobs do exactly that. Do not flag that. Compute each job's **effective** permission from both levels, and name it. |
 | Untrusted interpolation | A **contributor-controlled** `github.event.*` field interpolated directly into a `run:` block is script injection — `…pull_request.title`, `…body`, `…head_ref`, comment text. Require an intermediate `env:` variable. GitHub-generated fields in the same namespace (numbers, SHAs, enums) cannot carry shell syntax; say who controls the value before calling it injection. |
-| Terraform output | `terraform plan`/`apply` output uploaded as an artifact or echoed unmasked — plan output routinely contains resolved secret values. |
+| Terraform output | A **saved** plan file (`terraform plan -out`), `terraform show -json` output, or `terraform output -json` uploaded as an artifact — those retain values marked `sensitive`. Ordinary human-readable `plan`/`apply` text **redacts** them, so a plain-text log is only a finding when you can point at an actually unredacted secret. |
 | Dependency pinning | A new unpinned `pip install`, `ansible-galaxy install`, or `terraform` version in a workflow. |
 
 ## Privilege escalation in Ansible
@@ -253,7 +256,9 @@ scanner reads them. Review them as such.
 There are ~1,570 `become` references across `deploy/ansible/`, so **`become` on its own is not
 a finding** — do not re-litigate the baseline. Flag the deltas:
 
-- `become: true` added to a task or block that did not have it, with no stated reason;
+- `become: true` added to a task or block that did not have it **and whose operation does not
+  require elevation** — package installs, filesystem work, and cluster commands routinely do,
+  and the module plus operation is itself the reason. Name the privilege that exceeds the need;
 - `become_user:` changed, especially to `root` or to an `<sid>adm` account it was not before;
 - a **new** `NOPASSWD` sudoers entry, or a widened one — name the exact command allowed;
 - `become` on a task running a command built from an interpolated variable — that combines the

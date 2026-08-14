@@ -26,12 +26,18 @@ Per-module files that come in parallel sets: `variables_global.tf`, `variables_l
 A new input must be threaded through every link:
 
 ```text
-tfvar_variables.tf   (declare + describe + validate)
-  → variables_global.tf  (root-module variable)
-    → module "…" block   (pass into the unit module)
-      → unit variables_local.tf / variables_global.tf
-        → the resource that consumes it
+root-module declaration — tfvar_variables.tf OR variables_global.tf
+  (one namespace; these are alternatives, never both)
+  → module "…" block   (pass into the unit module, possibly transformed)
+    → unit variables_local.tf / variables_global.tf
+      → the resource that consumes it
 ```
+
+Terraform merges all root-module `.tf` files into a single namespace, so an input is declared
+in **one** of those files — `sa_connection_string` in `tfvar_variables.tf`, `deployers` in
+`variables_global.tf`. Asking for a declaration in both requests a duplicate and breaks
+`terraform validate`. Locate the single declaration, then follow it through any transform,
+across the module boundary, to the resource.
 
 Break any link and the deployment **succeeds with the default**. There is no error. Flag the
 first link that drops it, name it, and state the resulting wrong configuration.

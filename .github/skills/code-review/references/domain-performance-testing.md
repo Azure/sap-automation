@@ -134,8 +134,10 @@ resource state rather than a fixed count).
 ## Terraform plan and apply cost
 
 - A `for_each` over a large computed collection expands the graph and the plan.
-- An explicit `depends_on` added where an implicit reference expresses the same ordering
-  serialises a graph that could run in parallel — flag it.
+- An explicit `depends_on` that adds an **unnecessary or broader** graph edge — a module-scope
+  dependency where a single resource reference would do — serialises work that could run in
+  parallel. Restating an edge an expression reference already creates changes no ordering and
+  is not a performance finding.
 - A `data` source that forces a refresh on every plan where a variable would do.
 
 ---
