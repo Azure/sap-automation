@@ -56,7 +56,7 @@ A script that fails midway must be safe to re-run. Flag:
 
 | Pattern | Why it is a finding |
 |---|---|
-| `failed_when: false` / `ignore_errors: true` on a task whose result feeds a later `when:` | Turns a failure into a false negative. Legitimate for best-effort cleanup and `rescue` — say which applies |
+| `failed_when: false` / `ignore_errors: true` where the failure is **never interpreted** | Turns a failure into a false negative. A state probe that suppresses the status so it can branch on `rc` — `1.17.1-pre_checks.yml:132-140` — is correct. So are best-effort cleanup and `rescue`; say which applies |
 | `when: x is defined` / `\| default([])` with no preceding `assert` | A **missing** fact becomes a **skipped** check rather than an error |
 | `retries` / `delay` with a multi-minute worst case | Ask what condition would let it exit sooner |
 | A cluster-mutating block with no `rescue` | A mid-block failure leaves the cluster in a transient state |
@@ -131,8 +131,11 @@ scopes**, and the distinction matters:
 
 The table is a **non-exhaustive escalation checklist**, not an inventory. The same file also
 grants resource-group Contributor, Reader, and Network Contributor, and resource-scoped Key
-Vault, storage, and App Configuration roles. Read the `scope` and `role_definition_name` of
-every assignment the diff touches; an assignment missing from this table is not absent.
+Vault, storage, and App Configuration roles. Read the `scope`, `role_definition_name`, **and
+`condition` / `condition_version`** of every assignment the diff touches; an assignment missing
+from this table is not absent. The User Access Administrator and RBAC Administrator grants
+carry ABAC `condition` blocks (`role_assignments.tf:117-138`, `155+`); removing or broadening
+one escalates privilege without changing role or scope at all.
 
 **Read `role_definition_name`, never the resource name.**
 `subscription_contributor_system_identity` is assigned `"Reader"` at

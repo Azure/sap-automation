@@ -58,7 +58,7 @@ again without new evidence.
 | **F5** | Formatting | See prohibition 6. |
 | **F6** | Predicted scanner output | See prohibition 2. |
 | **F7** | `data "azurerm_key_vault_secret"` flagged on sight | Both `data` and `ephemeral` forms are legitimate; `data` is the more common. Only a **new ephemeral read outside** the CI-swapped module/file set is a finding. |
-| **F8** | Pre-existing wildcard re-litigated | Two unrelated `0.0.0.0/0` sites already exist and are **not** findings: `sap_deployer/firewall.tf:141` is an `azurerm_route.address_prefix` — a **default route**, not an ACL, and correct as written; `hdb_node/anf.tf` lines 41/110/187 are `export_policy_rule.allowed_clients`. Anchor to the **specific resource and line** in the diff: a **newly added** rule is a finding even when an identical value exists elsewhere in the same file. "Widened" cannot apply to `0.0.0.0/0` — it is already maximal — so do not use that word to dismiss a new one. |
+| **F8** | Pre-existing wildcard re-litigated | `0.0.0.0/0` occurs in several pre-existing places that are **not** findings — these are examples, not an exhaustive set: `sap_deployer/firewall.tf:141` and `sap_landscape/infrastructure.tf:106` are `azurerm_route.address_prefix` values — **default routes** to a `VirtualAppliance`, not ACLs, and correct as written; `hdb_node/anf.tf` lines 41/110/187 are `export_policy_rule.allowed_clients`. Additional NSG and managed-volume occurrences exist. Anchor to the **specific resource type and line** in the diff: a **newly added** rule is a finding even when an identical value exists elsewhere in the same file. "Widened" cannot apply to `0.0.0.0/0` — it is already maximal — so do not use that word to dismiss a new one. |
 
 ## Severity vocabulary
 

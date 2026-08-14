@@ -180,8 +180,12 @@ counters incremented outside a guard.
 
 ### Ansible reliability
 
-- `failed_when: false` / `ignore_errors: true` on a task whose result decides a later
-  condition. Legitimate for best-effort cleanup and `rescue` blocks — say which applies.
+- `failed_when: false` / `ignore_errors: true` on a task whose failure is then **never
+  interpreted** — the result feeds a later condition, or is dropped, without any `rc`/`failed`
+  check. A deliberate state probe that suppresses the exit status precisely so it can branch on
+  `rc` (`roles-os/1.17-generic-pacemaker/tasks/1.17.1-pre_checks.yml:132-140` sets
+  `cluster_existence_check` from `rc == 0`) is correct idempotency logic, not a finding.
+  Best-effort cleanup and `rescue` blocks are legitimate too — say which applies.
 - A `when:` guard using `is defined` or `| default([])` that turns a **missing** fact into a
   **skipped** check rather than an error.
 - `retries`/`delay` whose worst case is minutes — ask what condition lets it exit sooner.
@@ -221,9 +225,13 @@ for `subscription_contributor_system_identity` (`role_definition_name = "Reader"
 (`resource_group_user_access_admin_msi`) and Role Based Access Control Administrator
 (`resource_group_user_access_admin_spn`). This list is **not exhaustive** — the file also
 grants resource-group Contributor, Reader, and Network Contributor, and several
-resource-scoped Key Vault, storage, and App Configuration roles. Read the `scope` and
-`role_definition_name` of *every* assignment in the diff; do not treat an omission here as
-evidence the grant does not exist.
+resource-scoped Key Vault, storage, and App Configuration roles. Read the `scope`,
+`role_definition_name`, **and `condition` / `condition_version`** of *every* assignment in the
+diff; do not treat an omission here as evidence the grant does not exist. The User Access
+Administrator and RBAC Administrator grants are constrained by ABAC `condition` blocks
+(`role_assignments.tf:117-138`, `155+`) — deleting or loosening one widens effective privilege
+while role and scope stay identical, so a diff touching a condition is a Blocking-candidate
+escalation.
 
 **Read `role_definition_name`, never the resource name** — a diff flipping that `"Reader"` to
 `Contributor` is a subscription-scope escalation the name actively disguises.
