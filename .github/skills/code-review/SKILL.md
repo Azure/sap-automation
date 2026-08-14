@@ -132,11 +132,10 @@ The narrow rule: CI's `terraform-checks.yml` swaps ephemeral for `data` in a **f
 the modules `run/sap_deployer`, `run/sap_landscape`, `run/sap_library`, `run/sap_system`, and
 `bootstrap/sap_library` — because `mock_provider` cannot mock an ephemeral resource. The swap
 is **not** uniform across files: the `ephemeral "azurerm_key_vault_secret"` **declaration** is
-rewritten only in `imports.tf`; `providers.tf` and `variables_local.tf` get only their
-`ephemeral.azurerm_key_vault_secret.` **references** rewritten
-(`terraform-checks.yml:238-241`). So a new *declaration* in `providers.tf` or
-`variables_local.tf` breaks `terraform test` even though the file is "in the set". A read added
-outside the module set is not swapped at all. That — and only that — is the finding.
+rewritten only in `imports.tf`, while `providers.tf` and `variables_local.tf` get only their
+`ephemeral.…` **references** rewritten (`terraform-checks.yml:238-241`). A new *declaration* in
+either of those two files breaks `terraform test`, as does any read added outside the module
+set. That — and only that — is the finding.
 
 ### Validation at the boundary
 
