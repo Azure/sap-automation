@@ -96,23 +96,28 @@ and `"{{ azure_scsi_devices.stdout_lines }}"` in the fstab UUID-conversion tasks
 to watch. On a system with many devices this dominates the role. Prefer a single script that
 emits structured output, or a batched form.
 
-Note the contrast: a looped **module** such as `community.general.filesystem` in
-`roles-os/1.5-disk-setup/tasks/1.5-custom-disks.yml` is not this anti-pattern — it forks no
-shell. Flag the looped `shell`/`command`, not every loop.
+Note the gradient: a looped **module** such as `community.general.filesystem` in
+`roles-os/1.5-disk-setup/tasks/1.5-custom-disks.yml:78-83` forks no shell, but still runs once
+per volume with a module transfer and remote round trip each time. `ansible.builtin.command` is
+itself a module and likewise does not invoke a shell — only `shell:` does. Judge on repeated
+remote executions and whether a batch form exists, not on the loop alone: a two-item loop is
+not a finding, a loop over every discovered device is.
 
 ## Controller serialisation
 
 ```yaml
 # serialises the whole play on the controller
 delegate_to: localhost
-run_once: true
-loop: "{{ hosts }}"
+when: ansible_hostname == secondary_instance_name
+loop: "{{ ssfs_files }}"
 …
 - ansible.builtin.wait_for: …
 ```
 
-Pattern at `deploy/ansible/roles-db/4.0.1-hdb-hsr/tasks/4.0.1.3-copy_ssfs_keys.yml`. Flag a **new**
-occurrence; suggest a batched transfer or an async form with a single poll.
+Pattern at `deploy/ansible/roles-db/4.0.1-hdb-hsr/tasks/4.0.1.3-copy_ssfs_keys.yml:66-73`. Flag
+a **new** occurrence; suggest a batched transfer or an async form with a single poll. Do **not**
+suggest `run_once` here — the task selects its host with a per-host `when`, and `run_once`
+evaluates that condition on the first host only, which can skip the wait entirely.
 
 ## Long polls
 

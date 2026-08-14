@@ -219,7 +219,11 @@ Contributor (`subscription_contributor_msi`), User Access Administrator
 for `subscription_contributor_system_identity` (`role_definition_name = "Reader"`,
 `role_assignments.tf:54-59`). At **resource-group scope** it grants User Access Administrator
 (`resource_group_user_access_admin_msi`) and Role Based Access Control Administrator
-(`resource_group_user_access_admin_spn`).
+(`resource_group_user_access_admin_spn`). This list is **not exhaustive** — the file also
+grants resource-group Contributor, Reader, and Network Contributor, and several
+resource-scoped Key Vault, storage, and App Configuration roles. Read the `scope` and
+`role_definition_name` of *every* assignment in the diff; do not treat an omission here as
+evidence the grant does not exist.
 
 **Read `role_definition_name`, never the resource name** — a diff flipping that `"Reader"` to
 `Contributor` is a subscription-scope escalation the name actively disguises.
@@ -278,7 +282,8 @@ below. Neither tool reads workflow files, Ansible, or shell scripts at all.
 ### Also in scope for Dimension 3
 
 - **CI/workflow security** — a `uses:` pinned to a tag not a SHA, `pull_request_target` with a
-  PR-head checkout, a widened `permissions:` block, `github.event.*` interpolated into `run:`,
+  PR-head checkout, a widened `permissions:` block, a *contributor-controlled* `github.event.*`
+  field (title, body, `head_ref`, comment text) interpolated into `run:`,
   `terraform plan` output uploaded as an artifact.
 - **Privilege escalation** — a *new* `become` / `become_user: root` / `NOPASSWD` entry.
   `become` itself is the baseline (~1,570 uses); only deltas are findings.
@@ -334,17 +339,21 @@ shape.
 
 ### Per-item shell in a loop
 
-A `shell`/`command` task inside `loop`/`with_items` over discovered devices, disks, or files
-is one fork per item — `deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-nvme-preflight.yml`
-(the fstab UUID-conversion tasks, ~l.172-202) is the shape. A looped **module** is not this
-anti-pattern; it forks no shell. Prefer a batch form or a single script and say so.
+A task inside `loop`/`with_items` over discovered devices, disks, or files runs once per item.
+For `shell`/`command` that is a shell fork each time —
+`deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-nvme-preflight.yml`
+(the fstab UUID-conversion tasks, ~l.172-202) is the shape. A looped **module** forks no shell
+but still pays a module transfer and remote round trip per item, so it is the same problem when
+the item count is large. Base the finding on material per-item cost and a concrete batch
+alternative, not on the presence of a loop.
 
 ### Controller serialisation
 
 `delegate_to: localhost` combined with `loop` and `wait_for` serialises the whole play on the
-controller — `deploy/ansible/roles-db/4.0.1-hdb-hsr/tasks/4.0.1.3-copy_ssfs_keys.yml` is the
-pattern. Flag a
-new one; suggest `run_once` with a batched transfer or an async form.
+controller — `deploy/ansible/roles-db/4.0.1-hdb-hsr/tasks/4.0.1.3-copy_ssfs_keys.yml:66-73` is
+the pattern. Flag a new one; suggest a batched transfer or an async form with a single poll.
+Not `run_once` — that task picks its host with a per-host `when`, which `run_once` would
+evaluate on the first host only.
 
 ### Long polls
 

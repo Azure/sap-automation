@@ -73,8 +73,10 @@ partially created and the next run fails on the existing storage account."
 
 ## Shell injection
 
-`eval` is used pervasively in this repository: **21 of the scripts under `deploy/scripts/`
-contain one**, including the entire parallel `*_v2.sh` generation. A representative sample:
+`eval` is used pervasively in this repository: **21 of the top-level scripts directly under
+`deploy/scripts/` contain one** (31 across `deploy/scripts/` recursively, including
+`helpers/` and `pipeline_scripts/`), including the entire parallel `*_v2.sh` generation. A
+representative sample:
 
 ```text
 deploy/scripts/installer.sh            deploy/scripts/installer_v2.sh
@@ -126,6 +128,11 @@ scopes**, and the distinction matters:
 | Subscription | `subscription_contributor_system_identity` | **Reader** — despite the name |
 | Resource group | `resource_group_user_access_admin_msi` | User Access Administrator |
 | Resource group | `resource_group_user_access_admin_spn` | Role Based Access Control Administrator |
+
+The table is a **non-exhaustive escalation checklist**, not an inventory. The same file also
+grants resource-group Contributor, Reader, and Network Contributor, and resource-scoped Key
+Vault, storage, and App Configuration roles. Read the `scope` and `role_definition_name` of
+every assignment the diff touches; an assignment missing from this table is not absent.
 
 **Read `role_definition_name`, never the resource name.**
 `subscription_contributor_system_identity` is assigned `"Reader"` at
@@ -233,8 +240,8 @@ scanner reads them. Review them as such.
 |---|---|
 | Action pinning | A new `uses:` pinned to a **tag or branch** rather than a full commit SHA. A tag is mutable. |
 | Trigger | `pull_request_target` or `workflow_run` **combined with a checkout of the PR head** hands fork-authored code a privileged token. There are none today; a new one is Blocking. |
-| `permissions:` | For a **new workflow file**, a missing top-level `permissions:` block (inheriting the repo default). For an **existing** workflow, widening at **either** level: a top-level block that grants more than before — which widens every job that does not override it, a repository-wide escalation — or a job-level block that grants more than the workflow-level block. A job with no block inherits the workflow-level block, which is already restrictive here — `terraform-checks.yml` jobs do exactly that. Do not flag that. Compute each job's **effective** permission from both levels, and name it. |
-| Untrusted interpolation | `${{ github.event.pull_request.title }}`, `…head_ref`, `…body`, or any `github.event.*` field interpolated into a `run:` block is script injection. Require an intermediate `env:` variable. |
+| `permissions:` | For a **new workflow file**, a missing top-level `permissions:` block (inheriting the repo default). For an **existing** workflow, a top-level block that grants more than before — it widens every job that does not override it, a repository-wide escalation. A job-level block is **not** a finding merely because it exceeds the workflow default: that is the intended way to give one job a narrow capability, as `codeql.yml` does with `security-events: write`. Flag a job-level grant only where you can show the effective permission exceeds what that job does. A job with no block inherits the workflow-level block, which is already restrictive here — `terraform-checks.yml` jobs do exactly that. Do not flag that. Compute each job's **effective** permission from both levels, and name it. |
+| Untrusted interpolation | A **contributor-controlled** `github.event.*` field interpolated directly into a `run:` block is script injection — `…pull_request.title`, `…body`, `…head_ref`, comment text. Require an intermediate `env:` variable. GitHub-generated fields in the same namespace (numbers, SHAs, enums) cannot carry shell syntax; say who controls the value before calling it injection. |
 | Terraform output | `terraform plan`/`apply` output uploaded as an artifact or echoed unmasked — plan output routinely contains resolved secret values. |
 | Dependency pinning | A new unpinned `pip install`, `ansible-galaxy install`, or `terraform` version in a workflow. |
 
