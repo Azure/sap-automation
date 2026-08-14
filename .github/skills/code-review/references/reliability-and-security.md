@@ -132,8 +132,6 @@ Note the scope split too: RBAC Administrator is **resource-group** scoped today.
 promotes a resource-group assignment to subscription scope is an escalation, and it is exactly
 the change a reviewer misses when they believe the broader grant already exists.
 
-Flag any diff that:
-
 **Scrutinise — but do not automatically flag —** a diff that:
 
 - adds an `azurerm_role_assignment`;

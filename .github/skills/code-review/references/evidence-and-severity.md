@@ -32,9 +32,12 @@ Violating any of these is worse than missing the finding.
    naming the file.
 4. **Never assert a standard, SAP note, or vendor prescription you cannot cite.** No citation,
    no finding. This is the most common false positive in HA and cluster reviews here.
-5. **Never restate a finding a CI gate already owns** — checkov 3.3.8, tflint 0.63.1,
+5. **Never restate a finding a CI gate has already reported** — checkov 3.3.8, tflint 0.63.1,
    `terraform validate`, the terraform-docs drift check, the coverage gate, pytest,
-   ansible-lint. Duplicating a gate is noise and it trains reviewers to ignore you.
+   ansible-lint. Duplicating a reported failure is noise and it trains reviewers to ignore you.
+   This bars *repeating a failure the run already shows*; it does not bar the verified
+   deterministic analysis permitted in prohibition 2 — a missing `total_runs` update you traced
+   through the workflow is still yours to raise, before any run reports it.
 6. **Never propose a formatting-only change.** There is no `terraform fmt -check` in CI, and
    that absence is not a licence — formatting is not a defect and a formatting comment
    displaces a real one.

@@ -11,8 +11,11 @@ generic one when both apply.
 
 ## Half a matrix is a defect
 
-A change that handles one axis value and not the other is a defect even when it is correct for
-the value it handles.
+**Check applicability first.** Some behaviour is genuinely specific to one axis value — a
+`SAPHanaSR`-only cluster attribute, an ASCS-ERS-only resource, a distro-only package name — and
+has no counterpart to handle. Requiring parity there manufactures a finding. Once you have
+established the change applies to both values, handling one and not the other is a defect even
+when it is correct for the value it handles.
 
 | Axis | Values that must both be handled |
 |---|---|
@@ -144,10 +147,11 @@ A change to a unit module should add or extend a test for **that module**, not r
 root-level test to cover it transitively. The gap is structural, not accidental.
 
 **But the coverage gate cannot accept such a test today.** `terraform-checks.yml` derives a
-module key by normalizing exactly two path levels below `deploy/terraform/` (`sed
-'s|^\(deploy/terraform/[^/]*/[^/]*\)/tests/…'`, ~l.277-279), so a file at
-`terraform-units/modules/<mod>/tests/` collapses to `deploy/terraform/terraform-units/modules`
-and can never match a manifest's `.module`; the full-run path (~l.181-188) hardcodes the root
+module key with a `sed` that matches exactly two path segments below `deploy/terraform/`
+(`sed 's|^\(deploy/terraform/[^/]*/[^/]*\)/tests/…'`, ~l.277-279). A unit-module test has a
+third segment — `terraform-units/modules/<mod>/tests/` — so the expression does **not match at
+all** and the path passes through unchanged; it therefore never equals a manifest's `.module`.
+The full-run path (~l.181-188) hardcodes the root
 modules. So: raise the missing unit-module test as **Should fix**, and say that
 `terraform-checks.yml` must be taught the `terraform-units/modules/<mod>` layout before such a
 test can be added without failing the gate. Do not raise it as Blocking, and do not tell the

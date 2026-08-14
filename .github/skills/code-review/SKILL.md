@@ -223,9 +223,7 @@ for `subscription_contributor_system_identity` (`role_definition_name = "Reader"
 
 Note the split too: RBAC Administrator is **resource-group** scoped today. A diff that moves it
 — or any resource-group assignment — up to subscription scope is a privilege escalation and a
-Blocking finding. Any diff that adds a
-role assignment, widens an existing `scope`, or moves a scope from resource-group to
-subscription is a finding: name the role, the scope, and what it now reaches.
+Blocking finding: name the role, the scope, and what it now reaches.
 
 **Adding a role assignment is a review *trigger*, not a finding by itself.** A new assignment
 whose role and scope are demonstrably least-privileged and required by the module is correct —
@@ -295,9 +293,11 @@ Full rules: [reliability-and-security.md](references/reliability-and-security.md
 ### Half a matrix is a defect
 
 SUSE `crm` / RHEL `pcs`; Scale-Up / Scale-Out HSR / Scale-Out with Standby; `SAPHanaSR` /
-`SAPHanaSR-angi`; HANA DB / ASCS-ERS. A change handling one and not the other is a defect even
-where it is correct for the value it handles. Name the missing branch and the file that would
-hold it.
+`SAPHanaSR-angi`; HANA DB / ASCS-ERS. **First establish the change applies to both values.**
+Genuinely platform-specific behaviour — a `SAPHanaSR`-only attribute, an ASCS-ERS-only
+resource — has no counterpart, and demanding one manufactures a finding. Where both values do
+apply, handling one and not the other is a defect even when it is correct for the value it
+handles: name the missing branch and the file that would hold it.
 
 ### Resource-agent and cluster parameters come from vendor guidance
 
@@ -332,9 +332,9 @@ shape.
 ### Per-item shell in a loop
 
 A `shell`/`command` task inside `loop`/`with_items` over discovered devices, disks, or files
-is one fork per item. `deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-custom-disks.yml` loops
-per
-device. Prefer a batch form or a single script and say so.
+is one fork per item — `deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-nvme-preflight.yml`
+(the fstab UUID-conversion tasks, ~l.172-202) is the shape. A looped **module** is not this
+anti-pattern; it forks no shell. Prefer a batch form or a single script and say so.
 
 ### Controller serialisation
 
