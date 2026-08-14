@@ -273,10 +273,8 @@ change silently reconfigures every landscape that does not override it — say t
 CI runs **checkov 3.3.8** and **tflint 0.63.1**. Do not restate a finding either tool reports —
 its output is authoritative, your prediction is not. Focus on what they cannot see: scope
 semantics, whether a wildcard is *newly* introduced, and whether a default change widens
-exposure.
-
-Note tflint runs with `--minimum-failure-severity=error`, so tflint **warnings** are reported
-but do **not** gate. A warning-severity issue is review territory — raise it at Should-fix or
+exposure. tflint runs with `--minimum-failure-severity=error`, so tflint **warnings** are
+reported but do **not** gate — a warning-severity issue is review territory, at Should-fix or
 below. Neither tool reads workflow files, Ansible, or shell scripts at all.
 
 ### Also in scope for Dimension 3
@@ -383,9 +381,9 @@ There are 22 `*.tftest.hcl` files and **all of them are root-level**. Every unit
 `sap_deployer`, `sap_landscape`, `sap_library`, `sap_namegenerator`, `sap_system` — has
 **zero**. A change to a unit module should add or extend a test for that module, not rely on a
 root-level test to cover it transitively. Raise this as **Should fix**, not Blocking: the
-`coverage-gate` in `terraform-checks.yml` only normalizes two path levels, so a
+`coverage-gate` in `terraform-checks.yml` normalizes only two path levels, so a
 `terraform-units/modules/<mod>/tests/` file cannot match a manifest and the workflow must be
-updated first. Say so in the finding — see
+updated first — say so in the finding, and see
 [domain-performance-testing.md](references/domain-performance-testing.md).
 
 ### Python tests mirror the source tree
