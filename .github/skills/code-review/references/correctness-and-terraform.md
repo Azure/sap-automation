@@ -39,8 +39,11 @@ in **one** of those files — `sa_connection_string` in `tfvar_variables.tf`, `d
 `terraform validate`. Locate the single declaration, then follow it through any transform,
 across the module boundary, to the resource.
 
-Break any link and the deployment **succeeds with the default**. There is no error. Flag the
-first link that drops it, name it, and state the resulting wrong configuration.
+Break a link where the downstream input **has a default** and the deployment **succeeds with
+that default** — no error, silent wrong configuration. Where the downstream input has **no**
+default, the omission fails `terraform validate` instead, and the wrong outcome is a broken
+plan, not a silent misconfiguration. Check which case applies before you name the outcome, then
+flag the first link that drops it.
 
 ### Contract or defect — the discriminator
 

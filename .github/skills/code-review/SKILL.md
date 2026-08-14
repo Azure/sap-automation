@@ -341,13 +341,12 @@ shape.
 
 ### Per-item shell in a loop
 
-A task inside `loop`/`with_items` over discovered devices, disks, or files runs once per item.
-For `shell`/`command` that is a shell fork each time —
-`deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-nvme-preflight.yml`
-(the fstab UUID-conversion tasks, ~l.172-202) is the shape. A looped **module** forks no shell
-but still pays a module transfer and remote round trip per item, so it is the same problem when
-the item count is large. Base the finding on material per-item cost and a concrete batch
-alternative, not on the presence of a loop.
+A task inside `loop`/`with_items` over discovered devices, disks, or files runs once per item,
+paying a module transfer and remote round trip each time — and `shell:` adds a shell fork on
+top. `deploy/ansible/roles-os/1.5-disk-setup/tasks/1.5-nvme-preflight.yml` (the fstab
+UUID-conversion tasks, ~l.172-202) is the shape. `command:` is itself a module and forks no
+shell; so does any other looped module, but the per-item cost is the same problem at scale.
+Base the finding on material per-item cost and a concrete batch alternative, not on the loop.
 
 ### Controller serialisation
 
@@ -389,6 +388,14 @@ root-level test to cover it transitively. Raise this as **Should fix**, not Bloc
 updated first. Say so in the finding — see
 [domain-performance-testing.md](references/domain-performance-testing.md).
 
+### Python tests mirror the source tree
+
+A change to a Python file under `deploy/` — an Ansible `filter_plugins`/`lookup_plugins` module
+or a `deploy/scripts/py_scripts/` CLI — needs its test at
+`tests/deploy/<same relative path>/test_<name>.py`. Tests are **not** colocated. `pytest` runs
+with `--cov-fail-under=85`, so new uncovered branches can fail CI. Flag a behaviour change with
+no mirrored test update, and name the path the test belongs at.
+
 ### The shard manifest is part of the test
 
 `terraform-checks.yml` enforces a `coverage-gate`: every `*.tftest.hcl` must appear in a
@@ -426,11 +433,9 @@ Checklist: [domain-performance-testing.md](references/domain-performance-testing
 `terraform validate`, **tflint 0.63.1**, **checkov 3.3.8**, a `terraform-docs` drift check,
 sharded `terraform test` with the coverage gate, plus `pytest` and `ansible-lint`.
 
-**There is no `terraform fmt -check` in CI.** That does **not** license formatting comments —
-**never propose a formatting-only change**. Formatting is not a defect and a formatting comment
-displaces a real one.
-
-Do comment on:
+**There is no `terraform fmt -check` in CI** — that does **not** license formatting comments.
+**Never propose a formatting-only change**: formatting is not a defect and such a comment
+displaces a real one. Do comment on:
 
 - a variable, local, or output that is declared and never used (dead wiring);
 - a description missing on a new variable or output — `terraform-docs` regenerates from them,
@@ -443,9 +448,8 @@ Never state what a linter or scanner reports without its actual output.
 ### Documentation is interface
 
 `terraform-docs` output, `WORKSPACES/` samples, and the deployment guides are consumed
-directly. A new variable that is not reflected in the sample `tfvars`, or a documented
-behaviour that the code no longer performs, is a defect. A link to a workflow or a file that
-does not exist is a defect.
+directly. A new variable not reflected in the sample `tfvars`, a documented behaviour the code
+no longer performs, or a link to a workflow or file that does not exist, is a defect.
 
 ## Output Format
 
