@@ -24,7 +24,10 @@ set -o pipefail
 terraform apply -auto-approve | tee "${log}"
 ```
 
-`set -e` alone does **not** cover pipelines or commands in an `if` condition. Command
+`set -e` does react to a pipeline's overall status — but without `pipefail` that status is the
+**last** command's, so a failure in any earlier stage is silently lost. That, not "pipelines"
+generally, is the gap; a pipeline whose intended status really is the final command's is fine.
+`set -e` also does not cover commands in an `if` condition. Command
 substitution is context-dependent: Bash clears `errexit` inside the substitution subshell, but
 a bare assignment (`x=$(false)`) still returns the substitution's status and can terminate the
 outer shell, and `inherit_errexit` / POSIX mode change the inner behaviour. Say which case you

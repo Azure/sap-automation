@@ -130,10 +130,13 @@ Do **not** flag a `data` block on sight.
 
 The narrow rule: CI's `terraform-checks.yml` swaps ephemeral for `data` in a **fixed set** —
 the modules `run/sap_deployer`, `run/sap_landscape`, `run/sap_library`, `run/sap_system`, and
-`bootstrap/sap_library`, in the files `imports.tf`, `providers.tf`, and `variables_local.tf`
-— because `mock_provider` cannot mock an ephemeral resource. A new ephemeral secret read added
-**outside** that module/file set will not be swapped and will break `terraform test`. That —
-and only that — is the finding.
+`bootstrap/sap_library` — because `mock_provider` cannot mock an ephemeral resource. The swap
+is **not** uniform across files: the `ephemeral "azurerm_key_vault_secret"` **declaration** is
+rewritten only in `imports.tf`; `providers.tf` and `variables_local.tf` get only their
+`ephemeral.azurerm_key_vault_secret.` **references** rewritten
+(`terraform-checks.yml:238-241`). So a new *declaration* in `providers.tf` or
+`variables_local.tf` breaks `terraform test` even though the file is "in the set". A read added
+outside the module set is not swapped at all. That — and only that — is the finding.
 
 ### Validation at the boundary
 
@@ -162,8 +165,8 @@ leaves a landscape in an unknown state.
 
 - `set -o pipefail` before any pipeline whose exit code matters, especially `| tee`. Without
   it the status is `tee`'s, which is almost always `0`.
-- `set -e` alone does not cover pipelines or `if` conditions, and its behaviour with command
-  substitution is context-dependent — see
+- `set -e` does not catch a failure in a **non-final** pipeline stage without `pipefail`, does
+  not cover `if` conditions, and behaves conditionally with command substitution — see
   [reliability-and-security.md](references/reliability-and-security.md) before raising it.
 - Check the exit status of every `az`, `terraform`, and `ansible-playbook` invocation whose
   failure should stop the run.

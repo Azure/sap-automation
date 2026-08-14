@@ -120,12 +120,15 @@ The actual constraint: CI (`terraform-checks.yml`) rewrites `ephemeral` to `data
 running `terraform test`, because `mock_provider` cannot mock an ephemeral resource
 (hashicorp/terraform#38608). The rewrite is scoped to:
 
-| Modules | Files |
+| Modules | What is rewritten, and where |
 |---|---|
-| `run/sap_deployer`, `run/sap_landscape`, `run/sap_library`, `run/sap_system`, `bootstrap/sap_library` | `imports.tf`, `providers.tf`, `variables_local.tf` |
+| `run/sap_deployer`, `run/sap_landscape`, `run/sap_library`, `run/sap_system`, `bootstrap/sap_library` | the `ephemeral "azurerm_key_vault_secret"` **declaration** — in `imports.tf` only |
+| the same modules | `ephemeral.azurerm_key_vault_secret.` **references** — in `providers.tf` and `variables_local.tf` only |
 
-A **new `ephemeral` secret read added outside that module/file set** will not be swapped and
-will break `terraform test`. That is the finding — state it in those terms, naming the file.
+A new `ephemeral` read added **outside those modules** is never swapped. So is a new
+**declaration** placed in `providers.tf` or `variables_local.tf`, since those files have only
+their references rewritten (`terraform-checks.yml:238-241`). Either breaks `terraform test`.
+That is the finding — state it in those terms, naming the file.
 
 ## 4. Validation at the boundary
 
