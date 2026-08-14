@@ -20,10 +20,14 @@ apply only when working under `Webapp/`; this file covers the rest of the repo
 and general cross-cutting rules.
 
 When reviewing a pull request or a diff in this repository, use the
-`code-review` agent skill in `.github/skills/code-review/`. It defines the
+`code-review` agent skill in `.github/skills/code-review/` for changes to
+Terraform modules, Ansible roles and playbooks, deployer shell scripts, and
+Python helpers. It defines the
 review dimensions in priority order — correctness, reliability/SRE, security,
 Azure/SAP domain rules, performance, testing coverage, maintainability — along
 with the evidence bar and the known false-positive classes for this repo.
+The skill does not cover `Webapp/` (.NET); review those changes against the
+`Webapp/.github/copilot-instructions.md` guidance instead.
 
 ## Strict requirement: follow official best practices
 

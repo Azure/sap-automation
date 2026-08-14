@@ -60,7 +60,7 @@ A script that fails midway must be safe to re-run. Flag:
 | `when: x is defined` / `\| default([])` with no preceding `assert` | A **missing** fact becomes a **skipped** check rather than an error |
 | `retries` / `delay` with a multi-minute worst case | Ask what condition would let it exit sooner |
 | A cluster-mutating block with no `rescue` | A mid-block failure leaves the cluster in a transient state |
-| `changed_when` omitted on a `shell`/`command` task | Every run reports changed; masks real drift |
+| `changed_when` omitted on a `shell`/`command` task **that does not always mutate** | A read-only or conditionally idempotent command reports changed every run, masking real drift. A command that genuinely changes state on every run — `crm resource cleanup` in `1.17.2.0-cluster-Suse.yml` — is correct without it. Do not flag that |
 
 ## Failure blast radius
 
@@ -103,7 +103,11 @@ Rules:
 - **Allow-list, not deny-list.** A deny-list of dangerous characters is not a control.
 - Prefer an argument array over a constructed string.
 - The same applies to an Ansible `shell:` task interpolating a variable that originates
-  outside the repository. `ansible.builtin.command` does **not** run through a shell, so
+  outside the repository — but only where the interpolation is **unescaped**. Ansible's
+  `| quote` filter shell-escapes the value and is a valid mitigation; a quoted interpolation is
+  not a finding. Prefer `command:` with `argv` where the task needs no shell feature, and
+  `shell:` with `| quote` where it genuinely needs a pipe or redirection.
+  `ansible.builtin.command` does **not** run through a shell, so
   metacharacters in an interpolated value are not interpreted as commands — distinguish it.
   For `command:` the risk is executable or argument manipulation; the remedy is `argv`, and
   the finding requires showing how the argument boundary breaks.
@@ -229,7 +233,7 @@ scanner reads them. Review them as such.
 |---|---|
 | Action pinning | A new `uses:` pinned to a **tag or branch** rather than a full commit SHA. A tag is mutable. |
 | Trigger | `pull_request_target` or `workflow_run` **combined with a checkout of the PR head** hands fork-authored code a privileged token. There are none today; a new one is Blocking. |
-| `permissions:` | For a **new workflow file**, a missing top-level `permissions:` block (inheriting the repo default). For an **existing** workflow, a job-level block that *widens* what the workflow-level block already grants. A job with no block inherits the workflow-level block, which is already restrictive here — `terraform-checks.yml` jobs do exactly that. Do not flag that. Evaluate the **effective** permission, and name it. |
+| `permissions:` | For a **new workflow file**, a missing top-level `permissions:` block (inheriting the repo default). For an **existing** workflow, widening at **either** level: a top-level block that grants more than before — which widens every job that does not override it, a repository-wide escalation — or a job-level block that grants more than the workflow-level block. A job with no block inherits the workflow-level block, which is already restrictive here — `terraform-checks.yml` jobs do exactly that. Do not flag that. Compute each job's **effective** permission from both levels, and name it. |
 | Untrusted interpolation | `${{ github.event.pull_request.title }}`, `…head_ref`, `…body`, or any `github.event.*` field interpolated into a `run:` block is script injection. Require an intermediate `env:` variable. |
 | Terraform output | `terraform plan`/`apply` output uploaded as an artifact or echoed unmasked — plan output routinely contains resolved secret values. |
 | Dependency pinning | A new unpinned `pip install`, `ansible-galaxy install`, or `terraform` version in a workflow. |

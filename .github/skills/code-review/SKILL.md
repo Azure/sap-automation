@@ -203,8 +203,11 @@ Any diff that adds an `eval`, or routes a new parameter, filename, environment v
 `tfvars`-sourced value into **any** existing `eval` — `_v2` or not — is a finding. Require an
 allow-list or an argument array, not a deny-list of characters.
 
-Same rule for an Ansible `shell:` task interpolating a variable that originates outside the
-repository. `command:` is **not** the same sink — it does not invoke a shell, so metacharacters
+Same rule for an Ansible `shell:` task interpolating an **unescaped** variable that originates
+outside the repository. Ansible's `| quote` filter shell-escapes the value — a quoted
+interpolation is mitigated and not a finding. Recommend `command:` with `argv` where the task
+uses no shell feature, and `| quote` where a pipe or redirection makes `shell:` necessary.
+`command:` is **not** the same sink — it does not invoke a shell, so metacharacters
 are not interpreted; there the risk is executable or argument manipulation, addressed with
 `argv`. Flag `command:` only when you can show the argument boundary actually breaks.
 
@@ -449,8 +452,8 @@ Close with one line: `No blocking findings.` or `N blocking, M should-fix.`
 
 | Situation | Action |
 |-----------|--------|
-| A sibling module is not in the diff | Phrase the finding as a question naming the file you could not open |
-| The deciding code is outside the diff | Mark **Probable**, never Verified |
+| A sibling module is not in the diff | Open it — unchanged repository files are readable and reading one yields Verified evidence. Phrase the finding as a question only if the file is genuinely unavailable after you tried |
+| The deciding code is outside the diff and you could not read it | Mark **Probable**, never Verified. Being outside the diff alone is not grounds to downgrade — only being unreadable is |
 | A finding was already rejected on this PR | Do not raise it again in any form |
 | The author rebuts with a reason | Withdraw plainly, or produce the concrete input that reaches the path |
 | A fix would force a resource replace | Say so yourself. For an **address** change propose `moved {}` / state-move; for a **`ForceNew` argument** change propose a replacement and data-migration plan — `moved {}` will not help |
