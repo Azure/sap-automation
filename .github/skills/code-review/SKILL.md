@@ -222,23 +222,17 @@ Contributor (`subscription_contributor_msi`), User Access Administrator
 (`subscription_useraccessadmin_msi`), and **Reader** — not Contributor —
 for `subscription_contributor_system_identity` (`role_definition_name = "Reader"`,
 `role_assignments.tf:54-59`). At **resource-group scope** it grants User Access Administrator
-(`resource_group_user_access_admin_msi`) and Role Based Access Control Administrator
-(`resource_group_user_access_admin_spn`). This list is **not exhaustive** — the file also
-grants resource-group Contributor, Reader, and Network Contributor, and several
-resource-scoped Key Vault, storage, and App Configuration roles. Read the `scope`,
-`role_definition_name`, **and `condition` / `condition_version`** of *every* assignment in the
-diff; do not treat an omission here as evidence the grant does not exist. The User Access
-Administrator and RBAC Administrator grants are constrained by ABAC `condition` blocks
-(`role_assignments.tf:117-138`, `155+`) — deleting or loosening one widens effective privilege
-while role and scope stay identical, so a diff touching a condition is a Blocking-candidate
-escalation.
+and Role Based Access Control Administrator. That list is **not exhaustive**; the full
+inventory and the escalation checklist are in
+[references/reliability-and-security.md](references/reliability-and-security.md).
 
-**Read `role_definition_name`, never the resource name** — a diff flipping that `"Reader"` to
-`Contributor` is a subscription-scope escalation the name actively disguises.
-
-Note the split too: RBAC Administrator is **resource-group** scoped today. A diff that moves it
-— or any resource-group assignment — up to subscription scope is a privilege escalation and a
-Blocking finding: name the role, the scope, and what it now reaches.
+For every assignment the diff touches read three fields — `scope`, `role_definition_name`, and
+`condition` / `condition_version`. **Never the resource name**: flipping that `"Reader"` to
+`Contributor` is a subscription-scope escalation the name disguises. Deleting or loosening an
+ABAC `condition` (`role_assignments.tf:117-138`, `155+`) widens effective privilege with role
+and scope unchanged. Promoting a resource-group assignment — RBAC Administrator is
+resource-group scoped today — to subscription scope is likewise an escalation. Name the role,
+the scope, and what it now reaches.
 
 **Adding a role assignment is a review *trigger*, not a finding by itself.** A new assignment
 whose role and scope are demonstrably least-privileged and required by the module is correct —
