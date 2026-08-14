@@ -244,10 +244,9 @@ Wildcards already exist in this repository — `sap_deployer/firewall.tf` uses `
 `["*"]`, and `sap_system/hdb_node/anf.tf` uses `allowed_clients = ["0.0.0.0/0"]`. Do not
 re-litigate existing lines. **Do** flag any diff that **adds** a wildcard to an
 **access-control** resource — an NSG rule, a firewall rule, an ANF export policy, or a
-storage-account or Key Vault network ACL — or that widens one.
-
-A wildcard is not automatically exposure: `firewall.tf:141` is an `azurerm_route` forcing all
-traffic to a VirtualAppliance, which is a control. Confirm the resource type before flagging.
+storage-account or Key Vault network ACL — or that widens one. A wildcard is not automatically
+exposure: `firewall.tf:141` is an `azurerm_route` forcing traffic to a VirtualAppliance, which
+is a control. Confirm the resource type before flagging.
 
 ### Permissiveness drift
 
@@ -261,7 +260,7 @@ change silently reconfigures every landscape that does not override it — say t
 - `sensitive = true` on any variable or output carrying a secret, key, password, or
   connection string. A secret in an output is written to state in **cleartext**; Terraform
   redacts it from normal CLI output, but `terraform output -raw`/`-json` and the state file
-  both expose it. Keep the two risks distinct — claiming it is "printed to the console"
+  both expose it — keep the two risks distinct, since claiming it is "printed to the console"
   produces a false leak finding.
 - `no_log: true` on Ansible tasks handling credentials.
 - No secret in a log line, a captured stdout, an exception message, or a telemetry payload.
