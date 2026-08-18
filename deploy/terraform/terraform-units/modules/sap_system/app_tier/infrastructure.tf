@@ -443,7 +443,7 @@ resource "azurerm_private_dns_a_record" "scs" {
   provider                             = azurerm.dnsmanagement
   count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0  && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(coalesce(
-                                           try(var.infrastructure_configuration_settings.custom_scs_virtual_hostname,""),
+                                           try(var.infrastructure.configuration_settings.custom_scs_virtual_hostname,""),
                                            format("%sscs%scl1",
                                              local.sid,
                                              var.application_tier.scs_instance_number)
@@ -458,7 +458,7 @@ resource "azurerm_private_dns_a_record" "ers" {
   provider                             = azurerm.dnsmanagement
   count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(coalesce(
-                                           try(var.infrastructure_configuration_settings.custom_ers_virtual_hostname,""),
+                                           try(var.infrastructure.configuration_settings.custom_ers_virtual_hostname,""),
                                            format("%sers%scl2",
                                             local.sid,
                                             local.ers_instance_number)
