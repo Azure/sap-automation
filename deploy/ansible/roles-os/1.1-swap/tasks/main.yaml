@@ -148,6 +148,9 @@
     - swap_size | int == 0
     - nvme_device_count | int > 0
     - nvme_direct_count | int > 0
+  vars:
+    nvme_swap_filesystem:              "ext4"
+    nvme_swap_mount_point:             "/mnt/resource"
   block:
     # Install required dependencies for the NVMe swap helper script
     - name:                            "1.1 Swap - Install NVMe swap dependencies (RHEL)"
@@ -200,7 +203,7 @@
 
     # run the nvme disk config script
     - name:                            "1.1 Swap - Run Azure NVMe temp disk configuration helper script"
-      ansible.builtin.command:         /usr/local/bin/azure-nvme-swap-conf ext4 /mnt/resource
+      ansible.builtin.command:         "/usr/local/bin/azure-nvme-swap-conf {{ nvme_swap_filesystem }} {{ nvme_swap_mount_point }}"
       register:                        nvme_swap_configured
       changed_when:                    nvme_swap_configured.rc == 0 and "'Skipping' not in nvme_swap_configured.stdout"
       failed_when:                     nvme_swap_configured.rc != 0 and 'No NVMe Direct Disks found' not in ((nvme_swap_configured.stdout | default('')) ~ ' ' ~ (nvme_swap_configured.stderr | default(''))) and 'Found 0 NVMe Direct Disks' not in ((nvme_swap_configured.stdout | default('')) ~ ' ' ~ (nvme_swap_configured.stderr | default('')))
@@ -226,7 +229,7 @@
         force:                         true
 
     - name:                            "1.1 Swap - Create swap file on NVMe temp disk"
-      ansible.builtin.command:         /usr/local/bin/create-nvme-swap.sh {{ swap_size_mb }} /mnt/resource
+      ansible.builtin.command:         "/usr/local/bin/create-nvme-swap.sh {{ swap_size_mb }} {{ nvme_swap_mount_point }}"
       vars:
         swap_size_mb:                  "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
       register:                        nvme_swap_file_created
@@ -250,6 +253,8 @@
         group:                         root
       vars:
         swap_size_mb:                  "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
+        swap_filesystem:               "{{ nvme_swap_filesystem }}"
+        swap_mount_point:              "{{ nvme_swap_mount_point }}"
 
 - name:                                "1.1 Swap - Check for (waagent_conf)"
   ansible.builtin.stat:
@@ -345,14 +350,14 @@
     # as the swap configuration may not be fully applied until systemd is running.
     # This was added in response to an issue where subsequent tasks were failing due to systemd not being in a
     # running state after the reboot.
-    - name: "1.1 Swap - Wait for systemd to be in a running state after reboot"
-      ansible.builtin.command: systemctl is-system-running
-      register: systemd_status
-      until: systemd_status.stdout == "running"
-      retries: 30
-      delay: 10
-      failed_when: systemd_status.rc > 1
-      changed_when: false
+    - name:                            "1.1 Swap - Wait for systemd to be in a running state after reboot"
+      ansible.builtin.command:         systemctl is-system-running
+      register:                        systemd_status
+      until:                           systemd_status.stdout == "running"
+      retries:                         30
+      delay:                           10
+      failed_when:                     systemd_status.rc > 1
+      changed_when:                    false
       tags:
         - skip_ansible_lint
 

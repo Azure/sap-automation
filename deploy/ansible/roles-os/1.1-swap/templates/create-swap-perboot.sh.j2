@@ -1,15 +1,23 @@
 #!/bin/bash
 # Recreate swap file on NVMe temp disk after reboot.
-# NVMe temp disks are ephemeral - data is lost on VM stop/deallocate.
-# The RAID0 config persists in initramfs, but the swap file needs
-# to be recreated on each boot.
+# NVMe temp disks are ephemeral - data (including the RAID0 superblocks and
+# filesystem) is lost whenever the VM is stopped/deallocated, which also
+# happens as part of a VM resize. The RAID0 config normally re-assembles from
+# initramfs/mdadm.conf, but after a resize the underlying NVMe media comes
+# back blank (no superblocks, no filesystem), so it never auto-mounts.
+# To guarantee the ephemeral disk is always usable, this script re-runs the
+# azure-nvme-swap-conf helper (idempotent: it no-ops if the array/filesystem
+# are already valid) whenever the mount point isn't ready before recreating
+# the swap file.
 #
 # Deployed by Ansible role 1.1-swap as a cloud-init per-boot script.
 
-SWAP_FILE="/mnt/resource/swapfile"
+SWAP_FILE="{{ swap_mount_point }}/swapfile"
 WAAGENT_SWAP_FILE="/mnt/swapfile"
 SWAP_SIZE_MB="{{ swap_size_mb }}"
-MOUNT_POINT="/mnt/resource"
+MOUNT_POINT="{{ swap_mount_point }}"
+FILESYSTEM="{{ swap_filesystem }}"
+NVME_SWAP_CONF_HELPER="/usr/local/bin/azure-nvme-swap-conf"
 
 if swapon --show | grep -q "$WAAGENT_SWAP_FILE"; then
   echo "Swap already configured by waagent" | systemd-cat -t create-swap
@@ -25,8 +33,26 @@ for _ in $(seq 1 30); do
 done
 
 if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
-  echo "ERROR: $MOUNT_POINT is not a mountpoint" | systemd-cat -t create-swap -p err
-  exit 1
+  echo "$MOUNT_POINT is not mounted - ephemeral NVMe media likely came back blank (e.g. after a VM resize). Re-initializing RAID0 array and filesystem." | systemd-cat -t create-swap
+
+  if [ ! -x "$NVME_SWAP_CONF_HELPER" ]; then
+    echo "ERROR: $NVME_SWAP_CONF_HELPER not found or not executable" | systemd-cat -t create-swap -p err
+    exit 1
+  fi
+
+  if ! "$NVME_SWAP_CONF_HELPER" "$FILESYSTEM" "$MOUNT_POINT" 2>&1 | systemd-cat -t create-swap; then
+    echo "ERROR: failed to (re)initialize the NVMe temp disk with $NVME_SWAP_CONF_HELPER" | systemd-cat -t create-swap -p err
+    exit 1
+  fi
+
+  if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
+    mount -a
+  fi
+
+  if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
+    echo "ERROR: $MOUNT_POINT is still not a mountpoint after re-initialization" | systemd-cat -t create-swap -p err
+    exit 1
+  fi
 fi
 
 if swapon --show | grep -q "$SWAP_FILE"; then
