@@ -333,10 +333,13 @@ locals {
                                              ]
                                              blob_containers          = acct.account_kind == "FileStorage" ? [] : [
                                                for ctr_idx, ctr in acct.blob_containers : {
-                                                 name = length(ctr.name) > 0 ? ctr.name : format("container%02d", ctr_idx)
+                                                 name                = length(ctr.name) > 0 ? ctr.name : format("container%02d", ctr_idx)
+                                                 immutability_policy = ctr.immutability_policy
                                                }
                                              ]
                                              https_traffic_only_enabled = var.AFS_enable_encryption_in_transit
+                                             versioning_enabled         = acct.account_kind == "FileStorage" ? false : acct.versioning_enabled
+                                             version_level_immutability = acct.account_kind == "FileStorage" ? null : acct.version_level_immutability
                                            }
                                            if (
                                              length(acct.file_shares) > 0

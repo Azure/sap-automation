@@ -1,0 +1,23 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |        Playbook for SAP Functional Tests (sap-automation-qa)               |
+# |                                                                            |
+# |        Prepares the controller so that the Azure/sap-automation-qa          |
+# |        playbooks can be executed directly by the next pipeline stage.       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               localhost
+  name:                                "SAP Automation QA: - prepare the quality assurance run"
+  gather_facts:                        true
+  vars_files:                          vars/ansible-input-api.yaml
+  tasks:
+    - name:                            "SAP Automation QA: - setup prerequisites"
+      ansible.builtin.include_role:
+        name:                          roles-misc/0.10-sap-automation-qa
+        tasks_from:                    setup.yaml

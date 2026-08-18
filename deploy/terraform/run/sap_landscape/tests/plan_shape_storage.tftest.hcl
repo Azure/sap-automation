@@ -668,6 +668,11 @@ run "utility_storage_filestorage_forces_premium_tier_and_drops_blobs" {
     condition     = module.sap_landscape.network_resource_counts.utility_storage_account == 1
     error_message = "FileStorage utility account with file_shares must be planned."
   }
+
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.utility_container_immutability_policy == 0
+    error_message = "FileStorage utility accounts must not plan container immutability policies."
+  }
 }
 
 run "utility_storage_storagev2_uses_standard_tier_and_keeps_blobs" {
@@ -689,6 +694,103 @@ run "utility_storage_storagev2_uses_standard_tier_and_keeps_blobs" {
   assert {
     condition     = module.sap_landscape.network_resource_counts.utility_storage_account == 1
     error_message = "StorageV2 utility account with blob_containers must be planned."
+  }
+
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.utility_blob_container == 1
+    error_message = "StorageV2 utility account with one blob container must plan one container."
+  }
+
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.utility_container_immutability_policy == 0
+    error_message = "A utility blob container without an immutability_policy block must not plan a policy."
+  }
+}
+
+run "utility_storage_container_immutability_policy_is_optional_and_container_scoped" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name                     = "utilsv201"
+        account_kind             = "StorageV2"
+        account_tier             = "Standard"
+        account_replication_type = "LRS"
+        file_shares              = []
+        blob_containers = [
+          {
+            name = "unprotected"
+          },
+          {
+            name                = "defaults"
+            immutability_policy = {}
+          },
+          {
+            name = "archive"
+            immutability_policy = {
+              immutability_period_in_days = 90
+              locked                      = false
+              protected_append_writes     = "append_blobs"
+            }
+          },
+          {
+            name = "audit"
+            immutability_policy = {
+              immutability_period_in_days = 365
+              locked                      = true
+              allow_irreversible_lock     = true
+              protected_append_writes     = "all"
+            }
+          },
+        ]
+      },
+    ]
+  }
+
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.utility_blob_container == 4
+    error_message = "All four configured utility blob containers must be planned."
+  }
+
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.utility_container_immutability_policy == 3
+    error_message = "Only the three containers with immutability_policy blocks must plan policies."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/defaults"].container_index == 1
+    error_message = "The default policy must retain its stable account/container key and source index."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/defaults"].immutability_period_in_days == 30 && !module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/defaults"].locked
+    error_message = "An empty policy block must resolve to a 30-day unlocked policy."
+  }
+
+  assert {
+    condition     = !module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/defaults"].protected_append_writes_enabled && !module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/defaults"].protected_append_writes_all_enabled
+    error_message = "An empty policy block must disable both protected append modes."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/archive"].container_index == 2 && module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/archive"].immutability_period_in_days == 90 && !module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/archive"].locked
+    error_message = "The archive container must retain its 90-day unlocked immutability settings."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/archive"].protected_append_writes_enabled && !module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/archive"].protected_append_writes_all_enabled
+    error_message = "The archive container must enable append-blob writes only."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/audit"].container_index == 3 && module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/audit"].immutability_period_in_days == 365 && module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/audit"].locked
+    error_message = "The acknowledged audit policy must retain its 365-day locked settings."
+  }
+
+  assert {
+    condition     = !module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/audit"].protected_append_writes_enabled && module.sap_landscape.utility_container_immutability_policy_settings["utilsv201/audit"].protected_append_writes_all_enabled
+    error_message = "The audit container must enable all protected append writes only."
   }
 }
 
@@ -786,5 +888,140 @@ run "apply_greenfield_diagnostics_storage_resolves_name" {
   assert {
     condition     = output.witness_storage_account != ""
     error_message = "After apply, greenfield witness storage account name must be a resolved non-empty string."
+  }
+}
+
+run "utility_storage_account_version_level_immutability_is_optional" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name                     = "utilsv210"
+        account_kind             = "StorageV2"
+        account_tier             = "Standard"
+        account_replication_type = "LRS"
+        file_shares              = []
+        blob_containers          = [{ name = "container01" }]
+      },
+    ]
+  }
+
+  assert {
+    condition     = !module.sap_landscape.utility_account_version_level_immutability_settings["0"].versioning_enabled
+    error_message = "A utility account that does not request versioning must not plan blob versioning."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_account_version_level_immutability_settings["0"].state == null
+    error_message = "A utility account without version_level_immutability must not plan an account immutability policy."
+  }
+}
+
+run "utility_storage_account_versioning_can_be_enabled_without_immutability" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name                     = "utilsv211"
+        account_kind             = "StorageV2"
+        account_tier             = "Standard"
+        account_replication_type = "LRS"
+        versioning_enabled       = true
+        file_shares              = []
+        blob_containers          = [{ name = "container01" }]
+      },
+    ]
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_account_version_level_immutability_settings["0"].versioning_enabled
+    error_message = "Blob versioning must be planned when versioning_enabled is true."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_account_version_level_immutability_settings["0"].state == null
+    error_message = "Enabling versioning alone must not plan an account immutability policy."
+  }
+}
+
+run "utility_storage_account_version_level_immutability_defaults_and_overrides" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name                       = "utilsv212"
+        account_kind               = "StorageV2"
+        account_tier               = "Standard"
+        account_replication_type   = "LRS"
+        versioning_enabled         = true
+        version_level_immutability = {}
+        file_shares                = []
+        blob_containers            = [{ name = "container01" }]
+      },
+      {
+        name                     = "utilsv213"
+        account_kind             = "StorageV2"
+        account_tier             = "Standard"
+        account_replication_type = "LRS"
+        versioning_enabled       = true
+        version_level_immutability = {
+          immutability_period_in_days   = 90
+          state                         = "Unlocked"
+          allow_protected_append_writes = true
+        }
+        file_shares     = []
+        blob_containers = [{ name = "container01" }]
+      },
+    ]
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_account_version_level_immutability_settings["0"].immutability_period_in_days == 30 && module.sap_landscape.utility_account_version_level_immutability_settings["0"].state == "Unlocked"
+    error_message = "An empty version_level_immutability block must resolve to a 30-day Unlocked policy."
+  }
+
+  assert {
+    condition     = !module.sap_landscape.utility_account_version_level_immutability_settings["0"].allow_protected_append_writes
+    error_message = "An empty version_level_immutability block must not allow protected append writes."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_account_version_level_immutability_settings["1"].immutability_period_in_days == 90 && module.sap_landscape.utility_account_version_level_immutability_settings["1"].allow_protected_append_writes
+    error_message = "Per-account version_level_immutability overrides must reach only the matching account."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_account_version_level_immutability_settings["0"].immutability_period_in_days == 30
+    error_message = "An override on one utility account must not change the defaults resolved for another."
+  }
+}
+
+run "utility_storage_filestorage_account_drops_version_level_immutability" {
+  command = plan
+
+  variables {
+    utility_storage_accounts = [
+      {
+        name                     = "utilfs10"
+        account_kind             = "FileStorage"
+        account_tier             = "Standard"
+        account_replication_type = "LRS"
+        file_shares              = [{ name = "share01", quota = 100, protocol = "NFS" }]
+        blob_containers          = []
+      },
+    ]
+  }
+
+  assert {
+    condition     = !module.sap_landscape.utility_account_version_level_immutability_settings["0"].versioning_enabled
+    error_message = "FileStorage utility accounts must never plan blob versioning."
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_account_version_level_immutability_settings["0"].state == null
+    error_message = "FileStorage utility accounts must never plan an account immutability policy."
   }
 }

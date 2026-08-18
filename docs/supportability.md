@@ -133,6 +133,32 @@ balancer, availability-zone or availability-set, and storage compatibility.
 Review the complete design rather than treating the topology row as an
 independent approval.
 
+## Deployment validation coverage
+
+SDAF can validate a deployed SAP system with the
+[`Azure/sap-automation-qa`](https://github.com/Azure/sap-automation-qa)
+framework. The following table records what that framework validates. It
+doesn't extend the support scope of any platform, database, or topology
+listed earlier in this article.
+
+| Validation | Scope | Disruptive |
+| --- | --- | --- |
+| Configuration checks | Virtual machine, package, operating-system, networking, and storage configuration on every host in the inventory | No |
+| Database high availability | SAP HANA scale-up and scale-out HANA system replication pacemaker clusters | Yes |
+| Central services high availability | SAP central services and enqueue replication server pacemaker clusters | Yes |
+| Azure Backup database | Azure Backup configuration, restore, and recovery for SAP HANA, in HA and non-HA deployments | Yes |
+| Offline high availability validation | Cluster information base XML exported from each node, without a live connection to the cluster | No |
+
+High availability validation targets pacemaker clusters on the SUSE Linux
+Enterprise Server and Red Hat Enterprise Linux families. A functional test
+deliberately disrupts the system under test. Run functional tests only inside
+an approved maintenance window.
+
+The framework version is pinned in
+[`ansible-input-api.yaml`](../deploy/ansible/vars/ansible-input-api.yaml).
+Validate the test groups and cases available in that version against its own
+`src/vars/input-api.yaml` before you plan a validation run.
+
 ## Deployment topologies
 
 SDAF supports:
