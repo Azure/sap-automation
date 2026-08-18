@@ -442,9 +442,11 @@ resource "azurerm_subnet_route_table_association" "subnet_sap_web" {
 resource "azurerm_private_dns_a_record" "scs" {
   provider                             = azurerm.dnsmanagement
   count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0  && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
-  name                                 = lower(format("%sscs%scl1",
-                                           local.sid,
-                                           var.application_tier.scs_instance_number
+  name                                 = lower(coalesce(
+                                           try(var.infrastructure_configuration_settings.custom_scs_virtual_hostname,""),
+                                           format("%sscs%scl1",
+                                             local.sid,
+                                             var.application_tier.scs_instance_number)
                                          ))
   resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = var.landscape_tfstate.dns_label
@@ -455,9 +457,11 @@ resource "azurerm_private_dns_a_record" "scs" {
 resource "azurerm_private_dns_a_record" "ers" {
   provider                             = azurerm.dnsmanagement
   count                                = local.enable_scs_lb_deployment && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
-  name                                 = lower(format("%sers%scl2",
+  name                                 = lower(coalesce(
+                                           try(var.infrastructure_configuration_settings.custom_ers_virtual_hostname,""),
+                                           format("%sers%scl2",
                                             local.sid,
-                                            local.ers_instance_number
+                                            local.ers_instance_number)
                                           ))
   resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = local.dns_label
