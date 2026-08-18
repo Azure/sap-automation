@@ -250,14 +250,14 @@ override_data {
       iSCSI_servers                 = []
 
       dns_info_iscsi                               = []
-      dns_label                                    = ""
+      dns_label                                    = "privatelink.sap.local"
       dns_resource_group_name                      = "rg-landscape"
       management_dns_resourcegroup_name            = ""
       management_dns_subscription_id               = ""
       privatelink_dns_resourcegroup_name           = ""
       privatelink_dns_subscription_id              = ""
       privatelink_file_id                          = ""
-      register_virtual_network_to_dns              = false
+      register_virtual_network_to_dns              = true
       register_storage_accounts_keyvaults_with_dns = false
       use_custom_dns_a_registration                = false
 
@@ -480,6 +480,60 @@ run "app_tier_receives_composed_sap_sid" {
   assert {
     condition     = output.sid == "ABC"
     error_message = "run/sap_system's composed local.sap_sid must be wired through to the app_tier/hdb_node/anydb_node submodules and reflected in the sid output."
+  }
+}
+
+run "custom_cluster_dns_names_override_defaults" {
+  command = plan
+
+  variables {
+    configuration_settings = {
+      custom_db_virtual_hostname  = "Custom-DB"
+      custom_scs_virtual_hostname = "Custom-SCS"
+      custom_ers_virtual_hostname = "Custom-ERS"
+    }
+  }
+
+  assert {
+    condition     = module.hdb_node.azurerm_private_dns_a_record.db[0].name == "custom-db"
+    error_message = "A configured custom_db_virtual_hostname must override the default HANA cluster DNS name."
+  }
+
+  assert {
+    condition     = module.app_tier.azurerm_private_dns_a_record.scs[0].name == "custom-scs"
+    error_message = "A configured custom_scs_virtual_hostname must override the default SCS cluster DNS name."
+  }
+
+  assert {
+    condition     = module.app_tier.azurerm_private_dns_a_record.ers[0].name == "custom-ers"
+    error_message = "A configured custom_ers_virtual_hostname must override the default ERS cluster DNS name."
+  }
+}
+
+run "empty_cluster_dns_names_use_defaults" {
+  command = plan
+
+  variables {
+    configuration_settings = {
+      custom_db_virtual_hostname  = ""
+      custom_scs_virtual_hostname = ""
+      custom_ers_virtual_hostname = ""
+    }
+  }
+
+  assert {
+    condition     = module.hdb_node.azurerm_private_dns_a_record.db[0].name == "abchdbdb00cl"
+    error_message = "An empty custom_db_virtual_hostname must retain the default HANA cluster DNS name."
+  }
+
+  assert {
+    condition     = module.app_tier.azurerm_private_dns_a_record.scs[0].name == "abcscs00cl1"
+    error_message = "An empty custom_scs_virtual_hostname must retain the default SCS cluster DNS name."
+  }
+
+  assert {
+    condition     = module.app_tier.azurerm_private_dns_a_record.ers[0].name == "abcers02cl2"
+    error_message = "An empty custom_ers_virtual_hostname must retain the default ERS cluster DNS name."
   }
 }
 
