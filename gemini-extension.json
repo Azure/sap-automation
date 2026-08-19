@@ -1,0 +1,6 @@
+{
+    "name": "azure-sap-automation",
+    "version": "0.1.0",
+    "description": "AI skills for the SAP Deployment Automation Framework (SDAF): orient, pre-flight readiness, deploy the control plane / workload zone / SAP system, choose a BOM, lay out WORKSPACES/tfvars, and triage failed runs. Documented behaviour only.",
+    "contextFileName": "GEMINI.md"
+}

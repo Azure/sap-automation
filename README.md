@@ -27,6 +27,51 @@ processes differ.
 For selection criteria and capability differences, see
 [Choose an SDAF deployment option](docs/deployment-options.md).
 
+## Install SDAF AI skills ![NEW](https://img.shields.io/badge/-NEW-brightgreen?style=flat-square)
+
+The three execution models above are the primary way to onboard. Alongside
+them, SDAF now ships an **optional** AI-skills plugin,
+`azure-sap-automation`, that gives supported coding-agent CLIs (GitHub
+Copilot CLI, Claude Code, Gemini CLI) a guided way to walk the same paths
+— orient in SDAF, pre-flight readiness, deploy the control plane, workload
+zone, and SAP system, pick a BOM, lay out `WORKSPACES` and tfvars, and
+triage failed runs — grounded only in what this repository documents.
+
+All SDAF AI plugins are optional; SDAF itself deploys with or without them.
+If you install them, match your execution model above:
+
+- **Local / scripted** — install the hub plugin (`azure-sap-automation`)
+  only.
+- **Azure DevOps** — install the hub plugin **and** the Azure DevOps
+  surface plugin (`azure-sap-automation-devops`).
+- **GitHub Actions** — install the hub plugin **and** the GitHub Actions
+  surface plugin (`azure-sap-automation-github`).
+
+Each plugin is independently installable; nothing installs automatically,
+and you run each command yourself. Commands for the hub plugin are below;
+the surface-plugin commands, verification steps, usage prompts, current
+scope, and troubleshooting live in [`docs/PLUGINS.md`](docs/PLUGINS.md).
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add Azure/sap-automation
+copilot plugin install azure-sap-automation@sap-automation
+```
+
+### Claude Code
+
+```text
+/plugin marketplace add Azure/sap-automation
+/plugin install azure-sap-automation@sap-automation
+```
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/Azure/sap-automation
+```
+
 ## Use samples and SAP software definitions
 
 All three execution models use shared configuration examples and SAP software

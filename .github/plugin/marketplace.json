@@ -1,0 +1,16 @@
+{
+    "name": "sap-automation",
+    "description": "Microsoft's SAP Deployment Automation Framework (SDAF) AI-skills marketplace: the hub plugin plus references to the surface-specific bootstrap plugins for Azure DevOps and GitHub Actions.",
+    "owner": {
+        "name": "Microsoft",
+        "url": "https://github.com/Azure"
+    },
+    "plugins": [
+        {
+            "name": "azure-sap-automation",
+            "source": ".",
+            "description": "AI skills for the SAP Deployment Automation Framework (SDAF): orient, pre-flight readiness, deploy the control plane / workload zone / SAP system, choose a BOM, lay out WORKSPACES/tfvars, and triage failed runs. Documented behaviour only.",
+            "version": "0.1.0"
+        }
+    ]
+}

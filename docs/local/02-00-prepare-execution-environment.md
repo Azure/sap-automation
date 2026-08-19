@@ -202,6 +202,68 @@ Azure deployment.
    The output identifies the intended subscription, tenant, and principal.
    Reauthenticate with the approved identity if the context changed.
 
+
+## Readiness verification
+
+Before running any deployment command, run the shipped readiness scripts and
+resolve every item they report. The scripts' own output is the authority on
+what they check; this section names them, describes only their
+operator-visible pass/fail role, and points at their built-in help for
+detail.
+
+1. Verify the toolchain on the execution host.
+
+   ```bash
+   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/helpers/check_workstation.sh"
+   ```
+
+   The command prints a version for `az`, `terraform`, `ansible`, and
+   `jq` (see also step 9 of *Prepare the host*). A missing tool or an
+   error exit means the host is not ready.
+
+2. Verify overall host readiness with the PowerShell readiness script.
+
+   ```powershell
+   & "$env:SAP_AUTOMATION_REPO_PATH/deploy/scripts/Test-SDAFReadiness.ps1"
+   ```
+
+   `Test-SDAFReadiness.ps1` reports readiness of the execution host for
+   an SDAF deployment. Read its output; each item it flags must be
+   resolved before deploying. For its parameter and mode surface, use
+   `Get-Help "$env:SAP_AUTOMATION_REPO_PATH/deploy/scripts/Test-SDAFReadiness.ps1" -Full`
+   — this document does not restate flags the script itself may change.
+
+3. Verify outbound endpoint reachability from the execution host.
+
+   ```powershell
+   & "$env:SAP_AUTOMATION_REPO_PATH/deploy/scripts/Test-SDAFURLs.ps1"
+   ```
+
+   `Test-SDAFURLs.ps1` reports whether the endpoints SDAF contacts at
+   deploy time are reachable from this host. A failure here is a
+   connectivity problem, not a deployment problem — see
+   [`troubleshooting.md § The execution host cannot reach Key Vault or Storage`](troubleshooting.md).
+   Use `Get-Help` for its parameter surface.
+
+4. Validate each prepared workspace's `.tfvars` before deploying it.
+
+   From the directory that contains the `.tfvars` (pass the basename
+   only — see
+   [`troubleshooting.md § A parameter file is not found`](troubleshooting.md)):
+
+   ```bash
+   cd "$CONFIG_REPO_PATH/<WORKSPACES-leaf>"
+   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/validate.sh" \
+       --parameterfile "<same-name>.tfvars" \
+       --type <sap_deployer|sap_library|sap_landscape|sap_system>
+   ```
+
+   `validate.sh` inspects the parameter file's presence and expected
+   fields; a non-zero exit or a printed error means the file is not ready.
+
+Do not proceed to *Prepare configuration* below until each script above
+exits successfully or its output has been reviewed and each item resolved.
+
 ## Prepare configuration
 
 Local execution has no hosted stage-specific generator.
