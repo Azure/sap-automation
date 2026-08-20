@@ -13,35 +13,32 @@ documented anchor are deliberately absent (D19).
 | Terraform / Azure CLI missing | `§ Terraform or Azure CLI is not found` | `sdaf-readiness-check` (`docs/local/02-00-prepare-execution-environment.md § Readiness verification` step 1) |
 | Azure auth / authorization failure | `§ Azure authentication or authorization fails` | Fix identity outside SDAF; do not grant broad roles |
 | Host cannot reach Key Vault / Storage | `§ The execution host cannot reach Key Vault or Storage` | `sdaf-readiness-check` (`§ Readiness verification` step 3) |
-| Terraform state lock | `§ Terraform reports a state lock` | Confirm no concurrent run; do not force-unlock |
+| Terraform state lock, reviewed `state list/import/remove`, or remote-state drift | `§ Terraform reports a state lock`; `docs/local/07-00-operations.md § Manage state safely` | `sdaf-state-management` |
 | Unexpected replacement in plan | `§ Terraform proposes unexpected replacement` | Compare tfvars, provider lock, keys, IDs; stop before approval |
 | Control plane stopped partway through | `§ A control-plane run stopped partway through` | `sdaf-control-plane-bootstrap` — use `--recover` only after state agrees |
 | Generated `<SID>_hosts.yaml` / `sap-parameters.yaml` missing | `§ Generated Ansible files are missing` | `sdaf-sap-system` — rerun same command |
-| BOM files not found | `§ BOM files are not found` | `sdaf-bom-selection` — check `BOM_CATALOG` |
+| BOM files not found before or during the downloader path | `§ BOM files are not found` | `sdaf-media-acquisition` — check `BOM_CATALOG`, the four BOM keys, and the reviewed samples checkout |
+| Downloader `404`, checksum mismatch, `SAPCAR` / `.EXE` extract failure, or missing `.progress/bom-processing-done` | `docs/local/06-00-software-and-installation.md § Download software`; `§ Run configuration and installation` | `sdaf-media-diagnostics` |
 | Workload-zone deploy fails with a private-endpoint / subnet-policy error | `docs/local/04-00-workload-zone.md § Configuration preparation` (owns the exact error string and prescribed setting for the scope it documents) | **`sdaf-workload-zone` — owns the decision boundary** |
-| Ansible playbook fails | `§ An Ansible playbook fails` | Inspect first failed task; rerun the smallest applicable playbook |
-| Removal reports success but resources remain | `§ Removal is incomplete` | Do not edit state; follow the section's diagnostic path |
+| Numbered install playbook fails after media is staged | `§ An Ansible playbook fails` | `sdaf-sap-installation` — capture the first failed numbered playbook, host, and `.progress` marker |
+| Live or recent HA cluster is unhealthy (`crm` / `pcs`, fencing, placement, HCMT evidence) | `docs/local/07-10-quality-assurance.md`; shipped Pacemaker/QA roles | `sdaf-ha-diagnostics` |
+| Removal reports success but resources remain | `§ Removal is incomplete` | `sdaf-safe-removal` — do not edit state; follow the section's diagnostic path |
+| Azure Government / sovereign-cloud values, `AADSTS900382`, Government DNS zones, or Government-only workload-zone policy deltas | `docs/region-codes.md § Supported regions`; `docs/local/04-00-workload-zone.md § Configuration preparation`; `skills/sdaf-sovereign-cloud/references/documented-cloud-boundaries.md` | `sdaf-sovereign-cloud` |
 
-## Canonical Government / sovereign-cloud disclaimer
+## Sovereign-cloud hand-off
 
-**One canonical statement for the whole plugin.** Sibling skills point here
-rather than repeating it.
+`sdaf-sovereign-cloud` is the canonical owner for the currently documented
+Azure Government deltas:
 
-The shipped local docs cover:
+- Government region codes (`usgovarizona`, `usgovtexas`, `usgovvirginia`);
+- Government-only GitHub OIDC / `ARM_ENVIRONMENT` / `AZURE_ENVIRONMENT` /
+  `AZURE_AUDIENCE` combinations and their documented failure signatures;
+- Government `dns_zone_names` handling; and
+- the Government-only workload-zone private-endpoint policy workaround.
 
-- The Azure Government private-endpoint / subnet-policy workaround
-  (`docs/local/04-00-workload-zone.md § Configuration preparation`, owned by
-  `sdaf-workload-zone`).
-- The Government-region codes (`docs/region-codes.md § Supported regions`
-  includes `usgovarizona`, `usgovtexas`, `usgovvirginia`).
-
-They do **not** cover an end-to-end Azure Government deployment procedure —
-no shipped section describes `ARM_ENVIRONMENT` end-to-end, Government DNS
-zone blocks, Government-specific default VM sizes, or Government identity
-setup. Per D19 (documented-only) and open decision D19a, no skill in this
-plugin will invent Government-specific behaviour. When an operator asks for
-a procedure that fits none of the two documented cases above, say docs are
-silent and stop.
+If the operator asks for an end-to-end Government, China, German, or other
+sovereign procedure beyond those cited deltas, `sdaf-sovereign-cloud`
+itself stops and says the current sources are silent.
 
 ## Canonical "clean plan reported as failure" note
 
@@ -60,7 +57,7 @@ operator reports this symptom:
 
 - A general shipped section for "false failure on a clean plan" (see the
   note above for what to do instead).
-- Azure Government end-to-end first-run failure modes (see the canonical
-  disclaimer above).
+- Undocumented sovereign-cloud procedures beyond the published
+  `sdaf-sovereign-cloud` boundaries.
 - Air-gapped / offline / proxy-blocked flows.
 - Any "benign log noise" catalogue.

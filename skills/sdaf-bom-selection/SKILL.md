@@ -10,8 +10,8 @@ description: >
   keys in `sap-parameters.yaml`. Use when a user says "which BOM do I use",
   "product BOM vs component BOM", "SAP samples BOM catalog", "BOM_CATALOG",
   "S4/2023 BOM", "HANA BOM", or "how do I pick a BOM for HANA/Oracle/DB2/ASE".
-  Do NOT use to author a new BOM, to acquire media (later wave), or to
-  troubleshoot a checksum / 404 (later wave).
+  Do NOT use to author a new BOM, to acquire media (`sdaf-media-acquisition`),
+  or to troubleshoot a checksum / 404 (`sdaf-media-diagnostics`).
 allowed-tools: shell
 license: MIT
 ---
@@ -44,8 +44,8 @@ Docs
 `docs/local/06-00-software-and-installation.md § Inputs and BOM ownership`):
 
 - **`sap-automation-samples/SAP/<name>/<name>.yaml`** — **product BOM**
-  (whole product); pick this when the flow accepts a single complete
-  definition (e.g. `sap-automation/deploy/pipelines/04-sap-software-download.yaml`).
+  (whole product); pick this when the documented flow accepts a single
+  complete definition.
 - **`sap-automation-samples/BOM/<name>/<name>.yaml`** — **component BOM**
   (app / db / kernel); pick these when the flow supports dynamic assembly
   driven by the four `sap-parameters.yaml` keys documented below. Anchor:
@@ -119,9 +119,10 @@ Do not select a BOM whose guardrails do not match the target topology.
 
 - To validate a BOM: `check_bom.sh` (runs `yamllint`, `ansible-lint`, and
   `check_bom.yml`). Referenced in `sap-automation-samples/docs/02-00-bom-samples.md
-  § Validate`. BOM authoring is a separate skill and is out of this wave.
-- To acquire media once a BOM is selected: media acquisition is a separate
-  skill and is out of this wave.
+  § Validate`. BOM authoring is outside the shipped 18-skill hub.
+- To acquire media once a BOM is selected: route to `sdaf-media-acquisition`.
+- To diagnose archive / checksum / extractor failures after selection:
+  route to `sdaf-media-diagnostics`.
 - To route BOM failures during a run:
   `docs/local/troubleshooting.md § BOM files are not found` → confirm
   `BOM_CATALOG` root, names, and files.

@@ -29,16 +29,18 @@ For selection criteria and capability differences, see
 
 ## Install SDAF AI skills ![NEW](https://img.shields.io/badge/-NEW-brightgreen?style=flat-square)
 
-The three execution models above are the primary way to onboard. Alongside
-them, SDAF now ships an **optional** AI-skills plugin,
-`azure-sap-automation`, that gives supported coding-agent CLIs (GitHub
-Copilot CLI, Claude Code, Gemini CLI) a guided way to walk the same paths
-— orient in SDAF, pre-flight readiness, deploy the control plane, workload
-zone, and SAP system, pick a BOM, lay out `WORKSPACES` and tfvars, and
-triage failed runs — grounded only in what this repository documents.
+The three execution models above are still the main way to run SDAF.
+Alongside them, this repository now ships an **optional** AI-skills hub
+plugin, `azure-sap-automation`, for supported agent CLIs (GitHub Copilot
+CLI, Claude Code, Gemini CLI). SDAF itself does not require these plugins.
 
-All SDAF AI plugins are optional; SDAF itself deploys with or without them.
-If you install them, match your execution model above:
+The **hub** plugin covers shared SDAF guidance that applies across local,
+Azure DevOps, and GitHub Actions use. The Azure DevOps and GitHub Actions
+bootstrap experiences stay in separate **surface** plugins:
+`azure-sap-automation-devops` and `azure-sap-automation-github`. Install
+those only when you use the matching platform.
+
+If you install the plugins, match them to your execution model:
 
 - **Local / scripted** — install the hub plugin (`azure-sap-automation`)
   only.
@@ -48,9 +50,10 @@ If you install them, match your execution model above:
   surface plugin (`azure-sap-automation-github`).
 
 Each plugin is independently installable; nothing installs automatically,
-and you run each command yourself. Commands for the hub plugin are below;
-the surface-plugin commands, verification steps, usage prompts, current
-scope, and troubleshooting live in [`docs/PLUGINS.md`](docs/PLUGINS.md).
+and you run each command yourself. The hub install commands are below. For
+the full 18-skill catalogue, install verification, example prompts,
+limitations, and Azure DevOps or GitHub Actions surface-plugin commands,
+see [`docs/PLUGINS.md`](docs/PLUGINS.md).
 
 ### GitHub Copilot CLI
 

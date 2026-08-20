@@ -50,6 +50,5 @@ another".
 `docs/region-codes.md § Supported regions` includes `usgovarizona`,
 `usgovtexas`, `usgovvirginia`. For everything beyond the mapping itself
 (end-to-end Government procedures, `ARM_ENVIRONMENT`, Government DNS zone
-blocks) see the canonical statement in
-the canonical statement owned by `sdaf-failure-triage` (invoke that skill
-for the current disclaimer text).
+blocks, GitHub OIDC values, Government-only `dns_zone_names`, workload-zone
+private-endpoint policy deltas), route to `sdaf-sovereign-cloud`.

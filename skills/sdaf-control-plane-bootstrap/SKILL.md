@@ -9,9 +9,8 @@ description: >
   deploy_controlplane.sh", "bootstrap SDAF from an empty subscription",
   "install the deployer" or "create the SAP library". Do NOT use for workload
   zone (see sdaf-workload-zone), SAP system (see sdaf-sap-system), removal
-  (this scenario is not implemented), or Azure Government end-to-end
-  procedures (docs silent — for the canonical disclaimer, invoke
-  sdaf-failure-triage).
+  (`sdaf-safe-removal`), or Azure Government / sovereign-cloud deltas
+  (`sdaf-sovereign-cloud`).
 allowed-tools: shell
 license: MIT
 ---
@@ -43,16 +42,6 @@ removal, or state repair.
   (`docs/local/troubleshooting.md § A required export is missing`):
   `SAP_AUTOMATION_REPO_PATH`, `CONFIG_REPO_PATH`, `ARM_SUBSCRIPTION_ID`.
 
-## Script family choice — pick one, do NOT mix
-
-v1 (`deploy/scripts/deploy_controlplane.sh`) and v2
-(`deploy/scripts/deploy_control_plane_v2.sh`) coexist. Docs decline to name
-one "current" and warn against mixing options or state-variable names —
-follow release guidance and each script's own `--help`. Anchors:
-`docs/local/03-00-control-plane.md § What the automation does`,
-`docs/local/README.md § Select a script family`. If the operator has no
-release-guidance-driven preference, say docs decline to pick and stop.
-
 ## Recipe
 
 ### Step 1 — Review the tfvars
@@ -66,7 +55,7 @@ naming matches `docs/region-codes.md § Where the region code appears`.
 Docs require an explicit review before every state-changing step
 (`docs/local/03-00-control-plane.md § Review before execution`; `§ Run`).
 
-### Step 3 — Run the control-plane deploy (v1, documented shape)
+### Step 3 — Run the documented control-plane deploy
 
 From `CONFIG_REPO_PATH`, exactly per
 `docs/local/03-00-control-plane.md § Run`:
@@ -123,8 +112,6 @@ triage):
 
 - Documented behaviour only (D19). If a knob is not in the shipped docs or
   the script's own `--help`, do not describe it.
-- Do not mix v1 and v2 options or state-variable names
-  (`docs/local/03-00-control-plane.md § What the automation does`).
 - Do not pass `--auto-approve` for reviewed local deployment
   (`docs/local/03-00-control-plane.md § Review before execution`).
 - Do not `--force` casually
@@ -136,7 +123,7 @@ triage):
 ## See also
 
 - `sdaf-workspace-and-tfvars`, `sdaf-readiness-check`,
-  `sdaf-workload-zone`, `sdaf-sap-system`, `sdaf-failure-triage`.
+  `sdaf-workload-zone`, `sdaf-sap-system`, `sdaf-safe-removal`,
+  `sdaf-sovereign-cloud`, `sdaf-failure-triage`.
 - `docs/local/03-00-control-plane.md`, `docs/local/troubleshooting.md`,
-  `docs/local/README.md § Select a script family`,
   [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md).

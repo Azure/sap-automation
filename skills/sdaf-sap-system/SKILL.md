@@ -7,8 +7,8 @@ description: >
   risk, and validates the generated `<SID>_hosts.yaml` /
   `sap-parameters.yaml`. Use when a user says "deploy an SAP system", "run
   installer.sh sap_system", "SAP system infrastructure", "generate the SAP
-  system inventory". Do NOT use for OS/DB/SAP install (Ansible menus),
-  workload zone (see sdaf-workload-zone), or software download.
+  system inventory". Do NOT use for OS/DB/SAP install (`sdaf-sap-installation`),
+  workload zone (see sdaf-workload-zone), or software download (`sdaf-media-acquisition`).
 allowed-tools: shell
 license: MIT
 ---
@@ -17,7 +17,7 @@ license: MIT
 
 Action-loop skill. Deploys the SAP-system infrastructure strictly per
 `docs/local/05-00-sap-system.md`. Installation of OS + DB + SAP is a separate
-concern and is not implemented in this wave.
+concern owned by `sdaf-sap-installation`.
 
 ## When to invoke
 
@@ -37,20 +37,6 @@ removal.
 - Host quota / image / topology reviewed
   (`docs/local/05-00-sap-system.md § Before you begin`, `§ Inputs`).
 
-## Script family choice — do NOT mix v1 and v2
-
-- **v1 (established):** `deploy/scripts/installer.sh` with `--type
-  sap_system`. Invocation shape is documented in
-  `docs/local/05-00-sap-system.md § Run`.
-- **v2:** `deploy/scripts/installer_v2.sh`. Docs
-  (`docs/local/05-00-sap-system.md § What the automation does`) note v2 has
-  different options and state-variable names but do not provide a separate
-  invocation-shape example under `§ Run`. Follow release guidance and the
-  script's own `--help`; do not port v1 flags one-for-one.
-
-**Do not mix v1 and v2 options.** If the operator has no
-release-guidance-driven preference, say docs decline to pick and stop.
-
 ## Recipe
 
 ### Step 1 — Review replacement risk
@@ -60,7 +46,7 @@ resource replacement
 (`docs/local/05-00-sap-system.md § Review before execution`; see also
 `docs/local/troubleshooting.md § Terraform proposes unexpected replacement`).
 
-### Step 2 — Run the installer (v1, documented shape)
+### Step 2 — Run the documented installer
 
 From the system parameter directory, exactly per
 `docs/local/05-00-sap-system.md § Run`:
@@ -83,9 +69,6 @@ if [ $rc -ne 0 ]; then
   exit $rc
 fi
 ```
-
-For v2, follow release guidance and `--help`; do not paste v1 flags into
-`installer_v2.sh`.
 
 ### Step 3 — Validate
 
@@ -110,7 +93,6 @@ here rather than in triage):
 
 - Documented behaviour only (D19).
 - Do not deploy before the workload zone exists.
-- Do not mix v1 and v2 options or state-variable names.
 - Do not pass `--auto-approve`
   (`docs/local/05-00-sap-system.md § Review before execution`).
 - Repo-wide rules apply: **do not run `terraform fmt`** and follow the
@@ -126,6 +108,7 @@ here rather than in triage):
 ## See also
 
 - `sdaf-workload-zone`, `sdaf-workspace-and-tfvars`,
-  `sdaf-bom-selection`, `sdaf-failure-triage`.
+  `sdaf-bom-selection`, `sdaf-media-acquisition`,
+  `sdaf-sap-installation`, `sdaf-failure-triage`.
 - `docs/local/05-00-sap-system.md`, `docs/local/troubleshooting.md`,
   [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md).

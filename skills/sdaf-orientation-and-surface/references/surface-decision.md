@@ -23,17 +23,6 @@ Beyond that, this reference does not claim any surface is "best". If the user
 needs a capability comparison beyond what the docs assert, say so and stop —
 do not synthesize an inferred matrix (per D19: documented-only).
 
-## Q3 (only if the user asks): Script family (v1 vs v2)?
-
-Docs treat both v1 (established) and v2 as valid and decline to name one
-"current" or "legacy" (`docs/local/README.md § Select a script family`). The
-docs also warn: **do not mix v1 and v2 options or state variable names**
-(`docs/local/03-00-control-plane.md § What the automation does`,
-`docs/local/05-00-sap-system.md § What the automation does`). If the user has
-no release-guidance-driven preference, tell them the docs decline to pick and
-point them at `docs/local/README.md § Select a script family`. Do not pick for
-them.
-
 ## Hand-off
 
 | Surface chosen | Next skill | Install commands to print |

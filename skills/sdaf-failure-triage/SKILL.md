@@ -16,19 +16,18 @@ license: MIT
 ---
 
 # SDAF Failure Triage
-
 Action-loop skill. The entry point for "it broke". Maps observed symptoms to
 the documented cause in `docs/local/troubleshooting.md` (and the stage docs'
-own `§ Validate` / `§ Configuration preparation` sections) and hands off to
-the stage-owning skill. This skill is a **router**, not the owner of any
+own `§ Validate` / `§ Configuration preparation` sections), then hands off
+to the stage-owning skill. This skill is a **router**, not the owner of any
 per-stage fix.
 
 ## When to invoke
 
 Trigger on: "SDAF run failed", "the plan was clean but the run exited 1",
 "success but nothing deployed", "state lock", "unexpected replacement",
-"control plane stopped partway", "generated hosts.yaml missing", "BOM files
-not found", "removal is incomplete", "Ansible playbook failed",
+"control plane stopped partway", "generated hosts.yaml missing", "BOM files not
+found", "removal is incomplete", "Ansible playbook failed",
 "workload-zone private endpoint failure", "workload-zone subnet policy failure", "SDAF
 exit 2".
 
@@ -54,9 +53,10 @@ tfvars (`sdaf-workspace-and-tfvars`), fresh deploy of a stage.
 ### Step 2 — Map the symptom
 
 Walk [`references/symptom-map.md`](references/symptom-map.md), which lists
-every named failure class from `docs/local/troubleshooting.md` (plus the workload-zone private-endpoint / subnet-policy case owned by `sdaf-workload-zone` and anchored in `docs/local/04-00-workload-zone.md § Configuration preparation`) with its
-canonical anchor and the owning skill. Pick the first row whose symptom
-matches the observed signature.
+every named failure class from `docs/local/troubleshooting.md` plus the
+documented workload-zone private-endpoint / subnet-policy case, with the
+owning skill for removal/state/install/HA/media/sovereign routes. Pick the
+first row whose symptom matches the observed signature.
 
 If nothing matches, walk the "canonical 'clean plan reported as failure'
 note" in `references/symptom-map.md`, which walks the stage `§ Validate`
@@ -72,6 +72,13 @@ Route to the stage-owning skill for the actual retry:
 | Control plane | `sdaf-control-plane-bootstrap` |
 | Workload zone (**including** the private-endpoint / subnet-policy workaround) | `sdaf-workload-zone` |
 | SAP system | `sdaf-sap-system` |
+| SAP installation / numbered playbooks | `sdaf-sap-installation` |
+| Media acquisition preconditions / clean downloader path | `sdaf-media-acquisition` |
+| Media archive / checksum / extractor / BOM-processing failures | `sdaf-media-diagnostics` |
+| HA cluster evidence / `crm` / `pcs` / fencing | `sdaf-ha-diagnostics` |
+| Explicit Terraform state lock / import / remove / drift repair | `sdaf-state-management` |
+| Safe teardown / incomplete removal / control-plane step trap | `sdaf-safe-removal` |
+| Azure Government / sovereign-cloud deltas | `sdaf-sovereign-cloud` |
 | WORKSPACES/tfvars authoring issue | `sdaf-workspace-and-tfvars` |
 | BOM file location / selection | `sdaf-bom-selection` |
 
@@ -93,9 +100,8 @@ control-plane removal can exit "successfully" after `step=1` without
 deleting the deployer. Diagnostic path: inspect
 `.sap_deployment_automation`, persisted `step`, library destroy result, and
 remaining deployer state / resources. Do not edit `step` to bypass the
-guard. Removal itself is not implemented as an action-loop skill in this
-wave; the triage skill exists to identify this pattern and point at the
-documented diagnostic path.
+guard. `sdaf-safe-removal` owns the documented diagnostic path and any
+approved retry.
 
 ### `success` but nothing was deployed
 
@@ -118,24 +124,27 @@ stage-owning skill.
 
 - Documented behaviour only (D19). If the symptom does not match a
   `docs/local/troubleshooting.md` section, a documented `§ Configuration
-  preparation` / `§ Validate` cross-check, or the canonical Government
-  disclaimer in `references/symptom-map.md`, say docs are silent and stop.
+  preparation` / `§ Validate` cross-check, or a named owner row in
+  `references/symptom-map.md`, say docs are silent and stop.
 - Do not silently pass a non-zero exit code.
 - Do not narrate benign log noise as a failure without a documented anchor.
 
 ## What this skill does NOT do
 
 - Does not deploy or retry directly.
-- Does not repair Terraform state (state repair is out of this wave).
+- Does not repair Terraform state; `sdaf-state-management` owns that.
 - Does not restate stage-specific safety rules — the stage skills and
   `.github/copilot-instructions.md` own those.
-- Does not reason about undocumented failure modes (e.g. Azure Government
-  end-to-end, air-gapped, `ARM_ENVIRONMENT`). The canonical Government
-  disclaimer lives in `references/symptom-map.md`.
+- Does not replace the documented media/install/HA/removal/sovereign owners.
+- Does not reason about undocumented failure modes (e.g. end-to-end Government
+  beyond `sdaf-sovereign-cloud`, air-gapped, or undocumented `ARM_ENVIRONMENT`
+  flows).
 
 ## See also
 
 - `sdaf-control-plane-bootstrap`, `sdaf-workload-zone`, `sdaf-sap-system`,
-  `sdaf-workspace-and-tfvars`, `sdaf-bom-selection`.
+  `sdaf-sap-installation`, `sdaf-media-acquisition`, `sdaf-media-diagnostics`,
+  `sdaf-ha-diagnostics`, `sdaf-state-management`, `sdaf-safe-removal`,
+  `sdaf-sovereign-cloud`, `sdaf-workspace-and-tfvars`, `sdaf-bom-selection`.
 - `docs/local/troubleshooting.md`, `docs/local/07-00-operations.md`,
   `docs/local/04-00-workload-zone.md § Configuration preparation`.

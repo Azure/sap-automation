@@ -122,7 +122,7 @@ gemini extensions install https://github.com/Azure/sap-automation-gh-bootstrap
 ## Verify the installation
 
 A working hub install has two observable properties: the CLI's own plugin
-manager lists the hub plugin, and it reports the eight skills the hub
+manager lists the hub plugin, and it reports the 18 hub skills the plugin
 ships.
 
 ### Step 1 — Mechanical check with the CLI's plugin manager
@@ -150,24 +150,43 @@ In the Claude Code session, run the slash command:
 gemini extensions list
 ```
 
-### Step 2 — Confirm the eight hub skills
+### Step 2 — Confirm the 18 hub skills
 
-The hub ships exactly these eight skills; your CLI's plugin manager (or the
-SKILL directory it exposes) should enumerate all of them:
+The hub ships exactly these 18 skills from this repository; your CLI's
+plugin manager (or the SKILL directory it exposes) should enumerate all of
+them:
 
-1. [`sdaf-orientation-and-surface`](../skills/sdaf-orientation-and-surface/SKILL.md) — reach for it when you're new to SDAF or need to pick Local vs ADO vs GitHub.
-2. [`sdaf-readiness-check`](../skills/sdaf-readiness-check/SKILL.md) — reach for it to pre-flight a host, subscription, and workspace before any deploy.
-3. [`sdaf-workspace-and-tfvars`](../skills/sdaf-workspace-and-tfvars/SKILL.md) — reach for it to lay out `WORKSPACES` and tfvars per stage.
-4. [`sdaf-bom-selection`](../skills/sdaf-bom-selection/SKILL.md) — reach for it to pick a BOM from the samples catalog.
-5. [`sdaf-control-plane-bootstrap`](../skills/sdaf-control-plane-bootstrap/SKILL.md) — reach for it to deploy the deployer + SAP library from empty.
-6. [`sdaf-workload-zone`](../skills/sdaf-workload-zone/SKILL.md) — reach for it to deploy a landscape after the control plane exists.
-7. [`sdaf-sap-system`](../skills/sdaf-sap-system/SKILL.md) — reach for it to deploy SAP-system infrastructure and generate the Ansible inventory.
-8. [`sdaf-failure-triage`](../skills/sdaf-failure-triage/SKILL.md) — reach for it to map a failed run to a documented cause.
+- **Orientation and scope**
+  1. [`sdaf-orientation-and-surface`](../skills/sdaf-orientation-and-surface/SKILL.md) — orient a newcomer and choose Local vs Azure DevOps vs GitHub Actions.
+  2. [`sdaf-readiness-check`](../skills/sdaf-readiness-check/SKILL.md) — pre-flight a host, subscription, and configuration before any deploy.
+  3. [`sdaf-workspace-and-tfvars`](../skills/sdaf-workspace-and-tfvars/SKILL.md) — lay out `WORKSPACES`, region-code naming, and stage tfvars.
+  4. [`sdaf-bom-selection`](../skills/sdaf-bom-selection/SKILL.md) — choose a BOM from the samples catalogue.
+  5. [`sdaf-plan-and-test-semantics`](../skills/sdaf-plan-and-test-semantics/SKILL.md) — explain plan-only / test / apply behavior across surfaces and stages.
+  6. [`sdaf-sovereign-cloud`](../skills/sdaf-sovereign-cloud/SKILL.md) — explain the current Azure Government deltas without inventing a generic sovereign runbook.
+
+- **Deployment and installation**
+  7. [`sdaf-control-plane-bootstrap`](../skills/sdaf-control-plane-bootstrap/SKILL.md) — deploy the deployer + SAP library from empty.
+  8. [`sdaf-workload-zone`](../skills/sdaf-workload-zone/SKILL.md) — deploy a workload zone after the control plane exists.
+  9. [`sdaf-sap-system`](../skills/sdaf-sap-system/SKILL.md) — deploy SAP-system infrastructure and generate the Ansible inventory.
+  10. [`sdaf-media-acquisition`](../skills/sdaf-media-acquisition/SKILL.md) — download approved SAP media into the SDAF library.
+  11. [`sdaf-media-diagnostics`](../skills/sdaf-media-diagnostics/SKILL.md) — troubleshoot media-download and BOM-processing failures.
+  12. [`sdaf-sap-installation`](../skills/sdaf-sap-installation/SKILL.md) — guide operating-system, database, and SAP installation once infra and media are ready.
+
+- **Validation, operations, and recovery**
+  13. [`sdaf-quality-assurance`](../skills/sdaf-quality-assurance/SKILL.md) — run and interpret the SDAF-owned QA entry points.
+  14. [`sdaf-ha-topology`](../skills/sdaf-ha-topology/SKILL.md) — choose the documented HA topology before SAP-system deployment.
+  15. [`sdaf-ha-diagnostics`](../skills/sdaf-ha-diagnostics/SKILL.md) — diagnose a live or recently failed HA cluster without changing it.
+  16. [`sdaf-state-management`](../skills/sdaf-state-management/SKILL.md) — inspect and repair Terraform state safely.
+  17. [`sdaf-safe-removal`](../skills/sdaf-safe-removal/SKILL.md) — remove SAP systems, workload zones, and the control plane in documented reverse order.
+  18. [`sdaf-failure-triage`](../skills/sdaf-failure-triage/SKILL.md) — map a failed or suspicious run to a documented cause.
 
 The two **samples-origin primers** (`sdaf-workspace-and-tfvars`,
 `sdaf-bom-selection`) teach `Azure/SAP-automation-samples` conventions that
 every execution surface consumes, so they live in the hub — not in either
-bootstrap repo — and load once regardless of which surface you pick.
+bootstrap repo — and load once regardless of which surface you pick. The
+other 16 skills above are also hub-owned; the Azure DevOps and GitHub
+Actions surface skills stay in their own bootstrap plugins rather than
+being bundled here.
 
 ### Step 3 — Prompt smoke test
 
@@ -192,12 +211,23 @@ don't type skill names. Some prompts that work today:
   tfvars file go?"
 - **Pick a BOM** — "Which BOM should I use for S/4HANA 2023?" · "What's the
   difference between a product BOM and a component BOM?"
+- **Understand plan/test behavior** — "What does `test` mean for workflow 01?"
+  · "Is this a real dry run or a reviewed apply path?"
 - **Deploy** — "Deploy the SDAF control plane from empty." · "Deploy a
   workload zone after the control plane exists." · "Deploy an SAP system
   and generate the Ansible inventory."
+- **Acquire media and install software** — "Download approved SAP media into
+  the library." · "Diagnose why the BOM downloader 404'd." · "Resume the
+  DB/SAP installation after a partial run."
+- **Validate and operate** — "Run the SDAF quality-assurance checks." ·
+  "Which HA topology is documented here?" · "Review this `crm status full`
+  output." · "List the Terraform addresses in remote state."
+- **Remove or recover** — "Remove this SAP system safely." · "Why did the
+  control-plane removal exit 0 even though the deployer is still there?"
 - **Triage** — "My control-plane deploy failed at library bootstrap — what
   do the docs say?" · "Ansible playbook 04 errored — walk me through the
-  documented triage."
+  documented triage." · "What are the current Azure Government deltas for
+  this repository?"
 
 Each skill is scoped to what the shipped docs describe. When your question
 goes past that, the skill will say so and stop rather than guess.
@@ -219,22 +249,41 @@ this file. The operator runs the command.
 
 ## Current scope and what is not shipped yet
 
-The hub currently ships the **eight** skills listed above under
-[Verify the installation](#verify-the-installation). The catalogue will
-grow over time, but the following are deliberately **not** included today:
+The hub currently ships all **18** skills listed above under
+[Verify the installation](#verify-the-installation). The following are
+deliberately **not** bundled into the hub:
 
-- **Sovereign / Azure Government end-to-end procedures** — not shipped. The
-  in-repo docs do not yet describe an end-to-end sovereign-cloud path;
-  skills will surface the gap and stop rather than reconstruct a procedure
-  the docs do not describe.
-- **Azure Center for SAP solutions (ACSS) / Azure Monitor for SAP
-  solutions (AMS)** — no dedicated skills today.
-- **Additional operations, upgrade, and recovery skills** — planned for
-  later; today, use the shipped docs and the general-purpose
-  `sdaf-failure-triage` skill.
+- **Azure DevOps surface skills** — install
+  `azure-sap-automation-devops` from
+  [`Azure/sap-automation-bootstrap`](https://github.com/Azure/sap-automation-bootstrap)
+  for `sdaf-ado-project-bootstrap` and `sdaf-ado-pipeline-catalogue`.
+- **GitHub Actions surface skills** — install
+  `azure-sap-automation-github` from
+  [`Azure/sap-automation-gh-bootstrap`](https://github.com/Azure/sap-automation-gh-bootstrap)
+  for `sdaf-gh-bootstrap`, `sdaf-gh-oidc-and-auth`, and
+  `sdaf-gh-workflow-sequence`.
+- **Dedicated ACSS / AMS skills** — not shipped today.
+- **Non-documented sovereign-cloud procedures beyond the current Azure
+  Government deltas** — not shipped. The hub skill surfaces the current
+  documented deltas and stops where the docs stop.
 
 If your task falls in one of these areas, the skills will tell you and hand
 off to the corresponding document rather than fabricate a procedure.
+
+## Routing eval coverage
+
+The routing-eval harness in this repo covers the **hub only**:
+
+- **18** production hub skills in `skills/`
+- **72** skill-owned cases in `evals/skills/`
+- **6** shared null cases in `evals/shared/`
+- **78** total hub cases
+
+Those evals are **report-only**. They collect witness evidence for review,
+but this document does not claim calibrated side-channel behavior or present
+the routing harness as a blocking quality gate. The Azure DevOps and GitHub
+Actions surface plugins keep their own deferred eval scope in
+`Azure/sap-automation-bootstrap` and `Azure/sap-automation-gh-bootstrap`.
 
 ## Ground rules and exclusions
 

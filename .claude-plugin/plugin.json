@@ -1,6 +1,6 @@
 {
     "name": "azure-sap-automation",
-    "description": "AI skills for the SAP Deployment Automation Framework (SDAF): orient, pre-flight readiness, deploy the control plane / workload zone / SAP system, choose a BOM, lay out WORKSPACES/tfvars, and triage failed runs. Documented behaviour only.",
+    "description": "18 documented-only hub skills for the SAP Deployment Automation Framework (SDAF): orientation, readiness, workspaces/tfvars, BOM/media, plan/test semantics, control plane / workload zone / SAP system deployment, installation, QA, HA, state, safe removal, failure triage, and sovereign-cloud deltas.",
     "version": "0.1.0",
     "author": {
         "name": "Microsoft",

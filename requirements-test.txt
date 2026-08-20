@@ -4,6 +4,8 @@ pytest==9.1.1
 pytest-mock==3.15.1
 pytest-cov==7.1.0
 black==26.5.1
+github-copilot-sdk==1.0.9
+pylint==4.0.5
 
 # Runtime dependencies imported by the modules under test.
 ansible-core==2.16.14
