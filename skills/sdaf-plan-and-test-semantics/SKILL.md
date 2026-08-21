@@ -5,13 +5,12 @@ description: >
   universal. Compares the documented Local commands, Azure DevOps wrapper
   pipelines, and GitHub Actions workflows for control plane, workload zone,
   and SAP system: local stage commands show Terraform plans and then apply
-  after approval; ADO/GitHub workload-zone and SAP-system wrappers pass
-  `TEST_ONLY` into `installer.sh` / `installer_v2.sh` and stop after the
-  plan; the current control-plane wrappers expose a `test`/dry-run input but
-  do not forward it to the control-plane scripts. Use when a user says "what
-  does test do in SDAF", "is this a real dry run", "plan-only vs apply",
-  "workflow 01 dry-run", "pipeline 02 test", or "TEST_ONLY". Do NOT use to
-  actually deploy a stage or to triage a failed run (see
+  after approval; ADO/GitHub workload-zone and SAP-system test runs stop after
+  the plan; the current hosted control-plane test options do not provide a
+  plan-only run. Use when a user says "what does test do in SDAF", "is this a
+  real dry run", "plan-only vs apply", "workflow 01 dry-run", "pipeline 02
+  test", or "TEST_ONLY". Do NOT use to actually deploy a stage or to triage a
+  failed run (see
   sdaf-control-plane-bootstrap / sdaf-workload-zone / sdaf-sap-system /
   sdaf-failure-triage).
 allowed-tools: shell

@@ -275,14 +275,13 @@ off to the corresponding document rather than fabricate a procedure.
 The routing-eval harness in this repo covers the **hub only**:
 
 - **18** production hub skills in `skills/`
-- **72** skill-owned cases in `evals/skills/`
-- **6** shared null cases in `evals/shared/`
-- **78** total hub cases
+- **54** cases in the consolidated `evals/evals.json` catalogue
+- three prompts for each skill, each compared with a target-disabled baseline
 
-Those evals are **report-only**. They collect witness evidence for review,
-but this document does not claim calibrated side-channel behavior or present
-the routing harness as a blocking quality gate. The Azure DevOps and GitHub
-Actions surface plugins keep their own deferred eval scope in
+These evals are a blocking reliability quality gate. A case fails when its
+fixed assertions do not pass, and the workflow uploads the native Copilot SDK
+event evidence for review. The Azure DevOps and GitHub Actions surface plugins
+keep their own deferred eval scope in
 `Azure/sap-automation-bootstrap` and `Azure/sap-automation-gh-bootstrap`.
 
 ## Ground rules and exclusions

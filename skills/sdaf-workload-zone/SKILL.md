@@ -66,12 +66,11 @@ cd "$CONFIG_REPO_PATH/WORKSPACES/LANDSCAPE/<WORKLOAD_ZONE>-INFRASTRUCTURE"
     --deployer_tfstate_key "<DEPLOYER_STATE_KEY>" \
     --storageaccountname "<STATE_STORAGE_ACCOUNT>" \
     --state_subscription "<STATE_SUBSCRIPTION_ID>" \
-    --subscription "<WORKLOAD_SUBSCRIPTION_ID>"
-rc=$?
-if [ $rc -ne 0 ]; then
+    --subscription "<WORKLOAD_SUBSCRIPTION_ID>" || {
+  rc=$?
   echo "workload-zone exit=$rc — route to sdaf-failure-triage"
-  exit $rc
-fi
+  exit "$rc"
+}
 ```
 
 Run from the directory that contains the tfvars; pass the basename only

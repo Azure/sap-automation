@@ -117,7 +117,10 @@ After the library destroy, `remove_controlplane.sh` persists `step=1`; a later i
 
 ## ARM fallback — last resort, Azure DevOps only
 
-The only repo-documented ARM fallback here is the Azure DevOps pipeline `deploy/pipelines/11-remover-arm-fallback.yaml`. Its header says it removes SAP systems, the workload zone, and the region via ARM resource-group deletion, and that it is a fallback **only** when Terraform destroy does not remove everything.
+The only documented ARM fallback here is the Azure DevOps removal fallback.
+It removes SAP systems, the workload zone, and the region through ARM
+resource-group deletion and is a fallback **only** when Terraform destroy does
+not remove everything.
 
 Use that pipeline only after:
 
@@ -140,4 +143,5 @@ This repo does not document a local-script or GitHub Actions ARM-fallback proced
 ## See also
 
 - `sdaf-state-management`, `sdaf-failure-triage`, `sdaf-control-plane-bootstrap`, `sdaf-workload-zone`, `sdaf-sap-system`.
-- `docs/local/07-00-operations.md`, `docs/local/troubleshooting.md`, `docs/local/README.md`, `deploy/pipelines/11-remover-arm-fallback.yaml`, `deploy/scripts/remover.sh`, `deploy/scripts/remove_controlplane.sh`.
+- `docs/local/07-00-operations.md`, `docs/local/troubleshooting.md`, and
+  `docs/local/README.md`.

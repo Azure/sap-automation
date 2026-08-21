@@ -54,8 +54,8 @@ and the pattern:
 
 - `<ENV>` — DEV / QA / PRD / MGMT / LAB.
 - `<CODE>` — the uppercase region code from `docs/region-codes.md § Supported
-  regions` (63 supported regions; unmapped regions fall back to `unkn` per
-  `§ Unmapped regions fall back to unkn`).
+  regions`; unmapped regions fall back to `unkn` per
+  `§ Unmapped regions fall back to unkn`.
 - `<DEPLOYER>` — deployer identifier (e.g. `DEP00`, `DEP01`).
 - `<VNET>` — network identifier (e.g. `SAP01`, `SAP02`).
 - `<SID>` — SAP SID (e.g. `X00`, `HA2`, `WIN`).

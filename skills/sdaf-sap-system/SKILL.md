@@ -62,12 +62,11 @@ ARM_SUBSCRIPTION_ID="<WORKLOAD_SUBSCRIPTION_ID>" \
     --deployer_tfstate_key "<DEPLOYER_STATE_KEY>" \
     --landscape_tfstate_key "<LANDSCAPE_STATE_KEY>" \
     --storageaccountname "<STATE_STORAGE_ACCOUNT>" \
-    --state_subscription "<STATE_SUBSCRIPTION_ID>"
-rc=$?
-if [ $rc -ne 0 ]; then
+    --state_subscription "<STATE_SUBSCRIPTION_ID>" || {
+  rc=$?
   echo "SAP system exit=$rc — route to sdaf-failure-triage"
-  exit $rc
-fi
+  exit "$rc"
+}
 ```
 
 ### Step 3 — Validate

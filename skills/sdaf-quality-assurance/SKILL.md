@@ -104,9 +104,8 @@ stage semantics:
 - queue-time selection lives in `test_type`, `sap_functional_test_type`,
   `test_groups`, `test_cases`, and `offline_mode`;
 - the prep script validates `extra_params` as `-e key=value` only;
-- the run performs **Quality Assurance Setup** via
-  `playbook_06_03_00_sap_functional_tests.yaml`, then
-  **Quality Assurance Execution** via the selected framework playbook;
+- the run performs **Quality Assurance Setup**, then
+  **Quality Assurance Execution** for the selected framework;
 - logs and reports are collected from `SYSTEM/<config>/logs` and
   `SYSTEM/<config>/quality_assurance`.
 

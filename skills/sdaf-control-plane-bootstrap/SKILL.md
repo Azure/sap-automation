@@ -68,12 +68,11 @@ cd "$CONFIG_REPO_PATH/WORKSPACES"
     "$CONFIG_REPO_PATH/WORKSPACES/DEPLOYER/<CONTROL_PLANE>-INFRASTRUCTURE/<CONTROL_PLANE>-INFRASTRUCTURE.tfvars" \
     --library_parameter_file \
     "$CONFIG_REPO_PATH/WORKSPACES/LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY/<ENVIRONMENT>-<LOCATION>-SAP_LIBRARY.tfvars" \
-    --subscription "$ARM_SUBSCRIPTION_ID"
-rc=$?
-if [ $rc -ne 0 ]; then
+    --subscription "$ARM_SUBSCRIPTION_ID" || {
+  rc=$?
   echo "control-plane exit=$rc — route to sdaf-failure-triage"
-  exit $rc
-fi
+  exit "$rc"
+}
 ```
 
 Do not claim success unless the exit code is `0` AND the validation checks
