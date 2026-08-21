@@ -152,21 +152,14 @@ jobs:
     name: Check behavioral-eval approval
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'pull_request_target' &&
-        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-          github.event.pull_request.author_association)
-      ) ||
-      (
-        github.event_name == 'pull_request_review' &&
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'pull_request_review' &&
         github.event.review.state == 'approved' &&
         contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-          github.event.review.author_association) &&
-        !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-          github.event.pull_request.author_association)
-      )
+          github.event.review.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment: copilot
     outputs:
       cases: ${{ steps.cases.outputs.value }}
       should_run: ${{ steps.cases.outputs.should_run }}
@@ -204,9 +197,39 @@ jobs:
         id: cases
         shell: bash
         env:
+          AUTHOR_TRUSTED: >-
+            ${{ contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+              github.event.pull_request.author_association) }}
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          authorized=false
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || \
+             [ "$AUTHOR_TRUSTED" = "true" ]; then
+            authorized=true
+          elif [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
+            approved="$(gh api \
+              "repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/reviews" \
+              --paginate --jq '
+                [.[] | select(
+                  .state == "APPROVED" and
+                  (.author_association == "OWNER" or
+                   .author_association == "MEMBER" or
+                   .author_association == "COLLABORATOR")
+                )] | length
+              ')"
+            [ "$approved" -gt 0 ] && authorized=true
+          fi
+          if [ "$authorized" != "true" ]; then
+            echo 'should_run=false' >> "$GITHUB_OUTPUT"
+            echo 'value=[]' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$COPILOT_GITHUB_TOKEN" ]; then
+            echo "::error::COPILOT_GITHUB_TOKEN is not configured in the copilot environment."
+            exit 1
+          fi
           if [ "$GITHUB_EVENT_NAME" = "pull_request_review" ]; then
             changed="$(gh api \
               "repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/files" \
@@ -230,6 +253,7 @@ jobs:
     if: needs.authorize.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: copilot
     strategy:
       fail-fast: false
       max-parallel: 4
