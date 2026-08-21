@@ -2,10 +2,11 @@
 name: sdaf-readiness-check
 description: >
   Pre-flight an SDAF host, subscription, and configuration set BEFORE any
-  deploy. Drives the shipped readiness helpers (`check_workstation.sh`,
-  `Test-SDAFReadiness.ps1`, `Test-SDAFURLs.ps1`, `validate.sh`) as documented
-  in `docs/local/02-00-prepare-execution-environment.md § Readiness
-  verification`, and walks the documented "Before you begin" gates from
+  deploy. Runs the required Linux checks (`check_workstation.sh`,
+  `validate.sh`) and, when `pwsh` is already available, offers the optional
+  `Test-SDAFReadiness.ps1` and `Test-SDAFURLs.ps1` diagnostics as documented in
+  `docs/local/02-00-prepare-execution-environment.md § Readiness verification`.
+  Also walks the documented "Before you begin" gates from
   `docs/local/01-00-prerequisites.md`. Use when a user says "pre-flight SDAF",
   "check SDAF readiness", "validate my tfvars", "am I ready to deploy the
   control plane", "run validate.sh", "run Test-SDAFReadiness", "check
@@ -58,20 +59,24 @@ Do NOT summarise the identity role set from memory; the docs point at the
 identity-and-access section rather than restating the role set inline. Point
 the operator at that section and stop.
 
-### Step 2 — Run the documented readiness scripts
+### Step 2 — Run the documented readiness checks
 
 `docs/local/02-00-prepare-execution-environment.md § Readiness verification`
-is the shipped procedure. Walk its four numbered steps in order:
+is the shipped procedure. Preserve its required/optional distinction:
 
-1. `check_workstation.sh` — toolchain versions.
-2. `Test-SDAFReadiness.ps1` — overall host readiness.
-3. `Test-SDAFURLs.ps1` — outbound endpoint reachability.
-4. `validate.sh` — per-workspace `.tfvars` sanity, once per workspace the
+1. **Required on Linux:** `check_workstation.sh` — toolchain versions.
+2. **Optional when `pwsh` is already available:**
+   `Test-SDAFReadiness.ps1` — additional host-readiness diagnostic.
+3. **Optional when `pwsh` is already available:** `Test-SDAFURLs.ps1` —
+   additional outbound-endpoint diagnostic.
+4. **Required on Linux:** `validate.sh` — per-workspace `.tfvars` sanity,
+   once per workspace the
    operator plans to deploy.
 
-Read the *shipped script's* output (and `Get-Help` for the PowerShell
-scripts) as the authority on what each checks; do not narrate behaviour
-beyond what the script prints. See
+Do not install or require PowerShell merely to complete the supported Linux
+path. For every check that is run, read the *shipped script's* output as the
+authority on what it checks; do not narrate behaviour beyond what the script
+prints. See
 [`references/host-readiness.md`](references/host-readiness.md) for the
 minimal notes needed to route failures.
 
@@ -85,8 +90,8 @@ Exit-code discipline for each invocation:
 
 ### Step 3 — Route any failure before deploying
 
-If any of the four steps in the shipped `§ Readiness verification`
-subsection reports a failure, do not proceed to deploy. Route via
+If a required check, or an optional diagnostic the operator chose to run,
+reports a failure, do not proceed to deploy. Route via
 `sdaf-failure-triage` if the failure symptom is ambiguous, or directly to
 the doc anchor named in `references/host-readiness.md`.
 

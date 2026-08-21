@@ -19,20 +19,19 @@ read that section and each script's own output as the authority.
 - Location: `deploy/scripts/Test-SDAFReadiness.ps1`.
 - Documented in: `docs/local/02-00-prepare-execution-environment.md § Readiness
   verification` step 2.
-- Doc says: reports readiness of the execution host for an SDAF deployment;
-  each item it flags must be resolved before deploying. For flags, run
-  `Get-Help ...\Test-SDAFReadiness.ps1 -Full` — do not narrate behaviour
-  beyond what `Get-Help` or the script's own output shows.
+- Optional diagnostic only when `pwsh` is already available. Do not require or
+  install PowerShell to complete the supported Linux readiness path.
+- Resolve each item it flags before deploying. Do not narrate behaviour beyond
+  the script's own output.
 
 ## Test-SDAFURLs.ps1
 
 - Location: `deploy/scripts/Test-SDAFURLs.ps1`.
 - Documented in: `docs/local/02-00-prepare-execution-environment.md § Readiness
   verification` step 3.
-- Doc says: reports whether the endpoints SDAF contacts at deploy time are
-  reachable from this host. Failure hand-off:
+- Optional diagnostic only when `pwsh` is already available.
+- Failure hand-off:
   `docs/local/troubleshooting.md § The execution host cannot reach Key Vault or Storage`.
-- For flags, use `Get-Help`.
 
 ## validate.sh
 
