@@ -91,7 +91,6 @@ class EvalRequest:
     output_dir: Path
     model: str
     limits: RunLimits
-    token: str | None
 
 
 class EvalCatalog:
@@ -346,11 +345,12 @@ class SdafSkillEvals:
             workspace = temp_root / "workspace"
             home.mkdir()
             workspace.mkdir()
+            authentication = load_authentication_environment()
             async with CopilotClient(
                 working_directory=str(workspace),
                 base_directory=str(home),
-                github_token=self.request.token,
-                use_logged_in_user=self.request.token is None,
+                env=authentication or None,
+                use_logged_in_user=not authentication,
                 log_level="error",
                 mode="empty",
                 session_idle_timeout_seconds=self.request.limits.timeout_seconds,
@@ -555,11 +555,14 @@ def redact(text: str) -> str:
     )
 
 
-def load_token(environment_name: str) -> str | None:
-    """Load an optional token from the named environment variable."""
+def load_authentication_environment() -> dict[str, str]:
+    """Return supported token variables for the child Copilot runtime."""
 
-    value = os.environ.get(environment_name, "").strip()
-    return value or None
+    return {
+        name: value
+        for name in ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")
+        if (value := os.environ.get(name, "").strip())
+    }
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -592,7 +595,6 @@ def build_parser() -> argparse.ArgumentParser:
             )
         ),
     )
-    parser.add_argument("--github-token-env", default="COPILOT_GITHUB_TOKEN")
     return parser
 
 
@@ -609,7 +611,6 @@ async def run_case(args: argparse.Namespace, case: EvalCase) -> int:
         output_dir=args.output_dir.resolve(),
         model=args.model,
         limits=limits,
-        token=load_token(args.github_token_env),
     )
     result = await SdafSkillEvals(request).evaluate()
     print(json.dumps({"case_id": case.case_id, "passed": result["passed"]}))

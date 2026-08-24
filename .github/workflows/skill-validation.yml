@@ -45,6 +45,7 @@ on:
 
 permissions:
   contents: read
+  copilot-requests: write
   pull-requests: read
 
 env:
@@ -159,7 +160,6 @@ jobs:
           github.event.review.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    environment: copilot
     outputs:
       cases: ${{ steps.cases.outputs.value }}
       should_run: ${{ steps.cases.outputs.should_run }}
@@ -200,7 +200,6 @@ jobs:
           AUTHOR_TRUSTED: >-
             ${{ contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
               github.event.pull_request.author_association) }}
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
@@ -226,10 +225,6 @@ jobs:
             echo 'value=[]' >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [ -z "$COPILOT_GITHUB_TOKEN" ]; then
-            echo "::error::COPILOT_GITHUB_TOKEN is not configured in the copilot environment."
-            exit 1
-          fi
           if [ "$GITHUB_EVENT_NAME" = "pull_request_review" ]; then
             changed="$(gh api \
               "repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/files" \
@@ -253,7 +248,6 @@ jobs:
     if: needs.authorize.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment: copilot
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -284,7 +278,7 @@ jobs:
       - name: Run with-skill and baseline comparison
         env:
           CASE_ID: ${{ matrix.case }}
-          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: >-
           python evals/evals.py
           --content-root "$PWD/content"
