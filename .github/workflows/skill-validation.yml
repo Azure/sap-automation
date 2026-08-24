@@ -223,7 +223,7 @@ jobs:
       - name: Run with-skill and baseline comparison
         env:
           CASE_ID: ${{ matrix.case }}
-          GITHUB_TOKEN: ${{ github.token }}
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
         run: >-
           python evals/evals.py
           --content-root "$PWD/content"
