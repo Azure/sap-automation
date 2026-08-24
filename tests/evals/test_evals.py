@@ -12,6 +12,9 @@ from types import SimpleNamespace
 
 import pytest
 
+if sys.version_info < (3, 11):
+    pytest.skip("Copilot SDK evaluator requires Python 3.11+", allow_module_level=True)
+
 ROOT = Path(__file__).parents[2]
 SPEC = importlib.util.spec_from_file_location("sdaf_evals", ROOT / "evals/evals.py")
 assert SPEC and SPEC.loader
