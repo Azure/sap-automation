@@ -13,6 +13,19 @@ on:
       - "requirements-test.txt"
       - "skills/**"
       - "evals/evals.py"
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".claude-plugin/**"
+      - ".github/plugin/**"
+      - ".github/workflows/skill-validation.yml"
+      - "CLAUDE.md"
+      - "evals/evals.json"
+      - "GEMINI.md"
+      - "gemini-extension.json"
+      - "requirements-test.txt"
+      - "skills/**"
+      - "evals/evals.py"
   push:
     branches: [main]
     paths:
@@ -135,10 +148,17 @@ jobs:
           test -f "$path/$REQUIRED_SKILL"
 
   prepare:
-    name: Prepare behavioral-eval matrix
+    name: Prepare routing-eval matrix
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'pull_request'
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      ) ||
+      (
+        github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name != github.repository
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:

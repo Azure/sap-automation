@@ -74,15 +74,21 @@ Do NOT trigger on: deploying the SAP-system infrastructure, generating
 3. Start with configuration checks:
 
    ```bash
+   trap 'rm -f -- "$PWD/sshkey"' EXIT
    "$SAP_AUTOMATION_REPO_PATH/deploy/ansible/quality_assurance_menu.sh"
+   rm -f -- "$PWD/sshkey"; trap - EXIT
+   test ! -e "$PWD/sshkey"
    ```
 
 4. Narrow a functional run only by exporting the selection first:
 
    ```bash
+   trap 'rm -f -- "$PWD/sshkey"' EXIT
    TEST_GROUPS="HA_SCS" \
    TEST_CASES="ascs-migration" \
    "$SAP_AUTOMATION_REPO_PATH/deploy/ansible/quality_assurance_menu.sh"
+   rm -f -- "$PWD/sshkey"; trap - EXIT
+   test ! -e "$PWD/sshkey"
    ```
 
 ## Selection rules

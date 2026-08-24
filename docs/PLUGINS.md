@@ -278,10 +278,13 @@ The routing-eval harness in this repo covers the **hub only**:
 - **54** cases in the consolidated `evals/evals.json` catalogue
 - three prompts for each skill, each compared with a target-disabled baseline
 
-These evals are a blocking reliability quality gate. A case fails when its
-fixed assertions do not pass, and the workflow uploads the native Copilot SDK
-event evidence for review. The Azure DevOps and GitHub Actions surface plugins
-keep their own deferred eval scope in
+These evals are a blocking **routing-reliability** gate. They measure native
+skill loading and invocation behavior, target-disabled baseline behavior,
+session completion, and response viability; they do not grade operational
+answer quality. A case fails when its fixed routing assertions do not pass,
+and the workflow uploads native Copilot SDK event evidence for review. The
+Azure DevOps and GitHub Actions surface plugins keep their own deferred eval
+scope in
 `Azure/sap-automation-bootstrap` and `Azure/sap-automation-gh-bootstrap`.
 
 ## Ground rules and exclusions
