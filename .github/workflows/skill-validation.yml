@@ -12,34 +12,12 @@ on:
       - "gemini-extension.json"
       - "requirements-test.txt"
       - "skills/**"
+      - "tests/evals/**"
       - "evals/evals.py"
-  pull_request_target:
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".claude-plugin/**"
-      - ".github/plugin/**"
-      - ".github/workflows/skill-validation.yml"
-      - "CLAUDE.md"
-      - "evals/evals.json"
-      - "GEMINI.md"
-      - "gemini-extension.json"
-      - "requirements-test.txt"
-      - "skills/**"
-      - "evals/evals.py"
-  push:
-    branches: [main]
-    paths:
-      - ".claude-plugin/**"
-      - ".github/plugin/**"
-      - ".github/workflows/skill-validation.yml"
-      - "CLAUDE.md"
-      - "evals/evals.json"
-      - "GEMINI.md"
-      - "gemini-extension.json"
-      - "requirements-test.txt"
-      - "skills/**"
-      - "evals/evals.py"
-  workflow_dispatch:
+
+concurrency:
+  group: skill-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -61,7 +39,6 @@ env:
 jobs:
   install:
     name: Install skills on all three CLIs
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -148,52 +125,25 @@ jobs:
 
   prepare:
     name: Prepare routing-eval matrix
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (
-        github.event_name == 'pull_request' &&
-        github.event.pull_request.head.repo.full_name == github.repository
-      ) ||
-      (
-        github.event_name == 'pull_request_target' &&
-        github.event.pull_request.head.repo.full_name != github.repository
-      )
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       cases: ${{ steps.cases.outputs.value }}
-      head_repo: ${{ steps.pr.outputs.head_repo }}
-      head_sha: ${{ steps.pr.outputs.head_sha }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
-      - name: Resolve content revision
-        id: pr
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "head_repo=$GITHUB_REPOSITORY" >> "$GITHUB_OUTPUT"
-            echo "head_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-          else
-            echo "head_repo=${{ github.event.pull_request.head.repo.full_name }}" \
-              >> "$GITHUB_OUTPUT"
-            echo "head_sha=${{ github.event.pull_request.head.sha }}" \
-              >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout skill content as data
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          repository: ${{ steps.pr.outputs.head_repo }}
-          ref: ${{ steps.pr.outputs.head_sha }}
-          path: content
-          persist-credentials: false
+          python-version: "3.11"
+          cache: pip
+
+      - name: Test skill evaluator
+        run: |
+          python -m pip install -r requirements-test.txt
+          python -m pytest -o addopts="" tests/evals/test_evals.py -q
 
       - name: Build 54-case matrix
         id: cases
@@ -206,8 +156,8 @@ jobs:
               and ($ids | unique | length) == 54
               and all($ids[];
                 test("^[a-z0-9]+(-[a-z0-9]+)*$"))
-          ' content/evals/evals.json > /dev/null
-          cases="$(jq -c '[.skills[].evals[].id]' content/evals/evals.json)"
+          ' evals/evals.json > /dev/null
+          cases="$(jq -c '[.skills[].evals[].id]' evals/evals.json)"
           echo "value=$cases" >> "$GITHUB_OUTPUT"
 
   evaluate:
@@ -227,15 +177,7 @@ jobs:
       - name: Checkout trusted runner
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
-          persist-credentials: false
-
-      - name: Checkout skill content as data
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          repository: ${{ needs.prepare.outputs.head_repo }}
-          ref: ${{ needs.prepare.outputs.head_sha }}
-          path: content
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -254,7 +196,7 @@ jobs:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
         run: >-
           python evals/evals.py
-          --content-root "$PWD/content"
+          --content-root "$PWD"
           --case "$CASE_ID"
           --output-dir "$RUNNER_TEMP/skill-eval/$CASE_ID"
           --max-ai-credits "$SDAF_EVAL_MAX_AI_CREDITS"
