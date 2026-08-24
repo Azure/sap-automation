@@ -93,6 +93,15 @@ class EvalRequest:
     limits: RunLimits
 
 
+@dataclass(frozen=True, slots=True)
+class RecordedSessionError:
+    """Store an exception raised outside the SDK event stream."""
+
+    error_type: str
+    message: str
+    error_code: str | None
+
+
 class EvalCatalog:
     """Load and validate the consolidated SDAF reliability corpus."""
 
@@ -245,7 +254,7 @@ class SessionEvidence:
         self.invocations: list[SkillInvokedData] = []
         self.messages: list[AssistantMessageData] = []
         self.usage: list[AssistantUsageData] = []
-        self.errors: list[SessionErrorData] = []
+        self.errors: list[SessionErrorData | RecordedSessionError] = []
         self.idle: SessionIdleData | None = None
         self._done = asyncio.Event()
 
@@ -336,9 +345,28 @@ class SdafSkillEvals:
         }
 
     async def _run_session(self, disable_target: bool) -> SessionEvidence:
-        """Run one isolated SDK session."""
+        """Run one isolated SDK session and retain expected failures."""
 
         evidence = SessionEvidence()
+        try:
+            await self._execute_session(evidence, disable_target)
+        except (OSError, RuntimeError, TimeoutError) as error:
+            evidence.errors.append(
+                RecordedSessionError(
+                    error_type="runtime",
+                    message=redact(str(error)),
+                    error_code=type(error).__name__,
+                )
+            )
+        return evidence
+
+    async def _execute_session(
+        self,
+        evidence: SessionEvidence,
+        disable_target: bool,
+    ) -> None:
+        """Execute the SDK session while collecting partial event evidence."""
+
         with tempfile.TemporaryDirectory(prefix="sdaf-skill-eval-") as directory:
             temp_root = Path(directory)
             home = temp_root / "copilot-home"
@@ -382,7 +410,6 @@ class SdafSkillEvals:
                 async with session:
                     await session.send(self.request.case.prompt)
                     await evidence.wait(self.request.limits.timeout_seconds)
-        return evidence
 
     def _grade(
         self,
@@ -483,7 +510,7 @@ class SdafSkillEvals:
             "errors": [
                 {
                     "type": item.error_type,
-                    "message": item.message,
+                    "message": redact(item.message),
                     "code": item.error_code,
                 }
                 for item in evidence.errors

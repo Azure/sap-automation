@@ -58,11 +58,14 @@ application_bom_name: <APPLICATION_BOM>
 database_bom_name:    <DATABASE_BOM>
 sap_kernel_bom_name:  <KERNEL_BOM>
 save_bom_as:          <COMBINED_BOM_NAME>
+bom_base_name:        <COMBINED_BOM_NAME>
 ```
 
 Keep these values in the exact format documented by
 `§ Inputs and BOM ownership`. The automation validates the application,
-database, kernel, and output-name combination before download.
+database, kernel, and output-name combination before download. Require
+`bom_base_name` to equal `save_bom_as`; installation reloads
+`bom_base_name` and must find the combined BOM written by the downloader.
 
 ## Recipe
 
@@ -77,8 +80,9 @@ test -d "$BOM_CATALOG/SAP"
 test -d "$BOM_CATALOG/BOM"
 ```
 
-Then re-read `sap-parameters.yaml` once. For the local menu path, all four
-BOM keys above must be present and must match actual samples directories/files.
+Then re-read `sap-parameters.yaml` once. For the local menu path, all five BOM
+keys above must be present, component names must match actual samples
+directories/files, and `bom_base_name` must equal `save_bom_as`.
 
 ### Step 2 — Run the documented local acquisition flow
 

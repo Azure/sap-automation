@@ -234,38 +234,16 @@ this section describes only their operator-visible pass/fail role.
    ```
 
    The command prints a version for `az`, `terraform`, `ansible`, and
-   `jq` (see also step 9 of *Prepare the host*). A missing tool or an
-   error exit means the host is not ready.
-
-2. On an execution host where PowerShell (`pwsh`) is already available,
-   optionally run the PowerShell host-readiness diagnostic.
-
-   ```bash
-   pwsh -File \
-     "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/Test-SDAFReadiness.ps1"
-   ```
-
-   This is an additional diagnostic, not a Linux-host prerequisite. The
-   supported Linux readiness path remains step 1. If you use this diagnostic,
-   resolve each reported item before deploying.
-
-3. Where `pwsh` is available, optionally run the outbound-endpoint diagnostic.
-
-   ```bash
-   pwsh -File "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/Test-SDAFURLs.ps1"
-   ```
-
-   A reported failure is a connectivity problem, not a deployment problem —
-   see
-   [`troubleshooting.md § The execution host cannot reach Key Vault or Storage`](troubleshooting.md).
+   `jq` (see also step 9 of *Prepare the host*). A missing or blank version,
+   a missing tool, or an error exit means the host is not ready.
 
 Do not use `deploy/scripts/validate.sh` for current workspace `.tfvars`; that
 script expects the legacy JSON parameter shape, while current `.tfvars` files
 use Terraform HCL. Review the HCL configuration through the documented
 stage-specific plan and review gate instead.
 
-Do not proceed until the required Linux check exits successfully and any
-optional diagnostics you ran have been reviewed and resolved.
+Do not proceed until the required Linux check exits successfully and all four
+reported versions are non-empty.
 
 ## Protect secrets and transient files
 

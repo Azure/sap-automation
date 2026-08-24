@@ -2,15 +2,12 @@
 name: sdaf-readiness-check
 description: >
   Pre-flight an SDAF host, subscription, and configuration set BEFORE any
-  deploy. Runs the required Linux toolchain check (`check_workstation.sh`) and,
-  when `pwsh` is already available, offers the optional
-  `Test-SDAFReadiness.ps1` and `Test-SDAFURLs.ps1` diagnostics as documented in
-  `docs/local/02-00-prepare-execution-environment.md § Readiness verification`.
-  Also walks the documented "Before you begin" gates from
+  deploy. Runs the required Linux toolchain check (`check_workstation.sh`) as
+  documented in `docs/local/02-00-prepare-execution-environment.md § Readiness
+  verification`. Also walks the documented "Before you begin" gates from
   `docs/local/01-00-prerequisites.md`. Use when a user says "pre-flight SDAF",
   "check SDAF readiness", "review my tfvars", "am I ready to deploy the
-  control plane", "run Test-SDAFReadiness", "check endpoints" or "check SDAF
-  prerequisites". Do NOT use to actually deploy
+  control plane", or "check SDAF prerequisites". Do NOT use to actually deploy
   (see sdaf-control-plane-bootstrap / sdaf-workload-zone / sdaf-sap-system)
   or to triage a failed run (see sdaf-failure-triage).
 allowed-tools: shell
@@ -27,7 +24,6 @@ docs and shipped scripts do not describe.
 ## When to invoke
 
 Trigger on: "pre-flight", "readiness", "review tfvars", "before I deploy",
-"Test-SDAFReadiness", "Test-SDAFURLs", "check endpoints",
 "prerequisites for SDAF".
 
 Do NOT trigger on: deploying a stage; installing SDAF; troubleshooting a run
@@ -62,18 +58,10 @@ the operator at that section and stop.
 ### Step 2 — Run the documented readiness checks
 
 `docs/local/02-00-prepare-execution-environment.md § Readiness verification`
-is the shipped procedure. Preserve its required/optional distinction:
-
-1. **Required on Linux:** `check_workstation.sh` — toolchain versions.
-2. **Optional when `pwsh` is already available:**
-   `Test-SDAFReadiness.ps1` — additional host-readiness diagnostic.
-3. **Optional when `pwsh` is already available:** `Test-SDAFURLs.ps1` —
-   additional outbound-endpoint diagnostic.
-
-Do not install or require PowerShell merely to complete the supported Linux
-path. For every check that is run, read the *shipped script's* output as the
-authority on what it checks; do not narrate behaviour beyond what the script
-prints. See
+requires `check_workstation.sh`. Read its output as the authority on what it
+checks; do not narrate behaviour beyond what the script prints. Require
+non-empty versions for `az`, `terraform`, `ansible`, and `jq`, even when the
+script exits `0`. See
 [`references/host-readiness.md`](references/host-readiness.md) for the
 minimal notes needed to route failures.
 
@@ -91,8 +79,8 @@ Exit-code discipline for each invocation:
 
 ### Step 3 — Route any failure before deploying
 
-If a required check, or an optional diagnostic the operator chose to run,
-reports a failure, do not proceed to deploy. Route via
+If the required check reports a failure or any required version is blank, do
+not proceed to deploy. Route via
 `sdaf-failure-triage` if the failure symptom is ambiguous, or directly to
 the doc anchor named in `references/host-readiness.md`.
 

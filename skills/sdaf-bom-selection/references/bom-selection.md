@@ -12,7 +12,8 @@ when the operator asks *"walk me through picking a BOM"*.
 2. If the flow accepts a single BOM name, pick from `SAP/`. If the flow
    uses the four `sap-parameters.yaml` keys (`application_bom_name`,
    `database_bom_name`, `sap_kernel_bom_name`, `save_bom_as`), pick
-   components from `BOM/`.
+   components from `BOM/` and require `bom_base_name` to equal `save_bom_as`
+   before handing off to installation.
    Doc: `docs/local/06-00-software-and-installation.md § Inputs and BOM
    ownership`.
 3. Open the candidate BOM YAML and check `supportedPlatforms`,

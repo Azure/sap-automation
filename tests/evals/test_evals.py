@@ -216,10 +216,30 @@ def test_evaluate_writes_failed_session_evidence(evaluator, monkeypatch) -> None
 
     assert result["passed"] is False
     assert (evaluator.request.output_dir / "grading.json").is_file()
+    result_text = (evaluator.request.output_dir / "result.json").read_text(encoding="utf-8")
+    assert "top-secret" not in result_text
+    assert "[REDACTED]" in result_text
     response = (evaluator.request.output_dir / "with_skill" / "response.txt").read_text(
         encoding="utf-8"
     )
     assert "top-secret" not in response
+
+
+def test_evaluate_records_runtime_exception(evaluator, monkeypatch) -> None:
+    """Runtime exceptions produce failed artifacts instead of escaping."""
+
+    def fail_client(**_kwargs):
+        raise RuntimeError("token=runtime-secret")
+
+    monkeypatch.setattr(EVALS, "CopilotClient", fail_client)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is False
+    assert result["with_skill"]["errors"][0]["code"] == "RuntimeError"
+    result_text = (evaluator.request.output_dir / "result.json").read_text(encoding="utf-8")
+    assert "runtime-secret" not in result_text
+    assert "[REDACTED]" in result_text
 
 
 def test_cli_returns_configuration_error_for_missing_root(tmp_path: Path, capsys) -> None:

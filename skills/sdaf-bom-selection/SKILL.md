@@ -77,11 +77,14 @@ application_bom_name: <APPLICATION_BOM>
 database_bom_name:    <DATABASE_BOM>
 sap_kernel_bom_name:  <KERNEL_BOM>
 save_bom_as:          <COMBINED_BOM_NAME>
+bom_base_name:        <COMBINED_BOM_NAME>
 ```
 
-Without all four, the wrapper substitutes an empty value and the download
-fails. This is a documented constraint — surface it whenever the operator
-picks component BOMs.
+Without the four downloader keys, the wrapper substitutes an empty value and
+the download fails. Also require `bom_base_name` to equal `save_bom_as`;
+installation reloads `bom_base_name` and must find the combined BOM written by
+the downloader. Surface both constraints whenever the operator picks component
+BOMs.
 
 ## Compatibility guardrails
 
