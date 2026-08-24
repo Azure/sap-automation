@@ -44,16 +44,20 @@ installation run.
 From the system directory, exactly per `docs/local/06-00-software-and-installation.md`:
 ```bash
 cd "$CONFIG_REPO_PATH/WORKSPACES/SYSTEM/<SAP_SYSTEM>"
+cleanup_sshkey() {
+  rm -f -- "$PWD/sshkey"
+}
+trap cleanup_sshkey EXIT
 "$SAP_AUTOMATION_REPO_PATH/deploy/ansible/configuration_menu.sh"
+cleanup_sshkey
+trap - EXIT
+test ! -e "$PWD/sshkey"
 ```
 Then:
 1. Select **Validate parameters** first.
 2. Select one reviewed playbook or grouped sequence from [`references/install-stage-map.md`](references/install-stage-map.md).
-3. After the menu exits, remove the retrieved private key immediately:
-   ```bash
-   rm -f -- "$PWD/sshkey"
-   test ! -e "$PWD/sshkey"
-   ```
+3. Keep the cleanup trap in place around the menu invocation. It removes the
+   retrieved private key when the menu succeeds, fails, or is interrupted.
 Use the reference to select the smallest documented stage and verify its
 completion evidence.
 

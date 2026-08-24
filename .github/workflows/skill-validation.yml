@@ -13,21 +13,6 @@ on:
       - "requirements-test.txt"
       - "skills/**"
       - "evals/evals.py"
-  pull_request_target:
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".claude-plugin/**"
-      - ".github/plugin/**"
-      - ".github/workflows/skill-validation.yml"
-      - "CLAUDE.md"
-      - "evals/evals.json"
-      - "GEMINI.md"
-      - "gemini-extension.json"
-      - "requirements-test.txt"
-      - "skills/**"
-      - "evals/evals.py"
-  pull_request_review:
-    types: [submitted]
   push:
     branches: [main]
     paths:
@@ -149,20 +134,15 @@ jobs:
           diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/copilot.txt"
           test -f "$path/$REQUIRED_SKILL"
 
-  authorize:
-    name: Check behavioral-eval approval
+  prepare:
+    name: Prepare behavioral-eval matrix
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'pull_request_target' ||
-      (github.event_name == 'pull_request_review' &&
-        github.event.review.state == 'approved' &&
-        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-          github.event.review.author_association))
+      github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       cases: ${{ steps.cases.outputs.value }}
-      should_run: ${{ steps.cases.outputs.should_run }}
       head_repo: ${{ steps.pr.outputs.head_repo }}
       head_sha: ${{ steps.pr.outputs.head_sha }}
     steps:
@@ -196,63 +176,28 @@ jobs:
       - name: Build 54-case matrix
         id: cases
         shell: bash
-        env:
-          AUTHOR_TRUSTED: >-
-            ${{ contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
-              github.event.pull_request.author_association) }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          authorized=false
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || \
-             [ "$AUTHOR_TRUSTED" = "true" ]; then
-            authorized=true
-          elif [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
-            approved="$(gh api \
-              "repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/reviews" \
-              --paginate --jq '
-                [.[] | select(
-                  .state == "APPROVED" and
-                  (.author_association == "OWNER" or
-                   .author_association == "MEMBER" or
-                   .author_association == "COLLABORATOR")
-                )] | length
-              ')"
-            [ "$approved" -gt 0 ] && authorized=true
-          fi
-          if [ "$authorized" != "true" ]; then
-            echo 'should_run=false' >> "$GITHUB_OUTPUT"
-            echo 'value=[]' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [ "$GITHUB_EVENT_NAME" = "pull_request_review" ]; then
-            changed="$(gh api \
-              "repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/files" \
-              --paginate --jq '.[].filename')"
-            if ! grep -Eq \
-              '^(\.claude-plugin/|\.github/plugin/|\.github/workflows/skill-validation\.yml$|CLAUDE\.md$|evals/evals\.(json|py)$|GEMINI\.md$|gemini-extension\.json$|requirements-test\.txt$|skills/)' \
-              <<<"$changed"; then
-              echo 'should_run=false' >> "$GITHUB_OUTPUT"
-              echo 'value=[]' >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-          fi
+          jq -e '
+            [.skills[].evals[].id] as $ids
+            | ($ids | length) == 54
+              and ($ids | unique | length) == 54
+              and all($ids[];
+                test("^[a-z0-9]+(-[a-z0-9]+)*$"))
+          ' content/evals/evals.json > /dev/null
           cases="$(jq -c '[.skills[].evals[].id]' content/evals/evals.json)"
-          [ "$(jq length <<<"$cases")" -eq 54 ]
-          echo "should_run=true" >> "$GITHUB_OUTPUT"
           echo "value=$cases" >> "$GITHUB_OUTPUT"
 
   evaluate:
     name: Evaluate ${{ matrix.case }}
-    needs: authorize
-    if: needs.authorize.outputs.should_run == 'true'
+    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
-        case: ${{ fromJSON(needs.authorize.outputs.cases) }}
+        case: ${{ fromJSON(needs.prepare.outputs.cases) }}
     steps:
       - name: Checkout trusted runner
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -260,8 +205,8 @@ jobs:
       - name: Checkout skill content as data
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          repository: ${{ needs.authorize.outputs.head_repo }}
-          ref: ${{ needs.authorize.outputs.head_sha }}
+          repository: ${{ needs.prepare.outputs.head_repo }}
+          ref: ${{ needs.prepare.outputs.head_sha }}
           path: content
           persist-credentials: false
 
