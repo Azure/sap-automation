@@ -246,7 +246,7 @@ this section describes only their operator-visible pass/fail role.
    ```
 
    This is an additional diagnostic, not a Linux-host prerequisite. The
-   supported Linux path remains steps 1 and 4. If you use this diagnostic,
+   supported Linux readiness path remains step 1. If you use this diagnostic,
    resolve each reported item before deploying.
 
 3. Where `pwsh` is available, optionally run the outbound-endpoint diagnostic.
@@ -259,23 +259,12 @@ this section describes only their operator-visible pass/fail role.
    see
    [`troubleshooting.md § The execution host cannot reach Key Vault or Storage`](troubleshooting.md).
 
-4. Validate each workspace `.tfvars` prepared in the preceding section.
+Do not use `deploy/scripts/validate.sh` for current workspace `.tfvars`; that
+script expects the legacy JSON parameter shape, while current `.tfvars` files
+use Terraform HCL. Review the HCL configuration through the documented
+stage-specific plan and review gate instead.
 
-   From the directory that contains the `.tfvars` (pass the basename
-   only — see
-   [`troubleshooting.md § A parameter file is not found`](troubleshooting.md)):
-
-   ```bash
-   cd "$CONFIG_REPO_PATH/<WORKSPACES-leaf>"
-   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/validate.sh" \
-       --parameterfile "<same-name>.tfvars" \
-       --type <sap_deployer|sap_library|sap_landscape|sap_system>
-   ```
-
-   `validate.sh` inspects the parameter file's presence and expected
-   fields; a non-zero exit or a printed error means the file is not ready.
-
-Do not proceed until the required Linux checks exit successfully and any
+Do not proceed until the required Linux check exits successfully and any
 optional diagnostics you ran have been reviewed and resolved.
 
 ## Protect secrets and transient files

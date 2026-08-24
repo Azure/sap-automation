@@ -43,7 +43,6 @@ on:
 
 permissions:
   contents: read
-  copilot-requests: write
   pull-requests: read
 
 env:
@@ -167,6 +166,9 @@ jobs:
       head_sha: ${{ steps.pr.outputs.head_sha }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
 
       - name: Resolve content revision
         id: pr
@@ -213,6 +215,9 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      copilot-requests: write
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -221,6 +226,9 @@ jobs:
     steps:
       - name: Checkout trusted runner
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
 
       - name: Checkout skill content as data
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0

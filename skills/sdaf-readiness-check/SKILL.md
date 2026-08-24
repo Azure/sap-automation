@@ -2,15 +2,15 @@
 name: sdaf-readiness-check
 description: >
   Pre-flight an SDAF host, subscription, and configuration set BEFORE any
-  deploy. Runs the required Linux checks (`check_workstation.sh`,
-  `validate.sh`) and, when `pwsh` is already available, offers the optional
+  deploy. Runs the required Linux toolchain check (`check_workstation.sh`) and,
+  when `pwsh` is already available, offers the optional
   `Test-SDAFReadiness.ps1` and `Test-SDAFURLs.ps1` diagnostics as documented in
   `docs/local/02-00-prepare-execution-environment.md § Readiness verification`.
   Also walks the documented "Before you begin" gates from
   `docs/local/01-00-prerequisites.md`. Use when a user says "pre-flight SDAF",
-  "check SDAF readiness", "validate my tfvars", "am I ready to deploy the
-  control plane", "run validate.sh", "run Test-SDAFReadiness", "check
-  endpoints" or "check SDAF prerequisites". Do NOT use to actually deploy
+  "check SDAF readiness", "review my tfvars", "am I ready to deploy the
+  control plane", "run Test-SDAFReadiness", "check endpoints" or "check SDAF
+  prerequisites". Do NOT use to actually deploy
   (see sdaf-control-plane-bootstrap / sdaf-workload-zone / sdaf-sap-system)
   or to triage a failed run (see sdaf-failure-triage).
 allowed-tools: shell
@@ -26,8 +26,8 @@ docs and shipped scripts do not describe.
 
 ## When to invoke
 
-Trigger on: "pre-flight", "readiness", "validate tfvars", "before I deploy",
-"Test-SDAFReadiness", "Test-SDAFURLs", "validate.sh", "check endpoints",
+Trigger on: "pre-flight", "readiness", "review tfvars", "before I deploy",
+"Test-SDAFReadiness", "Test-SDAFURLs", "check endpoints",
 "prerequisites for SDAF".
 
 Do NOT trigger on: deploying a stage; installing SDAF; troubleshooting a run
@@ -69,9 +69,6 @@ is the shipped procedure. Preserve its required/optional distinction:
    `Test-SDAFReadiness.ps1` — additional host-readiness diagnostic.
 3. **Optional when `pwsh` is already available:** `Test-SDAFURLs.ps1` —
    additional outbound-endpoint diagnostic.
-4. **Required on Linux:** `validate.sh` — per-workspace `.tfvars` sanity,
-   once per workspace the
-   operator plans to deploy.
 
 Do not install or require PowerShell merely to complete the supported Linux
 path. For every check that is run, read the *shipped script's* output as the
@@ -79,6 +76,10 @@ authority on what it checks; do not narrate behaviour beyond what the script
 prints. See
 [`references/host-readiness.md`](references/host-readiness.md) for the
 minimal notes needed to route failures.
+
+Do not run `validate.sh` against current workspace `.tfvars`; it expects the
+legacy JSON parameter shape, while current `.tfvars` use Terraform HCL. Review
+configuration through the documented stage-specific plan and review gate.
 
 Exit-code discipline for each invocation:
 
@@ -117,7 +118,7 @@ the doc anchor named in `references/host-readiness.md`.
 ## See also
 
 - `sdaf-orientation-and-surface` — surface choice, prints install commands.
-- `sdaf-workspace-and-tfvars` — the layout `validate.sh` presupposes.
+- `sdaf-workspace-and-tfvars` — current workspace layout and naming.
 - `sdaf-control-plane-bootstrap` — the first deploy step.
 - `sdaf-failure-triage` — for a run that has already failed.
 - `docs/local/01-00-prerequisites.md`,

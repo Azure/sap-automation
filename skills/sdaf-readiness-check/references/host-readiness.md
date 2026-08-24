@@ -33,17 +33,6 @@ read that section and each script's own output as the authority.
 - Failure hand-off:
   `docs/local/troubleshooting.md § The execution host cannot reach Key Vault or Storage`.
 
-## validate.sh
-
-- Location: `deploy/scripts/validate.sh`.
-- Documented in: `docs/local/02-00-prepare-execution-environment.md § Readiness
-  verification` step 4.
-- Doc says: inspects a workspace `.tfvars` file's presence and expected
-  fields; non-zero exit or printed error means the file is not ready.
-- Invocation constraint: run from the directory containing the tfvars, pass
-  the basename only — see
-  `docs/local/troubleshooting.md § A parameter file is not found`.
-
 ## Required environment variables
 
 Every SDAF run requires the three variables enumerated in the troubleshooting
