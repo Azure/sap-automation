@@ -20,7 +20,7 @@
         },
         {
           "id": "bom-positive-02",
-          "prompt": "Help me choose pinned versus latest software definitions without inventing compatibility.",
+          "prompt": "For my SAP software download, help me choose pinned versus latest software definitions without inventing compatibility.",
           "expected_output": "Copilot loads sdaf-bom-selection.",
           "assertions": [
             "With-skill run emits at least one skill.invoked event naming sdaf-bom-selection.",

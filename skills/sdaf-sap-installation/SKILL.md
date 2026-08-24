@@ -97,5 +97,6 @@ Hand-offs:
 - `sdaf-media-diagnostics`
 - [`sdaf-failure-triage`](../sdaf-failure-triage/SKILL.md)
 - `sdaf-quality-assurance`
+- `sdaf-plan-and-test-semantics`
 - `docs/local/06-00-software-and-installation.md`
 - `docs/local/troubleshooting.md`
