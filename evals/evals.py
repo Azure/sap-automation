@@ -39,6 +39,7 @@ from copilot.session_events import (
 )
 
 CASE_ID_PATTERN = re.compile(r"\A[a-z0-9]+(?:-[a-z0-9]+)*\Z")
+SKILL_REFERENCE_PATTERN = re.compile(r"\bsdaf-[a-z0-9]+(?:-[a-z0-9]+)*\b")
 ASSERTION_COUNT = 5
 DEFAULT_AI_CREDITS = 30
 DEFAULT_OUTPUT_TOKENS = 1024
@@ -411,6 +412,20 @@ class SdafSkillEvals:
                     await session.send(self.request.case.prompt)
                     await evidence.wait(self.request.limits.timeout_seconds)
 
+    def _documented_companions(self, target: str) -> frozenset[str]:
+        """Return sibling skills the target document names as handoffs or prerequisites.
+
+        Invoking a documented companion is designed behaviour, so it must not be
+        graded as a mis-route. Any skill absent from the document still fails.
+        """
+
+        skill_file = self.skills_dir / target / "SKILL.md"
+        try:
+            body = skill_file.read_text(encoding="utf-8")
+        except OSError as error:
+            raise EvalError(f"cannot read {skill_file}: {error}") from error
+        return frozenset(set(SKILL_REFERENCE_PATTERN.findall(body)) - {target})
+
     def _grade(
         self,
         with_skill: SessionEvidence,
@@ -427,13 +442,17 @@ class SdafSkillEvals:
         other_invocations = [
             item.name
             for item in with_skill.invocations
-            if item.name.startswith("sdaf-") and item.name != target
+            if item.name.startswith("sdaf-")
+            and item.name != target
+            and item.name not in self._documented_companions(target)
         ]
         baseline_target = [item for item in baseline.invocations if item.name == target]
         invocation_passed = (
             len(target_loaded) == 1
-            and len(target_invocations) == 1
-            and target_invocations[0].trigger == SkillInvokedTrigger.AGENT_INVOKED
+            and len(target_invocations) >= 1
+            and all(
+                item.trigger == SkillInvokedTrigger.AGENT_INVOKED for item in target_invocations
+            )
         )
         return [
             self._assertion(0, invocation_passed, self._invocation_evidence(target_invocations)),

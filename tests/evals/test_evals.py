@@ -184,6 +184,56 @@ def test_grade_passes_exact_target_invocation(evaluator, monkeypatch) -> None:
     assert result["passed"] is True
 
 
+def test_grade_passes_repeated_target_invocation(evaluator, monkeypatch) -> None:
+    """Re-invoking the correct skill is routing success, not a failure."""
+
+    target = evaluator.request.case.skill_name
+    with_skill = make_evidence(target=target)
+    with_skill.invocations = with_skill.invocations * 3
+    sessions = iter([with_skill, make_evidence(target="sdaf-other-skill")])
+
+    async def fake_run_session(*, disable_target: bool):
+        del disable_target
+        return next(sessions)
+
+    monkeypatch.setattr(evaluator, "_run_session", fake_run_session)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is True
+
+
+@pytest.mark.parametrize(
+    ("companion", "expected"),
+    [("sdaf-documented-companion", True), ("sdaf-unrelated-skill", False)],
+)
+def test_grade_allows_only_documented_companions(
+    evaluator, monkeypatch, companion: str, expected: bool
+) -> None:
+    """Handoffs the target document names pass; undocumented ones fail."""
+
+    target = evaluator.request.case.skill_name
+    skill_file = evaluator.skills_dir / target / "SKILL.md"
+    skill_file.write_text("# Test\n\nHand off to `sdaf-documented-companion`.\n", encoding="utf-8")
+    evaluator.skill_hashes = evaluator.source_hashes()
+
+    with_skill = make_evidence(target=target)
+    with_skill.invocations = list(with_skill.invocations) + list(
+        make_evidence(target=companion).invocations
+    )
+    sessions = iter([with_skill, make_evidence(target="sdaf-other-skill")])
+
+    async def fake_run_session(*, disable_target: bool):
+        del disable_target
+        return next(sessions)
+
+    monkeypatch.setattr(evaluator, "_run_session", fake_run_session)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is expected
+
+
 def test_redact_masks_sensitive_assignments() -> None:
     """Response artifacts mask common credential assignments."""
 

@@ -170,7 +170,7 @@ jobs:
       copilot-requests: write
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 10
       matrix:
         case: ${{ fromJSON(needs.prepare.outputs.cases) }}
     steps:
