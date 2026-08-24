@@ -22,6 +22,7 @@ from copilot import (
     CopilotClient,
     ModelCapabilitiesOverride,
     ModelLimitsOverride,
+    RuntimeConnection,
     SessionEvent,
     SessionEventType,
     ToolSet,
@@ -373,12 +374,11 @@ class SdafSkillEvals:
             workspace = temp_root / "workspace"
             home.mkdir()
             workspace.mkdir()
-            authentication = load_authentication_environment()
             async with CopilotClient(
+                connection=RuntimeConnection.for_stdio(),
                 working_directory=str(workspace),
                 base_directory=str(home),
-                env=authentication or None,
-                use_logged_in_user=not authentication,
+                env=dict(os.environ),
                 log_level="error",
                 mode="empty",
                 session_idle_timeout_seconds=self.request.limits.timeout_seconds,
@@ -580,16 +580,6 @@ def redact(text: str) -> str:
         lambda match: f"{match.group(1)}{match.group(2)}[REDACTED]",
         text,
     )
-
-
-def load_authentication_environment() -> dict[str, str]:
-    """Return supported token variables for the child Copilot runtime."""
-
-    return {
-        name: value
-        for name in ("COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN")
-        if (value := os.environ.get(name, "").strip())
-    }
 
 
 def build_parser() -> argparse.ArgumentParser:
