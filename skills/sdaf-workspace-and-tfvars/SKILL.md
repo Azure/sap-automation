@@ -7,7 +7,8 @@ description: >
   and state layout`, `docs/region-codes.md`, and the samples repo
   `sap-automation-samples/docs/01-00-terraform-samples.md`. Use when a user
   says "how do I lay out WORKSPACES", "which tfvars go where", "SDAF naming
-  convention", "region code", "control-plane vs library vs landscape vs system
+  convention", "how should I name my parameter files", "region code",
+  "control-plane vs library vs landscape vs system
   tfvars", or "location_short". Do NOT use to deploy anything or to select a
   BOM (see sdaf-bom-selection).
 allowed-tools: shell

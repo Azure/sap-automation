@@ -44,6 +44,8 @@ ASSERTION_COUNT = 5
 DEFAULT_AI_CREDITS = 30
 DEFAULT_OUTPUT_TOKENS = 1024
 DEFAULT_TIMEOUT_SECONDS = 120
+DEFAULT_CONCURRENCY = 4
+MAX_CONCURRENCY = 8
 SENSITIVE_ASSIGNMENT = re.compile(
     r'(?im)(["\']?(?:authorization|token|password|secret|client[_-]?secret|'
     r'(?:x-)?api[_-]?key)["\']?\s*[:=]\s*)(["\']?)([^"\'\s,}\]]+)'
@@ -609,7 +611,13 @@ def build_parser() -> argparse.ArgumentParser:
     modes = parser.add_mutually_exclusive_group(required=True)
     modes.add_argument("--list", action="store_true")
     modes.add_argument("--case")
+    modes.add_argument("--all", action="store_true")
     parser.add_argument("--output-dir", type=Path)
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        default=int(os.environ.get("SDAF_EVAL_CONCURRENCY", DEFAULT_CONCURRENCY)),
+    )
     parser.add_argument("--model", default="gpt-5-mini")
     parser.add_argument(
         "--max-ai-credits",
@@ -653,8 +661,87 @@ async def run_case(args: argparse.Namespace, case: EvalCase) -> int:
     return 0 if result["passed"] else 1
 
 
+async def run_all(args: argparse.Namespace, catalog: EvalCatalog) -> int:
+    """Run every case in one process with bounded concurrency."""
+
+    if args.output_dir is None:
+        raise EvalError("--output-dir is required with --all")
+    if not 1 <= args.concurrency <= MAX_CONCURRENCY:
+        raise EvalError(f"concurrency must be between 1 and {MAX_CONCURRENCY}")
+    limits = RunLimits(args.max_ai_credits, args.max_output_tokens, args.timeout)
+    limits.validate()
+    content_root = args.content_root.resolve()
+    output_dir = args.output_dir.resolve()
+    gate = asyncio.Semaphore(args.concurrency)
+
+    async def run_one(case_id: str) -> dict[str, Any]:
+        request = EvalRequest(
+            case=catalog.get(case_id),
+            content_root=content_root,
+            output_dir=output_dir / case_id,
+            model=args.model,
+            limits=limits,
+        )
+        async with gate:
+            try:
+                result = await SdafSkillEvals(request).evaluate()
+                summary = {"case_id": case_id, "passed": bool(result["passed"])}
+            except (EvalError, OSError, RuntimeError, TypeError, ValueError) as error:
+                summary = {
+                    "case_id": case_id,
+                    "passed": False,
+                    "error": redact(f"{type(error).__name__}: {error}"),
+                }
+        print(json.dumps(summary), flush=True)
+        return summary
+
+    case_ids = catalog.case_ids()
+    summaries = list(await asyncio.gather(*(run_one(case_id) for case_id in case_ids)))
+    return report_batch(summaries, output_dir)
+
+
+def report_batch(summaries: list[dict[str, Any]], output_dir: Path) -> int:
+    """Write the batch summary artifact and job report, then return an exit code."""
+
+    failures = [item for item in summaries if not item["passed"]]
+    document = {
+        "schema_version": 1,
+        "total": len(summaries),
+        "passed": len(summaries) - len(failures),
+        "failed": len(failures),
+        "cases": sorted(summaries, key=lambda item: item["case_id"]),
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "summary.json").write_text(
+        json.dumps(document, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    lines = [
+        "## Skill routing reliability",
+        "",
+        f"{document['passed']} of {document['total']} cases passed.",
+        "",
+        "| Case | Result |",
+        "| --- | --- |",
+    ]
+    lines.extend(
+        f"| {item['case_id']} | {'pass' if item['passed'] else 'FAIL'} |"
+        for item in document["cases"]
+    )
+    report = "\n".join(lines) + "\n"
+    print(report)
+    step_summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if step_summary:
+        with open(step_summary, "a", encoding="utf-8") as handle:
+            handle.write(report)
+    for item in failures:
+        print(f"failed: {item['case_id']} {item.get('error', '')}".rstrip(), file=sys.stderr)
+    return 1 if failures else 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    """List cases or run one SDK-backed reliability comparison."""
+    """List cases or run SDK-backed reliability comparisons."""
 
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -664,6 +751,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             for case_id in catalog.case_ids():
                 print(case_id)
             return 0
+        if args.all:
+            return asyncio.run(run_all(args, catalog))
         case = catalog.get(args.case or "")
         return asyncio.run(run_case(args, case))
     except (EvalError, OSError, RuntimeError, TypeError, ValueError) as error:

@@ -7,11 +7,13 @@ description: >
   GitHub Actions), and print the install command for the matching surface
   bootstrap plugin — as documented in this repository's `docs/PLUGINS.md` —
   so the operator can run it manually. Use when a user says "what is SDAF",
-  "where do I start with SDAF", "which surface should I use", "SDAF Local vs
-  ADO vs GitHub", "how do I install the SDAF ADO/GitHub plugin", or "I'm new
-  to SDAF". Do NOT use for readiness pre-flight (see sdaf-readiness-check),
-  workspace/tfvars layout (see sdaf-workspace-and-tfvars), or troubleshooting
-  a failed run (see sdaf-failure-triage).
+  "how is SDAF structured", "where do I start with SDAF", "which surface
+  should I use", "SDAF Local vs ADO vs GitHub", "workstation vs Azure
+  Pipelines vs GitHub workflows", "how do I install the SDAF ADO/GitHub
+  plugin", or "I'm new to SDAF". Do NOT use for readiness pre-flight (see
+  sdaf-readiness-check), workspace/tfvars layout (see
+  sdaf-workspace-and-tfvars), or troubleshooting a failed run (see
+  sdaf-failure-triage).
 allowed-tools: shell
 license: MIT
 ---

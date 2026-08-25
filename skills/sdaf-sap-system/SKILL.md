@@ -108,6 +108,7 @@ here rather than in triage):
 
 - `sdaf-workload-zone`, `sdaf-workspace-and-tfvars`,
   `sdaf-bom-selection`, `sdaf-media-acquisition`,
-  `sdaf-sap-installation`, `sdaf-state-management`, `sdaf-failure-triage`.
+  `sdaf-sap-installation`, `sdaf-state-management`,
+  `sdaf-plan-and-test-semantics`, `sdaf-failure-triage`.
 - `docs/local/05-00-sap-system.md`, `docs/local/troubleshooting.md`,
   [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md).

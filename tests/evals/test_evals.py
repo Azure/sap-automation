@@ -234,6 +234,32 @@ def test_grade_allows_only_documented_companions(
     assert result["passed"] is expected
 
 
+def test_report_batch_writes_summary_and_fails_on_any_case(tmp_path: Path, monkeypatch) -> None:
+    """A single failing case fails the batch and is named in the report."""
+
+    summary_file = tmp_path / "step-summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_file))
+    summaries = [
+        {"case_id": "b-case", "passed": False, "error": "TimeoutError"},
+        {"case_id": "a-case", "passed": True},
+    ]
+
+    code = EVALS.report_batch(summaries, tmp_path / "out")
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 1
+    assert document["total"] == 2
+    assert document["failed"] == 1
+    assert [item["case_id"] for item in document["cases"]] == ["a-case", "b-case"]
+    assert "b-case" in summary_file.read_text(encoding="utf-8")
+
+
+def test_report_batch_passes_when_every_case_passes(tmp_path: Path) -> None:
+    """A fully green batch returns a success exit code."""
+
+    assert EVALS.report_batch([{"case_id": "a-case", "passed": True}], tmp_path / "out") == 0
+
+
 def test_redact_masks_sensitive_assignments() -> None:
     """Response artifacts mask common credential assignments."""
 

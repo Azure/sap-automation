@@ -34,7 +34,8 @@ env:
   GEMINI_VERSION: "0.56.0-preview.1"
   SDAF_EVAL_MAX_AI_CREDITS: "30"
   SDAF_EVAL_MAX_OUTPUT_TOKENS: "1024"
-  SDAF_EVAL_SESSION_TIMEOUT_SECONDS: "120"
+  SDAF_EVAL_SESSION_TIMEOUT_SECONDS: "240"
+  SDAF_EVAL_CONCURRENCY: "4"
 
 jobs:
   install:
@@ -124,11 +125,9 @@ jobs:
           test -f "$path/$REQUIRED_SKILL"
 
   prepare:
-    name: Prepare routing-eval matrix
+    name: Verify eval catalogue
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    outputs:
-      cases: ${{ steps.cases.outputs.value }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -145,8 +144,7 @@ jobs:
           python -m pip install -r requirements-test.txt
           python -m pytest -o addopts="" tests/evals/test_evals.py -q
 
-      - name: Build 54-case matrix
-        id: cases
+      - name: Verify 54 unique case identifiers
         shell: bash
         run: |
           set -euo pipefail
@@ -157,22 +155,15 @@ jobs:
               and all($ids[];
                 test("^[a-z0-9]+(-[a-z0-9]+)*$"))
           ' evals/evals.json > /dev/null
-          cases="$(jq -c '[.skills[].evals[].id]' evals/evals.json)"
-          echo "value=$cases" >> "$GITHUB_OUTPUT"
 
   evaluate:
-    name: Evaluate ${{ matrix.case }}
+    name: Evaluate skill routing
     needs: prepare
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 60
     permissions:
       contents: read
       copilot-requests: write
-    strategy:
-      fail-fast: false
-      max-parallel: 10
-      matrix:
-        case: ${{ fromJSON(needs.prepare.outputs.cases) }}
     steps:
       - name: Checkout trusted runner
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -198,15 +189,15 @@ jobs:
       - name: Install trusted eval dependencies
         run: python -m pip install -r requirements-test.txt
 
-      - name: Run with-skill and baseline comparison
+      - name: Run with-skill and baseline comparisons
         env:
-          CASE_ID: ${{ matrix.case }}
           GITHUB_TOKEN: ${{ github.token }}
         run: >-
           python evals/evals.py
           --content-root "$PWD"
-          --case "$CASE_ID"
-          --output-dir "$RUNNER_TEMP/skill-eval/$CASE_ID"
+          --all
+          --output-dir "$RUNNER_TEMP/skill-eval"
+          --concurrency "$SDAF_EVAL_CONCURRENCY"
           --max-ai-credits "$SDAF_EVAL_MAX_AI_CREDITS"
           --max-output-tokens "$SDAF_EVAL_MAX_OUTPUT_TOKENS"
           --timeout "$SDAF_EVAL_SESSION_TIMEOUT_SECONDS"
@@ -215,7 +206,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: skill-reliability-${{ matrix.case }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/skill-eval/${{ matrix.case }}
+          name: skill-reliability-${{ github.run_id }}
+          path: ${{ runner.temp }}/skill-eval
           if-no-files-found: error
           retention-days: 30
