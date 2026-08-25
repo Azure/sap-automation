@@ -42,7 +42,7 @@ Do NOT trigger on: control plane, SAP system, install, removal.
 - Landscape tfvars prepared under the documented WORKSPACES layout — see
   `sdaf-workspace-and-tfvars` (`§ Configuration preparation`, `§ Inputs`).
 - Remote-state / storage / connectivity / quota reviewed
-  (`§ Before you begin`).
+  (`§ Before you begin`) — see `sdaf-readiness-check`.
 
 ## Recipe
 
@@ -141,6 +141,6 @@ triage:
 ## See also
 
 - `sdaf-control-plane-bootstrap`, `sdaf-workspace-and-tfvars`,
-  `sdaf-sap-system`, `sdaf-failure-triage`.
+  `sdaf-sap-system`, `sdaf-state-management`, `sdaf-failure-triage`.
 - `docs/local/04-00-workload-zone.md`, `docs/local/troubleshooting.md`,
   [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md).

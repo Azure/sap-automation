@@ -835,7 +835,7 @@
         },
         {
           "id": "workload-zone-positive-03",
-          "prompt": "Review my workload-zone plan, state inputs, networking, Key Vault, and a private-endpoint/subnet-policy failure before I rerun the documented installer.",
+          "prompt": "Review my workload-zone plan, state inputs, networking, and private-endpoint subnet policy settings before I run the documented installer.",
           "expected_output": "Copilot loads sdaf-workload-zone.",
           "assertions": [
             "With-skill run emits at least one skill.invoked event naming sdaf-workload-zone.",
