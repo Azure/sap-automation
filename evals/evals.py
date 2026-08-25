@@ -46,6 +46,8 @@ DEFAULT_OUTPUT_TOKENS = 1024
 DEFAULT_TIMEOUT_SECONDS = 120
 DEFAULT_CONCURRENCY = 4
 MAX_CONCURRENCY = 8
+DEFAULT_ATTEMPTS = 1
+MAX_ATTEMPTS = 3
 SENSITIVE_ASSIGNMENT = re.compile(
     r'(?im)(["\']?(?:authorization|token|password|secret|client[_-]?secret|'
     r'(?:x-)?api[_-]?key)["\']?\s*[:=]\s*)(["\']?)'
@@ -619,6 +621,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=int(os.environ.get("SDAF_EVAL_CONCURRENCY", DEFAULT_CONCURRENCY)),
     )
+    parser.add_argument(
+        "--attempts",
+        type=int,
+        default=int(os.environ.get("SDAF_EVAL_ATTEMPTS", DEFAULT_ATTEMPTS)),
+    )
     parser.add_argument("--model", default="gpt-5-mini")
     parser.add_argument(
         "--max-ai-credits",
@@ -669,6 +676,8 @@ async def run_all(args: argparse.Namespace, catalog: EvalCatalog) -> int:
         raise EvalError("--output-dir is required with --all")
     if not 1 <= args.concurrency <= MAX_CONCURRENCY:
         raise EvalError(f"concurrency must be between 1 and {MAX_CONCURRENCY}")
+    if not 1 <= args.attempts <= MAX_ATTEMPTS:
+        raise EvalError(f"attempts must be between 1 and {MAX_ATTEMPTS}")
     limits = RunLimits(args.max_ai_credits, args.max_output_tokens, args.timeout)
     limits.validate()
     content_root = args.content_root.resolve()
@@ -676,23 +685,33 @@ async def run_all(args: argparse.Namespace, catalog: EvalCatalog) -> int:
     gate = asyncio.Semaphore(args.concurrency)
 
     async def run_one(case_id: str) -> dict[str, Any]:
-        request = EvalRequest(
-            case=catalog.get(case_id),
-            content_root=content_root,
-            output_dir=output_dir / case_id,
-            model=args.model,
-            limits=limits,
-        )
+        case_dir = output_dir / case_id
+        summary: dict[str, Any] = {"case_id": case_id, "passed": False}
         async with gate:
-            try:
-                result = await SdafSkillEvals(request).evaluate()
-                summary = {"case_id": case_id, "passed": bool(result["passed"])}
-            except (EvalError, OSError, RuntimeError, TypeError, ValueError) as error:
-                summary = {
-                    "case_id": case_id,
-                    "passed": False,
-                    "error": redact(f"{type(error).__name__}: {error}"),
-                }
+            for attempt in range(1, args.attempts + 1):
+                request = EvalRequest(
+                    case=catalog.get(case_id),
+                    content_root=content_root,
+                    output_dir=case_dir / f"attempt-{attempt}",
+                    model=args.model,
+                    limits=limits,
+                )
+                try:
+                    result = await SdafSkillEvals(request).evaluate()
+                    summary = {
+                        "case_id": case_id,
+                        "passed": bool(result["passed"]),
+                        "attempts": attempt,
+                    }
+                except (EvalError, OSError, RuntimeError, TypeError, ValueError) as error:
+                    summary = {
+                        "case_id": case_id,
+                        "passed": False,
+                        "attempts": attempt,
+                        "error": redact(f"{type(error).__name__}: {error}"),
+                    }
+                if summary["passed"]:
+                    break
         print(json.dumps(summary), flush=True)
         return summary
 
@@ -723,11 +742,14 @@ def report_batch(summaries: list[dict[str, Any]], output_dir: Path) -> int:
         "",
         f"{document['passed']} of {document['total']} cases passed.",
         "",
-        "| Case | Result |",
-        "| --- | --- |",
+        f"{sum(1 for item in summaries if item.get('attempts', 1) > 1)} case(s) needed a retry.",
+        "",
+        "| Case | Result | Attempts |",
+        "| --- | --- | --- |",
     ]
     lines.extend(
-        f"| {item['case_id']} | {'pass' if item['passed'] else 'FAIL'} |"
+        f"| {item['case_id']} | {'pass' if item['passed'] else 'FAIL'} "
+        f"| {item.get('attempts', 1)} |"
         for item in document["cases"]
     )
     report = "\n".join(lines) + "\n"

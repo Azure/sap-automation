@@ -234,6 +234,53 @@ def test_grade_allows_only_documented_companions(
     assert result["passed"] is expected
 
 
+def test_run_all_retries_until_a_case_passes(catalog_root: Path, tmp_path: Path, monkeypatch):
+    """A case that fails its first attempt is retried and can still pass."""
+
+    args = EVALS.build_parser().parse_args(
+        [
+            "--content-root",
+            str(catalog_root),
+            "--all",
+            "--output-dir",
+            str(tmp_path / "out"),
+            "--attempts",
+            "2",
+            "--concurrency",
+            "1",
+        ]
+    )
+    seen: dict[str, int] = {}
+
+    async def fake_evaluate(self):
+        case_id = self.request.case.case_id
+        seen[case_id] = seen.get(case_id, 0) + 1
+        return {"passed": seen[case_id] >= 2}
+
+    monkeypatch.setattr(EVALS.SdafSkillEvals, "evaluate", fake_evaluate)
+
+    code = asyncio.run(EVALS.run_all(args, EVALS.EvalCatalog(catalog_root)))
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 0
+    assert all(item["attempts"] == 2 for item in document["cases"])
+
+
+def test_report_batch_reports_retry_counts(tmp_path: Path) -> None:
+    """The report states how many cases needed more than one attempt."""
+
+    summaries = [
+        {"case_id": "a-case", "passed": True, "attempts": 3},
+        {"case_id": "b-case", "passed": True, "attempts": 1},
+    ]
+
+    code = EVALS.report_batch(summaries, tmp_path / "out")
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 0
+    assert document["cases"][0]["attempts"] == 3
+
+
 def test_report_batch_writes_summary_and_fails_on_any_case(tmp_path: Path, monkeypatch) -> None:
     """A single failing case fails the batch and is named in the report."""
 
