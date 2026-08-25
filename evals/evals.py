@@ -48,10 +48,13 @@ DEFAULT_CONCURRENCY = 4
 MAX_CONCURRENCY = 8
 DEFAULT_ATTEMPTS = 1
 MAX_ATTEMPTS = 3
+DEFAULT_DEADLINE_MINUTES = 0
+MAX_DEADLINE_MINUTES = 360
 SENSITIVE_ASSIGNMENT = re.compile(
     r'(?im)(["\']?(?:authorization|token|password|secret|client[_-]?secret|'
-    r'(?:x-)?api[_-]?key)["\']?\s*[:=]\s*)(["\']?)'
-    r'((?:bearer|basic|token)\s+)?[^"\'\s,}\]]+'
+    r'(?:x-)?api[_-]?key)["\']?\s*[:=]\s*)'
+    r'(?:"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\''
+    r"|(?:(?:bearer|basic|token)\s+)?[^\"'\s,}\]]+)"
 )
 
 
@@ -601,7 +604,7 @@ def redact(text: str) -> str:
     """Redact simple credential assignments from response artifacts."""
 
     return SENSITIVE_ASSIGNMENT.sub(
-        lambda match: f"{match.group(1)}{match.group(2)}[REDACTED]",
+        lambda match: f"{match.group(1)}[REDACTED]",
         text,
     )
 
@@ -625,6 +628,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--attempts",
         type=int,
         default=int(os.environ.get("SDAF_EVAL_ATTEMPTS", DEFAULT_ATTEMPTS)),
+    )
+    parser.add_argument(
+        "--deadline-minutes",
+        type=int,
+        default=int(os.environ.get("SDAF_EVAL_DEADLINE_MINUTES", DEFAULT_DEADLINE_MINUTES)),
     )
     parser.add_argument("--model", default="gpt-5-mini")
     parser.add_argument(
@@ -678,6 +686,8 @@ async def run_all(args: argparse.Namespace, catalog: EvalCatalog) -> int:
         raise EvalError(f"concurrency must be between 1 and {MAX_CONCURRENCY}")
     if not 1 <= args.attempts <= MAX_ATTEMPTS:
         raise EvalError(f"attempts must be between 1 and {MAX_ATTEMPTS}")
+    if not 0 <= args.deadline_minutes <= MAX_DEADLINE_MINUTES:
+        raise EvalError(f"deadline must be between 0 and {MAX_DEADLINE_MINUTES} minutes")
     limits = RunLimits(args.max_ai_credits, args.max_output_tokens, args.timeout)
     limits.validate()
     content_root = args.content_root.resolve()
@@ -716,7 +726,22 @@ async def run_all(args: argparse.Namespace, catalog: EvalCatalog) -> int:
         return summary
 
     case_ids = catalog.case_ids()
-    summaries = list(await asyncio.gather(*(run_one(case_id) for case_id in case_ids)))
+    tasks = {asyncio.create_task(run_one(case_id)): case_id for case_id in case_ids}
+    deadline = args.deadline_minutes * 60 if args.deadline_minutes else None
+    done, pending = await asyncio.wait(tasks, timeout=deadline)
+    for task in pending:
+        task.cancel()
+    if pending:
+        await asyncio.gather(*pending, return_exceptions=True)
+    summaries = [task.result() for task in done]
+    summaries.extend(
+        {
+            "case_id": tasks[task],
+            "passed": False,
+            "error": f"DeadlineExceeded: batch exceeded {args.deadline_minutes} minutes",
+        }
+        for task in pending
+    )
     return report_batch(summaries, output_dir)
 
 

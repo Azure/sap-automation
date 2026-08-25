@@ -234,6 +234,50 @@ def test_grade_allows_only_documented_companions(
     assert result["passed"] is expected
 
 
+def test_run_all_writes_a_summary_when_the_deadline_expires(
+    catalog_root: Path, tmp_path: Path, monkeypatch
+):
+    """An exhausted batch deadline still produces the summary artifact."""
+
+    args = EVALS.build_parser().parse_args(
+        [
+            "--content-root",
+            str(catalog_root),
+            "--all",
+            "--output-dir",
+            str(tmp_path / "out"),
+            "--concurrency",
+            "1",
+            "--deadline-minutes",
+            "1",
+        ]
+    )
+    monkeypatch.setattr(EVALS, "MAX_DEADLINE_MINUTES", 360)
+
+    async def never_finishes(_self):
+        await asyncio.sleep(3600)
+
+    monkeypatch.setattr(EVALS.SdafSkillEvals, "evaluate", never_finishes)
+    monkeypatch.setattr(EVALS.asyncio, "wait", _immediate_timeout(EVALS.asyncio.wait))
+
+    code = asyncio.run(EVALS.run_all(args, EVALS.EvalCatalog(catalog_root)))
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 1
+    assert document["failed"] == document["total"]
+    assert all("DeadlineExceeded" in item["error"] for item in document["cases"])
+
+
+def _immediate_timeout(original):
+    """Wrap asyncio.wait so the deadline expires immediately in tests."""
+
+    async def wrapper(tasks, timeout=None):
+        del timeout
+        return await original(tasks, timeout=0.01)
+
+    return wrapper
+
+
 def test_run_all_retries_until_a_case_passes(catalog_root: Path, tmp_path: Path, monkeypatch):
     """A case that fails its first attempt is retried and can still pass."""
 
@@ -329,6 +373,26 @@ def test_redact_masks_authorization_header_schemes(scheme: str) -> None:
 
     assert "top-secret" not in value
     assert value == "Authorization: [REDACTED]"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'password: "top secret value"',
+        "password: 'top secret value'",
+        'secret="multi word credential"',
+        'api-key: "spaced key here"',
+    ],
+)
+def test_redact_masks_quoted_multiword_credentials(text: str) -> None:
+    """A quoted credential is consumed through its closing quote."""
+
+    value = EVALS.redact(text)
+
+    assert "secret value" not in value
+    assert "word credential" not in value
+    assert "key here" not in value
+    assert value.endswith("[REDACTED]")
 
 
 def test_evaluate_writes_failed_session_evidence(evaluator, monkeypatch) -> None:

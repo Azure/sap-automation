@@ -37,6 +37,7 @@ env:
   SDAF_EVAL_SESSION_TIMEOUT_SECONDS: "240"
   SDAF_EVAL_CONCURRENCY: "4"
   SDAF_EVAL_ATTEMPTS: "3"
+  SDAF_EVAL_DEADLINE_MINUTES: "100"
 
 jobs:
   install:
@@ -200,6 +201,7 @@ jobs:
           --output-dir "$RUNNER_TEMP/skill-eval"
           --concurrency "$SDAF_EVAL_CONCURRENCY"
           --attempts "$SDAF_EVAL_ATTEMPTS"
+          --deadline-minutes "$SDAF_EVAL_DEADLINE_MINUTES"
           --max-ai-credits "$SDAF_EVAL_MAX_AI_CREDITS"
           --max-output-tokens "$SDAF_EVAL_MAX_OUTPUT_TOKENS"
           --timeout "$SDAF_EVAL_SESSION_TIMEOUT_SECONDS"
