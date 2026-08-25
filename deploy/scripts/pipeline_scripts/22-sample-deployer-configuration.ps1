@@ -23,31 +23,45 @@ $region = switch ("$Env:DEPLOYER_REGION") {
   "CEIN" { "centralindia" }
   "CEUS" { "centralus" }
   "CEUA" { "centraluseuap" }
+  "CHCE" { "chilecentral" }
+  "DEEA" { "denmarkeast" }
   "EAAS" { "eastasia" }
   "EAUS" { "eastus" }
   "EUS2" { "eastus2" }
+  "EUSA" { "eastus2euap" }
+  "EUSG" { "eastusstg" }
   "FRCE" { "francecentral" }
   "FRSO" { "francesouth" }
   "GENO" { "germanynorth" }
+  "GEWE" { "germanywest" }
   "GEWC" { "germanywestcentral" }
   "INCE" { "indonesiacentral" }
+  "ISCE" { "israelcentral" }
+  "ITNO" { "italynorth" }
   "JAEA" { "japaneast" }
   "JAWE" { "japanwest" }
   "JINC" { "jioindiacentral" }
   "JINW" { "jioindiawest" }
   "KOCE" { "koreacentral" }
   "KOSO" { "koreasouth" }
+  "MAWE" { "malaysiawest" }
+  "MECE" { "mexicocentral" }
+  "NZNO" { "newzealandnorth" }
   "NCUS" { "northcentralus" }
   "NOEU" { "northeurope" }
   "NOEA" { "norwayeast" }
   "NOWE" { "norwaywest" }
+  "PLCE" { "polandcentral" }
+  "QACE" { "qatarcentral" }
   "SANO" { "southafricanorth" }
   "SAWE" { "southafricawest" }
   "SCUS" { "southcentralus" }
   "SCUG" { "southcentralusstg" }
   "SOEA" { "southeastasia" }
   "SOIN" { "southindia" }
+  "SPCE" { "spaincentral" }
   "SECE" { "swedencentral" }
+  "SESO" { "swedensouth" }
   "SWNO" { "switzerlandnorth" }
   "SWWE" { "switzerlandwest" }
   "UACE" { "uaecentral" }
@@ -62,6 +76,7 @@ $region = switch ("$Env:DEPLOYER_REGION") {
   "WEIN" { "westindia" }
   "WEUS" { "westus" }
   "WUS2" { "westus2" }
+  "WUS3" { "westus3" }
 }
 
 Write-Host "Region: $region"

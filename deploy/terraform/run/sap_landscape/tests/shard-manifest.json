@@ -2,11 +2,11 @@
   "module": "deploy/terraform/run/sap_landscape",
   "shards": [
     { "file": "plan_shape_networking.tftest.hcl", "runs": 26 },
-    { "file": "plan_shape_storage.tftest.hcl", "runs": 20 },
+    { "file": "plan_shape_storage.tftest.hcl", "runs": 25 },
     { "file": "plan_shape_compute.tftest.hcl", "runs": 17 },
     { "file": "plan_shape_cross_sub.tftest.hcl", "runs": 16 },
     { "file": "validation_inputs.tftest.hcl", "runs": 48 },
-    { "file": "validation_constraints.tftest.hcl", "runs": 48 }
+    { "file": "validation_constraints.tftest.hcl", "runs": 61 }
   ],
-  "total_runs": 175
+  "total_runs": 193
 }

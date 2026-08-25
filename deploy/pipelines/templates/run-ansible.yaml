@@ -12,6 +12,10 @@ parameters:
   USE_MSI: ''
   ansibleConfigPath: ''
   ansibleFilePath: ''
+  ansibleLibraryPath: ''
+  ansibleLogPath: ''
+  ansibleModuleUtilsPath: ''
+  ansibleCollectionsPath: ''
   controlPlaneName: ''
   controlPlaneSubscriptionId: ''
   displayName: ''
@@ -36,8 +40,17 @@ steps:
     failOnStderr:                    false
     workingDirectory:                "$(System.DefaultWorkingDirectory)"
   env:
-    ANSIBLE_COLLECTIONS_PATH:        ~/.ansible/collections:/opt/ansible/collections
+    ${{ if ne(parameters.ansibleCollectionsPath, '') }}:
+      ANSIBLE_COLLECTIONS_PATH:      ${{ parameters.ansibleCollectionsPath }}:~/.ansible/collections:/opt/ansible/collections
+    ${{ else }}:
+      ANSIBLE_COLLECTIONS_PATH:      ~/.ansible/collections:/opt/ansible/collections
     ANSIBLE_CONFIG:                  ${{ parameters.ansibleConfigPath }}
+    ${{ if ne(parameters.ansibleLibraryPath, '') }}:
+      ANSIBLE_LIBRARY:               ${{ parameters.ansibleLibraryPath }}
+    ${{ if ne(parameters.ansibleModuleUtilsPath, '') }}:
+      ANSIBLE_MODULE_UTILS:          ${{ parameters.ansibleModuleUtilsPath }}
+    ${{ if ne(parameters.ansibleLogPath, '') }}:
+      ANSIBLE_LOG_PATH:              ${{ parameters.ansibleLogPath }}
     ANSIBLE_DISPLAY_SKIPPED_HOSTS:   false
     ANSIBLE_FILE_PATH:               ${{ parameters.ansibleFilePath }}
     ANSIBLE_HOST_KEY_CHECKING:       false

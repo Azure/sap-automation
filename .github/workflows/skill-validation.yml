@@ -1,0 +1,216 @@
+name: Skill validation
+
+on:
+  pull_request:
+    paths:
+      - ".claude-plugin/**"
+      - ".github/plugin/**"
+      - ".github/workflows/skill-validation.yml"
+      - "CLAUDE.md"
+      - "evals/evals.json"
+      - "GEMINI.md"
+      - "gemini-extension.json"
+      - "requirements-test.txt"
+      - "skills/**"
+      - "tests/evals/**"
+      - "evals/evals.py"
+
+concurrency:
+  group: skill-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  EXPECTED_SKILL_COUNT: "18"
+  MARKETPLACE_NAME: "sap-automation"
+  PLUGIN_NAME: "azure-sap-automation"
+  PLUGIN_ID: "azure-sap-automation@sap-automation"
+  REQUIRED_SKILL: "skills/sdaf-workspace-and-tfvars/SKILL.md"
+  COPILOT_VERSION: "1.0.80"
+  CLAUDE_VERSION: "2.1.231"
+  GEMINI_VERSION: "0.56.0-preview.1"
+  SDAF_EVAL_MAX_AI_CREDITS: "30"
+  SDAF_EVAL_MAX_OUTPUT_TOKENS: "1024"
+  SDAF_EVAL_SESSION_TIMEOUT_SECONDS: "240"
+  SDAF_EVAL_CONCURRENCY: "4"
+  SDAF_EVAL_ATTEMPTS: "3"
+  SDAF_EVAL_DEADLINE_MINUTES: "100"
+
+jobs:
+  install:
+    name: Install skills on all three CLIs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
+
+      - name: Validate skill and eval counts
+        shell: bash
+        run: |
+          set -euo pipefail
+          find skills -mindepth 2 -maxdepth 2 -type f -name SKILL.md \
+            | sort > "$RUNNER_TEMP/expected.txt"
+          [ "$(wc -l < "$RUNNER_TEMP/expected.txt")" -eq "$EXPECTED_SKILL_COUNT" ]
+          grep -qx "$REQUIRED_SKILL" "$RUNNER_TEMP/expected.txt"
+          [ "$(jq '[.skills[].evals[]] | length' evals/evals.json)" -eq 54 ]
+
+      - name: Install pinned AI CLIs
+        shell: bash
+        run: |
+          set -euo pipefail
+          retry() {
+            for attempt in 1 2 3; do
+              "$@" && return 0
+              [ "$attempt" -eq 3 ] && return 1
+              sleep 5
+            done
+          }
+          retry npm install -g "@github/copilot@${COPILOT_VERSION}"
+          retry npm install -g "@anthropic-ai/claude-code@${CLAUDE_VERSION}"
+          retry npm install -g "@google/gemini-cli@${GEMINI_VERSION}"
+          copilot --version
+          claude --version
+          gemini --version
+
+      - name: Claude install
+        shell: bash
+        run: |
+          set -euo pipefail
+          claude plugin validate . --strict
+          claude plugin marketplace add ./
+          claude plugin install "$PLUGIN_ID"
+          path="$(claude plugin list --json \
+            | jq -r --arg id "$PLUGIN_ID" '.[] | select(.id == $id) | .installPath')"
+          find "$path/skills" -mindepth 2 -maxdepth 2 -type f -name SKILL.md \
+            -printf 'skills/%P\n' | sort > "$RUNNER_TEMP/claude.txt"
+          diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/claude.txt"
+          test -f "$path/$REQUIRED_SKILL"
+
+      - name: Gemini install
+        shell: bash
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: "true"
+        run: |
+          set -euo pipefail
+          timeout 60s gemini extensions validate "$PWD"
+          timeout 300s gemini extensions install "$PWD" --consent --skip-settings
+          timeout 60s gemini extensions list --output-format json \
+            > "$RUNNER_TEMP/gemini.json" 2>&1
+          path="$(jq -r --arg name "$PLUGIN_NAME" '
+            (if type == "array" then . else (.extensions // []) end)[]
+            | select(.name == $name)
+            | (.path // .installPath // .location // empty)
+          ' "$RUNNER_TEMP/gemini.json")"
+          test -n "$path"
+          find "$path/skills" -mindepth 2 -maxdepth 2 -type f -name SKILL.md \
+            -printf 'skills/%P\n' | sort > "$RUNNER_TEMP/gemini.txt"
+          diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/gemini.txt"
+          test -f "$path/$REQUIRED_SKILL"
+
+      - name: Copilot install
+        shell: bash
+        run: |
+          set -euo pipefail
+          copilot plugin marketplace add .
+          copilot plugin install "$PLUGIN_ID"
+          path="$HOME/.copilot/installed-plugins/$MARKETPLACE_NAME/$PLUGIN_NAME"
+          find "$path/skills" -mindepth 2 -maxdepth 2 -type f -name SKILL.md \
+            -printf 'skills/%P\n' | sort > "$RUNNER_TEMP/copilot.txt"
+          diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/copilot.txt"
+          test -f "$path/$REQUIRED_SKILL"
+
+  prepare:
+    name: Verify eval catalogue
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Test skill evaluator
+        run: |
+          python -m pip install -r requirements-test.txt
+          python -m pytest -o addopts="" tests/evals/test_evals.py -q
+
+      - name: Verify 54 unique case identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -e '
+            [.skills[].evals[].id] as $ids
+            | ($ids | length) == 54
+              and ($ids | unique | length) == 54
+              and all($ids[];
+                test("^[a-z0-9]+(-[a-z0-9]+)*$"))
+          ' evals/evals.json > /dev/null
+
+  evaluate:
+    name: Evaluate skill routing
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      copilot-requests: write
+    steps:
+      - name: Checkout trusted runner
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
+
+      - name: Install compatible Copilot runtime
+        run: |
+          npm install -g "@github/copilot@${COPILOT_VERSION}"
+          echo "COPILOT_CLI_PATH=$(command -v copilot)" >> "$GITHUB_ENV"
+          copilot --version
+
+      - name: Install trusted eval dependencies
+        run: python -m pip install -r requirements-test.txt
+
+      - name: Run with-skill and baseline comparisons
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python evals/evals.py
+          --content-root "$PWD"
+          --all
+          --output-dir "$RUNNER_TEMP/skill-eval"
+          --concurrency "$SDAF_EVAL_CONCURRENCY"
+          --attempts "$SDAF_EVAL_ATTEMPTS"
+          --deadline-minutes "$SDAF_EVAL_DEADLINE_MINUTES"
+          --max-ai-credits "$SDAF_EVAL_MAX_AI_CREDITS"
+          --max-output-tokens "$SDAF_EVAL_MAX_OUTPUT_TOKENS"
+          --timeout "$SDAF_EVAL_SESSION_TIMEOUT_SECONDS"
+
+      - name: Upload reliability evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: skill-reliability-${{ github.run_id }}
+          path: ${{ runner.temp }}/skill-eval
+          if-no-files-found: error
+          retention-days: 30

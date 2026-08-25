@@ -130,3 +130,46 @@ steps:
       SOURCE_BRANCH: $(Build.SourceBranchName)
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       QUALITY_ASSURANCE_RESULTS_PATH: ${{ parameters.qualityAssuranceResultsPath }}
+
+  - script: |
+      #!/bin/bash
+      # Exit immediately if a command exits with a non-zero status.
+      # Treat unset variables as an error when substituting.
+      set -eu
+
+      # The quality assurance framework writes machine readable JSONL results
+      # and the execution log as *.log. The log collection above only handles
+      # *.zip, so these would otherwise be lost with the cleaned workspace.
+      echo "Collecting quality assurance logs from ${LOG_PATH}"
+
+      if [ -d "${LOG_PATH}" ] && [ "$(find "${LOG_PATH}" -maxdepth 1 -name '*.log' | wc -l)" -gt 0 ]; then
+        cd "${LOG_PATH}"
+
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        echo "##vso[artifact.upload containerfolder=quality_assurance_logs;artifactname=quality_assurance_logs_${timestamp}]$PWD"
+
+        git config --global user.email "${USER_EMAIL}"
+        git config --global user.name "${USER_NAME}"
+
+        git checkout -q "${SOURCE_BRANCH}"
+        git pull
+
+        git add --force --ignore-errors ./*.log
+        if [ "$(git diff --name-only --cached | wc -l)" -gt 0 ]; then
+            git commit -m "Adding new quality assurance logs"
+            git push
+        else
+            echo "No changes to commit"
+        fi
+      else
+        echo "No quality assurance logs found in ${LOG_PATH}"
+      fi
+    displayName: Store quality assurance logs in repository
+    enabled: true
+    condition: ${{ eq(parameters.collectQualityChecks, true) }}
+    env:
+      USER_EMAIL: $(Build.RequestedForEmail)
+      USER_NAME: $(Build.RequestedFor)
+      SOURCE_BRANCH: $(Build.SourceBranchName)
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      LOG_PATH: ${{ parameters.logPath }}

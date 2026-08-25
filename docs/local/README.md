@@ -20,6 +20,11 @@ repository, the SDAF Web application where applicable, or direct editing.
 6. [Download software and run installation](06-00-software-and-installation.md).
 7. [Operate, recover, and remove the deployment](07-00-operations.md).
 
+Within stage 7, use
+[Validate a local deployment with quality assurance tests](07-10-quality-assurance.md)
+to run configuration checks and SAP functional tests against a deployed
+system.
+
 Use [Troubleshoot local execution](troubleshooting.md) when a command stops or
 the observed state differs from the expected state.
 
@@ -41,6 +46,8 @@ SDAF automation owns:
 - Workload-zone and SAP-system access to remote state.
 - Generation of Ansible inventory and `sap-parameters.yaml`.
 - BOM-driven software download and numbered Ansible playbook execution.
+- Quality assurance framework installation and test execution against a
+  deployed SAP system.
 
 ## Select a script family
 

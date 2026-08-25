@@ -91,7 +91,7 @@ def get_user_input():
     )
 
     token = getpass.getpass(
-        "Step 2: Visit this link to create the PAT: https://github.com/settings/tokens/new?scopes=repo,admin:repo_hook,workflow\n"
+        "Step 2: Visit this link to create the PAT: https://github.com/settings/tokens/new?scopes=repo,workflow\n"
         "Enter your GitHub Personal Access Token (PAT): "
     ).strip()
     repo_name = input("Step 3: Enter the full repository name (e.g., 'owner/repository'): ").strip()
@@ -321,11 +321,18 @@ def get_user_input():
                 identity_show_data = json.loads(identity_show_result.stdout)
                 identity_principal_id = identity_show_data["principalId"]
                 identity_id = identity_show_data["id"]
+                region_map = identity_show_data.get("location", "")
                 print(f"Successfully retrieved Principal ID: {identity_principal_id}")
             except (json.JSONDecodeError, KeyError):
                 print("Failed to get Principal ID from Managed Identity data.")
                 print(identity_show_result.stdout)
                 sys.exit(1)
+
+            if not region_map:
+                region_map = input(
+                    f"\nEnter Azure region to deploy to (full name for region code '{region_code}').\n"
+                    "Please use the short name (e.g., 'northeurope', 'westeurope', 'eastus2'): "
+                ).strip()
         else:
             # Ask for Azure region for creating the new Managed Identity
             region_map = input(
@@ -396,7 +403,7 @@ def get_user_input():
                     "reset",
                     "--id",
                     spn_appid,
-                    "--name",
+                    "--display-name",
                     "rbac",
                 ]
                 secret_result = run_az_command(
@@ -485,6 +492,16 @@ def get_user_input():
     docker_image = custom_docker_image if custom_docker_image else default_docker_image
 
     # Web Application support
+    print("\n--- Azure AD Application Registration ---")
+    print(
+        "Some Entra ID tenants require every application registration and service principal\n"
+        "to carry a Service Management Reference (a GUID from the tenant's asset management\n"
+        "database). Objects created without it may be rejected or automatically deleted."
+    )
+    service_management_reference = input(
+        "Enter the Service Management Reference GUID (press Enter to skip): "
+    ).strip()
+
     print("\n--- Web Application Configuration ---")
     print("The SDAF Web Application provides a UI for configuration management.")
     print("Enabling this will create an Entra ID App Registration for authentication.")
@@ -517,6 +534,7 @@ def get_user_input():
         "subscription_id": subscription_id,
         "tenant_id": tenant_id,
         "auth_choice": auth_choice,  # Add authentication choice
+        "service_management_reference": service_management_reference,
         # Service Principal related parameters
         "spn_name": spn_name,
         "use_existing_spn": use_existing_spn if "use_existing_spn" in locals() else False,

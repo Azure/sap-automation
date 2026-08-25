@@ -224,7 +224,7 @@ command="ansible-playbook -i '$INVENTORY'                                      \
 
 redacted_command="ansible-playbook -i '$INVENTORY' --private-key '$ssh_key_path' -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$curdir' $EXTRA_PARAMS -e orchestration_ansible_user=$USER -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
 
-echo "##[section]Executing [$command]..."
+echo "##[section]Executing [$redacted_command]..."
 echo "##[group]- configuration"
 eval "${command}"
 return_code=$?

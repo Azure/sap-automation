@@ -90,7 +90,7 @@ def main():
                 sys.exit(1)
 
             print(
-                f"✓ Resource group {resource_group} successfully created in {user_data['region_map']}"
+                f"[OK] Resource group {resource_group} successfully created in {user_data['region_map']}"
             )
 
     print("\nCreating necessary credentials for GitHub Actions...\n")
@@ -208,7 +208,7 @@ def main():
             except (json.JSONDecodeError, KeyError) as e:
                 print(f"Warning: Could not validate Client ID: {str(e)}")
 
-            print("✓ Verified access to User-Assigned Managed Identity")
+            print("[OK] Verified access to User-Assigned Managed Identity")
 
             # Check if the identity has the necessary roles assigned
             print("\nChecking role assignments for the Managed Identity...")
@@ -244,7 +244,7 @@ def main():
                     try:
                         assignments = json.loads(role_check_result.stdout)
                         if assignments:
-                            print(f"✓ Role '{role_name}' is already assigned")
+                            print(f"[OK] Role '{role_name}' is already assigned")
                             assigned_roles.append(role_name)
                             # Add this existing role to the identity_data
                             identity_data.setdefault("roleAssignments", []).append(
@@ -277,7 +277,7 @@ def main():
                             if assign_result.returncode == 0:
                                 assigned_roles.append(role_name)
                                 role_id = assign_result.stdout.strip()
-                                print(f"✓ Successfully assigned '{role_name}' role")
+                                print(f"[OK] Successfully assigned '{role_name}' role")
                                 # Add this new role to the identity_data
                                 identity_data.setdefault("roleAssignments", []).append(
                                     {"role": role_name, "id": role_id}
@@ -300,11 +300,11 @@ def main():
             if assigned_roles:
                 print("\nSummary of assigned roles:")
                 for role in assigned_roles:
-                    print(f"✓ {role}")
+                    print(f"[OK] {role}")
             if failed_roles:
                 print("\nWarning: The following roles could not be assigned or verified:")
                 for role in failed_roles:
-                    print(f"✗ {role}")
+                    print(f"[FAILED] {role}")
                 print("\nYou may need to manually assign these roles after the script completes.")
         else:
             # Create a new User-Assigned Managed Identity
@@ -340,7 +340,10 @@ def main():
     app_reg_data = None
     if user_data.get("use_webapp") and user_data.get("app_registration_name"):
         print("\nCreating App Registration for the SDAF Web Application...")
-        app_reg_data = azure_ops.create_app_registration(user_data["app_registration_name"])
+        app_reg_data = azure_ops.create_app_registration(
+            user_data["app_registration_name"],
+            user_data.get("service_management_reference"),
+        )
         if not app_reg_data:
             print("Warning: Failed to create App Registration.")
             print("APP_REGISTRATION_APP_ID and APP_REGISTRATION_OBJECTID will not be configured.")
@@ -374,6 +377,9 @@ def main():
             "TF_LOG": "ERROR",
             "ANSIBLE_CORE_VERSION": "2.16",
             "TF_VERSION": "1.14.6",
+            "ARM_ENVIRONMENT": user_data["terraform_environment"],
+            "AZURE_ENVIRONMENT": user_data["azure_environment"],
+            "AZURE_AUDIENCE": user_data["azure_audience"],
         }
         print("\nAdding variables to repository level...")
         github_ops.add_repository_variables(
@@ -451,7 +457,7 @@ def main():
     if app_reg_data:
         environment_variables["APP_REGISTRATION_APP_ID"] = app_reg_data["app_id"]
         environment_variables["APP_REGISTRATION_OBJECTID"] = app_reg_data["object_id"]
-        print("✓ App Registration variables added to environment configuration.")
+        print("[OK] App Registration variables added to environment configuration.")
 
     # Add SAP S-User password and PAT to Environment secrets, with a placeholder if not provided
     environment_secrets["S_PASSWORD"] = (

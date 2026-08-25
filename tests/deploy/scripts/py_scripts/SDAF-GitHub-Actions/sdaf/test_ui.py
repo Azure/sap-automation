@@ -174,6 +174,7 @@ class TestUi:
             "n",
             "n",
             "",
+            "92a421fe-9780-4c8d-97d1-d5e9c4122bc5",
             "n",
         ]
         getpass_values = ["gh-pat-token", "spn-client-secret"]
@@ -199,6 +200,7 @@ class TestUi:
         assert result["spn_password"] == "spn-client-secret"
         assert result["spn_object_id"] == "object-id-789"
         assert result["docker_image"] == "ghcr.io/azure/sap-automation:main"
+        assert result["service_management_reference"] == "92a421fe-9780-4c8d-97d1-d5e9c4122bc5"
         assert result["use_webapp"] is False
 
     def test_get_user_input_managed_identity_existing_identity_path(self, mocker, tmp_path):
@@ -235,12 +237,94 @@ class TestUi:
             "new-spn-name",
             "n",
             "",
+            "",
             "n",
         ]
         getpass_values = ["gh-pat-token-2"]
 
         mocker.patch("builtins.input", side_effect=input_values)
         mocker.patch("sdaf.ui.getpass.getpass", side_effect=getpass_values)
+        mocker.patch("sdaf.ui.verify_azure_login", return_value=True)
+        mocker.patch(
+            "sdaf.ui.run_az_command",
+            side_effect=[
+                _completed(returncode=0, stdout="sub-auto-123\n"),
+                _completed(returncode=0, stdout="tenant-auto-456\n"),
+                _completed(
+                    returncode=0,
+                    stdout=json.dumps(
+                        {
+                            "principalId": "p-id",
+                            "id": "identity-resource-id",
+                            "location": "northeurope",
+                        }
+                    ),
+                ),
+            ],
+        )
+
+        result = sdaf.ui.get_user_input()
+
+        assert result["repo_name"] == "myorg/otherrepo"
+        assert result["subscription_id"] == "sub-auto-123"
+        assert result["tenant_id"] == "tenant-auto-456"
+        assert result["use_managed_identity"] is True
+        assert result["use_existing_identity"] is True
+        assert result["identity_name"] == "my-identity"
+        assert result["identity_principal_id"] == "p-id"
+        assert result["identity_id"] == "identity-resource-id"
+        # The region is derived from the existing identity, so the user is not
+        # prompted for it a second time.
+        assert result["region_map"] == "northeurope"
+        assert result["use_existing_spn"] is False
+        assert result["spn_name"] == "new-spn-name"
+
+    def test_get_user_input_managed_identity_existing_identity_without_location_prompts_for_region(
+        self, mocker, tmp_path
+    ):
+        """
+        Edge case for :func:`sdaf.ui.get_user_input`.
+
+        When the existing Managed Identity payload carries no ``location`` the
+        user is prompted for the Azure region instead.
+
+        :param mocker: pytest-mock fixture used to patch ``builtins.input``,
+            ``getpass.getpass``, ``verify_azure_login``, and
+            ``run_az_command``.
+        :param tmp_path: pytest fixture providing a temporary directory
+            used to write a fake private key file.
+        """
+        private_key_file = tmp_path / "private-key2b.pem"
+        private_key_file.write_text("-----BEGIN PRIVATE KEY-----\nxyz\n-----END PRIVATE KEY-----\n")
+
+        input_values = [
+            "",
+            "myorg/otherrepo",
+            "",
+            "",
+            "my-app-2",
+            "54321",
+            str(private_key_file),
+            "n",
+            "",
+            "PROD-NOEU-DEP02",
+            "y",
+            "2",
+            "y",
+            "my-identity",
+            "client-id-999",
+            "identity-rg",
+            "westeurope",
+            "n",
+            "new-spn-name",
+            "n",
+            "",
+            "",
+            "n",
+        ]
+
+        mocker.patch("builtins.input", side_effect=input_values)
+        mocker.patch("sdaf.ui.getpass.getpass", side_effect=["gh-pat-token-2b"])
         mocker.patch("sdaf.ui.verify_azure_login", return_value=True)
         mocker.patch(
             "sdaf.ui.run_az_command",
@@ -256,16 +340,8 @@ class TestUi:
 
         result = sdaf.ui.get_user_input()
 
-        assert result["repo_name"] == "myorg/otherrepo"
-        assert result["subscription_id"] == "sub-auto-123"
-        assert result["tenant_id"] == "tenant-auto-456"
-        assert result["use_managed_identity"] is True
-        assert result["use_existing_identity"] is True
-        assert result["identity_name"] == "my-identity"
         assert result["identity_principal_id"] == "p-id"
-        assert result["identity_id"] == "identity-resource-id"
-        assert result["use_existing_spn"] is False
-        assert result["spn_name"] == "new-spn-name"
+        assert result["region_map"] == "westeurope"
 
     def test_get_user_input_retries_private_key_path_after_read_errors(self, mocker, tmp_path):
         """
@@ -307,6 +383,7 @@ class TestUi:
             "new-spn",
             "n",
             "",
+            "",
             "n",
         ]
 
@@ -343,6 +420,7 @@ class TestUi:
             "n",
             "org-new-spn",
             "n",
+            "",
             "",
             "n",
         ]
@@ -386,6 +464,7 @@ class TestUi:
             "n",
             "cp-new-spn",
             "n",
+            "",
             "",
             "n",
         ]
@@ -525,6 +604,7 @@ class TestUi:
             "msi-new-spn",
             "n",
             "",
+            "",
             "n",
         ]
 
@@ -567,6 +647,7 @@ class TestUi:
             "app-id-1",
             "y",
             "n",
+            "",
             "",
             "n",
         ]
@@ -619,6 +700,7 @@ class TestUi:
             "y",
             "n",
             "",
+            "",
             "n",
         ]
 
@@ -668,6 +750,7 @@ class TestUi:
             "app-id-3",
             "y",
             "n",
+            "",
             "",
             "n",
         ]
@@ -898,6 +981,7 @@ class TestUi:
             "n",
             "n",
             "",
+            "",
             "n",
         ]
 
@@ -939,6 +1023,7 @@ class TestUi:
             "webapp-new-spn",
             "y",
             "s-user-name",
+            "",
             "",
             "y",
             "custom-app-registration",
@@ -985,6 +1070,7 @@ class TestUi:
             "auto-new-spn",
             "n",
             "",
+            "",
             "n",
         ]
 
@@ -1028,6 +1114,7 @@ class TestUi:
             "authchoice-new-spn",
             "n",
             "",
+            "",
             "n",
         ]
 
@@ -1069,6 +1156,7 @@ class TestUi:
             "n",
             "emptyrg-new-spn",
             "n",
+            "",
             "",
             "n",
         ]
@@ -1154,6 +1242,7 @@ class TestUi:
             "n",
             "tenantonly-new-spn",
             "n",
+            "",
             "",
             "n",
         ]
