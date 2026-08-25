@@ -271,6 +271,19 @@ def test_redact_masks_sensitive_assignments() -> None:
     assert "safe=value" in value
 
 
+@pytest.mark.parametrize(
+    "scheme",
+    ["Bearer", "Basic", "token"],
+)
+def test_redact_masks_authorization_header_schemes(scheme: str) -> None:
+    """A scheme prefix does not leave the credential itself in artifacts."""
+
+    value = EVALS.redact(f"Authorization: {scheme} top-secret")
+
+    assert "top-secret" not in value
+    assert value == "Authorization: [REDACTED]"
+
+
 def test_evaluate_writes_failed_session_evidence(evaluator, monkeypatch) -> None:
     """Mocked session failures are graded and persisted without an SDK call."""
 

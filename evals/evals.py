@@ -48,7 +48,8 @@ DEFAULT_CONCURRENCY = 4
 MAX_CONCURRENCY = 8
 SENSITIVE_ASSIGNMENT = re.compile(
     r'(?im)(["\']?(?:authorization|token|password|secret|client[_-]?secret|'
-    r'(?:x-)?api[_-]?key)["\']?\s*[:=]\s*)(["\']?)([^"\'\s,}\]]+)'
+    r'(?:x-)?api[_-]?key)["\']?\s*[:=]\s*)(["\']?)'
+    r'((?:bearer|basic|token)\s+)?[^"\'\s,}\]]+'
 )
 
 

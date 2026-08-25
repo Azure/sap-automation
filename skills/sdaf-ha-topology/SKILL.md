@@ -72,7 +72,7 @@ Before answering, know or ask for:
    - `ANF` for applicable shared and database file systems
    - custom `NFS` as organization-owned design, not a Microsoft-owned reference
 6. **Handle HANA-only forks explicitly.** For HANA, decide scale-up vs
-   scale-out and, separately, whether `use_hanasr_angi` is allowed on the
+   scale-out and, separately, whether `use_saphanasr_angi` is allowed on the
    target OS. Do not apply scale-out or ANGI guidance to Oracle, DB2, ASE, or
    SQL Server.
 7. **Route rather than guess.** If the user is asking how to deploy the chosen
