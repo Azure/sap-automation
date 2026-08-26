@@ -1,0 +1,107 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |         NFSv4 identity mapping preparation for Azure NetApp Files          |
+# |                                                                            |
+# | This is host level NFS client configuration. It has no dependency on any   |
+# | mount, so it is imported early from main.yaml and must complete before the |
+# | first ANF volume is mounted or chowned - including the application tier    |
+# | /usr/sap mount performed by 2.6.10-usrsap-app-mounts.yaml.                 |
+# |                                                                            |
+# | Make sure to set the NFS domain in /etc/idmapd.conf on the VM to match the |
+# | default domain configuration on Azure NetApp Files: defaultv4iddomain.com. |
+# | and the mapping is set to nobody                                           |
+# | We use tier in tasks as well, to treat any special scenarios that may arise|
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+---
+
+- name:                                "2.6.9 NFS ID Map - Set the NFS Service name"
+  ansible.builtin.set_fact:
+    nfs_service:                       "{% if distribution_id in ['redhat8', 'redhat9', 'redhat10'] %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}{% if distribution_id in ['oraclelinux8', 'oraclelinux9'] %}rpcbind{% else %}nfsserver{% endif %}{% endif %}{% endif %}"
+
+# The NFS server is stopped before identity mapping is applied and restarted
+# after it, preserving the end state this task pair had when both halves lived
+# in 2.6.1-anf-mounts.yaml / 2.6.8-anf-mounts-simplemount.yaml. Note that on
+# Oracle Linux 8 and 9 nfs_service resolves to rpcbind, so the ordering matters.
+- name:                                "2.6.9 NFS ID Map - Ensure the NFS service is stopped"
+  ansible.builtin.systemd:
+    name:                              "{{ nfs_service }}"
+    state:                             stopped
+  when:
+    - "'scs' in supported_tiers"
+    - sap_mnt is not defined
+    - sap_trans is not defined
+
+- name:                                "2.6.9 NFS ID Map - Set idmapd.conf path"
+  ansible.builtin.set_fact:
+    idmapd_path:                       "{{ '/usr/etc/idmapd.conf' if (ansible_distribution_major_version | int >= 16 and ansible_os_family | upper == 'SUSE') else '/etc/idmapd.conf' }}"
+
+- name:                                "2.6.9 NFS ID Map - NFS Domain Setting (ANF)"
+  block:
+    - name:                            "2.6.9 NFS ID Map - Domain is configured as
+                                        the default Azure NetApp Files domain"
+      ansible.builtin.lineinfile:
+        path:                          "{{ idmapd_path }}"
+        regexp:                        '^[ #]*Domain = '
+        line:                          'Domain = defaultv4iddomain.com'
+        insertafter:                   '[General]'
+      when:
+        - tier == 'sapos'
+      register:                        id_mapping_changed
+
+    - name:                            "2.6.9 NFS ID Map - Make sure that user
+                                        mapping is set to 'nobody'"
+      ansible.builtin.lineinfile:
+        path:                          "{{ idmapd_path }}"
+        regexp:                        '^[ #]*Nobody-User = '
+        line:                          'Nobody-User = nobody'
+        insertafter:                   '^[ #]*Nobody-User = '
+      when:
+        - tier == 'sapos'
+      register:                        id_mapping_changed
+
+    - name:                            "2.6.9 NFS ID Map - Make sure that group
+                                        mapping is set to 'nobody'"
+      ansible.builtin.lineinfile:
+        path:                          "{{ idmapd_path }}"
+        regexp:                        '^[ #]*Nobody-Group = '
+        line:                          'Nobody-Group = nobody'
+        insertafter:                   '^[ #]*Nobody-Group = '
+      when:
+        - tier == 'sapos'
+      register:                        id_mapping_changed
+  when:
+    - tier == 'sapos'
+
+- name:                                "2.6.9 NFS ID Map - Set nfs4_disable_idmapping to Y"
+  ansible.builtin.lineinfile:
+    path:                              /etc/modprobe.d/nfs.conf
+    line:                              'options nfs nfs4_disable_idmapping=Y'
+    create:                            true
+    mode:                              0644
+  when:
+    - tier == 'sapos'
+
+- name:                                "2.6.9 NFS ID Map - Ensure the services are restarted"
+  block:
+    - name:                            "2.6.9 NFS ID Map - Ensure the rpcbind service is restarted"
+      ansible.builtin.systemd:
+        name:                          rpcbind
+        state:                         restarted
+    - name:                            "2.6.9 NFS ID Map - Ensure the NFS ID Map service is restarted"
+      ansible.builtin.systemd:
+        name:                          "nfs-idmapd"
+        daemon-reload:                 true
+        state:                         restarted
+    - name:                            "2.6.9 NFS ID Map - Pause for 5 seconds"
+      ansible.builtin.pause:
+        seconds:                       5
+    - name:                            "2.6.9 NFS ID Map - Ensure the NFS service is restarted"
+      ansible.builtin.systemd:
+        name:                          "{{ nfs_service }}"
+        state:                         restarted
+  when:
+    - id_mapping_changed is changed

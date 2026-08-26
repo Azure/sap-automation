@@ -8,10 +8,6 @@
 # +------------------------------------4--------------------------------------*/
 ---
 
-- name:                                "ANF Mount: Set the NFS Service name"
-  ansible.builtin.set_fact:
-    nfs_service:                       "{% if distribution_id in ['redhat8', 'redhat9', 'redhat10'] %}nfs-server{% else %}{% if distribution_id == 'redhat7' %}nfs{% else %}{% if distribution_id in ['oraclelinux8', 'oraclelinux9'] %}rpcbind{% else %}nfsserver{% endif %}{% endif %}{% endif %}"
-
 - name:                                "ANF Mount: Set the NFSmount options"
   ansible.builtin.set_fact:
     mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
@@ -39,93 +35,14 @@
     all_sap_mounts:                    "{% if MULTI_SIDS is defined %}{{ MULTI_SIDS }}{% else %}{{ all_sap_mounts | default([]) + [this_sid] }}{% endif %}"
     db_hosts:                          "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                                "ANF Mount: Ensure the NFS service is stopped"
-  ansible.builtin.systemd:
-    name:                              "{{ nfs_service }}"
-    state:                             stopped
-  when:
-    - "'scs' in supported_tiers"
-    - sap_mnt is not defined
-    - sap_trans is not defined
-
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                            Mount the ANF Volumes                           |
-# | Make sure to set the NFS domain in /etc/idmapd.conf on the VM to match the |
-# | default domain configuration on Azure NetApp Files: defaultv4iddomain.com. |
-# | and the mapping is set to nobody                                           |
+# |                                                                            |
+# | NFSv4 identity mapping and the nfs_service fact are prepared ahead of every |
+# | mount by 2.6.9-nfs-idmap-prep.yaml, imported from main.yaml.                |
 # | We use tier in tasks as well, to treat any special scenarios that may arise|
 # +------------------------------------4--------------------------------------*/
-- name:                                "ANF Mount: Set idmapd.conf path"
-  ansible.builtin.set_fact:
-    idmapd_path:                       "{{ '/usr/etc/idmapd.conf' if (ansible_distribution_major_version | int >= 16 and ansible_os_family | upper == 'SUSE') else '/etc/idmapd.conf' }}"
-
-- name:                                "ANF Mount: NFS Domain Setting (ANF)"
-  block:
-    - name:                            "ANF Mount: Domain is configured as
-                                        the default Azure NetApp Files domain"
-      ansible.builtin.lineinfile:
-        path:                          "{{ idmapd_path }}"
-        regexp:                        '^[ #]*Domain = '
-        line:                          'Domain = defaultv4iddomain.com'
-        insertafter:                   '[General]'
-      when:
-        - tier == 'sapos'
-      register:                        id_mapping_changed
-
-    - name:                            "ANF Mount: Make sure that user
-                                        mapping is set to 'nobody'"
-      ansible.builtin.lineinfile:
-        path:                          "{{ idmapd_path }}"
-        regexp:                        '^[ #]*Nobody-User = '
-        line:                          'Nobody-User = nobody'
-        insertafter:                   '^[ #]*Nobody-User = '
-      when:
-        - tier == 'sapos'
-      register:                        id_mapping_changed
-
-    - name:                            "ANF Mount: Make sure that group
-                                        mapping is set to 'nobody'"
-      ansible.builtin.lineinfile:
-        path:                          "{{ idmapd_path }}"
-        regexp:                        '^[ #]*Nobody-Group = '
-        line:                          'Nobody-Group = nobody'
-        insertafter:                   '^[ #]*Nobody-Group = '
-      when:
-        - tier == 'sapos'
-      register:                        id_mapping_changed
-  when:
-    - tier == 'sapos'
-
-- name:                                "ANF Mount: Set nfs4_disable_idmapping to Y"
-  ansible.builtin.lineinfile:
-    path:                              /etc/modprobe.d/nfs.conf
-    line:                              'options nfs nfs4_disable_idmapping=Y'
-    create:                            true
-    mode:                              0644
-  when:
-    - tier == 'sapos'
-
-- name:                                "ANF Mount: Ensure the services are restarted"
-  block:
-    - name:                            "AF Mount: Ensure the rpcbind service is restarted"
-      ansible.builtin.systemd:
-        name:                          rpcbind
-        state:                         restarted
-    - name:                            "ANF Mount: Ensure the NFS ID Map service is restarted"
-      ansible.builtin.systemd:
-        name:                          "nfs-idmapd"
-        daemon-reload:                 true
-        state:                         restarted
-    - name:                            "ANF Mount: Pause for 5 seconds"
-      ansible.builtin.pause:
-        seconds:                       5
-    - name:                            "ANF Mount: Ensure the NFS service is restarted"
-      ansible.builtin.systemd:
-        name:                          "{{ nfs_service }}"
-        state:                         restarted
-  when:
-    - id_mapping_changed is changed
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
