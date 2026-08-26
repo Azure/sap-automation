@@ -112,7 +112,7 @@ No modules.
 | <a name="input_use_msi_for_clusters"></a> [use\_msi\_for\_clusters](#input\_use\_msi\_for\_clusters) | If true, the Pacemaker cluser will use a managed identity | `any` | n/a | yes |
 | <a name="input_use_secondary_ips"></a> [use\_secondary\_ips](#input\_use\_secondary\_ips) | Use secondary IPs for the SAP System | `any` | n/a | yes |
 | <a name="input_user_assigned_identity_id"></a> [user\_assigned\_identity\_id](#input\_user\_assigned\_identity\_id) | User assigned managed identity | `any` | n/a | yes |
-| <a name="input_usr_sap"></a> [usr\_sap](#input\_usr\_sap) | If defined provides the mount point for /usr/sap on ANF | `any` | n/a | yes |
+| <a name="input_usr_sap"></a> [usr\_sap](#input\_usr\_sap) | If defined provides the mount point for /usr/sap on ANF or on the Azure Files sapmnt storage | `any` | n/a | yes |
 | <a name="input_web_server_count"></a> [web\_server\_count](#input\_web\_server\_count) | Number of Web Dispatchers | `number` | n/a | yes |
 | <a name="input_webdispatcher_server_ips"></a> [webdispatcher\_server\_ips](#input\_webdispatcher\_server\_ips) | List of IP addresses for the Web dispatchers | `any` | n/a | yes |
 | <a name="input_webdispatcher_server_secondary_ips"></a> [webdispatcher\_server\_secondary\_ips](#input\_webdispatcher\_server\_secondary\_ips) | List of secondary IP addresses for the Web dispatchers | `any` | n/a | yes |

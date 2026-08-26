@@ -132,43 +132,12 @@
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
-# |         Prepare for the /usr/sap mounts                                    |
-# |         Create temporary directory structure                               |
-# |         Mount the share, create the directory structure on share           |
-# |         Unmount and clean up temporary directory structure                 |
+# |         /usr/sap for the application tier is handled by                    |
+# |         2.6.10-usrsap-app-mounts.yaml, which is provider agnostic and      |
+# |         applies the same rule to the PAS and to every additional           |
+# |         application server.                                                |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-
-- name:                                "2.6.1 ANF Mount - install:Get the Server name list"
-  ansible.builtin.set_fact:
-    first_app_server_temp:             "{{ first_app_server_temp | default([]) + [item] }}"
-  with_items:
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_PAS') }}"
-    - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
-
-# 'target_nodes':      ['app','pas'], - will be set to only pas as we do not
-# have the ability to set the different app instance numbers for multiple nodes
-# todo: fix this so that we validate that the app_instance_number is not the
-# same as the pas_instance_number. If it is the same, then we should only
-# mount the pas instance.
-- name:                                "2.6.1 ANF Mount - usr/sap"
-  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
-  loop:
-    - {
-      'type':              'usrsap',
-      'temppath':          'tmpusersap',
-      'mount':             '{{ usr_sap_mountpoint }}',
-      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
-      'path':              '/usr/sap',
-      'set_chattr_on_dir': false,
-      'target_nodes':      ['pas'],
-      'create_temp_folders': false
-    }
-  vars:
-    primary_host:                     "{{ first_app_server_temp | first }}"
-  when:
-    - tier == 'sapos'
-    - usr_sap_mountpoint is defined
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
