@@ -896,8 +896,8 @@ run "params_usr_sap_mountpoint_present_when_afs_opt_in" {
   }
 
   assert {
-    condition     = strcontains(output.sap_parameters_content, "/usrsapABC")
-    error_message = "AFS_usr_sap=true must place the application tier /usr/sap on the sapmnt storage under /usrsap<SID>."
+    condition     = strcontains(output.sap_parameters_content, "/usrsapappABC")
+    error_message = "AFS_usr_sap=true must place the application tier /usr/sap on the sapmnt storage under /usrsapapp<SID>, kept separate from the ASCS/ERS /usrsap<SID> instance directory."
   }
 }
 

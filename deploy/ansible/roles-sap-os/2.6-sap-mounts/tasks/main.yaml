@@ -95,13 +95,13 @@
   when:
     - sap_disk_exists == '1'
     - node_tier != 'observer'
-    - not (node_tier in ['pas', 'app'] and usr_sap_on_shared_storage)
+    - not (node_tier in ['pas', 'app'] and usr_sap_on_shared_storage and MULTI_SIDS is undefined)
 
 - name:                                "2.6 SAP Mounts - Mount /usr/sap on shared storage (pas & app)"
   ansible.builtin.include_tasks:       2.6.10-usrsap-app-mounts.yaml
   when:
-    - tier == 'sapos'
     - node_tier in ['pas', 'app']
+    - MULTI_SIDS is undefined
     - usr_sap_on_shared_storage
 
 - name:                                "2.6 SAP Mounts - Mount local kdump file path to save vmcore"

@@ -30,9 +30,15 @@
 # itself the root.
 - name:                                "2.6.10 usr/sap Mount - Set the preparation facts"
   ansible.builtin.set_fact:
-    usr_sap_prep_root:                 "{% if NFS_provider == 'AFS' %}{{ sap_mnt }}{% else %}{{ usr_sap_mountpoint }}{% endif %}"
-    usr_sap_prep_folder:               "{% if NFS_provider == 'AFS' %}usrsap{{ sap_sid | upper }}/{{ ansible_hostname }}{% else %}{{ ansible_hostname }}{% endif %}"
+    usr_sap_prep_root:                 "{% if NFS_provider == 'AFS' %}{{ sap_mnt | default('') }}{% else %}{{ usr_sap_mountpoint }}{% endif %}"
+    usr_sap_prep_folder:               "{% if NFS_provider == 'AFS' %}usrsapapp{{ sap_sid | upper }}/{{ ansible_hostname }}{% else %}{{ ansible_hostname }}{% endif %}"
     usr_sap_server_path:               "{{ usr_sap_mountpoint }}/{{ ansible_hostname }}"
+
+- name:                                "2.6.10 usr/sap Mount - Validate the preparation root"
+  ansible.builtin.assert:
+    that:
+      - usr_sap_prep_root | length > 0
+    fail_msg:                          "usr_sap_mountpoint is set but the share root could not be resolved. For AFS 'sap_mnt' must also be defined in sap-parameters.yaml"
 
 - name:                                "2.6.10 usr/sap Mount - Show the mount information"
   ansible.builtin.debug:
@@ -59,49 +65,54 @@
         group:                         sapsys
         mode:                          '0755'
 
-    - name:                            "2.6.10 usr/sap Mount - Mount the share root (preparation)"
+    - name:                            "2.6.10 usr/sap Mount - Prepare the per server directory"
       block:
         - name:                        "2.6.10 usr/sap Mount - Mount the share root (preparation)"
+          block:
+            - name:                    "2.6.10 usr/sap Mount - Mount the share root (preparation)"
+              ansible.posix.mount:
+                src:                   "{{ usr_sap_prep_root }}"
+                path:                  "/saptmp_usrsap"
+                fstype:                "{{ usr_sap_fstype }}"
+                opts:                  "{{ usr_sap_opts }}"
+                state:                 mounted
+          rescue:
+            - name:                    "2.6.10 usr/sap Mount - Pause for 15 seconds"
+              ansible.builtin.pause:
+                seconds:               15
+
+            - name:                    "2.6.10 usr/sap Mount - Mount the share root (preparation)"
+              ansible.posix.mount:
+                src:                   "{{ usr_sap_prep_root }}"
+                path:                  "/saptmp_usrsap"
+                fstype:                "{{ usr_sap_fstype }}"
+                opts:                  "{{ usr_sap_opts }}"
+                state:                 mounted
+
+        - name:                        "2.6.10 usr/sap Mount - Create the per server directory"
+          ansible.builtin.file:
+            path:                      "/saptmp_usrsap/{{ usr_sap_prep_folder }}"
+            state:                     directory
+            owner:                     "{{ usr_sap_owner }}"
+            group:                     sapsys
+            mode:                      '0755'
+
+      always:
+        - name:                        "2.6.10 usr/sap Mount - Unmount the share root (preparation)"
+          ansible.posix.mount:
+            src:                       "{{ usr_sap_prep_root }}"
+            path:                      "/saptmp_usrsap"
+            state:                     unmounted
+          failed_when:                 false
+
+        - name:                        "2.6.10 usr/sap Mount - Cleanup fstab and directory (preparation)"
           ansible.posix.mount:
             src:                       "{{ usr_sap_prep_root }}"
             path:                      "/saptmp_usrsap"
             fstype:                    "{{ usr_sap_fstype }}"
             opts:                      "{{ usr_sap_opts }}"
-            state:                     mounted
-      rescue:
-        - name:                        "2.6.10 usr/sap Mount - Pause for 15 seconds"
-          ansible.builtin.pause:
-            seconds:                   15
-
-        - name:                        "2.6.10 usr/sap Mount - Mount the share root (preparation)"
-          ansible.posix.mount:
-            src:                       "{{ usr_sap_prep_root }}"
-            path:                      "/saptmp_usrsap"
-            fstype:                    "{{ usr_sap_fstype }}"
-            opts:                      "{{ usr_sap_opts }}"
-            state:                     mounted
-
-    - name:                            "2.6.10 usr/sap Mount - Create the per server directory"
-      ansible.builtin.file:
-        path:                          "/saptmp_usrsap/{{ usr_sap_prep_folder }}"
-        state:                         directory
-        owner:                         "{{ usr_sap_owner }}"
-        group:                         sapsys
-        mode:                          '0755'
-
-    - name:                            "2.6.10 usr/sap Mount - Unmount the share root (preparation)"
-      ansible.posix.mount:
-        src:                           "{{ usr_sap_prep_root }}"
-        path:                          "/saptmp_usrsap"
-        state:                         unmounted
-
-    - name:                            "2.6.10 usr/sap Mount - Cleanup fstab and directory (preparation)"
-      ansible.posix.mount:
-        src:                           "{{ usr_sap_prep_root }}"
-        path:                          "/saptmp_usrsap"
-        fstype:                        "{{ usr_sap_fstype }}"
-        opts:                          "{{ usr_sap_opts }}"
-        state:                         absent
+            state:                     absent
+          failed_when:                 false
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
