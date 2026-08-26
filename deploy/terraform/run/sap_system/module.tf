@@ -451,7 +451,10 @@ module "output_files" {
   hana_data                                     = module.hdb_node.hana_data_ANF_volumes
   hana_log                                      = module.hdb_node.hana_log_ANF_volumes
   hana_shared                                   = var.NFS_provider == "ANF" ? module.hdb_node.hana_shared : module.hdb_node.hana_shared_afs_path
-  usr_sap                                       = module.common_infrastructure.usrsap_path
+  usr_sap                                       = var.NFS_provider == "AFS" && var.AFS_usr_sap && length(module.common_infrastructure.sapmnt_path) > 0 ? (
+                                                    format("%s/usrsapapp%s", module.common_infrastructure.sapmnt_path, local.sap_sid)) : (
+                                                    module.common_infrastructure.usrsap_path
+                                                  )
   use_AFS_encryption_in_transit                 = module.common_infrastructure.use_AFS_encryption_in_transit
 
   #########################################################################################

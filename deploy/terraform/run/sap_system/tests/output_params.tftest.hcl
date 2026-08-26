@@ -854,3 +854,78 @@ run "params_simple_mount_disabled_without_scs_ha" {
   }
 }
 
+
+###############################################################################
+#                                                                             #
+#  Application tier /usr/sap storage selection                                 #
+#                                                                             #
+#  The app-tier /usr/sap location must be driven exclusively by the explicit   #
+#  AFS_usr_sap / ANF_usr_sap opt-in - never by NFS_provider, sap_mnt or        #
+#  use_simple_mount. When the opt-in is absent, sap-parameters must not carry  #
+#  a usr_sap_mountpoint line at all, so Ansible keeps the PAS and every        #
+#  additional application server on local storage.                            #
+#                                                                             #
+###############################################################################
+
+run "params_usr_sap_mountpoint_absent_by_default_on_afs" {
+  command = apply
+
+  variables {
+    NFS_provider          = "AFS"
+    scs_high_availability = true
+    use_simple_mount      = true
+  }
+
+  assert {
+    condition     = !strcontains(output.sap_parameters_content, "usr_sap_mountpoint:")
+    error_message = "AFS with simple mount but without AFS_usr_sap must not emit usr_sap_mountpoint; the application tier stays on local storage."
+  }
+}
+
+run "params_usr_sap_mountpoint_present_when_afs_opt_in" {
+  command = apply
+
+  variables {
+    NFS_provider = "AFS"
+    AFS_usr_sap  = true
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "usr_sap_mountpoint:")
+    error_message = "AFS_usr_sap=true must emit usr_sap_mountpoint in sap-parameters."
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "/usrsapappABC")
+    error_message = "AFS_usr_sap=true must place the application tier /usr/sap on the sapmnt storage under /usrsapapp<SID>, kept separate from the ASCS/ERS /usrsap<SID> instance directory."
+  }
+}
+
+run "params_usr_sap_mountpoint_independent_of_simple_mount" {
+  command = apply
+
+  variables {
+    NFS_provider     = "AFS"
+    AFS_usr_sap      = true
+    use_simple_mount = false
+  }
+
+  assert {
+    condition     = strcontains(output.sap_parameters_content, "usr_sap_mountpoint:")
+    error_message = "AFS_usr_sap must be honored independently of use_simple_mount."
+  }
+}
+
+run "params_usr_sap_mountpoint_absent_when_provider_not_afs" {
+  command = apply
+
+  variables {
+    NFS_provider = "NONE"
+    AFS_usr_sap  = true
+  }
+
+  assert {
+    condition     = !strcontains(output.sap_parameters_content, "usr_sap_mountpoint:")
+    error_message = "AFS_usr_sap must have no effect when NFS_provider is not AFS."
+  }
+}
