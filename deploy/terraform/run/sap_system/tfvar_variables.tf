@@ -1474,7 +1474,7 @@ variable "ANF_usr_sap_throughput"               {
                                                 }
 
 variable "AFS_usr_sap"                          {
-                                                  description = "If defined, will place /usr/sap for the application tier on the Azure Files sapmnt storage. Each application server, including the PAS, mounts its own directory on the share"
+                                                  description = "If defined, will place /usr/sap for the application tier on the Azure Files sapmnt storage. Each application server, including the PAS, mounts its own directory on the share. The share is shared with /sapmnt, so increase 'sapmnt_volume_size' beyond the 128 GB default to allow for the application server work directories and traces"
                                                   default     = false
                                                 }
 
