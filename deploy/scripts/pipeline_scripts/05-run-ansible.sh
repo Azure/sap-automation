@@ -7,6 +7,13 @@ script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
 SCRIPT_NAME="$(basename "$0")"
 
+export AZURE_DEVOPS_EXT_PAT="${AZURE_DEVOPS_EXT_PAT:-${SYSTEM_ACCESSTOKEN}}"
+
+if [[ -z "$SCRIPT_NAME" ]]; then
+		echo "Error: SCRIPT_NAME is not set."
+		exit 1
+fi
+
 source "${parent_directory}/deploy_utils.sh"
 set -e
 
