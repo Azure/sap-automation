@@ -250,6 +250,11 @@ NFS_version:                            "NFSv4.1"
 use_simple_mount:                       false
 # Indicate if Encryption in Transit is to be used for AFS shares
 use_eit_for_afs:                        false
+# Shared storage path for the application tier /usr/sap. When empty, the PAS and all
+# additional application servers use local storage. When set (by AFS_usr_sap or
+# ANF_usr_sap in Terraform), every application server mounts its own directory beneath
+# it. This is independent of sap_mnt and use_simple_mount.
+usr_sap_mountpoint:                     ""
 
 # Corosync defaults (Corosync v2)
 corosync_crypto_config:                 |-
