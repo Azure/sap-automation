@@ -1,0 +1,451 @@
+"""Tests for the trusted SDAF skill evaluator."""
+
+from __future__ import annotations
+
+import asyncio
+import importlib.util
+import json
+import os
+import sys
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+if sys.version_info < (3, 11):
+    pytest.skip("Copilot SDK evaluator requires Python 3.11+", allow_module_level=True)
+
+ROOT = Path(__file__).parents[2]
+SPEC = importlib.util.spec_from_file_location("sdaf_evals", ROOT / "evals/evals.py")
+assert SPEC and SPEC.loader
+EVALS = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = EVALS
+SPEC.loader.exec_module(EVALS)
+
+
+def make_evidence(*, target: str, response: str = "ready", failed: bool = False):
+    """Create minimal session evidence for pure grading tests."""
+
+    evidence = EVALS.SessionEvidence()
+    evidence.loaded_skills = (
+        SimpleNamespace(
+            name=target,
+            enabled=True,
+            path=f"skills/{target}/SKILL.md",
+        ),
+    )
+    evidence.invocations = [
+        SimpleNamespace(
+            name=target,
+            trigger=EVALS.SkillInvokedTrigger.AGENT_INVOKED,
+            path=f"skills/{target}/SKILL.md",
+            plugin_name=None,
+            plugin_version=None,
+            source="custom",
+        )
+    ]
+    evidence.messages = [SimpleNamespace(content=response)]
+    evidence.idle = SimpleNamespace(aborted=False)
+    if failed:
+        evidence.errors = [
+            SimpleNamespace(
+                error_type="authentication",
+                message="token=top-secret",
+                error_code="401",
+            )
+        ]
+    return evidence
+
+
+@pytest.fixture(name="evaluator")
+def evaluator_fixture(tmp_path: Path):
+    """Create an evaluator with one hashable skill for pure unit tests."""
+
+    skill_name = "sdaf-test-skill"
+    content_root = tmp_path / "content"
+    skill_dir = content_root / "skills" / skill_name
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text("# Test\n", encoding="utf-8")
+    case = EVALS.EvalCase(
+        case_id="test-case",
+        skill_name=skill_name,
+        prompt="Run the test skill.",
+        expected_output="The test skill loads.",
+        assertions=("one", "two", "three", "four", "five"),
+    )
+    request = EVALS.EvalRequest(
+        case=case,
+        content_root=content_root,
+        output_dir=tmp_path / "output",
+        model="gpt-5-mini",
+        limits=EVALS.RunLimits(30, 1024, 120),
+    )
+    return EVALS.SdafSkillEvals(request)
+
+
+@pytest.fixture(name="catalog_root")
+def catalog_root_fixture(tmp_path: Path) -> Path:
+    """Create a complete standalone catalogue and matching skill set."""
+
+    root = tmp_path / "catalog"
+    groups = []
+    for skill_index in range(18):
+        skill_name = f"sdaf-test-skill-{skill_index}"
+        skill_dir = root / "skills" / skill_name
+        skill_dir.mkdir(parents=True)
+        (skill_dir / "SKILL.md").write_text("# Test\n", encoding="utf-8")
+        cases = []
+        for case_index in range(3):
+            case_id = f"case-{skill_index}-{case_index}"
+            cases.append(
+                {
+                    "id": case_id,
+                    "prompt": f"Prompt {case_id}",
+                    "expected_output": f"Output {case_id}",
+                    "assertions": ["a", "b", "c", "d", "e"],
+                    "x-sdaf-routing": {"expected_skill": skill_name},
+                }
+            )
+        groups.append({"skill_name": skill_name, "evals": cases})
+    eval_dir = root / "evals"
+    eval_dir.mkdir()
+    (eval_dir / "evals.json").write_text(
+        json.dumps({"skills": groups}),
+        encoding="utf-8",
+    )
+    return root
+
+
+def test_catalog_loads_all_repository_cases(catalog_root: Path) -> None:
+    """A complete catalogue loads all expected cases."""
+
+    catalog = EVALS.EvalCatalog(catalog_root)
+
+    assert len(catalog.case_ids()) == 54
+    assert catalog.get("case-0-0").skill_name == "sdaf-test-skill-0"
+
+
+@pytest.mark.parametrize(
+    ("limits", "message"),
+    [
+        (EVALS.RunLimits(29, 1024, 120), "max AI credits"),
+        (EVALS.RunLimits(30, 127, 120), "max output tokens"),
+        (EVALS.RunLimits(30, 1024, 29), "session timeout"),
+    ],
+)
+def test_run_limits_reject_unsafe_values(limits, message: str) -> None:
+    """Each bounded runtime limit rejects values below its minimum."""
+
+    with pytest.raises(EVALS.EvalError, match=message):
+        limits.validate()
+
+
+def test_catalog_rejects_unsafe_hardlinked_input(catalog_root: Path) -> None:
+    """A multiply linked input cannot cross the trusted data boundary."""
+
+    source = catalog_root / "evals" / "evals.json"
+    os.link(source, source.with_name("alias.json"))
+
+    with pytest.raises(EVALS.EvalError, match="unsafe eval input file"):
+        EVALS.EvalCatalog(catalog_root)
+
+
+def test_parse_case_rejects_unsafe_case_id(catalog_root: Path) -> None:
+    """Artifact path identifiers must use the safe slug grammar."""
+
+    eval_file = catalog_root / "evals" / "evals.json"
+    document = json.loads(eval_file.read_text(encoding="utf-8"))
+    document["skills"][0]["evals"][0]["id"] = ".."
+    eval_file.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(EVALS.EvalError, match="invalid case ID"):
+        EVALS.EvalCatalog(catalog_root)
+
+
+def test_grade_passes_exact_target_invocation(evaluator, monkeypatch) -> None:
+    """The declared routing contract passes with one target invocation."""
+
+    target = evaluator.request.case.skill_name
+    sessions = iter(
+        [
+            make_evidence(target=target),
+            make_evidence(target="sdaf-other-skill"),
+        ]
+    )
+
+    async def fake_run_session(*, disable_target: bool):
+        del disable_target
+        return next(sessions)
+
+    monkeypatch.setattr(evaluator, "_run_session", fake_run_session)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is True
+
+
+def test_grade_passes_repeated_target_invocation(evaluator, monkeypatch) -> None:
+    """Re-invoking the correct skill is routing success, not a failure."""
+
+    target = evaluator.request.case.skill_name
+    with_skill = make_evidence(target=target)
+    with_skill.invocations = with_skill.invocations * 3
+    sessions = iter([with_skill, make_evidence(target="sdaf-other-skill")])
+
+    async def fake_run_session(*, disable_target: bool):
+        del disable_target
+        return next(sessions)
+
+    monkeypatch.setattr(evaluator, "_run_session", fake_run_session)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is True
+
+
+@pytest.mark.parametrize(
+    ("companion", "expected"),
+    [("sdaf-documented-companion", True), ("sdaf-unrelated-skill", False)],
+)
+def test_grade_allows_only_documented_companions(
+    evaluator, monkeypatch, companion: str, expected: bool
+) -> None:
+    """Handoffs the target document names pass; undocumented ones fail."""
+
+    target = evaluator.request.case.skill_name
+    skill_file = evaluator.skills_dir / target / "SKILL.md"
+    skill_file.write_text("# Test\n\nHand off to `sdaf-documented-companion`.\n", encoding="utf-8")
+    evaluator.skill_hashes = evaluator.source_hashes()
+
+    with_skill = make_evidence(target=target)
+    with_skill.invocations = list(with_skill.invocations) + list(
+        make_evidence(target=companion).invocations
+    )
+    sessions = iter([with_skill, make_evidence(target="sdaf-other-skill")])
+
+    async def fake_run_session(*, disable_target: bool):
+        del disable_target
+        return next(sessions)
+
+    monkeypatch.setattr(evaluator, "_run_session", fake_run_session)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is expected
+
+
+def test_run_all_writes_a_summary_when_the_deadline_expires(
+    catalog_root: Path, tmp_path: Path, monkeypatch
+):
+    """An exhausted batch deadline still produces the summary artifact."""
+
+    args = EVALS.build_parser().parse_args(
+        [
+            "--content-root",
+            str(catalog_root),
+            "--all",
+            "--output-dir",
+            str(tmp_path / "out"),
+            "--concurrency",
+            "1",
+            "--deadline-minutes",
+            "1",
+        ]
+    )
+    monkeypatch.setattr(EVALS, "MAX_DEADLINE_MINUTES", 360)
+
+    async def never_finishes(_self):
+        await asyncio.sleep(3600)
+
+    monkeypatch.setattr(EVALS.SdafSkillEvals, "evaluate", never_finishes)
+    monkeypatch.setattr(EVALS.asyncio, "wait", _immediate_timeout(EVALS.asyncio.wait))
+
+    code = asyncio.run(EVALS.run_all(args, EVALS.EvalCatalog(catalog_root)))
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 1
+    assert document["failed"] == document["total"]
+    assert all("DeadlineExceeded" in item["error"] for item in document["cases"])
+
+
+def _immediate_timeout(original):
+    """Wrap asyncio.wait so the deadline expires immediately in tests."""
+
+    async def wrapper(tasks, timeout=None):
+        del timeout
+        return await original(tasks, timeout=0.01)
+
+    return wrapper
+
+
+def test_run_all_retries_until_a_case_passes(catalog_root: Path, tmp_path: Path, monkeypatch):
+    """A case that fails its first attempt is retried and can still pass."""
+
+    args = EVALS.build_parser().parse_args(
+        [
+            "--content-root",
+            str(catalog_root),
+            "--all",
+            "--output-dir",
+            str(tmp_path / "out"),
+            "--attempts",
+            "2",
+            "--concurrency",
+            "1",
+        ]
+    )
+    seen: dict[str, int] = {}
+
+    async def fake_evaluate(self):
+        case_id = self.request.case.case_id
+        seen[case_id] = seen.get(case_id, 0) + 1
+        return {"passed": seen[case_id] >= 2}
+
+    monkeypatch.setattr(EVALS.SdafSkillEvals, "evaluate", fake_evaluate)
+
+    code = asyncio.run(EVALS.run_all(args, EVALS.EvalCatalog(catalog_root)))
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 0
+    assert all(item["attempts"] == 2 for item in document["cases"])
+
+
+def test_report_batch_reports_retry_counts(tmp_path: Path) -> None:
+    """The report states how many cases needed more than one attempt."""
+
+    summaries = [
+        {"case_id": "a-case", "passed": True, "attempts": 3},
+        {"case_id": "b-case", "passed": True, "attempts": 1},
+    ]
+
+    code = EVALS.report_batch(summaries, tmp_path / "out")
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 0
+    assert document["cases"][0]["attempts"] == 3
+
+
+def test_report_batch_writes_summary_and_fails_on_any_case(tmp_path: Path, monkeypatch) -> None:
+    """A single failing case fails the batch and is named in the report."""
+
+    summary_file = tmp_path / "step-summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_file))
+    summaries = [
+        {"case_id": "b-case", "passed": False, "error": "TimeoutError"},
+        {"case_id": "a-case", "passed": True},
+    ]
+
+    code = EVALS.report_batch(summaries, tmp_path / "out")
+
+    document = json.loads((tmp_path / "out" / "summary.json").read_text(encoding="utf-8"))
+    assert code == 1
+    assert document["total"] == 2
+    assert document["failed"] == 1
+    assert [item["case_id"] for item in document["cases"]] == ["a-case", "b-case"]
+    assert "b-case" in summary_file.read_text(encoding="utf-8")
+
+
+def test_report_batch_passes_when_every_case_passes(tmp_path: Path) -> None:
+    """A fully green batch returns a success exit code."""
+
+    assert EVALS.report_batch([{"case_id": "a-case", "passed": True}], tmp_path / "out") == 0
+
+
+def test_redact_masks_sensitive_assignments() -> None:
+    """Response artifacts mask common credential assignments."""
+
+    value = EVALS.redact("token=top-secret password: hunter2 safe=value")
+
+    assert "top-secret" not in value
+    assert "hunter2" not in value
+    assert value.count("[REDACTED]") == 2
+    assert "safe=value" in value
+
+
+@pytest.mark.parametrize(
+    "scheme",
+    ["Bearer", "Basic", "token"],
+)
+def test_redact_masks_authorization_header_schemes(scheme: str) -> None:
+    """A scheme prefix does not leave the credential itself in artifacts."""
+
+    value = EVALS.redact(f"Authorization: {scheme} top-secret")
+
+    assert "top-secret" not in value
+    assert value == "Authorization: [REDACTED]"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        'password: "top secret value"',
+        "password: 'top secret value'",
+        'secret="multi word credential"',
+        'api-key: "spaced key here"',
+    ],
+)
+def test_redact_masks_quoted_multiword_credentials(text: str) -> None:
+    """A quoted credential is consumed through its closing quote."""
+
+    value = EVALS.redact(text)
+
+    assert "secret value" not in value
+    assert "word credential" not in value
+    assert "key here" not in value
+    assert value.endswith("[REDACTED]")
+
+
+def test_evaluate_writes_failed_session_evidence(evaluator, monkeypatch) -> None:
+    """Mocked session failures are graded and persisted without an SDK call."""
+
+    target = evaluator.request.case.skill_name
+    sessions = iter(
+        [
+            make_evidence(target=target, response="token=top-secret", failed=True),
+            make_evidence(target="sdaf-other-skill"),
+        ]
+    )
+
+    async def fake_run_session(*, disable_target: bool):
+        del disable_target
+        return next(sessions)
+
+    monkeypatch.setattr(evaluator, "_run_session", fake_run_session)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is False
+    assert (evaluator.request.output_dir / "grading.json").is_file()
+    result_text = (evaluator.request.output_dir / "result.json").read_text(encoding="utf-8")
+    assert "top-secret" not in result_text
+    assert "[REDACTED]" in result_text
+    response = (evaluator.request.output_dir / "with_skill" / "response.txt").read_text(
+        encoding="utf-8"
+    )
+    assert "top-secret" not in response
+
+
+def test_evaluate_records_runtime_exception(evaluator, monkeypatch) -> None:
+    """Runtime exceptions produce failed artifacts instead of escaping."""
+
+    def fail_client(**_kwargs):
+        raise RuntimeError("token=runtime-secret")
+
+    monkeypatch.setattr(EVALS, "CopilotClient", fail_client)
+
+    result = asyncio.run(evaluator.evaluate())
+
+    assert result["passed"] is False
+    assert result["with_skill"]["errors"][0]["code"] == "RuntimeError"
+    result_text = (evaluator.request.output_dir / "result.json").read_text(encoding="utf-8")
+    assert "runtime-secret" not in result_text
+    assert "[REDACTED]" in result_text
+
+
+def test_cli_returns_configuration_error_for_missing_root(tmp_path: Path, capsys) -> None:
+    """CLI configuration failures return the documented error status."""
+
+    status = EVALS.main(["--content-root", str(tmp_path), "--list"])
+
+    assert status == 2
+    assert "missing skills directory" in capsys.readouterr().err

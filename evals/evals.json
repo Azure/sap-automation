@@ -1,0 +1,904 @@
+{
+  "skills": [
+    {
+      "skill_name": "sdaf-bom-selection",
+      "evals": [
+        {
+          "id": "bom-positive-01",
+          "prompt": "Should this flow use a product BOM or component BOMs?",
+          "expected_output": "Copilot loads sdaf-bom-selection.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-bom-selection.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-bom-selection.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-bom-selection"
+          }
+        },
+        {
+          "id": "bom-positive-02",
+          "prompt": "For my SAP software download, help me choose pinned versus latest software definitions without inventing compatibility.",
+          "expected_output": "Copilot loads sdaf-bom-selection.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-bom-selection.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-bom-selection.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-bom-selection"
+          }
+        },
+        {
+          "id": "bom-positive-03",
+          "prompt": "Given my product, database, platform, and kernel requirements, identify the documented BOM keys and compatibility checks and point me to current samples.",
+          "expected_output": "Copilot loads sdaf-bom-selection.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-bom-selection.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-bom-selection.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-bom-selection"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-control-plane-bootstrap",
+      "evals": [
+        {
+          "id": "control-plane-positive-01",
+          "prompt": "Deploy the SDAF control plane in an empty subscription.",
+          "expected_output": "Copilot loads sdaf-control-plane-bootstrap.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-control-plane-bootstrap.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-control-plane-bootstrap.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-control-plane-bootstrap"
+          }
+        },
+        {
+          "id": "control-plane-positive-02",
+          "prompt": "Set up the deployer and library from my reviewed parameter files.",
+          "expected_output": "Copilot loads sdaf-control-plane-bootstrap.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-control-plane-bootstrap.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-control-plane-bootstrap.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-control-plane-bootstrap"
+          }
+        },
+        {
+          "id": "control-plane-positive-03",
+          "prompt": "I have approved deployer/library tfvars and state settings; guide the documented first control-plane run and validation using the operator-facing path.",
+          "expected_output": "Copilot loads sdaf-control-plane-bootstrap.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-control-plane-bootstrap.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-control-plane-bootstrap.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-control-plane-bootstrap"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-failure-triage",
+      "evals": [
+        {
+          "id": "sdaf-failure-triage-direct-01",
+          "prompt": "My SDAF run failed. The last log lines mention a Terraform state lock. Help me triage the documented cause before I retry.",
+          "expected_output": "Copilot loads sdaf-failure-triage.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-failure-triage.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-failure-triage.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-failure-triage"
+          }
+        },
+        {
+          "id": "sdaf-failure-triage-paraphrase-01",
+          "prompt": "The plan looked clean, but the SDAF run still exited 1. I need the documented failure mapping and the right hand-off, not a guess.",
+          "expected_output": "Copilot loads sdaf-failure-triage.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-failure-triage.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-failure-triage.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-failure-triage"
+          }
+        },
+        {
+          "id": "sdaf-failure-triage-context-rich-01",
+          "prompt": "A control-plane deploy returned exit 0, but the library state never showed up in storage and `.sap_deployment_automation` is incomplete. Use the SDAF docs to decide whether this was a false success, identify the documented failure class, and send me to the right owning skill for retry.",
+          "expected_output": "Copilot loads sdaf-failure-triage.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-failure-triage.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-failure-triage.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-failure-triage"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-ha-diagnostics",
+      "evals": [
+        {
+          "id": "ha-diagnostics-positive-01",
+          "prompt": "Diagnose this SDAF HANA high-availability cluster without changing anything; start with crm status or pcs status and read-only fencing evidence.",
+          "expected_output": "Copilot loads sdaf-ha-diagnostics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-ha-diagnostics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-ha-diagnostics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-ha-diagnostics"
+          }
+        },
+        {
+          "id": "ha-diagnostics-positive-02",
+          "prompt": "I have a Pacemaker issue on an SDAF SCS/ERS deployment. Help me read the current resource placement, offline_validation bundle, and existing QA logs without moving resources.",
+          "expected_output": "Copilot loads sdaf-ha-diagnostics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-ha-diagnostics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-ha-diagnostics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-ha-diagnostics"
+          }
+        },
+        {
+          "id": "ha-diagnostics-positive-03",
+          "prompt": "After an SDAF maintenance window, the HANA failover looks wrong. I already have crm status output, quality_assurance logs, and an hcmtresult zip; tell me whether this is live-cluster diagnosis, offline validation, or a disruptive QA exercise, but do not invent recovery commands.",
+          "expected_output": "Copilot loads sdaf-ha-diagnostics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-ha-diagnostics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-ha-diagnostics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-ha-diagnostics"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-ha-topology",
+      "evals": [
+        {
+          "id": "ha-topology-positive-01",
+          "prompt": "Help me choose the SDAF HA topology before deployment: AFA versus shared-disk quorum, AFS versus ANF, and HANA scale-up versus scale-out.",
+          "expected_output": "Copilot loads sdaf-ha-topology.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-ha-topology.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-ha-topology.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-ha-topology"
+          }
+        },
+        {
+          "id": "ha-topology-positive-02",
+          "prompt": "Before I edit my system tfvars, tell me which cluster model, shared storage, and HANA layout fit this SAP design without deploying anything yet.",
+          "expected_output": "Copilot loads sdaf-ha-topology.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-ha-topology.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-ha-topology.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-ha-topology"
+          }
+        },
+        {
+          "id": "ha-topology-positive-03",
+          "prompt": "I'm reviewing a new S/4HANA system on Azure and need to decide whether to follow a QA-style AFS/AFA setup or a production ANF/ISCSI design, plus whether ANGI is allowed on my OS release. Use the documented SDAF options and required inputs before I approve the build.",
+          "expected_output": "Copilot loads sdaf-ha-topology.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-ha-topology.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-ha-topology.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-ha-topology"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-media-acquisition",
+      "evals": [
+        {
+          "id": "media-acquisition-positive-01",
+          "prompt": "Help me download approved SAP media into the SDAF library with the BOM Downloader.",
+          "expected_output": "Copilot loads sdaf-media-acquisition.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-media-acquisition.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-media-acquisition.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-media-acquisition"
+          }
+        },
+        {
+          "id": "media-acquisition-positive-02",
+          "prompt": "Use my reviewed application, database, and kernel BOMs to fetch the software archives before installation.",
+          "expected_output": "Copilot loads sdaf-media-acquisition.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-media-acquisition.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-media-acquisition.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-media-acquisition"
+          }
+        },
+        {
+          "id": "media-acquisition-positive-03",
+          "prompt": "The SAP-system workspace already has sap-parameters.yaml and X00_hosts.yaml. Before we run installation, walk the documented media-acquisition flow, confirm BOM_CATALOG plus the four BOM keys, and tell me what to run from the system directory.",
+          "expected_output": "Copilot loads sdaf-media-acquisition.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-media-acquisition.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-media-acquisition.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-media-acquisition"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-media-diagnostics",
+      "evals": [
+        {
+          "id": "media-diagnostics-positive-01",
+          "prompt": "Diagnose this SDAF media failure: download_menu.sh hit a 404 for one of the SAP archives in the approved BOM.",
+          "expected_output": "Copilot loads sdaf-media-diagnostics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-media-diagnostics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-media-diagnostics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-media-diagnostics"
+          }
+        },
+        {
+          "id": "media-diagnostics-positive-02",
+          "prompt": "We already chose the HANA SPS07 media set, but the combined BOM points to a file that never appears in the library and BOM processing reports a checksum mismatch. Help me troubleshoot the media path without changing the BOM by guess.",
+          "expected_output": "Copilot loads sdaf-media-diagnostics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-media-diagnostics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-media-diagnostics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-media-diagnostics"
+          }
+        },
+        {
+          "id": "media-diagnostics-positive-03",
+          "prompt": "The four BOM keys are set and playbook 03 started from configuration_menu.sh, but a SAR file now fails at SAPCAR -manifest SIGNATURE.SMF and .progress/bom-processing-done never appears. Help me follow the documented media-only diagnostic path without inventing a replacement URL.",
+          "expected_output": "Copilot loads sdaf-media-diagnostics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-media-diagnostics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-media-diagnostics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-media-diagnostics"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-orientation-and-surface",
+      "evals": [
+        {
+          "id": "sdaf-orientation-and-surface-direct-01",
+          "prompt": "I'm new to SDAF. What is it, where do I start, and which execution surface should I use: Local, Azure DevOps, or GitHub Actions?",
+          "expected_output": "Copilot loads sdaf-orientation-and-surface.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-orientation-and-surface.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-orientation-and-surface.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-orientation-and-surface"
+          }
+        },
+        {
+          "id": "sdaf-orientation-and-surface-paraphrase-01",
+          "prompt": "Can you walk me through how SDAF is structured and help me choose between running it from a workstation, Azure Pipelines, or GitHub workflows?",
+          "expected_output": "Copilot loads sdaf-orientation-and-surface.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-orientation-and-surface.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-orientation-and-surface.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-orientation-and-surface"
+          }
+        },
+        {
+          "id": "sdaf-orientation-and-surface-context-rich-01",
+          "prompt": "We're onboarding an SAP Basis team to SDAF. Our config repo lives in Azure Repos and the process will run from Azure Pipelines, but before anyone touches tfvars or deploy scripts I need the deployment spine in order and the exact Azure DevOps surface-plugin install commands from the docs.",
+          "expected_output": "Copilot loads sdaf-orientation-and-surface.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-orientation-and-surface.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-orientation-and-surface.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-orientation-and-surface"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-plan-and-test-semantics",
+      "evals": [
+        {
+          "id": "sdaf-plan-and-test-semantics-direct-01",
+          "prompt": "What does `test` actually do in SDAF? Is it a safe dry run for the control plane, workload zone, and SAP system on Local, Azure DevOps, and GitHub Actions?",
+          "expected_output": "Copilot loads sdaf-plan-and-test-semantics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-plan-and-test-semantics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-plan-and-test-semantics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-plan-and-test-semantics"
+          }
+        },
+        {
+          "id": "sdaf-plan-and-test-semantics-paraphrase-01",
+          "prompt": "Before I trust that checkbox, map which SDAF entry points stop after Terraform review and which ones still make changes. I need the surface-by-surface answer, not a generic dry-run story.",
+          "expected_output": "Copilot loads sdaf-plan-and-test-semantics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-plan-and-test-semantics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-plan-and-test-semantics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-plan-and-test-semantics"
+          }
+        },
+        {
+          "id": "sdaf-plan-and-test-semantics-context-rich-01",
+          "prompt": "Our operators review control-plane changes in GitHub, deploy workload zones from Azure Pipelines, and sometimes reproduce locally. Build the real SDAF plan-only versus apply map for the control plane, workload zone, and SAP system so nobody invents a universal flag or transfers Local behavior to a hosted surface.",
+          "expected_output": "Copilot loads sdaf-plan-and-test-semantics.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-plan-and-test-semantics.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-plan-and-test-semantics.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-plan-and-test-semantics"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-quality-assurance",
+      "evals": [
+        {
+          "id": "quality-assurance-positive-01",
+          "prompt": "Run the SDAF quality assurance configuration checks for this deployed SAP system.",
+          "expected_output": "Copilot loads sdaf-quality-assurance.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-quality-assurance.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-quality-assurance.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-quality-assurance"
+          }
+        },
+        {
+          "id": "quality-assurance-positive-02",
+          "prompt": "Validate this already-installed SAP system with SDAF's post-deployment checks and tell me where the HTML report and logs end up.",
+          "expected_output": "Copilot loads sdaf-quality-assurance.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-quality-assurance.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-quality-assurance.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-quality-assurance"
+          }
+        },
+        {
+          "id": "quality-assurance-positive-03",
+          "prompt": "The system is already installed, I have `sap-parameters.yaml`, `X00_hosts.yaml`, Key Vault access, and an approved maintenance window. Walk the documented offline central-services validation path, including why `TEST_CASES=\"Manual ASCS Migration\"` is wrong, what `TEST_GROUPS` it needs, and what `No test results found.` means.",
+          "expected_output": "Copilot loads sdaf-quality-assurance.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-quality-assurance.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-quality-assurance.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-quality-assurance"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-readiness-check",
+      "evals": [
+        {
+          "id": "readiness-positive-01",
+          "prompt": "Check whether this host and SDAF configuration are ready to deploy.",
+          "expected_output": "Copilot loads sdaf-readiness-check.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-readiness-check.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-readiness-check.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-readiness-check"
+          }
+        },
+        {
+          "id": "readiness-positive-02",
+          "prompt": "Can this machine reach the required tools, endpoints, state storage, and Key Vault?",
+          "expected_output": "Copilot loads sdaf-readiness-check.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-readiness-check.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-readiness-check.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-readiness-check"
+          }
+        },
+        {
+          "id": "readiness-positive-03",
+          "prompt": "Before control-plane deployment, verify prerequisites, configuration files, identity, connectivity, and quota without deploying anything.",
+          "expected_output": "Copilot loads sdaf-readiness-check.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-readiness-check.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-readiness-check.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-readiness-check"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-safe-removal",
+      "evals": [
+        {
+          "id": "safe-removal-positive-01",
+          "prompt": "Help me remove this SDAF deployment safely in the documented reverse order: SAP system first, then the workload zone, then the control plane.",
+          "expected_output": "Copilot loads sdaf-safe-removal.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-safe-removal.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-safe-removal.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-safe-removal"
+          }
+        },
+        {
+          "id": "safe-removal-positive-02",
+          "prompt": "I need to retire this SDAF environment without leaving tfstate surprises, orphaned shared resources, or half-finished teardown steps. What does the repo's documented shutdown path say to do?",
+          "expected_output": "Copilot loads sdaf-safe-removal.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-safe-removal.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-safe-removal.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-safe-removal"
+          }
+        },
+        {
+          "id": "safe-removal-positive-03",
+          "prompt": "Yesterday the control-plane teardown deleted the library. Today rerunning the same command exits 0, but the deployer and state account are still there. Walk the repo's documented safeguards before I touch .sap_deployment_automation or delete any resource groups.",
+          "expected_output": "Copilot loads sdaf-safe-removal and surfaces the control-plane partial-removal guard.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-safe-removal.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-safe-removal.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-safe-removal"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-sap-installation",
+      "evals": [
+        {
+          "id": "sap-installation-positive-01",
+          "prompt": "Run the SDAF configuration and installation flow after the SAP-system workspace is ready.",
+          "expected_output": "Copilot loads sdaf-sap-installation.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sap-installation.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sap-installation.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sap-installation"
+          }
+        },
+        {
+          "id": "sap-installation-positive-02",
+          "prompt": "I already have sap-parameters.yaml and the generated hosts inventory. Which reviewed stage or Azure DevOps boolean should I use for BOM processing, SCS, database load, or PAS without starting over?",
+          "expected_output": "Copilot loads sdaf-sap-installation.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sap-installation.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sap-installation.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sap-installation"
+          }
+        },
+        {
+          "id": "sap-installation-positive-03",
+          "prompt": "A previous Ansible sequence stopped after database load and left .progress markers. Walk me through the documented smallest-scope rerun, hook behavior, and SSH-key cleanup instead of replaying every playbook.",
+          "expected_output": "Copilot loads sdaf-sap-installation.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sap-installation.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sap-installation.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sap-installation"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-sap-system",
+      "evals": [
+        {
+          "id": "sap-system-positive-01",
+          "prompt": "Deploy the SAP system infrastructure for this workload zone.",
+          "expected_output": "Copilot loads sdaf-sap-system.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sap-system.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sap-system.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sap-system"
+          }
+        },
+        {
+          "id": "sap-system-positive-02",
+          "prompt": "Create the system layer and its generated Ansible inventory from my system tfvars.",
+          "expected_output": "Copilot loads sdaf-sap-system.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sap-system.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sap-system.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sap-system"
+          }
+        },
+        {
+          "id": "sap-system-positive-03",
+          "prompt": "The system Terraform plan shows replacements; guide the documented review, apply, state, inventory, and output validation for the SAP-system stage.",
+          "expected_output": "Copilot loads sdaf-sap-system.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sap-system.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sap-system.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sap-system"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-sovereign-cloud",
+      "evals": [
+        {
+          "id": "sovereign-positive-01",
+          "prompt": "We're deploying SDAF to Azure Government through GitHub Actions. Which sovereign-cloud variables and audience values must be set together before workflow 00?",
+          "expected_output": "Copilot loads sdaf-sovereign-cloud.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sovereign-cloud.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sovereign-cloud.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sovereign-cloud"
+          }
+        },
+        {
+          "id": "sovereign-positive-02",
+          "prompt": "My Azure US Government run signs in, then Terraform fails with AADSTS900382. Explain the documented split between azure/login and ARM_ENVIRONMENT for SDAF.",
+          "expected_output": "Copilot loads sdaf-sovereign-cloud.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sovereign-cloud.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sovereign-cloud.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sovereign-cloud"
+          }
+        },
+        {
+          "id": "sovereign-positive-03",
+          "prompt": "I'm bootstrapping a USVI control plane for SDAF. Confirm the US Gov region code, the Government dns_zone_names change in generated WORKSPACES, the 3.22+ image boundary, and what to do if the default VM size isn't offered.",
+          "expected_output": "Copilot loads sdaf-sovereign-cloud.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-sovereign-cloud.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-sovereign-cloud.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-sovereign-cloud"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-state-management",
+      "evals": [
+        {
+          "id": "state-management-positive-01",
+          "prompt": "Help me use advanced_state_management.sh safely to inspect SDAF Terraform state before I change anything.",
+          "expected_output": "Copilot loads sdaf-state-management.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-state-management.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-state-management.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-state-management"
+          }
+        },
+        {
+          "id": "state-management-positive-02",
+          "prompt": "Terraform and Azure disagree about one SDAF resource; show me the reviewed backup, list, and re-association path before anything edits the remote tfstate.",
+          "expected_output": "Copilot loads sdaf-state-management.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-state-management.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-state-management.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-state-management"
+          }
+        },
+        {
+          "id": "state-management-positive-03",
+          "prompt": "We need to repair a sap_system backend after a failed change review. I can provide the parameter file, state subscription, storage account, blob key, exact Terraform address, and Azure resource ID; walk the documented inspection and backup steps and only then the supported state command path.",
+          "expected_output": "Copilot loads sdaf-state-management.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-state-management.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-state-management.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-state-management"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-workload-zone",
+      "evals": [
+        {
+          "id": "workload-zone-positive-01",
+          "prompt": "I already deployed the control plane. Help me deploy the SDAF workload zone and review the landscape plan.",
+          "expected_output": "Copilot loads sdaf-workload-zone.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-workload-zone.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-workload-zone.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-workload-zone"
+          }
+        },
+        {
+          "id": "workload-zone-positive-02",
+          "prompt": "Connect the landscape network and state to the existing deployer/library.",
+          "expected_output": "Copilot loads sdaf-workload-zone.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-workload-zone.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-workload-zone.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-workload-zone"
+          }
+        },
+        {
+          "id": "workload-zone-positive-03",
+          "prompt": "Review my workload-zone plan, state inputs, networking, and private-endpoint subnet policy settings before I run the documented installer.",
+          "expected_output": "Copilot loads sdaf-workload-zone.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-workload-zone.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-workload-zone.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-workload-zone"
+          }
+        }
+      ]
+    },
+    {
+      "skill_name": "sdaf-workspace-and-tfvars",
+      "evals": [
+        {
+          "id": "workspace-positive-01",
+          "prompt": "Explain where SDAF deployer, landscape, and system tfvars belong.",
+          "expected_output": "Copilot loads sdaf-workspace-and-tfvars.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-workspace-and-tfvars.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-workspace-and-tfvars.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-workspace-and-tfvars"
+          }
+        },
+        {
+          "id": "workspace-positive-02",
+          "prompt": "How should I name the workspace and region/location portions of these parameter files?",
+          "expected_output": "Copilot loads sdaf-workspace-and-tfvars.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-workspace-and-tfvars.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-workspace-and-tfvars.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-workspace-and-tfvars"
+          }
+        },
+        {
+          "id": "workspace-positive-03",
+          "prompt": "I have control-plane, workload-zone, and SAP-system configurations; show the documented directory and filename relationships and the filename/content validation gate.",
+          "expected_output": "Copilot loads sdaf-workspace-and-tfvars.",
+          "assertions": [
+            "With-skill run emits at least one skill.invoked event naming sdaf-workspace-and-tfvars.",
+            "With-skill run emits no skill.invoked event naming an SDAF skill its own document does not reference.",
+            "Without-target baseline emits no skill.invoked event naming sdaf-workspace-and-tfvars.",
+            "Both runs complete successfully.",
+            "With-skill response is non-empty."
+          ],
+          "x-sdaf-routing": {
+            "expected_skill": "sdaf-workspace-and-tfvars"
+          }
+        }
+      ]
+    }
+  ]
+}

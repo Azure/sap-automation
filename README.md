@@ -27,6 +27,54 @@ processes differ.
 For selection criteria and capability differences, see
 [Choose an SDAF deployment option](docs/deployment-options.md).
 
+## Install SDAF AI skills ![NEW](https://img.shields.io/badge/-NEW-brightgreen?style=flat-square)
+
+The three execution models above are still the main way to run SDAF.
+Alongside them, this repository now ships an **optional** AI-skills hub
+plugin, `azure-sap-automation`, for supported agent CLIs (GitHub Copilot
+CLI, Claude Code, Gemini CLI). SDAF itself does not require these plugins.
+
+The **hub** plugin covers shared SDAF guidance that applies across local,
+Azure DevOps, and GitHub Actions use. The Azure DevOps and GitHub Actions
+bootstrap experiences stay in separate **surface** plugins:
+`azure-sap-automation-devops` and `azure-sap-automation-github`. Install
+those only when you use the matching platform.
+
+If you install the plugins, match them to your execution model:
+
+- **Local / scripted** — install the hub plugin (`azure-sap-automation`)
+  only.
+- **Azure DevOps** — install the hub plugin **and** the Azure DevOps
+  surface plugin (`azure-sap-automation-devops`).
+- **GitHub Actions** — install the hub plugin **and** the GitHub Actions
+  surface plugin (`azure-sap-automation-github`).
+
+Each plugin is independently installable; nothing installs automatically,
+and you run each command yourself. The hub install commands are below. For
+the full 18-skill catalogue, install verification, example prompts,
+limitations, and Azure DevOps or GitHub Actions surface-plugin commands,
+see [`docs/PLUGINS.md`](docs/PLUGINS.md).
+
+### GitHub Copilot CLI
+
+```bash
+copilot plugin marketplace add Azure/sap-automation
+copilot plugin install azure-sap-automation@sap-automation
+```
+
+### Claude Code
+
+```text
+/plugin marketplace add Azure/sap-automation
+/plugin install azure-sap-automation@sap-automation
+```
+
+### Gemini CLI
+
+```bash
+gemini extensions install https://github.com/Azure/sap-automation
+```
+
 ## Use samples and SAP software definitions
 
 All three execution models use shared configuration examples and SAP software

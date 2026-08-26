@@ -112,3 +112,6 @@ htmlcov/
 coverage.xml
 *.cover
 .pytest_cache/
+
+# Local report-only Copilot skill-eval artifacts
+.skill-eval-results/
