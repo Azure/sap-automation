@@ -325,6 +325,34 @@ def test_report_batch_reports_retry_counts(tmp_path: Path) -> None:
     assert document["cases"][0]["attempts"] == 3
 
 
+def test_report_batch_flags_total_failure_as_environment_problem(tmp_path: Path, capsys) -> None:
+    """Every case failing points at credentials, not at skill routing."""
+
+    summaries = [
+        {"case_id": "a-case", "passed": False},
+        {"case_id": "b-case", "passed": False},
+    ]
+
+    code = EVALS.report_batch(summaries, tmp_path / "out")
+
+    assert code == 1
+    assert "CopilotRequests: write" in capsys.readouterr().err
+
+
+def test_report_batch_omits_environment_hint_for_partial_failure(tmp_path: Path, capsys) -> None:
+    """A genuine routing regression must not be blamed on credentials."""
+
+    summaries = [
+        {"case_id": "a-case", "passed": False},
+        {"case_id": "b-case", "passed": True},
+    ]
+
+    code = EVALS.report_batch(summaries, tmp_path / "out")
+
+    assert code == 1
+    assert "CopilotRequests: write" not in capsys.readouterr().err
+
+
 def test_report_batch_writes_summary_and_fails_on_any_case(tmp_path: Path, monkeypatch) -> None:
     """A single failing case fails the batch and is named in the report."""
 

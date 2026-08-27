@@ -785,6 +785,14 @@ def report_batch(summaries: list[dict[str, Any]], output_dir: Path) -> int:
             handle.write(report)
     for item in failures:
         print(f"failed: {item['case_id']} {item.get('error', '')}".rstrip(), file=sys.stderr)
+    if failures and len(summaries) > 1 and len(failures) == len(summaries):
+        print(
+            "hint: every case failed, which is characteristic of a credential or "
+            "environment problem rather than a skill routing regression. Confirm the "
+            "job was granted 'CopilotRequests: write' -- a pull request from a fork "
+            "receives a read-only token and cannot call the Copilot API.",
+            file=sys.stderr,
+        )
     return 1 if failures else 0
 
 

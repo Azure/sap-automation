@@ -161,6 +161,10 @@ jobs:
   evaluate:
     name: Evaluate skill routing
     needs: prepare
+    # Fork pull requests are granted a read-only GITHUB_TOKEN, so the
+    # `copilot-requests: write` permission requested below is silently dropped
+    # and every model call fails. Skip rather than report 54 false failures.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
