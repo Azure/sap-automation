@@ -125,9 +125,15 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
                     done < <(swapon --show=NAME --noheadings | grep -F "${current_mount}/")
                 fi
 
-                if ! umount ${RAID0_DEVICE_PATH}p1; then
-                    printf "Failed to unmount ${RAID0_DEVICE_PATH}p1\n"
-                    exit 1
+                # Only unmount if the partition is actually mounted - it may
+                # exist but not be mounted (e.g. a prior mount attempt
+                # failed), in which case umount would fail and block the
+                # recovery path below from wiping/recreating the array.
+                if [ -n "$current_mount" ]; then
+                    if ! umount ${RAID0_DEVICE_PATH}p1; then
+                        printf "Failed to unmount ${RAID0_DEVICE_PATH}p1\n"
+                        exit 1
+                    fi
                 fi
                 if ! wipefs -a -f ${RAID0_DEVICE_PATH}p1; then
                     printf "Failed to wipe filesystem signatures on ${RAID0_DEVICE_PATH}p1\n"
