@@ -12,11 +12,11 @@
 #
 # Deployed by Ansible role 1.1-swap as a cloud-init per-boot script.
 
-SWAP_FILE="{{ swap_mount_point }}/swapfile"
 WAAGENT_SWAP_FILE="/mnt/swapfile"
 SWAP_SIZE_MB="{{ swap_size_mb }}"
-MOUNT_POINT="{{ swap_mount_point }}"
-FILESYSTEM="{{ swap_filesystem }}"
+MOUNT_POINT={{ swap_mount_point | quote }}
+FILESYSTEM={{ swap_filesystem | quote }}
+SWAP_FILE="$MOUNT_POINT/swapfile"
 NVME_SWAP_CONF_HELPER="/usr/local/bin/azure-nvme-swap-conf"
 
 if swapon --show | grep -q "$WAAGENT_SWAP_FILE"; then
@@ -40,7 +40,8 @@ if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
     exit 1
   fi
 
-  if ! "$NVME_SWAP_CONF_HELPER" "$FILESYSTEM" "$MOUNT_POINT" 2>&1 | systemd-cat -t create-swap; then
+  "$NVME_SWAP_CONF_HELPER" "$FILESYSTEM" "$MOUNT_POINT" 2>&1 | systemd-cat -t create-swap
+  if [ "${PIPESTATUS[0]}" -ne 0 ]; then
     echo "ERROR: failed to (re)initialize the NVMe temp disk with $NVME_SWAP_CONF_HELPER" | systemd-cat -t create-swap -p err
     exit 1
   fi

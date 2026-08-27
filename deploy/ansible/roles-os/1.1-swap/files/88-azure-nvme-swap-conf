@@ -86,6 +86,20 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
                 fi
             done
         fi
+
+        # Even when the array itself is healthy, reconcile the requested
+        # filesystem/mount point against what's actually configured in
+        # fstab. If either was changed since the array was created (e.g. a
+        # redeploy with different swap settings), force a reinitialization
+        # so the array, filesystem, and fstab entry match the request.
+        if [ "$reinit_raid0" = false ]; then
+            existing_fstab_entry=$(grep "$RAID0_FILESYSTEM_LABEL" /etc/fstab)
+            existing_mount_point=$(awk '{print $2}' <<< "$existing_fstab_entry")
+            existing_filesystem=$(awk '{print $3}' <<< "$existing_fstab_entry")
+            if [ "$existing_mount_point" != "$mount_point" ] || [ "$existing_filesystem" != "$filesystem" ]; then
+                reinit_raid0=true
+            fi
+        fi
     else
         reinit_raid0=true
     fi

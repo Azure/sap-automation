@@ -148,9 +148,6 @@
     - swap_size | int == 0
     - nvme_device_count | int > 0
     - nvme_direct_count | int > 0
-  vars:
-    nvme_swap_filesystem:              "ext4"
-    nvme_swap_mount_point:             "/mnt/resource"
   block:
     # Install required dependencies for the NVMe swap helper script
     - name:                            "1.1 Swap - Install NVMe swap dependencies (RHEL)"
