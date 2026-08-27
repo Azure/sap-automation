@@ -153,20 +153,19 @@
     # unquoted argument to free-form command tasks and written verbatim to
     # /etc/fstab by the helper script, so whitespace would split it across
     # arguments/fstab fields and silently misconfigure the mount. The
-    # filesystem is restricted to those the fixed RAID0_FILESYSTEM_LABEL
-    # (15 characters) is compatible with - the same allow-list enforced by
-    # 88-azure-nvme-swap-conf. btrfs is excluded: swap files on Btrfs need
-    # NODATACOW set before allocation (not done here), and btrfs-progs is
-    # not installed by the dependency tasks below.
+    # filesystem is restricted to ext4 only: both swap-creation paths
+    # allocate the swap file with fallocate(2), which ext2/ext3 don't
+    # support (and btrfs needs NODATACOW set before allocation, which
+    # neither script does, plus btrfs-progs isn't installed below).
     - name:                            "1.1 Swap - Validate NVMe swap configuration variables"
       ansible.builtin.assert:
         that:
           - nvme_swap_mount_point is match('^/\S+$')
-          - nvme_swap_filesystem in ['ext2', 'ext3', 'ext4']
+          - nvme_swap_filesystem == 'ext4'
         fail_msg: >-
           nvme_swap_mount_point must be an absolute path with no whitespace
           (got '{{ nvme_swap_mount_point }}'), and nvme_swap_filesystem must
-          be one of ext2, ext3, ext4
+          be ext4
           (got '{{ nvme_swap_filesystem }}').
 
     # Install required dependencies for the NVMe swap helper script

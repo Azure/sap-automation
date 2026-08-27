@@ -27,15 +27,14 @@ if ! [ -x "$(command -v mkfs.$filesystem)" ]; then
     exit 1
 fi
 
-# Restrict to filesystems this helper has been validated with. The fixed
-# RAID0_FILESYSTEM_LABEL is 15 characters, which rules out filesystems with
-# shorter label limits (e.g. XFS = 12, vfat/msdos = 11) - those would only
-# fail mkfs after the old array had already been destructively wiped.
-# btrfs is excluded even though its label limit is generous: swap files on
-# Btrfs require NODATACOW to be set before allocation (not done by either
-# swap-creation script), and btrfs-progs is not installed by the role's
-# dependency tasks, so mkfs.btrfs would fail on some images.
-readonly SUPPORTED_FILESYSTEMS="ext2 ext3 ext4"
+# Restrict to the filesystem the downstream swap-creation scripts actually
+# support: both create-nvme-swap.sh and create-swap-perboot.sh.j2 allocate
+# the swap file with fallocate(2), which ext2/ext3 do not support. The fixed
+# RAID0_FILESYSTEM_LABEL (15 characters) also rules out filesystems with
+# shorter label limits (e.g. XFS = 12, vfat/msdos = 11), and btrfs needs
+# NODATACOW set before allocation (not done by either script) plus
+# btrfs-progs isn't installed by the role's dependency tasks.
+readonly SUPPORTED_FILESYSTEMS="ext4"
 case " ${SUPPORTED_FILESYSTEMS} " in
     *" ${filesystem} "*)
         ;;
@@ -49,6 +48,23 @@ mount_point="$2"
 if [ ! "$mount_point" ]; then
     printf "No mount point specified. Using default: $DEFAULT_MOUNT_POINT\n"
     mount_point=$DEFAULT_MOUNT_POINT
+fi
+
+# Preflight: refuse to proceed if the target mount point is already in use
+# by something other than our own NVMe RAID0 array (matched by label). This
+# must run before any destructive or persistent change below (wiping the
+# array, formatting, appending fstab/mdadm.conf entries) - otherwise a first
+# run against an occupied target leaves those side effects in place, and a
+# retry would classify the array/configuration as valid and skip, silently
+# leaving swap creation to target the unrelated filesystem still occupying
+# the mount point.
+if mountpoint -q "$mount_point" 2>/dev/null; then
+    existing_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
+    expected_source=$(blkid -L "$RAID0_FILESYSTEM_LABEL" 2>/dev/null)
+    if [ -z "$expected_source" ] || [ "$existing_source" != "$expected_source" ]; then
+        printf "ERROR: $mount_point is already mounted by ${existing_source:-an unknown device}, not the NVMe RAID0 array (LABEL=$RAID0_FILESYSTEM_LABEL); refusing to proceed\n"
+        exit 1
+    fi
 fi
 
 # Make sure mdadm.conf is present
@@ -257,14 +273,20 @@ fi
 
 # Mount the partition
 printf "\nMounting filesystem to $mount_point..\n"
-# Fail closed if something is already mounted at the target: Linux allows
-# stacking a mount on top of an existing one without error, which would
-# silently hide the NVMe array behind an unrelated filesystem instead of
-# surfacing the conflict.
+# Defense in depth: the preflight check above already refused to proceed if
+# the target was occupied by something other than our own array, but guard
+# again here in case the target was mounted by something else in the
+# interim (e.g. a racing process), since Linux otherwise allows silently
+# stacking a mount on top of an existing one.
 if mountpoint -q "$mount_point" 2>/dev/null; then
     existing_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
-    printf "ERROR: $mount_point is already mounted (source: ${existing_source:-unknown}); refusing to mount the NVMe array on top of it\n"
-    exit 1
+    if [ "$existing_source" != "LABEL=$RAID0_FILESYSTEM_LABEL" ] && [ "$existing_source" != "$partition_path" ]; then
+        printf "ERROR: $mount_point is already mounted (source: ${existing_source:-unknown}); refusing to mount the NVMe array on top of it\n"
+        printf "Rolling back fstab/mdadm.conf entries added by this run.\n"
+        sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" /etc/fstab
+        sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" $mdadm_conf_path
+        exit 1
+    fi
 fi
 if ! mkdir -p "$mount_point"; then
     printf "Failed to create mount point directory $mount_point\n"
@@ -276,6 +298,9 @@ fi
 # have already been successfully rebuilt.
 if ! mount "$mount_point"; then
     printf "Failed to mount $mount_point\n"
+    printf "Rolling back fstab/mdadm.conf entries added by this run.\n"
+    sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" /etc/fstab
+    sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" $mdadm_conf_path
     exit 1
 fi
 printf "The operation has completed successfully.\n"
