@@ -110,11 +110,35 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
         # Remove the file system and partition table, and stop the RAID 0 array
         if [ "$nvme_raid0_present" = true ]; then
             if [ -e ${RAID0_DEVICE_PATH}p1 ]; then
-                umount ${RAID0_DEVICE_PATH}p1
-                wipefs -a -f ${RAID0_DEVICE_PATH}p1
+                # A swap file may still be active on this partition from a
+                # previous run (e.g. only the mount point or filesystem
+                # setting changed). Disable it first so the partition isn't
+                # busy and destructive operations don't run against live swap.
+                current_mount=$(findmnt -n -o TARGET ${RAID0_DEVICE_PATH}p1 2>/dev/null || true)
+                if [ -n "$current_mount" ]; then
+                    while read -r active_swap; do
+                        [ -n "$active_swap" ] || continue
+                        if ! swapoff "$active_swap"; then
+                            printf "Failed to disable active swap: $active_swap\n"
+                            exit 1
+                        fi
+                    done < <(swapon --show=NAME --noheadings | grep -F "${current_mount}/")
+                fi
+
+                if ! umount ${RAID0_DEVICE_PATH}p1; then
+                    printf "Failed to unmount ${RAID0_DEVICE_PATH}p1\n"
+                    exit 1
+                fi
+                if ! wipefs -a -f ${RAID0_DEVICE_PATH}p1; then
+                    printf "Failed to wipe filesystem signatures on ${RAID0_DEVICE_PATH}p1\n"
+                    exit 1
+                fi
             fi
             sgdisk -o $RAID0_DEVICE_PATH &> /dev/null
-            mdadm --stop $RAID0_DEVICE_PATH
+            if ! mdadm --stop $RAID0_DEVICE_PATH; then
+                printf "Failed to stop RAID 0 array $RAID0_DEVICE_PATH\n"
+                exit 1
+            fi
         fi
 
         # Remove any mdadm metadata from all NVMe Direct Disks
@@ -209,7 +233,10 @@ fi
 
 # Mount the partition
 printf "\nMounting filesystem to $mount_point..\n"
-mkdir $mount_point &> /dev/null
+if ! mkdir -p "$mount_point"; then
+    printf "Failed to create mount point directory $mount_point\n"
+    exit 1
+fi
 if ! mount -a; then
     printf "Failed to automount partition\n"
     exit 1

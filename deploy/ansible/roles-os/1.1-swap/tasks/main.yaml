@@ -198,6 +198,15 @@
         state:                         touch
       when:                            helper_script_created is changed
 
+    # Ensure the configured mount point exists (recursively), so a nested
+    # override such as /srv/sap/temp doesn't fail the helper script or the
+    # per-boot recovery script's non-recursive mkdir.
+    - name:                            "1.1 Swap - Ensure configured NVMe swap mount point directory exists"
+      ansible.builtin.file:
+        path:                          "{{ nvme_swap_mount_point }}"
+        state:                         directory
+        mode:                          "0755"
+
     # run the nvme disk config script
     - name:                            "1.1 Swap - Run Azure NVMe temp disk configuration helper script"
       ansible.builtin.command:         "/usr/local/bin/azure-nvme-swap-conf {{ nvme_swap_filesystem }} {{ nvme_swap_mount_point }}"
