@@ -152,16 +152,19 @@
     # Fail fast on malformed input: the mount point is passed as a bare,
     # unquoted argument to free-form command tasks and written verbatim to
     # /etc/fstab by the helper script, so whitespace would split it across
-    # arguments/fstab fields and silently misconfigure the mount.
+    # arguments/fstab fields and silently misconfigure the mount. The
+    # filesystem is restricted to those the fixed RAID0_FILESYSTEM_LABEL
+    # (15 characters) is compatible with - the same allow-list enforced by
+    # 88-azure-nvme-swap-conf.
     - name:                            "1.1 Swap - Validate NVMe swap configuration variables"
       ansible.builtin.assert:
         that:
           - nvme_swap_mount_point is match('^/\S+$')
-          - nvme_swap_filesystem is match('^[A-Za-z0-9]+$')
+          - nvme_swap_filesystem in ['ext2', 'ext3', 'ext4', 'btrfs']
         fail_msg: >-
           nvme_swap_mount_point must be an absolute path with no whitespace
           (got '{{ nvme_swap_mount_point }}'), and nvme_swap_filesystem must
-          be a single alphanumeric filesystem type such as ext4
+          be one of ext2, ext3, ext4, btrfs
           (got '{{ nvme_swap_filesystem }}').
 
     # Install required dependencies for the NVMe swap helper script

@@ -27,32 +27,19 @@ if ! [ -x "$(command -v mkfs.$filesystem)" ]; then
     exit 1
 fi
 
-# Fail fast, before any destructive reinitialization, if the fixed
-# RAID0_FILESYSTEM_LABEL doesn't fit the requested filesystem's on-disk
-# label length limit (e.g. XFS labels are capped at 12 characters, vs 16
-# for ext2/3/4). Formatting would otherwise fail after the old array has
-# already been wiped, leaving the host without swap.
-case "$filesystem" in
-    xfs)
-        label_max_len=12
-        ;;
-    vfat|msdos)
-        label_max_len=11
-        ;;
-    ext2|ext3|ext4)
-        label_max_len=16
-        ;;
-    btrfs)
-        label_max_len=255
+# Restrict to filesystems this helper has been validated with. The fixed
+# RAID0_FILESYSTEM_LABEL is 15 characters, which rules out filesystems with
+# shorter label limits (e.g. XFS = 12, vfat/msdos = 11) - those would only
+# fail mkfs after the old array had already been destructively wiped.
+readonly SUPPORTED_FILESYSTEMS="ext2 ext3 ext4 btrfs"
+case " ${SUPPORTED_FILESYSTEMS} " in
+    *" ${filesystem} "*)
         ;;
     *)
-        label_max_len=${#RAID0_FILESYSTEM_LABEL}
+        printf "Filesystem \"$filesystem\" is not supported by this script. Supported filesystems: $SUPPORTED_FILESYSTEMS\n$USAGE\n"
+        exit 1
         ;;
 esac
-if [ "${#RAID0_FILESYSTEM_LABEL}" -gt "$label_max_len" ]; then
-    printf "Filesystem \"$filesystem\" limits labels to $label_max_len characters, but \"$RAID0_FILESYSTEM_LABEL\" is ${#RAID0_FILESYSTEM_LABEL}\n"
-    exit 1
-fi
 
 mount_point="$2"
 if [ ! "$mount_point" ]; then
