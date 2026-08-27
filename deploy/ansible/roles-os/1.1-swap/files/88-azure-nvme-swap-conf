@@ -235,6 +235,22 @@ echo "LABEL=$RAID0_FILESYSTEM_LABEL $mount_point $filesystem defaults,nofail 0 0
 
 # Add RAID 0 array to mdadm.conf
 mdadm --detail --scan >> $mdadm_conf_path
+
+# From this point on, the fstab and mdadm.conf entries just written are only
+# valid once initramfs regeneration and the final mount both succeed. If
+# anything below fails, a subsequent run would otherwise see a healthy array
+# plus matching fstab/mdadm.conf entries and take the "Skipping" path,
+# falsely reporting recovery while the failed step (e.g. initramfs
+# regeneration) is never retried. A trap ensures the rollback runs on every
+# exit path (not just the ones with an explicit rollback call), and is
+# disarmed only after the mount at the end of this script succeeds.
+rollback_config_entries() {
+    printf "Rolling back fstab/mdadm.conf entries added by this run.\n"
+    sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" /etc/fstab
+    sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" $mdadm_conf_path
+}
+trap rollback_config_entries EXIT
+
 # Update initramfs/dracut based on distro family derived from /etc/os-release
 os_id=""
 if [ -r /etc/os-release ]; then
@@ -283,16 +299,13 @@ if mountpoint -q "$mount_point" 2>/dev/null; then
     existing_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
     if [ "$existing_source" != "LABEL=$RAID0_FILESYSTEM_LABEL" ] && [ "$existing_source" != "$partition_path" ]; then
         printf "ERROR: $mount_point is already mounted (source: ${existing_source:-unknown}); refusing to mount the NVMe array on top of it\n"
-        printf "Rolling back fstab/mdadm.conf entries added by this run.\n"
-        sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" /etc/fstab
-        sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" $mdadm_conf_path
         exit 1
     fi
     # Something (e.g. udev/systemd) already mounted our own array at the
     # target during the initramfs-update window above. Skip the mount call
-    # below - it would otherwise fail with "already mounted" and trigger an
-    # unwarranted rollback of the fstab/mdadm.conf entries we just wrote,
-    # which are in fact correct and needed for the next boot.
+    # below - it would otherwise fail with "already mounted", which would
+    # be misread as a genuine mount failure even though the array/fstab
+    # entries are in fact correct and ready for the next boot.
     already_mounted=true
 fi
 if ! mkdir -p "$mount_point"; then
@@ -305,11 +318,13 @@ fi
 # have already been successfully rebuilt.
 if [ "$already_mounted" = false ] && ! mount "$mount_point"; then
     printf "Failed to mount $mount_point\n"
-    printf "Rolling back fstab/mdadm.conf entries added by this run.\n"
-    sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" /etc/fstab
-    sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" $mdadm_conf_path
     exit 1
 fi
 printf "The operation has completed successfully.\n"
+
+# Everything (initramfs regeneration and mount) succeeded: the fstab and
+# mdadm.conf entries written above are now valid and should be kept, so
+# disarm the rollback trap before exiting successfully.
+trap - EXIT
 
 exit 0
