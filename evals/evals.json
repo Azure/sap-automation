@@ -870,7 +870,7 @@
         },
         {
           "id": "workspace-positive-02",
-          "prompt": "How should I name the workspace and region/location portions of these parameter files?",
+          "prompt": "In the SDAF WORKSPACES tree, what is the naming convention for the workspace directory names and the region code portion of each tfvars filename?",
           "expected_output": "Copilot loads sdaf-workspace-and-tfvars.",
           "assertions": [
             "With-skill run emits at least one skill.invoked event naming sdaf-workspace-and-tfvars.",
