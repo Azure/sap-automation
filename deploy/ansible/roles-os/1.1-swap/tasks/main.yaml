@@ -155,16 +155,18 @@
     # arguments/fstab fields and silently misconfigure the mount. The
     # filesystem is restricted to those the fixed RAID0_FILESYSTEM_LABEL
     # (15 characters) is compatible with - the same allow-list enforced by
-    # 88-azure-nvme-swap-conf.
+    # 88-azure-nvme-swap-conf. btrfs is excluded: swap files on Btrfs need
+    # NODATACOW set before allocation (not done here), and btrfs-progs is
+    # not installed by the dependency tasks below.
     - name:                            "1.1 Swap - Validate NVMe swap configuration variables"
       ansible.builtin.assert:
         that:
           - nvme_swap_mount_point is match('^/\S+$')
-          - nvme_swap_filesystem in ['ext2', 'ext3', 'ext4', 'btrfs']
+          - nvme_swap_filesystem in ['ext2', 'ext3', 'ext4']
         fail_msg: >-
           nvme_swap_mount_point must be an absolute path with no whitespace
           (got '{{ nvme_swap_mount_point }}'), and nvme_swap_filesystem must
-          be one of ext2, ext3, ext4, btrfs
+          be one of ext2, ext3, ext4
           (got '{{ nvme_swap_filesystem }}').
 
     # Install required dependencies for the NVMe swap helper script
@@ -226,8 +228,15 @@
         mode:                          "0755"
 
     # run the nvme disk config script
+    # argv is used instead of a free-form string so that special
+    # characters in nvme_swap_mount_point (spaces, quotes) can't split
+    # across arguments or break the shell-like command parser.
     - name:                            "1.1 Swap - Run Azure NVMe temp disk configuration helper script"
-      ansible.builtin.command:         "/usr/local/bin/azure-nvme-swap-conf {{ nvme_swap_filesystem }} {{ nvme_swap_mount_point }}"
+      ansible.builtin.command:
+        argv:
+          - /usr/local/bin/azure-nvme-swap-conf
+          - "{{ nvme_swap_filesystem }}"
+          - "{{ nvme_swap_mount_point }}"
       register:                        nvme_swap_configured
       changed_when:                    nvme_swap_configured.rc == 0 and "'Skipping' not in nvme_swap_configured.stdout"
       failed_when:                     nvme_swap_configured.rc != 0 and 'No NVMe Direct Disks found' not in ((nvme_swap_configured.stdout | default('')) ~ ' ' ~ (nvme_swap_configured.stderr | default(''))) and 'Found 0 NVMe Direct Disks' not in ((nvme_swap_configured.stdout | default('')) ~ ' ' ~ (nvme_swap_configured.stderr | default('')))
@@ -253,7 +262,11 @@
         force:                         true
 
     - name:                            "1.1 Swap - Create swap file on NVMe temp disk"
-      ansible.builtin.command:         "/usr/local/bin/create-nvme-swap.sh {{ swap_size_mb }} {{ nvme_swap_mount_point }}"
+      ansible.builtin.command:
+        argv:
+          - /usr/local/bin/create-nvme-swap.sh
+          - "{{ swap_size_mb }}"
+          - "{{ nvme_swap_mount_point }}"
       vars:
         swap_size_mb:                  "{{ (sap_swap | selectattr('tier', 'search', node_tier) | list | first).swap_size_mb }}"
       register:                        nvme_swap_file_created

@@ -18,6 +18,21 @@ MOUNT_POINT={{ swap_mount_point | quote }}
 FILESYSTEM={{ swap_filesystem | quote }}
 SWAP_FILE="$MOUNT_POINT/swapfile"
 NVME_SWAP_CONF_HELPER="/usr/local/bin/azure-nvme-swap-conf"
+# Must match RAID0_FILESYSTEM_LABEL in azure-nvme-swap-conf.
+NVME_RAID0_LABEL="azure_nvme_temp"
+
+# True only when MOUNT_POINT is mounted with the actual NVMe RAID0
+# filesystem (matched by label), not merely mounted by something. A plain
+# `mountpoint -q` check would also succeed if the configured mount point
+# was occupied by an unrelated filesystem, causing swap to be created on
+# that disk instead of the ephemeral NVMe array.
+is_nvme_array_mounted() {
+  local expected_source actual_source
+  expected_source=$(blkid -L "$NVME_RAID0_LABEL" 2>/dev/null) || return 1
+  [ -n "$expected_source" ] || return 1
+  actual_source=$(findmnt -n -o SOURCE --target "$MOUNT_POINT" 2>/dev/null) || return 1
+  [ "$expected_source" = "$actual_source" ]
+}
 
 if swapon --show | grep -q "$WAAGENT_SWAP_FILE"; then
   echo "Swap already configured by waagent" | systemd-cat -t create-swap
@@ -26,14 +41,14 @@ fi
 
 # Wait for the temp disk to be mounted (RAID0 from initramfs)
 for _ in $(seq 1 30); do
-  if mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
+  if is_nvme_array_mounted; then
     break
   fi
   sleep 2
 done
 
-if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
-  echo "$MOUNT_POINT is not mounted - ephemeral NVMe media likely came back blank (e.g. after a VM resize). Re-initializing RAID0 array and filesystem." | systemd-cat -t create-swap
+if ! is_nvme_array_mounted; then
+  echo "$MOUNT_POINT is not mounted with the NVMe RAID0 array (LABEL=$NVME_RAID0_LABEL) - ephemeral NVMe media likely came back blank (e.g. after a VM resize), or the target is occupied by another filesystem. Re-initializing RAID0 array and filesystem." | systemd-cat -t create-swap
 
   if [ ! -x "$NVME_SWAP_CONF_HELPER" ]; then
     echo "ERROR: $NVME_SWAP_CONF_HELPER not found or not executable" | systemd-cat -t create-swap -p err
@@ -46,12 +61,12 @@ if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
     exit 1
   fi
 
-  if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
+  if ! is_nvme_array_mounted; then
     mount "$MOUNT_POINT"
   fi
 
-  if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
-    echo "ERROR: $MOUNT_POINT is still not a mountpoint after re-initialization" | systemd-cat -t create-swap -p err
+  if ! is_nvme_array_mounted; then
+    echo "ERROR: $MOUNT_POINT is still not mounted with the NVMe RAID0 array (LABEL=$NVME_RAID0_LABEL) after re-initialization" | systemd-cat -t create-swap -p err
     exit 1
   fi
 fi

@@ -31,7 +31,11 @@ fi
 # RAID0_FILESYSTEM_LABEL is 15 characters, which rules out filesystems with
 # shorter label limits (e.g. XFS = 12, vfat/msdos = 11) - those would only
 # fail mkfs after the old array had already been destructively wiped.
-readonly SUPPORTED_FILESYSTEMS="ext2 ext3 ext4 btrfs"
+# btrfs is excluded even though its label limit is generous: swap files on
+# Btrfs require NODATACOW to be set before allocation (not done by either
+# swap-creation script), and btrfs-progs is not installed by the role's
+# dependency tasks, so mkfs.btrfs would fail on some images.
+readonly SUPPORTED_FILESYSTEMS="ext2 ext3 ext4"
 case " ${SUPPORTED_FILESYSTEMS} " in
     *" ${filesystem} "*)
         ;;
@@ -253,6 +257,15 @@ fi
 
 # Mount the partition
 printf "\nMounting filesystem to $mount_point..\n"
+# Fail closed if something is already mounted at the target: Linux allows
+# stacking a mount on top of an existing one without error, which would
+# silently hide the NVMe array behind an unrelated filesystem instead of
+# surfacing the conflict.
+if mountpoint -q "$mount_point" 2>/dev/null; then
+    existing_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
+    printf "ERROR: $mount_point is already mounted (source: ${existing_source:-unknown}); refusing to mount the NVMe array on top of it\n"
+    exit 1
+fi
 if ! mkdir -p "$mount_point"; then
     printf "Failed to create mount point directory $mount_point\n"
     exit 1
