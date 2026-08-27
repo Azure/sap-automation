@@ -225,12 +225,15 @@
 
     # Ensure the configured mount point exists (recursively), so a nested
     # override such as /srv/sap/temp doesn't fail the helper script or the
-    # per-boot recovery script's non-recursive mkdir.
+    # per-boot recovery script's non-recursive mkdir. Deliberately omit
+    # `mode` so an already-existing directory (e.g. an override pointing at
+    # a protected path) keeps its current permissions instead of being
+    # forced to 0755; a newly-created directory gets the remote umask
+    # default.
     - name:                            "1.1 Swap - Ensure configured NVMe swap mount point directory exists"
       ansible.builtin.file:
         path:                          "{{ nvme_swap_mount_point }}"
         state:                         directory
-        mode:                          "0755"
 
     # run the nvme disk config script
     # argv is used instead of a free-form string so that special

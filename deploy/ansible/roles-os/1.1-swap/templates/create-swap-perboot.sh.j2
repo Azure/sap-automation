@@ -71,7 +71,7 @@ if ! is_nvme_array_mounted; then
   fi
 fi
 
-if swapon --show | grep -q "$SWAP_FILE"; then
+if swapon --show=NAME --noheadings | grep -Fxq -- "$SWAP_FILE"; then
   echo "Swap already active" | systemd-cat -t create-swap
   exit 0
 fi
