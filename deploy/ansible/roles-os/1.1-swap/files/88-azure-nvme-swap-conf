@@ -152,11 +152,18 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
                 if [ -n "$current_mount" ]; then
                     while read -r active_swap; do
                         [ -n "$active_swap" ] || continue
+                        # Match only swap files rooted at current_mount, not
+                        # any path that merely contains it as a substring
+                        # (e.g. "/backup${current_mount}/swapfile").
+                        case "$active_swap" in
+                            "${current_mount}/"*) ;;
+                            *) continue ;;
+                        esac
                         if ! swapoff "$active_swap"; then
                             printf "Failed to disable active swap: $active_swap\n"
                             exit 1
                         fi
-                    done < <(swapon --show=NAME --noheadings | grep -F "${current_mount}/")
+                    done < <(swapon --show=NAME --noheadings)
                 fi
 
                 # Only unmount if the partition is actually mounted - it may
