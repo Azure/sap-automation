@@ -259,15 +259,19 @@ if ! echo "LABEL=$RAID0_FILESYSTEM_LABEL $mount_point $filesystem defaults,nofai
     exit 1
 fi
 
-# Add RAID 0 array to mdadm.conf. Scope the scan to this array only: a
-# bare "mdadm --detail --scan" appends an ARRAY line for every array
-# currently assembled on the host, which would duplicate unrelated
-# arrays' entries on hosts that already have other md arrays and defeat
-# the label-scoped rollback above. The script does not use `set -e`, so this
-# exit status must be checked explicitly or a failure here would silently
-# fall through to initramfs regeneration/mount without the array definition
-# ever being persisted.
-if ! mdadm --detail --scan $RAID0_DEVICE_PATH >> $mdadm_conf_path; then
+# Add RAID 0 array to mdadm.conf. Use --detail --brief with an explicit
+# device instead of --detail --scan: in MISC mode, --scan tells mdadm to
+# get the list of arrays from /proc/mdstat itself rather than accepting a
+# device argument, so combining --scan with an explicit device fails. Only
+# --brief (with the explicit device) reliably emits a single ARRAY line for
+# just this array, avoiding duplicate entries for unrelated arrays that a
+# bare "mdadm --detail --scan" (with no device) would append on hosts that
+# already have other md arrays; that scoping also keeps the label-scoped
+# rollback above accurate. The script does not use `set -e`, so this exit
+# status must be checked explicitly or a failure here would silently fall
+# through to initramfs regeneration/mount without the array definition ever
+# being persisted.
+if ! mdadm --detail --brief $RAID0_DEVICE_PATH >> $mdadm_conf_path; then
     printf "Failed to update $mdadm_conf_path\n"
     exit 1
 fi

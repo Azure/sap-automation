@@ -160,7 +160,7 @@
     - name:                            "1.1 Swap - Validate NVMe swap configuration variables"
       ansible.builtin.assert:
         that:
-          - nvme_swap_mount_point is match('^/\S+$')
+          - nvme_swap_mount_point is match('^/\S+\Z')
           - nvme_swap_filesystem == 'ext4'
         fail_msg: >-
           nvme_swap_mount_point must be an absolute path with no whitespace
