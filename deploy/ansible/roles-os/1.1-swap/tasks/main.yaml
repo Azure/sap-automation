@@ -152,18 +152,24 @@
     # Fail fast on malformed input: the mount point is passed as a bare,
     # unquoted argument to free-form command tasks and written verbatim to
     # /etc/fstab by the helper script, so whitespace would split it across
-    # arguments/fstab fields and silently misconfigure the mount. The
-    # filesystem is restricted to ext4 only: both swap-creation paths
-    # allocate the swap file with fallocate(2), which ext2/ext3 don't
+    # arguments/fstab fields and silently misconfigure the mount. fstab also
+    # decodes backslash-octal escapes (e.g. "\040" -> space), so a value
+    # containing a literal backslash can pass a whitespace-only check yet
+    # still resolve to a different, unintended path once fstab parses it.
+    # Rather than trying to enumerate every fstab-unsafe character, allow
+    # only a conservative set of characters known to be safe in a mount
+    # path. The filesystem is restricted to ext4 only: both swap-creation
+    # paths allocate the swap file with fallocate(2), which ext2/ext3 don't
     # support (and btrfs needs NODATACOW set before allocation, which
     # neither script does, plus btrfs-progs isn't installed below).
     - name:                            "1.1 Swap - Validate NVMe swap configuration variables"
       ansible.builtin.assert:
         that:
-          - nvme_swap_mount_point is match('^/\S+\Z')
+          - nvme_swap_mount_point is match('^/[A-Za-z0-9._/-]+\Z')
           - nvme_swap_filesystem == 'ext4'
         fail_msg: >-
-          nvme_swap_mount_point must be an absolute path with no whitespace
+          nvme_swap_mount_point must be an absolute path containing only
+          letters, digits, '.', '_', '-', and '/'
           (got '{{ nvme_swap_mount_point }}'), and nvme_swap_filesystem must
           be ext4
           (got '{{ nvme_swap_filesystem }}').

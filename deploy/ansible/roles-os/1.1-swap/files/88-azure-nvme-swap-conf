@@ -199,7 +199,33 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
         sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" /etc/fstab
         sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" $mdadm_conf_path
     else
-        printf "Valid NVMe RAID 0 array present and no additional Direct Disks found. Skipping\n"
+        # Config files and array health look correct, but that doesn't
+        # prove the array is actually mounted at the requested target (it
+        # may have been manually unmounted, or its `nofail` boot mount may
+        # have failed). Verify the real mount state via blkid/findmnt
+        # rather than trusting fstab/mdadm.conf alone, and fail closed
+        # instead of silently letting Ansible create swap on the wrong
+        # filesystem.
+        expected_source=$(blkid -L "$RAID0_FILESYSTEM_LABEL" 2>/dev/null)
+        current_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
+        if [ -n "$expected_source" ] && [ "$current_source" = "$expected_source" ]; then
+            printf "Valid NVMe RAID 0 array present and mounted at $mount_point. Skipping\n"
+            exit 0
+        fi
+        if mountpoint -q "$mount_point" 2>/dev/null; then
+            printf "ERROR: $mount_point is mounted by ${current_source:-an unknown device}, not the NVMe RAID0 array (LABEL=$RAID0_FILESYSTEM_LABEL); refusing to proceed\n"
+            exit 1
+        fi
+        printf "Valid NVMe RAID 0 array present but not mounted at $mount_point. Mounting via existing fstab entry.\n"
+        if ! mkdir -p "$mount_point"; then
+            printf "Failed to create mount point directory $mount_point\n"
+            exit 1
+        fi
+        if ! mount "$mount_point"; then
+            printf "ERROR: NVMe RAID 0 array and configuration are valid, but failed to mount $mount_point\n"
+            exit 1
+        fi
+        printf "Mounted NVMe RAID 0 array at $mount_point. Skipping reinitialization\n"
         exit 0
     fi
 fi
