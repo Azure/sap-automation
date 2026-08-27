@@ -278,6 +278,7 @@ printf "\nMounting filesystem to $mount_point..\n"
 # again here in case the target was mounted by something else in the
 # interim (e.g. a racing process), since Linux otherwise allows silently
 # stacking a mount on top of an existing one.
+already_mounted=false
 if mountpoint -q "$mount_point" 2>/dev/null; then
     existing_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
     if [ "$existing_source" != "LABEL=$RAID0_FILESYSTEM_LABEL" ] && [ "$existing_source" != "$partition_path" ]; then
@@ -287,6 +288,12 @@ if mountpoint -q "$mount_point" 2>/dev/null; then
         sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" $mdadm_conf_path
         exit 1
     fi
+    # Something (e.g. udev/systemd) already mounted our own array at the
+    # target during the initramfs-update window above. Skip the mount call
+    # below - it would otherwise fail with "already mounted" and trigger an
+    # unwarranted rollback of the fstab/mdadm.conf entries we just wrote,
+    # which are in fact correct and needed for the next boot.
+    already_mounted=true
 fi
 if ! mkdir -p "$mount_point"; then
     printf "Failed to create mount point directory $mount_point\n"
@@ -296,7 +303,7 @@ fi
 # unrelated fstab entry failing (e.g. an NFS mount without `nofail`)
 # doesn't make this script report failure after the array/filesystem
 # have already been successfully rebuilt.
-if ! mount "$mount_point"; then
+if [ "$already_mounted" = false ] && ! mount "$mount_point"; then
     printf "Failed to mount $mount_point\n"
     printf "Rolling back fstab/mdadm.conf entries added by this run.\n"
     sed -i.bak "/$RAID0_FILESYSTEM_LABEL/d" /etc/fstab
