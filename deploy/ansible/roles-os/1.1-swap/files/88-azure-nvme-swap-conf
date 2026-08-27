@@ -50,6 +50,22 @@ if [ ! "$mount_point" ]; then
     mount_point=$DEFAULT_MOUNT_POINT
 fi
 
+# This helper is invoked both by the Ansible role (tasks/main.yaml) and by
+# the per-boot cloud-init recovery script (create-swap-perboot.sh.j2), so
+# two instances can race - e.g. if configuration runs while a resize-induced
+# blank-disk recovery is already in progress. Both would otherwise be able
+# to pass the stale-state checks below concurrently and stop/wipe/recreate
+# /dev/md0 at the same time. Acquire an exclusive, helper-wide lock before
+# any state inspection so every caller is serialized; fail closed if it
+# can't be acquired within a bounded time rather than blocking forever.
+readonly LOCK_FILE="/var/run/azure-nvme-swap-conf.lock"
+readonly LOCK_TIMEOUT_SECONDS=120
+exec 200>"$LOCK_FILE"
+if ! flock -w "$LOCK_TIMEOUT_SECONDS" 200; then
+    printf "ERROR: could not acquire lock $LOCK_FILE within ${LOCK_TIMEOUT_SECONDS}s; another instance of $script_name is likely running\n"
+    exit 1
+fi
+
 # Preflight: refuse to proceed if the target mount point is already in use
 # by something other than our own NVMe RAID0 array (matched by label). This
 # must run before any destructive or persistent change below (wiping the

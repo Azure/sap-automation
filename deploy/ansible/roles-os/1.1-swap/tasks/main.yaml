@@ -225,7 +225,7 @@
 
     # Ensure the configured mount point exists (recursively), so a nested
     # override such as /srv/sap/temp doesn't fail the helper script or the
-    # per-boot recovery script's non-recursive mkdir. standard parent 
+    # per-boot recovery script's non-recursive mkdir. standard parent
     # directory permissions apply, typically '0755', allowing traversal
     # and listing by all users.
     - name:                            "1.1 Swap - Ensure configured NVMe swap mount point directory exists"
