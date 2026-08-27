@@ -47,7 +47,7 @@ if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
   fi
 
   if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then
-    mount -a
+    mount "$MOUNT_POINT"
   fi
 
   if ! mountpoint -q "$MOUNT_POINT" 2>/dev/null; then

@@ -27,6 +27,33 @@ if ! [ -x "$(command -v mkfs.$filesystem)" ]; then
     exit 1
 fi
 
+# Fail fast, before any destructive reinitialization, if the fixed
+# RAID0_FILESYSTEM_LABEL doesn't fit the requested filesystem's on-disk
+# label length limit (e.g. XFS labels are capped at 12 characters, vs 16
+# for ext2/3/4). Formatting would otherwise fail after the old array has
+# already been wiped, leaving the host without swap.
+case "$filesystem" in
+    xfs)
+        label_max_len=12
+        ;;
+    vfat|msdos)
+        label_max_len=11
+        ;;
+    ext2|ext3|ext4)
+        label_max_len=16
+        ;;
+    btrfs)
+        label_max_len=255
+        ;;
+    *)
+        label_max_len=${#RAID0_FILESYSTEM_LABEL}
+        ;;
+esac
+if [ "${#RAID0_FILESYSTEM_LABEL}" -gt "$label_max_len" ]; then
+    printf "Filesystem \"$filesystem\" limits labels to $label_max_len characters, but \"$RAID0_FILESYSTEM_LABEL\" is ${#RAID0_FILESYSTEM_LABEL}\n"
+    exit 1
+fi
+
 mount_point="$2"
 if [ ! "$mount_point" ]; then
     printf "No mount point specified. Using default: $DEFAULT_MOUNT_POINT\n"
@@ -243,8 +270,12 @@ if ! mkdir -p "$mount_point"; then
     printf "Failed to create mount point directory $mount_point\n"
     exit 1
 fi
-if ! mount -a; then
-    printf "Failed to automount partition\n"
+# Mount only the newly-added fstab target instead of `mount -a`, so an
+# unrelated fstab entry failing (e.g. an NFS mount without `nofail`)
+# doesn't make this script report failure after the array/filesystem
+# have already been successfully rebuilt.
+if ! mount "$mount_point"; then
+    printf "Failed to mount $mount_point\n"
     exit 1
 fi
 printf "The operation has completed successfully.\n"

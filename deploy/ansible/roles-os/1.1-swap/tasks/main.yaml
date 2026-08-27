@@ -149,6 +149,21 @@
     - nvme_device_count | int > 0
     - nvme_direct_count | int > 0
   block:
+    # Fail fast on malformed input: the mount point is passed as a bare,
+    # unquoted argument to free-form command tasks and written verbatim to
+    # /etc/fstab by the helper script, so whitespace would split it across
+    # arguments/fstab fields and silently misconfigure the mount.
+    - name:                            "1.1 Swap - Validate NVMe swap configuration variables"
+      ansible.builtin.assert:
+        that:
+          - nvme_swap_mount_point is match('^/\S+$')
+          - nvme_swap_filesystem is match('^[A-Za-z0-9]+$')
+        fail_msg: >-
+          nvme_swap_mount_point must be an absolute path with no whitespace
+          (got '{{ nvme_swap_mount_point }}'), and nvme_swap_filesystem must
+          be a single alphanumeric filesystem type such as ext4
+          (got '{{ nvme_swap_filesystem }}').
+
     # Install required dependencies for the NVMe swap helper script
     - name:                            "1.1 Swap - Install NVMe swap dependencies (RHEL)"
       when:                            ansible_os_family | upper == "REDHAT"
