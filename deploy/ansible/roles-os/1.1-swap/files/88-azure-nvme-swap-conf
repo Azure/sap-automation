@@ -97,18 +97,19 @@ fi
 # would pass here, get mounted first by `mount "$mount_point"`, and the
 # helper would still exit successfully, leaving Ansible to create swap on
 # that unrelated filesystem.
-if grep -q "^[^#]*[[:space:]]${mount_point}[[:space:]]" /etc/fstab 2>/dev/null; then
+#
+# The mount point is compared as an exact string against fstab's second
+# field (not interpolated into the grep pattern as a regex), since
+# nvme_swap_mount_point permits '.', which would otherwise match unintended
+# paths (e.g. "/mnt/swap.v1" matching an existing "/mnt/swapXv1" entry).
+existing_fstab_line=$(awk -v mp="$mount_point" '$1 !~ /^#/ && $2 == mp {print; exit}' /etc/fstab 2>/dev/null)
+if [ -n "$existing_fstab_line" ]; then
     # An fstab entry exists for this mount point. Verify it's for our array.
-    fstab_source=$(grep "^[^#]*[[:space:]]${mount_point}[[:space:]]" /etc/fstab | head -1 | awk '{print $1}')
-    case "$fstab_source" in
-        "LABEL=$RAID0_FILESYSTEM_LABEL")
-            # This is our entry; actual validation happens below
-            ;;
-        *)
-            printf "ERROR: An fstab entry for $mount_point points to '${fstab_source}', not the NVMe RAID0 array; refusing to proceed\n"
-            exit 1
-            ;;
-    esac
+    fstab_source=$(awk '{print $1}' <<< "$existing_fstab_line")
+    if [ "$fstab_source" != "LABEL=$RAID0_FILESYSTEM_LABEL" ]; then
+        printf "ERROR: An fstab entry for $mount_point points to '${fstab_source}', not the NVMe RAID0 array; refusing to proceed\n"
+        exit 1
+    fi
 fi
 
 # Preflight: refuse to mount over a non-empty directory on the root filesystem.
@@ -418,7 +419,7 @@ printf "\nMounting filesystem to $mount_point..\n"
 already_mounted=false
 if mountpoint -q "$mount_point" 2>/dev/null; then
     existing_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
-    if [ "$existing_source" != "LABEL=$RAID0_FILESYSTEM_LABEL" ] && [ "$existing_source" != "$partition_path" ]; then
+    if [ "$existing_source" != "$partition_path" ]; then
         printf "ERROR: $mount_point is already mounted (source: ${existing_source:-unknown}); refusing to mount the NVMe array on top of it\n"
         exit 1
     fi
@@ -439,6 +440,19 @@ fi
 # have already been successfully rebuilt.
 if [ "$already_mounted" = false ] && ! mount "$mount_point"; then
     printf "Failed to mount $mount_point\n"
+    exit 1
+fi
+
+# Verify the mounted source is actually our newly created partition, not
+# merely something matched by the "LABEL=azure_nvme_temp" fstab entry.
+# mount(8) resolves fstab's LABEL= specifier to whichever device carries a
+# matching label first; if a duplicate "azure_nvme_temp" label exists on
+# another device (e.g. stale data left on a different disk), mount could
+# pick that device instead, succeed, and leave the rollback trap disarmed
+# below even though the wrong disk is now mounted at $mount_point.
+mounted_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
+if [ "$mounted_source" != "$partition_path" ]; then
+    printf "ERROR: $mount_point is mounted by ${mounted_source:-an unknown device}, not the newly initialized $partition_path; refusing to proceed\n"
     exit 1
 fi
 printf "The operation has completed successfully.\n"
