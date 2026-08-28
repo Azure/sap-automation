@@ -90,13 +90,19 @@ fi
 
 # Preflight: check for stale fstab entries for this mount point that don't
 # belong to the NVMe RAID0 array. These would prevent proper mounting later
-# since mount(8) will select the first matching entry in fstab.
+# since mount(8) will select the first matching entry in fstab. This helper
+# always writes its own entry as exactly "LABEL=azure_nvme_temp" - accept
+# only that exact source. Accepting any UUID=* entry would defeat this
+# check: an unrelated UUID-sourced entry already targeting the mount point
+# would pass here, get mounted first by `mount "$mount_point"`, and the
+# helper would still exit successfully, leaving Ansible to create swap on
+# that unrelated filesystem.
 if grep -q "^[^#]*[[:space:]]${mount_point}[[:space:]]" /etc/fstab 2>/dev/null; then
     # An fstab entry exists for this mount point. Verify it's for our array.
     fstab_source=$(grep "^[^#]*[[:space:]]${mount_point}[[:space:]]" /etc/fstab | head -1 | awk '{print $1}')
     case "$fstab_source" in
-        LABEL=$RAID0_FILESYSTEM_LABEL|UUID=*)
-            # Likely our entry; actual validation happens below
+        "LABEL=$RAID0_FILESYSTEM_LABEL")
+            # This is our entry; actual validation happens below
             ;;
         *)
             printf "ERROR: An fstab entry for $mount_point points to '${fstab_source}', not the NVMe RAID0 array; refusing to proceed\n"

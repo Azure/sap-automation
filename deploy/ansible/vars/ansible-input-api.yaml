@@ -292,13 +292,17 @@ use_fence_kdump:                       false
 use_hanasr_angi:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
+# Note: hana is intentionally 2048 MB (2 GiB) per SAP's HANA swap
+# recommendation, not a leftover typo of 20480. `free -g` may display this
+# as ~1.9G due to binary-GiB rounding plus mkswap/kernel header overhead -
+# that is expected and not a sizing regression.
 sap_swap:
   - { tier: "scs",                swap_size_mb: "4096"   }
   - { tier: "ers",                swap_size_mb: "4096"   }
   - { tier: "pas",                swap_size_mb: "20480"  }
   - { tier: "app",                swap_size_mb: "20480"  }
   - { tier: "web",                swap_size_mb: "20480"  }
-  - { tier: "hana",               swap_size_mb: "2050"   }
+  - { tier: "hana",               swap_size_mb: "2048"   }
   - { tier: "db2",                swap_size_mb: "20480"  }
   - { tier: "sybase",             swap_size_mb: "20480"  }
   - { tier: "oracle",             swap_size_mb: "204800" }
