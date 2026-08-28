@@ -293,9 +293,13 @@ use_hanasr_angi:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 # Note: hana is intentionally 2048 MB (2 GiB) per SAP's HANA swap
-# recommendation, not a leftover typo of 20480. `free -g` may display this
-# as ~1.9G due to binary-GiB rounding plus mkswap/kernel header overhead -
-# that is expected and not a sizing regression.
+# recommendation, not a leftover typo of 20480. `free -m`/`swapon --show`
+# will show a total close to (but slightly under) 2048 MB, since mkswap and
+# the kernel reserve a small amount of header space; `free -g` rounds to
+# whole GiB and will simply report 2. This value drives both the NVMe swap
+# helper (roles-os/1.1-swap/tasks/main.yaml, use_nvme_disks path) and the
+# waagent ResourceDisk.SwapSizeMB setting (same file, non-NVMe path), so it
+# changes the HANA swap size on non-NVMe deployments as well.
 sap_swap:
   - { tier: "scs",                swap_size_mb: "4096"   }
   - { tier: "ers",                swap_size_mb: "4096"   }

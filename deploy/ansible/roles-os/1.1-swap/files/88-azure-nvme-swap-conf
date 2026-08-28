@@ -267,7 +267,13 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
         # Must be exactly /dev/md0p1 mounted at the requested target
         expected_device="${RAID0_DEVICE_PATH}p1"
 
-        # First, verify exact mount point (not parent directory)
+        # First, verify exact mount point (not parent directory). If it's
+        # not yet mounted, mount it via the fstab entry, then fall through
+        # to the device/label verification below rather than exiting early
+        # - mount(8) resolves the LABEL= specifier to whichever device
+        # carries a matching label first, so a duplicate "azure_nvme_temp"
+        # label elsewhere could otherwise let this succeed against the
+        # wrong device without being caught.
         if ! mountpoint -q "$mount_point" 2>/dev/null; then
             printf "Valid NVMe RAID 0 array present but not mounted at $mount_point. Mounting via existing fstab entry.\n"
             if ! mkdir -p "$mount_point"; then
@@ -279,7 +285,6 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
                 exit 1
             fi
             printf "Mounted NVMe RAID 0 array at $mount_point\n"
-            exit 0
         fi
 
         # Mount point exists and is mounted. Verify it's the right device.
@@ -296,7 +301,7 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
             exit 1
         fi
 
-        printf "Valid NVMe RAID 0 array present and mounted at $mount_point\n"
+        printf "Valid NVMe RAID 0 array present and mounted at $mount_point. Skipping\n"
         exit 0
     fi
 fi
