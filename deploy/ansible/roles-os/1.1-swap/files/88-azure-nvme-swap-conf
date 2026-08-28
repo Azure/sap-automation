@@ -67,18 +67,52 @@ if ! flock -w "$LOCK_TIMEOUT_SECONDS" 200; then
 fi
 
 # Preflight: refuse to proceed if the target mount point is already in use
-# by something other than our own NVMe RAID0 array (matched by label). This
-# must run before any destructive or persistent change below (wiping the
-# array, formatting, appending fstab/mdadm.conf entries) - otherwise a first
-# run against an occupied target leaves those side effects in place, and a
-# retry would classify the array/configuration as valid and skip, silently
-# leaving swap creation to target the unrelated filesystem still occupying
-# the mount point.
+# by something other than our own NVMe RAID0 array. This must run before
+# any destructive or persistent change below (wiping the array, formatting,
+# appending fstab/mdadm.conf entries) - otherwise a first run against an
+# occupied target leaves those side effects in place, and a retry would
+# classify the array/configuration as valid and skip, silently leaving swap
+# creation to target the unrelated filesystem still occupying the mount point.
 if mountpoint -q "$mount_point" 2>/dev/null; then
     existing_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
-    expected_source=$(blkid -L "$RAID0_FILESYSTEM_LABEL" 2>/dev/null)
-    if [ -z "$expected_source" ] || [ "$existing_source" != "$expected_source" ]; then
-        printf "ERROR: $mount_point is already mounted by ${existing_source:-an unknown device}, not the NVMe RAID0 array (LABEL=$RAID0_FILESYSTEM_LABEL); refusing to proceed\n"
+    expected_source="$RAID0_DEVICE_PATH"p1
+    if [ "$existing_source" != "$expected_source" ]; then
+        printf "ERROR: $mount_point is already mounted by ${existing_source:-an unknown device}, not the NVMe RAID0 array (expected $expected_source); refusing to proceed\n"
+        exit 1
+    fi
+    # Verify this is really our array by checking the label as well
+    filesystem_label=$(blkid -s LABEL -o value "$existing_source" 2>/dev/null || true)
+    if [ "$filesystem_label" != "$RAID0_FILESYSTEM_LABEL" ]; then
+        printf "ERROR: $mount_point is mounted by ${existing_source}, but the filesystem label is '$filesystem_label', not '$RAID0_FILESYSTEM_LABEL'; refusing to proceed\n"
+        exit 1
+    fi
+fi
+
+# Preflight: check for stale fstab entries for this mount point that don't
+# belong to the NVMe RAID0 array. These would prevent proper mounting later
+# since mount(8) will select the first matching entry in fstab.
+if grep -q "^[^#]*[[:space:]]${mount_point}[[:space:]]" /etc/fstab 2>/dev/null; then
+    # An fstab entry exists for this mount point. Verify it's for our array.
+    fstab_source=$(grep "^[^#]*[[:space:]]${mount_point}[[:space:]]" /etc/fstab | head -1 | awk '{print $1}')
+    case "$fstab_source" in
+        LABEL=$RAID0_FILESYSTEM_LABEL|UUID=*)
+            # Likely our entry; actual validation happens below
+            ;;
+        *)
+            printf "ERROR: An fstab entry for $mount_point points to '${fstab_source}', not the NVMe RAID0 array; refusing to proceed\n"
+            exit 1
+            ;;
+    esac
+fi
+
+# Preflight: refuse to mount over a non-empty directory on the root filesystem.
+# If the target exists but is not a mount point and contains data, mounting
+# over it would hide that data, making it unavailable until unmount.
+if [ ! -e "$mount_point" ]; then
+    true  # Doesn't exist yet; will be created later
+elif ! mountpoint -q "$mount_point" 2>/dev/null; then
+    if [ -d "$mount_point" ] && [ -n "$(ls -A "$mount_point" 2>/dev/null)" ]; then
+        printf "ERROR: $mount_point exists and is not empty; refusing to mount over it as this would hide existing data\n"
         exit 1
     fi
 fi
@@ -218,30 +252,44 @@ if [ "$fstab_entry_present" = true ] || [ "$mdadm_conf_entry_present" = true ] |
         # Config files and array health look correct, but that doesn't
         # prove the array is actually mounted at the requested target (it
         # may have been manually unmounted, or its `nofail` boot mount may
-        # have failed). Verify the real mount state via blkid/findmnt
-        # rather than trusting fstab/mdadm.conf alone, and fail closed
-        # instead of silently letting Ansible create swap on the wrong
-        # filesystem.
-        expected_source=$(blkid -L "$RAID0_FILESYSTEM_LABEL" 2>/dev/null)
-        current_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
-        if [ -n "$expected_source" ] && [ "$current_source" = "$expected_source" ]; then
-            printf "Valid NVMe RAID 0 array present and mounted at $mount_point. Skipping\n"
+        # have failed, or it may be mounted at a parent directory). Verify
+        # the real mount state and exact device identity rather than
+        # trusting fstab/mdadm.conf/labels alone, and fail closed instead
+        # of silently letting Ansible create swap on the wrong filesystem.
+
+        # Must be exactly /dev/md0p1 mounted at the requested target
+        expected_device="${RAID0_DEVICE_PATH}p1"
+
+        # First, verify exact mount point (not parent directory)
+        if ! mountpoint -q "$mount_point" 2>/dev/null; then
+            printf "Valid NVMe RAID 0 array present but not mounted at $mount_point. Mounting via existing fstab entry.\n"
+            if ! mkdir -p "$mount_point"; then
+                printf "Failed to create mount point directory $mount_point\n"
+                exit 1
+            fi
+            if ! mount "$mount_point"; then
+                printf "ERROR: NVMe RAID 0 array and configuration are valid, but failed to mount $mount_point\n"
+                exit 1
+            fi
+            printf "Mounted NVMe RAID 0 array at $mount_point\n"
             exit 0
         fi
-        if mountpoint -q "$mount_point" 2>/dev/null; then
-            printf "ERROR: $mount_point is mounted by ${current_source:-an unknown device}, not the NVMe RAID0 array (LABEL=$RAID0_FILESYSTEM_LABEL); refusing to proceed\n"
+
+        # Mount point exists and is mounted. Verify it's the right device.
+        current_source=$(findmnt -n -o SOURCE --target "$mount_point" 2>/dev/null)
+        if [ "$current_source" != "$expected_device" ]; then
+            printf "ERROR: $mount_point is mounted by ${current_source:-an unknown device}, not the NVMe RAID0 array ($expected_device); refusing to proceed\n"
             exit 1
         fi
-        printf "Valid NVMe RAID 0 array present but not mounted at $mount_point. Mounting via existing fstab entry.\n"
-        if ! mkdir -p "$mount_point"; then
-            printf "Failed to create mount point directory $mount_point\n"
+
+        # Verify the filesystem label matches as a sanity check
+        filesystem_label=$(blkid -s LABEL -o value "$current_source" 2>/dev/null || true)
+        if [ "$filesystem_label" != "$RAID0_FILESYSTEM_LABEL" ]; then
+            printf "ERROR: $mount_point is mounted by ${current_source}, but the filesystem label is '$filesystem_label', not '$RAID0_FILESYSTEM_LABEL'; refusing to proceed\n"
             exit 1
         fi
-        if ! mount "$mount_point"; then
-            printf "ERROR: NVMe RAID 0 array and configuration are valid, but failed to mount $mount_point\n"
-            exit 1
-        fi
-        printf "Mounted NVMe RAID 0 array at $mount_point. Skipping reinitialization\n"
+
+        printf "Valid NVMe RAID 0 array present and mounted at $mount_point\n"
         exit 0
     fi
 fi
