@@ -293,19 +293,19 @@ use_hanasr_angi:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
-  - { tier: "scs",                swap_size_mb: "4096"  }
-  - { tier: "ers",                swap_size_mb: "4096"  }
-  - { tier: "pas",                swap_size_mb: "20480" }
-  - { tier: "app",                swap_size_mb: "20480" }
-  - { tier: "web",                swap_size_mb: "20480" }
-  - { tier: "hana",               swap_size_mb: "20480" }
-  - { tier: "db2",                swap_size_mb: "20480" }
-  - { tier: "sybase",             swap_size_mb: "20480" }
+  - { tier: "scs",                swap_size_mb: "4096"   }
+  - { tier: "ers",                swap_size_mb: "4096"   }
+  - { tier: "pas",                swap_size_mb: "20480"  }
+  - { tier: "app",                swap_size_mb: "20480"  }
+  - { tier: "web",                swap_size_mb: "20480"  }
+  - { tier: "hana",               swap_size_mb: "2050"   }
+  - { tier: "db2",                swap_size_mb: "20480"  }
+  - { tier: "sybase",             swap_size_mb: "20480"  }
   - { tier: "oracle",             swap_size_mb: "204800" }
   - { tier: "oracle-asm",         swap_size_mb: "204800" }
-  - { tier: "oracle-multi-sid",   swap_size_mb: "20480" }
-  - { tier: "observer",           swap_size_mb: "2048"  }
-  - { tier: 'sqlserver',          swap_size_mb: '20480' }
+  - { tier: "oracle-multi-sid",   swap_size_mb: "20480"  }
+  - { tier: "observer",           swap_size_mb: "2048"   }
+  - { tier: 'sqlserver',          swap_size_mb: '20480'  }
 # --------------------- End - SAP SWAP settings variables --------------------8
 
 # ------------------- Begin - Azure Monitor for SAP (AMS) variables ------------8
