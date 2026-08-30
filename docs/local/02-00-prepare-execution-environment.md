@@ -202,6 +202,7 @@ Azure deployment.
    The output identifies the intended subscription, tenant, and principal.
    Reauthenticate with the approved identity if the context changed.
 
+
 ## Prepare configuration
 
 Local execution has no hosted stage-specific generator.
@@ -218,6 +219,31 @@ Local execution has no hosted stage-specific generator.
 
 The Web application assists with configuration. It does not replace local
 identity setup, plan review, or script execution.
+
+## Readiness verification
+
+After preparing the configuration above and before running any deployment
+command, run the applicable shipped readiness checks and resolve every item
+they report. The checks' own output is the authority on what they inspect;
+this section describes only their operator-visible pass/fail role.
+
+1. Verify the toolchain on the execution host.
+
+   ```bash
+   "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/helpers/check_workstation.sh"
+   ```
+
+   The command prints a version for `az`, `terraform`, `ansible`, and
+   `jq` (see also step 9 of *Prepare the host*). A missing or blank version,
+   a missing tool, or an error exit means the host is not ready.
+
+Do not use `deploy/scripts/validate.sh` for current workspace `.tfvars`; that
+script expects the legacy JSON parameter shape, while current `.tfvars` files
+use Terraform HCL. Review the HCL configuration through the documented
+stage-specific plan and review gate instead.
+
+Do not proceed until the required Linux check exits successfully and all four
+reported versions are non-empty.
 
 ## Protect secrets and transient files
 

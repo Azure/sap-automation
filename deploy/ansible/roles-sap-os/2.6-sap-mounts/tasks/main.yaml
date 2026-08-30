@@ -22,6 +22,22 @@
   ansible.builtin.include_tasks:
     file:                              "2.6-set_runtime_facts.yaml"
 
+- name:                                "2.6 SAP Mounts - Determine the application tier /usr/sap storage"
+  ansible.builtin.set_fact:
+    usr_sap_on_shared_storage:         "{{ (usr_sap_mountpoint | default('') | trim | length) > 0 }}"
+
+- name:                                "2.6 SAP Mounts - Show the application tier /usr/sap storage"
+  ansible.builtin.debug:
+    msg:
+      - "Application tier /usr/sap on shared storage: {{ usr_sap_on_shared_storage }}"
+      - "Application tier /usr/sap mount point:       {{ usr_sap_mountpoint | default('') | ternary(usr_sap_mountpoint, 'Not set - using local storage') }}"
+    verbosity:                         2
+
+- name:                                "2.6 SAP Mounts - Import NFSv4 identity mapping preparation"
+  ansible.builtin.import_tasks:        2.6.9-nfs-idmap-prep.yaml
+  when:
+    - NFS_provider == 'ANF'
+
 - name:                                "2.6 SAP Mounts - Check if the shared disk exists"
   ansible.builtin.set_fact:
     shareddisk:                        "{{ disks | selectattr('host', 'defined') |
@@ -84,7 +100,59 @@
   when:
     - sap_disk_exists == '1'
     - node_tier != 'observer'
-    - ((node_tier == 'app' and usr_sap_mountpoint is undefined) or node_tier != 'app')
+    - not (node_tier in ['pas', 'app'] and usr_sap_on_shared_storage and MULTI_SIDS is undefined)
+
+# When the application tier /usr/sap moves to shared storage on a system that
+# previously used the local logical volume, the old xfs entry must be retired.
+# Leaving it in place would mount the logical volume at boot and land the
+# network mount on top of it - the stacked /usr/sap this design removes.
+# ansible_mounts reflects the state at play start, so the fstype test
+# identifies a genuinely local /usr/sap rather than one already on the share.
+- name:                                "2.6 SAP Mounts - Detect a local /usr/sap replaced by shared storage"
+  ansible.builtin.set_fact:
+    usr_sap_local_mount_present:       "{{ (ansible_mounts | default([]) |
+      selectattr('mount', 'equalto', '/usr/sap') |
+      selectattr('fstype', 'equalto', 'xfs') |
+      list | length) > 0 }}"
+  when:
+    - tier == 'sapos'
+    - node_tier in ['pas', 'app']
+    - MULTI_SIDS is undefined
+    - usr_sap_on_shared_storage
+
+- name:                                "2.6 SAP Mounts - Unmount the local /usr/sap replaced by shared storage"
+  ansible.posix.mount:
+    src:                               /dev/vg_sap/lv_usrsap
+    path:                              /usr/sap
+    state:                             unmounted
+  when:
+    - tier == 'sapos'
+    - node_tier in ['pas', 'app']
+    - MULTI_SIDS is undefined
+    - usr_sap_on_shared_storage
+    - usr_sap_local_mount_present | default(false)
+
+# absent_from_fstab matches on the mount point alone - src is ignored - so this
+# must stay behind usr_sap_local_mount_present. Without that guard it would
+# delete the network entry written by 2.6.10 on every converged run.
+- name:                                "2.6 SAP Mounts - Retire the local /usr/sap fstab entry"
+  ansible.posix.mount:
+    src:                               /dev/vg_sap/lv_usrsap
+    path:                              /usr/sap
+    state:                             absent_from_fstab
+  when:
+    - tier == 'sapos'
+    - node_tier in ['pas', 'app']
+    - MULTI_SIDS is undefined
+    - usr_sap_on_shared_storage
+    - usr_sap_local_mount_present | default(false)
+
+- name:                                "2.6 SAP Mounts - Mount /usr/sap on shared storage (pas & app)"
+  ansible.builtin.include_tasks:       2.6.10-usrsap-app-mounts.yaml
+  when:
+    - node_tier in ['pas', 'app']
+    - MULTI_SIDS is undefined
+    - usr_sap_on_shared_storage
 
 - name:                                "2.6 SAP Mounts - Mount local kdump file path to save vmcore"
   ansible.posix.mount:

@@ -8,4 +8,6 @@ use_AFS:                               "{{ NFS_provider == 'AFS' }}"
 scs_virtual_hostname:                  "{{ custom_scs_virtual_hostname | default(sap_sid | lower ~ 'scs' ~ scs_instance_number ~ 'cl1', true) }}"
 
 nfs_fs_type:                           "{% if use_eit_for_afs %}aznfs{% else %}nfs4{% endif %}"
+
+usr_sap_on_shared_storage:             false
 ...

@@ -755,6 +755,8 @@ namespace SDAFWebApp.Models
 
         public bool? use_random_id_for_storageaccounts { get; set; } = true;
 
+        public bool? AFS_usr_sap { get; set; }
+
         [PrivateEndpointIdValidator]
         public string sapmnt_private_endpoint_id { get; set; }
 

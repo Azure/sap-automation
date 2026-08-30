@@ -212,7 +212,7 @@ variable "use_simple_mount"                     {
                                                   description = "Use simple mount"
                                                   default     = true
                                                 }
-variable "usr_sap"                              { description = "If defined provides the mount point for /usr/sap on ANF" }
+variable "usr_sap"                              { description = "If defined provides the mount point for /usr/sap on ANF or on the Azure Files sapmnt storage" }
 variable "user_assigned_identity_id"            { description = "User assigned managed identity" }
 variable "web_instance_number"                  {
                                                   description = "The Instance number for Web Dispatcher"
