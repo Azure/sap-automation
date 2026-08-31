@@ -23,11 +23,13 @@ configuration and automation assets for the first deployment stage.
 | Understand the framework architecture | [SDAF architecture](architecture.md) |
 | Review extension options | [Extend SDAF](extensibility.md) |
 | Check technical supportability | [SDAF supportability](supportability.md) |
+| Look up an Azure region code | [Azure region codes](region-codes.md) |
 | Compare execution models | [Choose an SDAF deployment option](deployment-options.md) |
 | Understand repository ownership | [SDAF repositories](repositories.md) |
 | Use GitHub Actions | [Start with GitHub Actions](deployment-options.md#github-actions) |
 | Use Azure DevOps | [Start with Azure DevOps](deployment-options.md#azure-devops) |
 | Run SDAF directly | [Run SDAF locally](local/README.md) |
+| Validate a deployed SAP system | [Validate a local deployment with quality assurance tests](local/07-10-quality-assurance.md) |
 | Find Terraform samples and SAP BOMs | [`Azure/SAP-automation-samples`](https://github.com/Azure/SAP-automation-samples) |
 
 ## Understand the framework source

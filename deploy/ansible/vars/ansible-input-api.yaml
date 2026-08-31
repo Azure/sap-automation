@@ -9,7 +9,7 @@ oracle_user_name:                       oracle
 grid_user_name:                         grid
 orchestration_ansible_user:             azureadm
 # ------------------- Begin - SDAF Ansible Version ---------------------------8
-SDAF_Version:                           "3.22.0.0"
+SDAF_Version:                           "3.23.0.0"
 
 # ------------------- End - SDAF Ansible Version ---------------------------8
 
@@ -250,6 +250,11 @@ NFS_version:                            "NFSv4.1"
 use_simple_mount:                       false
 # Indicate if Encryption in Transit is to be used for AFS shares
 use_eit_for_afs:                        false
+# Shared storage path for the application tier /usr/sap. When empty, the PAS and all
+# additional application servers use local storage. When set (by AFS_usr_sap or
+# ANF_usr_sap in Terraform), every application server mounts its own directory beneath
+# it. This is independent of sap_mnt and use_simple_mount.
+usr_sap_mountpoint:                     ""
 
 # Corosync defaults (Corosync v2)
 corosync_crypto_config:                 |-
@@ -287,20 +292,28 @@ use_fence_kdump:                       false
 use_hanasr_angi:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
+# Note: hana is intentionally 2048 MB (2 GiB) per SAP's HANA swap
+# recommendation, not a leftover typo of 20480. `free -m`/`swapon --show`
+# will show a total close to (but slightly under) 2048 MB, since mkswap and
+# the kernel reserve a small amount of header space; `free -g` rounds to
+# whole GiB and will simply report 2. This value drives both the NVMe swap
+# helper (roles-os/1.1-swap/tasks/main.yaml, use_nvme_disks path) and the
+# waagent ResourceDisk.SwapSizeMB setting (same file, non-NVMe path), so it
+# changes the HANA swap size on non-NVMe deployments as well.
 sap_swap:
-  - { tier: "scs",                swap_size_mb: "4096"  }
-  - { tier: "ers",                swap_size_mb: "4096"  }
-  - { tier: "pas",                swap_size_mb: "20480" }
-  - { tier: "app",                swap_size_mb: "20480" }
-  - { tier: "web",                swap_size_mb: "20480" }
-  - { tier: "hana",               swap_size_mb: "20480" }
-  - { tier: "db2",                swap_size_mb: "20480" }
-  - { tier: "sybase",             swap_size_mb: "20480" }
+  - { tier: "scs",                swap_size_mb: "4096"   }
+  - { tier: "ers",                swap_size_mb: "4096"   }
+  - { tier: "pas",                swap_size_mb: "20480"  }
+  - { tier: "app",                swap_size_mb: "20480"  }
+  - { tier: "web",                swap_size_mb: "20480"  }
+  - { tier: "hana",               swap_size_mb: "2048"   }
+  - { tier: "db2",                swap_size_mb: "20480"  }
+  - { tier: "sybase",             swap_size_mb: "20480"  }
   - { tier: "oracle",             swap_size_mb: "204800" }
   - { tier: "oracle-asm",         swap_size_mb: "204800" }
-  - { tier: "oracle-multi-sid",   swap_size_mb: "20480" }
-  - { tier: "observer",           swap_size_mb: "2048"  }
-  - { tier: 'sqlserver',          swap_size_mb: '20480' }
+  - { tier: "oracle-multi-sid",   swap_size_mb: "20480"  }
+  - { tier: "observer",           swap_size_mb: "2048"   }
+  - { tier: 'sqlserver',          swap_size_mb: '20480'  }
 # --------------------- End - SAP SWAP settings variables --------------------8
 
 # ------------------- Begin - Azure Monitor for SAP (AMS) variables ------------8
@@ -332,3 +345,24 @@ UIDs:
     uid:                               "{{ sidadm_uid }}"
   SQLSERVER:
     uid:                               "{{ sidadm_uid }}"
+
+# ------------------- Begin - SAP Automation QA variables ----------------------8
+# Consumed only by playbook_06_03_00, which prepares the controller. The
+# Azure/sap-automation-qa playbooks are then executed directly through
+# templates/run-ansible.yaml, which already supplies the inventory, the private
+# key, kv_name and _workspace_directory. _workspace_directory is the SYSTEM
+# configuration folder, so no additional workspace variable is required.
+#
+# Everything the quality assurance playbooks themselves read - including the
+# telemetry settings - is loaded from the framework's own src/vars/input-api.yaml
+# and overridden through the pipeline 'extra_params' field, so those variables
+# are deliberately not duplicated here.
+sap_automation_qa_fork:                 "Azure"
+sap_automation_qa_version:              "1.1.3"
+sap_automation_qa_directory:            "/opt/microsoft/sap_automation_qa"
+sap_automation_qa_test_type:            "SAPFunctionalTests"
+sap_automation_qa_system_directory:     ""
+SAP_FUNCTIONAL_TEST_TYPE:               ""
+sap_automation_qa_test_groups:          ""
+sap_automation_qa_test_cases:           ""
+# ------------------- End - SAP Automation QA variables ------------------------8

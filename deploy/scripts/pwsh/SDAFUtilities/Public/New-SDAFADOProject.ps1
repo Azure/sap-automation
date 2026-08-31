@@ -196,6 +196,7 @@ function New-SDAFADOProject {
 			@{ Name = "SAP Software acquisition"; Description = "Downloads the software from SAP"; YamlPath = "/pipelines/04-sap-software-download.yml" },
 			@{ Name = "SAP Software acquisition new"; Description = "Downloads the software from SAP"; YamlPath = "/pipelines/04-sap-software-download_v2.yml" },
 			@{ Name = "Configuration and SAP installation"; Description = "Configures the Operating System and installs the SAP application"; YamlPath = "/pipelines/05-DB-and-SAP-installation.yml" },
+			@{ Name = "SAP Quality Assurance"; Description = "Runs the SAP quality assurance tests and configuration checks"; YamlPath = "/pipelines/13-sap-automation-qa.yml" },
 			@{ Name = "Remove System or Workload Zone"; Description = "Removes either the SAP system or the workload zone"; YamlPath = "/pipelines/10-remover-terraform.yml" },
 			@{ Name = "Remove deployments via ARM"; Description = "Removes the resource groups via ARM. Use this only as last resort"; YamlPath = "/pipelines/11-remover-arm-fallback.yml" },
 			@{ Name = "Remove control plane"; Description = "Removes the control plane"; YamlPath = "/pipelines/12-remove-control-plane.yml" },
@@ -257,6 +258,10 @@ function New-SDAFADOProject {
 			if ($PipelineId.Length -eq 0) {
 				az pipelines create --name $PipelineName --branch main --description $Description --skip-run --yaml-path $YamlName --repository $RepositoryId --repository-type tfsgit --output none --only-show-errors
 				$PipelineId = (az pipelines list --query "[?name=='$PipelineName'].id | [0]")
+				if ($PipelineId.Length -eq 0) {
+					Write-Warning "Could not create the '$PipelineName' pipeline. This definition needs $YamlName in the configuration repository. Update the configuration repository and rerun to add the pipeline."
+					return $null
+				}
 			}
 			$ThisPipelineUrl = $AdoOrganization + "/" + [uri]::EscapeDataString($AdoProject) + "/_build?definitionId=" + $PipelineId
 			$LogEntry = ("[" + $PipelineName + "](" + $ThisPipelineUrl + ")")
@@ -652,7 +657,7 @@ resources:
 			Write-Verbose "Initializing variables from parameters"
 			$ArmTenantId = $TenantId
 			$ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
-			$VersionLabel = "v3.22.0.0"
+			$VersionLabel = "v3.23.0.0"
 			Write-Verbose "Version label set to: $VersionLabel"
 
 			# Set path separator based on OS

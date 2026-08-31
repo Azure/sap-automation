@@ -344,7 +344,7 @@ if [ -f sap-parameters.yaml ]; then
 	git add sap-parameters.yaml
 	added=1
 else
-	return_code=1
+	echo "INFO: sap-parameters.yaml not present - nothing to stage (expected for plan-only runs)."
 fi
 
 if [ -f "${SID}_hosts.yaml" ]; then

@@ -120,19 +120,21 @@ def verify_resource_group(resource_group, subscription_id):
         rg_check_args = ["group", "exists", "--name", resource_group]
         rg_result = run_az_command(rg_check_args, capture_output=True, text=True)
 
-        if rg_result.returncode == 0 and rg_result.stdout.strip().lower() == "true":
-            print(f"✓ Resource group '{resource_group}' exists in subscription '{subscription_id}'")
-            return True
-        else:
-            print(
-                f"! Resource group '{resource_group}' does not exist in subscription '{subscription_id}'"
-            )
-            print("The resource group will need to be created before proceeding.")
-            return False
+        exists = rg_result.returncode == 0 and rg_result.stdout.strip().lower() == "true"
 
     except Exception as e:
         print(f"Error verifying resource group: {str(e)}")
         return False
+
+    if exists:
+        print(f"[OK] Resource group '{resource_group}' exists in subscription '{subscription_id}'")
+    else:
+        print(
+            f"! Resource group '{resource_group}' does not exist in subscription '{subscription_id}'"
+        )
+        print("The resource group will need to be created before proceeding.")
+
+    return exists
 
 
 def create_user_assigned_identity(identity_name, resource_group, subscription_id, location):
@@ -237,10 +239,10 @@ def create_user_assigned_identity(identity_name, resource_group, subscription_id
             )
 
             if role_result.returncode == 0:
-                print(f"✓ Successfully assigned {role_name} role to identity")
+                print(f"[OK] Successfully assigned {role_name} role to identity")
                 role_assignments.append({"role": role_name, "id": role_result.stdout.strip()})
             else:
-                print(f"✗ Failed to assign {role_name} role")
+                print(f"[FAILED] Failed to assign {role_name} role")
                 roles_failed.append(role_name)
 
         # Show warning if role assignment failed
@@ -376,13 +378,13 @@ def create_azure_service_principal(user_data):
 
                     role_result = run_az_command(role_args, capture_output=True, text=True)
                     if role_result.returncode != 0:
-                        print(f"✗ Failed to assign '{role_name}' role.")
+                        print(f"[FAILED] Failed to assign '{role_name}' role.")
                         roles_failed.append(role_name)
                     else:
-                        print(f"✓ '{role_name}' role assigned successfully.")
+                        print(f"[OK] '{role_name}' role assigned successfully.")
                         roles_assigned.append(role_name)
                 else:
-                    print(f"✓ '{role_name}' role is already assigned.")
+                    print(f"[OK] '{role_name}' role is already assigned.")
                     roles_assigned.append(role_name)
 
             except json.JSONDecodeError:
@@ -418,6 +420,14 @@ def create_azure_service_principal(user_data):
             f"/subscriptions/{user_data['subscription_id']}",
             "--only-show-errors",
         ]
+        # Some Entra ID tenants require every application object to carry a service
+        # management reference; without it the object may be rejected or auto-deleted.
+        service_management_reference = user_data.get("service_management_reference")
+        if service_management_reference:
+            spn_create_args += [
+                "--service-management-reference",
+                service_management_reference,
+            ]
         result = run_az_command(spn_create_args, capture_output=True, text=True)
         if result.returncode != 0:
             print(
@@ -505,9 +515,9 @@ def create_azure_service_principal(user_data):
             try:
                 role_result = run_az_command(role_assignment_args, capture_output=True, text=True)
                 if role_result.returncode == 0:
-                    print(f"✓ Successfully assigned {role_name} role.")
+                    print(f"[OK] Successfully assigned {role_name} role.")
                 else:
-                    print(f"✗ Failed to assign {role_name} role.")
+                    print(f"[FAILED] Failed to assign {role_name} role.")
                     roles_failed.append(role_name)
             except Exception as e:
                 print(f"Error assigning {role_name} role: {str(e)}")
@@ -632,7 +642,7 @@ def diagnose_service_principal_issues(spn_appid, subscription_id):
         issues.append("Service Principal does not exist or you don't have permission to access it.")
         success = False
     else:
-        print("✓ Service Principal exists.")
+        print("[OK] Service Principal exists.")
 
         # Check subscription access
         print("Checking subscription access...")
@@ -664,7 +674,9 @@ def diagnose_service_principal_issues(spn_appid, subscription_id):
                         for role in roles
                         if "roleDefinitionName" in role
                     ]
-                    print(f"✓ Service Principal has the following roles: {', '.join(role_names)}")
+                    print(
+                        f"[OK] Service Principal has the following roles: {', '.join(role_names)}"
+                    )
 
                     # Check if it has the required roles
                     required_roles = ["Contributor", "User Access Administrator"]
@@ -796,7 +808,7 @@ def create_app_registration(application_name, service_management_reference=None)
             existing = json.loads(list_result.stdout)
             app_id = existing["appId"]
             object_id = existing["id"]
-            print(f"✓ Found existing App Registration '{application_name}': {app_id}")
+            print(f"[OK] Found existing App Registration '{application_name}': {app_id}")
             return {"app_id": app_id, "object_id": object_id}
         except (json.JSONDecodeError, KeyError):
             pass  # Fall through to create a new one
@@ -844,7 +856,7 @@ def create_app_registration(application_name, service_management_reference=None)
             return None
 
         app_id = create_result.stdout.strip()
-        print(f"✓ App Registration created with App ID: {app_id}")
+        print(f"[OK] App Registration created with App ID: {app_id}")
 
         # Retrieve the object ID by querying the newly created registration
         list_result2 = run_az_command(
@@ -867,7 +879,7 @@ def create_app_registration(application_name, service_management_reference=None)
             try:
                 app_data = json.loads(list_result2.stdout)
                 object_id = app_data["id"]
-                print(f"✓ App Registration Object ID: {object_id}")
+                print(f"[OK] App Registration Object ID: {object_id}")
                 return {"app_id": app_id, "object_id": object_id}
             except (json.JSONDecodeError, KeyError):
                 print("Warning: Could not retrieve App Registration Object ID.")

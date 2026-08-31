@@ -973,6 +973,41 @@ $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Proj
 $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
 Add-Content -Path $wikiFileName -Value $log
 
+# Pipeline: SAP Quality Assurance
+#-------------------------------------------------------------------------------
+$pipeline_name = 'SAP Quality Assurance'
+Write-Host  "`n  Pipeline: $pipeline_name" `
+            -ForegroundColor Green
+$pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+if ($pipeline_id.Length -eq 0) {
+  Write-Host  "    Creating pipeline: $pipeline_name" `
+              -ForegroundColor Green
+  az pipelines create --name $pipeline_name                                                             `
+                      --branch main                                                                     `
+                      --description 'Runs the SAP quality assurance tests and configuration checks'     `
+                      --skip-run                                                                        `
+                      --yaml-path "/pipelines/13-sap-automation-qa.yml"                                 `
+                      --repository $repo_id                                                             `
+                      --repository-type tfsgit                                                          `
+                      --output none                                                                     `
+                      --only-show-errors
+  $pipeline_id = (az pipelines list --query "[?name=='$pipeline_name'].id | [0]")
+  if ($pipeline_id.Length -eq 0) {
+    Write-Warning "Could not create the '$pipeline_name' pipeline. This definition needs /pipelines/13-sap-automation-qa.yml in the configuration repository. Update the configuration repository and rerun this script to add the pipeline."
+  }
+} else {
+  Write-Host  "    Pipeline already exists, skipping creation" `
+              -ForegroundColor Yellow
+}
+
+if ($pipeline_id.Length -gt 0) {
+  $pipelines.Add($pipeline_id)
+
+  $this_pipeline_url = $ADO_ORGANIZATION + "/" + [uri]::EscapeDataString($ADO_Project) + "/_build?definitionId=" + $pipeline_id
+  $log = ("[" + $pipeline_name + "](" + $this_pipeline_url + ")")
+  Add-Content -Path $wikiFileName -Value $log
+}
+
 # Pipeline: Remove System or Workload Zone
 #-------------------------------------------------------------------------------
 $pipeline_name = 'Remove System or Workload Zone'

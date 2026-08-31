@@ -1,0 +1,19 @@
+{
+    "name": "azure-sap-automation",
+    "description": "18 documented-only hub skills for the SAP Deployment Automation Framework (SDAF): orientation, readiness, workspaces/tfvars, BOM/media, plan/test semantics, control plane / workload zone / SAP system deployment, installation, QA, HA, state, safe removal, failure triage, and sovereign-cloud deltas.",
+    "version": "3.23.0.0",
+    "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/Azure"
+    },
+    "homepage": "https://github.com/Azure/sap-automation",
+    "repository": "https://github.com/Azure/sap-automation",
+    "license": "MIT",
+    "keywords": [
+        "sap",
+        "sdaf",
+        "azure",
+        "terraform",
+        "ansible"
+    ]
+}

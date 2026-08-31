@@ -39,6 +39,16 @@ Also identify:
 2. Review the workload subscription, virtual network, subnets, DNS, peering,
    Key Vault, storage, NFS, witness, transport, and optional existing-resource
    identifiers.
+   - `private_endpoint_network_policies` is not forced to one value for every
+     Azure cloud. Azure supports `Disabled`, `Enabled`,
+     `NetworkSecurityGroupEnabled`, and `RouteTableEnabled`.
+   - For Azure Government deployments that fail with
+     `PrivateEndpointCannotBeCreatedInSubnetThatHasNetworkPoliciesEnabled`, set
+     `private_endpoint_network_policies = "Disabled"` in the workload-zone
+     `.tfvars` file. Do not apply this workaround automatically to other
+     clouds; select the policy mode required by their network design.
+   - See
+     [Manage network policies for private endpoints](https://learn.microsoft.com/azure/private-link/disable-private-endpoint-network-policy).
 3. Confirm that `<WORKLOAD_ZONE>` follows the environment, location, and
    logical network naming used by the `.tfvars` file.
 4. Record approval of the final configuration.

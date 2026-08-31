@@ -2182,6 +2182,15 @@
         "Display": 2
       },
       {
+        "Name": "AFS_usr_sap",
+        "Required": false,
+        "Description": "If defined, places /usr/sap for the application tier on the Azure Files sapmnt storage. Each application server, including the PAS, mounts its own directory on the share. Leave unchecked to keep /usr/sap on local storage.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "ANF_HANA_use_AVG",
         "Required": false,
         "Description": "defines if the ANF volume(s) will be created in an Application Volume Group",

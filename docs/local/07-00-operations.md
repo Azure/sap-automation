@@ -46,6 +46,8 @@ metadata. `remover.sh` runs Terraform destroy for a selected `sap_system` or
 resources. `advanced_state_management.sh` lists, imports, or removes Terraform
 state entries. Before every operation, including `list`, it runs
 `terraform init -migrate-state -upgrade` against the supplied backend.
+`quality_assurance_menu.sh` installs the quality assurance framework and runs
+configuration checks or SAP functional tests against a deployed SAP system.
 
 ## Review before execution
 
@@ -250,5 +252,8 @@ partial removal.
 
 ## Next step
 
-Return to [Run SDAF locally](README.md) for another environment or use
+Use
+[Validate a local deployment with quality assurance tests](07-10-quality-assurance.md)
+to confirm configuration and high availability behavior after an operational
+change. Return to [Run SDAF locally](README.md) for another environment or use
 [Troubleshoot local execution](troubleshooting.md) for an incomplete removal.

@@ -9,3 +9,9 @@
 distro_name:          "{{ ansible_distribution | upper }}-{{ ansible_distribution_major_version }}"
 distribution_id:      "{{ ansible_distribution | lower ~ ansible_distribution_major_version }}"
 distribution_full_id: "{{ ansible_distribution | lower ~ ansible_distribution_version }}"
+
+# Filesystem and mount point used for the ephemeral NVMe swap RAID 0 array.
+# Defined here (rather than as block vars) so inventory/group/host vars and
+# role-default overrides take effect per normal Ansible variable precedence.
+nvme_swap_filesystem:  "ext4"
+nvme_swap_mount_point: "/mnt/resource"

@@ -532,6 +532,61 @@ class TestAzureOps:
         assert result is not None
         assert result["appId"] == "existing-app-id"
 
+    def test_create_azure_service_principal_passes_service_management_reference_to_create_for_rbac(
+        self, mocker
+    ):
+        """
+        Verify :func:`sdaf.azure_ops.create_azure_service_principal` forwards the
+        service management reference to ``az ad sp create-for-rbac``.
+
+        :param mocker: pytest-mock fixture used to patch ``run_az_command``.
+        """
+        run_az_command = mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            return_value=_completed(returncode=1, stderr="permission denied"),
+        )
+
+        user_data = {
+            "use_existing_spn": False,
+            "spn_name": "my-spn",
+            "subscription_id": "sub-id",
+            "service_management_reference": "92a421fe-9780-4c8d-97d1-d5e9c4122bc5",
+        }
+
+        sdaf.azure_ops.create_azure_service_principal(user_data)
+
+        args = run_az_command.call_args_list[0].args[0]
+        assert "--service-management-reference" in args
+        assert args[args.index("--service-management-reference") + 1] == (
+            "92a421fe-9780-4c8d-97d1-d5e9c4122bc5"
+        )
+
+    def test_create_azure_service_principal_omits_service_management_reference_when_empty(
+        self, mocker
+    ):
+        """
+        Verify :func:`sdaf.azure_ops.create_azure_service_principal` omits the
+        ``--service-management-reference`` flag when no reference is supplied.
+
+        :param mocker: pytest-mock fixture used to patch ``run_az_command``.
+        """
+        run_az_command = mocker.patch(
+            "sdaf.azure_ops.run_az_command",
+            return_value=_completed(returncode=1, stderr="permission denied"),
+        )
+
+        user_data = {
+            "use_existing_spn": False,
+            "spn_name": "my-spn",
+            "subscription_id": "sub-id",
+            "service_management_reference": "",
+        }
+
+        sdaf.azure_ops.create_azure_service_principal(user_data)
+
+        args = run_az_command.call_args_list[0].args[0]
+        assert "--service-management-reference" not in args
+
     def test_create_azure_service_principal_returns_none_when_create_for_rbac_fails(self, mocker):
         """
         Edge case for :func:`sdaf.azure_ops.create_azure_service_principal`.

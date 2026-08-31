@@ -507,6 +507,12 @@ $$sapmnt_private_endpoint_id$$
 # use_random_id_for_storageaccounts defines if the sapmnt storage account name will have a random suffix
 $$use_random_id_for_storageaccounts$$
 
+# AFS_usr_sap, if defined, places /usr/sap for the application tier on the Azure Files sapmnt storage.
+# Each application server, including the PAS, mounts its own directory on the share.
+# When not defined, the PAS and all additional application servers use local storage.
+# This setting is independent of use_simple_mount and of where /sapmnt is placed.
+$$AFS_usr_sap$$
+
 #########################################################################################
 #                                                                                       #
 #  ANF                                                                                  #
