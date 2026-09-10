@@ -6,7 +6,7 @@ ${sid}_DB:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${db_connection}
       connection_type     : ${db_connectiontype}
-      virtual_host        : ${virt_dbnodes[idx]}
+      virtual_host        : ${lower(virt_dbnodes[idx])}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
       vm_name             : ${db_vmnodes[idx]}
@@ -36,7 +36,7 @@ ${sid}_SCS:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${scs_connection}
       connection_type     : ${scs_connectiontype}
-      virtual_host        : ${virt_scs_servers[idx]}
+      virtual_host        : ${lower(virt_scs_servers[idx])}
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${scs_vmnodes[idx]}
@@ -63,7 +63,7 @@ ${sid}_ERS:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${ers_connection}
       connection_type     : ${ers_connectiontype}
-      virtual_host        : ${virt_ers_servers[idx]}
+      virtual_host        : ${lower(virt_ers_servers[idx])}
       become_user         : ${scs_become_user}
       os_type             : ${scs_os_type}
       vm_name             : ${ers_vmnodes[idx]}
@@ -90,7 +90,7 @@ ${sid}_PAS:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${app_connection}
       connection_type     : ${app_connectiontype}
-      virtual_host        : ${virt_pas_servers[idx]}
+      virtual_host        : ${lower(virt_pas_servers[idx])}
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${pas_vmnodes[idx]}
@@ -117,7 +117,7 @@ ${sid}_APP:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${app_connection}
       connection_type     : ${app_connectiontype}
-      virtual_host        : ${virt_app_servers[idx]}
+      virtual_host        : ${lower(virt_app_servers[idx])}
       become_user         : ${app_become_user}
       os_type             : ${app_os_type}
       vm_name             : ${app_vmnodes[idx]}
@@ -144,7 +144,7 @@ ${sid}_WEB:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${web_connection}
       connection_type     : ${web_connectiontype}
-      virtual_host        : ${virt_web_servers[idx]}
+      virtual_host        : ${lower(virt_web_servers[idx])}
       become_user         : ${web_become_user}
       os_type             : ${web_os_type}
       vm_name             : ${web_vmnodes[idx]}
@@ -171,7 +171,7 @@ ${sid}_OBSERVER_DB:
       ansible_user        : ${ansible_user}
       ansible_connection  : ${db_connection}
       connection_type     : ${db_connectiontype}
-      virtual_host        : ${observers[idx]}
+      virtual_host        : ${lower(observers[idx])}
       become_user         : ${db_become_user}
       os_type             : ${db_os_type}
       resource_group_name : ${created_resource_group_name}
@@ -197,7 +197,7 @@ ${sid}_ISCSI:
       ansible_user        : ${ansible_user}
       ansible_connection  : ssh
       connection_type     : key
-      virtual_host        : ${iscsi_servers[idx]}
+      virtual_host        : ${lower(iscsi_servers[idx])}
       resource_group_name : ${created_resource_group_name}
       subscription_id     : ${created_resource_group_subscription_id}
       become_user         : root
