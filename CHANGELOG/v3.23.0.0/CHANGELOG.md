@@ -45,8 +45,3 @@
 
 - SDAF release version is `3.23.0.0` across the deployment version file,
   Ansible input template, and Azure DevOps PowerShell utilities.
-
-
-## Notes
-
-
