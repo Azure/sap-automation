@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using System;
@@ -36,9 +35,9 @@ namespace SDAFWebApp.Controllers
         private readonly string pipelineId;
         private readonly string branch;
 
-        private static void LogDebug(string message)
+        private void LogDebug(string message)
         {
-            System.Diagnostics.Debug.WriteLine($"[SystemController] {message}");
+            _logger.LogDebug("{Message}", message);
         }
 
 
@@ -46,6 +45,7 @@ namespace SDAFWebApp.Controllers
             ITableStorageService<SystemEntity> systemService,
             ITableStorageService<AppFile> appFileService,
             IConfiguration configuration,
+            RestHelper restHelper,
             ILogger<SystemController> logger)
         {
             _systemService = systemService;
@@ -54,7 +54,7 @@ namespace SDAFWebApp.Controllers
             _logger = logger;
 
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
-            restHelper = new RestHelper(configuration, platform);
+            this.restHelper = restHelper;
             systemView = SetViewData();
 
             pipelineId = configuration["SYSTEM_PIPELINE_ID"];
@@ -77,8 +77,9 @@ namespace SDAFWebApp.Controllers
 
                 systemView.ParameterGroupings = parameterArray;
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogWarning(e, "Failed to load system parameter metadata");
                 systemView.ParameterGroupings = Array.Empty<Grouping>();
             }
 
@@ -100,12 +101,12 @@ namespace SDAFWebApp.Controllers
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
                 systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars") && file.Id != "VM-Images.json" && file.Id.IndexOf("_custom_") == -1);
 
-                systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService);
+                systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService, _logger);
             }
-            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Error retrieving existing systems: " + e.Message;
+                _logger.LogError(e, "Failed to retrieve existing systems");
+                TempData["error"] = "Existing systems could not be retrieved.";
             }
 
             return View(systemIndex);
@@ -118,22 +119,17 @@ namespace SDAFWebApp.Controllers
             if (id == null || partitionKey == null) throw new ArgumentNullException();
             var systemEntity = await _systemService.GetByIdAsync(id, partitionKey);
             if (systemEntity == null || systemEntity.System == null) throw new KeyNotFoundException();
-            SystemModel s = null;
-            try
-            {
-                s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
-            }
-            catch (Exception e)
-            {
-                _logger?.LogWarning(e, "Failed to deserialize system {Id} in partition {PartitionKey}", Helper.SanitizeForLog(id), Helper.SanitizeForLog(partitionKey));
-            }
-            if (s == null) return null;
+            SystemModel s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System)
+                ?? throw new InvalidOperationException("The stored system definition is invalid.");
             try
             {
                 AppFile file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
-                s.name_override_file = id + "_custom_naming.json";
+                if (file != null)
+                {
+                    s.name_override_file = id + "_custom_naming.json";
+                }
             }
-            catch (Exception e)
+            catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
                 _logger?.LogInformation(e, "No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
             }
@@ -141,10 +137,13 @@ namespace SDAFWebApp.Controllers
             try
             {
                 AppFile file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
-                s.custom_disk_sizes_filename = id + "_custom_sizes.json";
-                s.database_size = "Custom";
+                if (file != null)
+                {
+                    s.custom_disk_sizes_filename = id + "_custom_sizes.json";
+                    s.database_size = "Custom";
+                }
             }
-            catch (Exception e)
+            catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
                 _logger?.LogInformation(e, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
             }
@@ -231,7 +230,6 @@ namespace SDAFWebApp.Controllers
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                     await PersistDefaultTransitionAsync(
                         system,
                         () => _systemService.CreateAsync(new SystemEntity(system)));
@@ -239,9 +237,10 @@ namespace SDAFWebApp.Controllers
                     return RedirectToAction("Index");
                 }
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
-                catch (Exception e)
+                catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
                 {
-                    ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
+                    _logger.LogError(e, "Failed to create system");
+                    ModelState.AddModelError("SystemId", "The system could not be created.");
                 }
             }
             systemView.SapObject = system;
@@ -268,7 +267,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to prepare deployment for system {Id}", Helper.SanitizeForLog(id));
+                TempData["error"] = "The system deployment could not be prepared.";
                 return RedirectToAction("Index");
             }
         }
@@ -287,6 +287,14 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
+                }
+                catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
+                {
+                    _logger?.LogInformation("No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
+                }
+
+                if (file != null)
+                {
                     system.name_override_file = id + "_custom_naming.json";
                     using var stream = new MemoryStream(file.Content);
 
@@ -295,14 +303,19 @@ namespace SDAFWebApp.Controllers
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch (Exception e)
-                {
-                    _logger?.LogWarning(e, "Failed to save custom naming file for system {Id}; continuing with default naming", Helper.SanitizeForLog(id));
-                }
 
+                file = null;
                 try
                 {
                     file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
+                }
+                catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
+                {
+                    _logger?.LogInformation("No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
+                }
+
+                if (file != null)
+                {
                     using var stream = new MemoryStream(file.Content);
 
                     system.custom_disk_sizes_filename = id + "_custom_sizes.json";
@@ -313,10 +326,6 @@ namespace SDAFWebApp.Controllers
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch (Exception e)
-                {
-                    _logger?.LogWarning(e, "Failed to save custom sizes file for system {Id}; continuing with default sizing", Helper.SanitizeForLog(id));
-                }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
 
@@ -325,14 +334,7 @@ namespace SDAFWebApp.Controllers
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.environment = system.workload_zone.Split('-')[0];
-                }
-                if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.network_logical_name = system.workload_zone.Split('-')[2];
-                }
+                PopulateFromWorkloadZone(system);
 
                 string content = Helper.ConvertToTerraform(system);
 
@@ -384,7 +386,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Error deploying system " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to deploy system {Id}", Helper.SanitizeForLog(id));
+                TempData["error"] = "The system could not be deployed.";
             }
             return RedirectToAction("Index");
         }
@@ -406,7 +409,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load system");
+                TempData["error"] = "The system could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -476,7 +480,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Error triggering SAP installation pipeline for system " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to trigger SAP installation pipeline");
+                TempData["error"] = "The SAP installation pipeline could not be started.";
             }
             return RedirectToAction("Index");
         }
@@ -498,7 +503,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load system");
+                TempData["error"] = "The system could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -526,10 +532,7 @@ namespace SDAFWebApp.Controllers
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.environment = system.workload_zone.Split('-')[0];
-                }
+                PopulateFromWorkloadZone(system);
 
 
                 switch (platform.ToLower())
@@ -592,7 +595,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = "Error removing workload zone " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to remove system");
+                TempData["error"] = "The system could not be removed.";
             }
             return RedirectToAction("Index");
         }
@@ -640,14 +644,7 @@ namespace SDAFWebApp.Controllers
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.environment = system.workload_zone.Split('-')[0];
-                }
-                if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.network_logical_name = system.workload_zone.Split('-')[2];
-                }
+                PopulateFromWorkloadZone(system);
                 systemView.SapObject = system;
 
                 await PrepareImageOptionsAsync();
@@ -657,7 +654,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load system for editing");
+                TempData["error"] = "The system could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -687,20 +685,6 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
-                        if (!string.IsNullOrEmpty(system.subscription))
-                        {
-                            system.subscription_id = system.subscription.Replace("/subscriptions/", "");
-                        }
-
-                        if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.environment = system.workload_zone.Split('-')[0];
-                        }
-                        if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.network_logical_name = system.workload_zone.Split('-')[2];
-                        }
-
                         await SubmitNewAsync(system);
                         string id = system.Id;
                         string path = $"/SYSTEM/{id}/{id}.tfvars";
@@ -709,7 +693,7 @@ namespace SDAFWebApp.Controllers
 
                         AppFile file = new()
                         {
-                            Id = WebUtility.HtmlEncode(path),
+                            Id = path,
                             Content = bytes,
                             UntrustedName = path,
                             Size = bytes.Length,
@@ -739,14 +723,7 @@ namespace SDAFWebApp.Controllers
                             system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                         }
 
-                        if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.environment = system.workload_zone.Split('-')[0];
-                        }
-                        if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.network_logical_name = system.workload_zone.Split('-')[2];
-                        }
+                        PopulateFromWorkloadZone(system);
 
                         DateTime currentDateAndTime = DateTime.Now;
                         system.LastModified = currentDateAndTime.ToShortDateString();
@@ -762,7 +739,7 @@ namespace SDAFWebApp.Controllers
 
                         AppFile file = new()
                         {
-                            Id = WebUtility.HtmlEncode(path),
+                            Id = path,
                             Content = bytes,
                             UntrustedName = path,
                             Size = bytes.Length,
@@ -776,7 +753,8 @@ namespace SDAFWebApp.Controllers
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("SystemId", "Error editing system: " + e.Message);
+                    _logger.LogError(e, "Failed to update system");
+                    ModelState.AddModelError("SystemId", "The system could not be updated.");
                 }
             }
             systemView.SapObject = system;
@@ -799,20 +777,6 @@ namespace SDAFWebApp.Controllers
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    if (!string.IsNullOrEmpty(system.subscription))
-                    {
-                        system.subscription_id = system.subscription.Replace("/subscriptions/", "");
-                    }
-
-                    if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                    {
-                        system.environment = system.workload_zone.Split('-')[0];
-                    }
-                    if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                    {
-                        system.network_logical_name = system.workload_zone.Split('-')[2];
-                    }
-
                     await PersistDefaultTransitionAsync(
                         system,
                         () => _systemService.CreateAsync(new SystemEntity(system)));
@@ -822,7 +786,8 @@ namespace SDAFWebApp.Controllers
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
+                    _logger.LogError(e, "Failed to create system");
+                    ModelState.AddModelError("SystemId", "The system could not be created.");
                 }
             }
             systemView.SapObject = system;
@@ -845,7 +810,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to copy system");
+                TempData["error"] = "The system could not be copied.";
                 return RedirectToAction("Index");
             }
         }
@@ -871,7 +837,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to download system file");
+                TempData["error"] = "The requested file could not be downloaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -893,7 +860,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                ModelState.AddModelError("SystemId", "Error setting default for system: " + e.Message);
+                _logger.LogError(e, "Failed to set default system");
+                ModelState.AddModelError("SystemId", "The default system could not be changed.");
             }
             return RedirectToAction("Index");
         }
@@ -936,6 +904,24 @@ namespace SDAFWebApp.Controllers
                 throw new InvalidOperationException(
                     "Failed to clear the previous default system; the replacement was rolled back.",
                     clearException);
+            }
+        }
+
+        private static void PopulateFromWorkloadZone(SystemModel system)
+        {
+            if (string.IsNullOrWhiteSpace(system?.workload_zone))
+            {
+                return;
+            }
+
+            WorkloadZoneIdentifier identifier = IdentifierParser.ParseWorkloadZone(system.workload_zone);
+            if (string.IsNullOrEmpty(system.environment))
+            {
+                system.environment = identifier.Environment;
+            }
+            if (string.IsNullOrEmpty(system.network_logical_name))
+            {
+                system.network_logical_name = identifier.NetworkLogicalName;
             }
         }
 

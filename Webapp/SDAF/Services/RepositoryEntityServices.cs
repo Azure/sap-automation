@@ -75,39 +75,30 @@ namespace SDAFWebApp.Services
         public async Task<List<T>> GetAllAsync()
         {
             var result = new List<T>();
+            RepositoryListResponse listResponse;
 
             try
             {
                 // List all partition folders in the root directory (use recursionLevel=1 to only get immediate children)
-                var listResponse = await _dataAccessProvider.ListFilesAsync(GetEntityRootPath());
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync] Root path: {GetEntityRootPath()}, found {listResponse.Items.Count} items");
-
-                foreach (var item in listResponse.Items)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[GetAllAsync] Item: path={item.Path}, isFolder={item.IsDirectory}");
-
-                    // Look for partition folders (folders that are not the root LANDSCAPE/SYSTEM folder itself)
-                    if (item.IsDirectory && item.Path.Contains("/") &&
-                        !item.Path.EndsWith("LANDSCAPE", StringComparison.OrdinalIgnoreCase) &&
-                        !item.Path.EndsWith("SYSTEM", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Extract partition key from path (e.g., "AFS-NOEU-SAP01-INFRASTRUCTURE")
-                        var parts = item.Path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-                        var partitionKey = parts[parts.Length - 1];
-                        System.Diagnostics.Debug.WriteLine($"[GetAllAsync] Found partition folder, calling GetAllAsync({partitionKey})");
-
-                        // Recursively get all TFVARS files in this partition
-                        var partitionResults = await GetAllAsync(partitionKey);
-                        System.Diagnostics.Debug.WriteLine($"[GetAllAsync] Partition {partitionKey} returned {partitionResults.Count} entities");
-                        result.AddRange(partitionResults);
-                    }
-                }
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync] Final result: {result.Count} total entities");
+                listResponse = await _dataAccessProvider.ListFilesAsync(GetEntityRootPath());
             }
             catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                // Entity root directory doesn't exist yet, return empty list
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync] Root path not found: {GetEntityRootPath()}");
+                return result;
+            }
+
+            foreach (var item in listResponse.Items)
+            {
+                // Look for partition folders (folders that are not the root LANDSCAPE/SYSTEM folder itself)
+                if (item.IsDirectory && item.Path.Contains("/") &&
+                    !item.Path.EndsWith("LANDSCAPE", StringComparison.OrdinalIgnoreCase) &&
+                    !item.Path.EndsWith("SYSTEM", StringComparison.OrdinalIgnoreCase))
+                {
+                    var parts = item.Path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                    var partitionKey = parts[parts.Length - 1];
+                    var partitionResults = await GetAllAsync(partitionKey, returnEmptyWhenMissing: false);
+                    result.AddRange(partitionResults);
+                }
             }
 
             return result;
@@ -115,54 +106,37 @@ namespace SDAFWebApp.Services
 
         public async Task<List<T>> GetAllAsync(string partitionKey)
         {
+            return await GetAllAsync(partitionKey, returnEmptyWhenMissing: true);
+        }
+
+        private async Task<List<T>> GetAllAsync(string partitionKey, bool returnEmptyWhenMissing)
+        {
             var result = new List<T>();
+            RepositoryListResponse listResponse;
 
             try
             {
-                // List files in the partition directory
                 string partitionPath = GetPartitionPath(partitionKey);
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Listing partition path: {partitionPath}");
-
-                var listResponse = await _dataAccessProvider.ListFilesAsync(partitionPath);
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Found {listResponse.Items.Count} items in partition");
-
-                foreach (var item in listResponse.Items)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Checking item: path={item.Path}, isFolder={item.IsDirectory}, isTfvars={item.Path.EndsWith(".tfvars", StringComparison.OrdinalIgnoreCase)}");
-
-                    // Look for TFVARS files (not folders, must end with .tfvars)
-                    if (!item.IsDirectory && item.Path.EndsWith(".tfvars", StringComparison.OrdinalIgnoreCase))
-                    {
-                        try
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Reading TFVARS file: {item.Path}");
-                            var fileResponse = await _dataAccessProvider.GetFileAsync(item.Path);
-                            var entity = DeserializeTfvars(fileResponse.Content, partitionKey);
-                            System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Successfully deserialized TFVARS file");
-                            result.Add(entity);
-                        }
-                        catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] File not found (race condition): {item.Path}");
-                            continue;
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Error deserializing {item.Path}: {ex.GetType().Name}: {ex.Message}");
-                            continue;
-                        }
-                    }
-                }
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Returning {result.Count} entities from partition");
+                listResponse = await _dataAccessProvider.ListFilesAsync(partitionPath);
             }
             catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                // Partition directory doesn't exist, return empty list
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Partition path not found: {GetPartitionPath(partitionKey)}");
+                if (returnEmptyWhenMissing)
+                {
+                    return result;
+                }
+
+                throw;
             }
-            catch (Exception ex)
+
+            foreach (var item in listResponse.Items)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetAllAsync({partitionKey})] Error listing partition: {ex.GetType().Name}: {ex.Message}");
+                if (!item.IsDirectory && item.Path.EndsWith(".tfvars", StringComparison.OrdinalIgnoreCase))
+                {
+                    var fileResponse = await _dataAccessProvider.GetFileAsync(item.Path);
+                    var entity = DeserializeTfvars(fileResponse.Content, partitionKey);
+                    result.Add(entity);
+                }
             }
 
             return result;
@@ -313,23 +287,19 @@ namespace SDAFWebApp.Services
             });
         }
 
-protected override LandscapeEntity DeserializeTfvars(string content, string partitionKey = null)
+        protected override LandscapeEntity DeserializeTfvars(string content, string partitionKey = null)
         {
-            // Convert TFVARS (HCL format) to JSON first, then deserialize
-            System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Content length: {content?.Length ?? 0} chars, partitionKey: {partitionKey}");
-
             if (string.IsNullOrEmpty(content))
             {
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Content is null or empty, returning default landscape");
-                return new LandscapeEntity { PartitionKey = partitionKey, RowKey = partitionKey, Landscape = JsonSerializer.Serialize(new LandscapeModel { Id = partitionKey }) };
+                throw new RepositoryOperationException(
+                    "The workload-zone TFVars file is empty.",
+                    RepositoryErrorCategory.ValidationError);
             }
 
             try
             {
                 // Convert TFVARS HCL to JSON format
                 string jsonContent = Helper.TfvarToJson(content);
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Converted to JSON, length: {jsonContent?.Length ?? 0} chars");
-
                 // Deserialize JSON to LandscapeModel with case-insensitive property matching
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonContent, options) ?? new LandscapeModel();
@@ -339,8 +309,6 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
                 {
                     landscape.Id = partitionKey;
                 }
-
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Parsed landscape - Id: {landscape.Id}, Environment: {landscape.environment}, Location: {landscape.location}, NetworkLogicalName: {landscape.network_logical_name}");
 
                 return new LandscapeEntity
                 {
@@ -352,11 +320,10 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Error parsing TFVARS: {ex.GetType().Name}: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Exception stack trace: {ex.StackTrace}");
                 throw new RepositoryOperationException(
-                    $"Failed to deserialize TFVARS content: {ex.Message}",
-                    RepositoryErrorCategory.Unknown);
+                    "The workload-zone TFVars file could not be parsed.",
+                    RepositoryErrorCategory.ValidationError,
+                    innerException: ex);
             }
         }
 
@@ -392,20 +359,13 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
 
             // Build TFVARS path: WORKSPACES/LANDSCAPE/{partitionKey}/{rowKey}.tfvars
             string tfvarsPath = $"WORKSPACES/LANDSCAPE/{partitionKey}/{rowKey}.tfvars";
-            System.Diagnostics.Debug.WriteLine($"[RepositoryLandscapeService.GetByIdAsync] Attempting to load TFVARS from: {tfvarsPath}");
-
             try
             {
                 var fileResponse = await _dataAccessProvider.GetFileAsync(tfvarsPath);
-                System.Diagnostics.Debug.WriteLine($"[RepositoryLandscapeService.GetByIdAsync] Successfully retrieved TFVARS file, content length: {fileResponse.Content?.Length ?? 0}");
-
-                var landscapeEntity = DeserializeTfvars(fileResponse.Content, partitionKey);
-                System.Diagnostics.Debug.WriteLine($"[RepositoryLandscapeService.GetByIdAsync] Successfully deserialized landscape: {landscapeEntity?.PartitionKey}");
-                return landscapeEntity;
+                return DeserializeTfvars(fileResponse.Content, partitionKey);
             }
             catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                System.Diagnostics.Debug.WriteLine($"[RepositoryLandscapeService.GetByIdAsync] TFVARS file not found at {tfvarsPath}, returning null");
                 return null;
             }
         }
@@ -480,24 +440,17 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
 
         protected override SystemEntity DeserializeTfvars(string content, string partitionKey = null)
         {
-            // Convert TFVARS (HCL format) to JSON first, then deserialize
-            System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Content length: {content?.Length ?? 0} chars, partitionKey: {partitionKey}");
-            System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Content first 300 chars (RAW): {(content?.Length > 300 ? content.Substring(0, 300) : content)}");
-            System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Content starts with: {(content?.Length > 50 ? content.Substring(0, 50).Replace("\n", "\\n").Replace("\r", "\\r") : "N/A")}");
-
             if (string.IsNullOrEmpty(content))
             {
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Content is null or empty, returning default system");
-                return new SystemEntity { PartitionKey = partitionKey, RowKey = partitionKey, System = JsonSerializer.Serialize(new SystemModel { Id = partitionKey }) };
+                throw new RepositoryOperationException(
+                    "The system TFVars file is empty.",
+                    RepositoryErrorCategory.ValidationError);
             }
 
             try
             {
                 // Convert TFVARS HCL to JSON format
                 string jsonContent = Helper.TfvarToJson(content);
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Converted to JSON, length: {jsonContent?.Length ?? 0} chars");
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] JSON first 500 chars: {(jsonContent?.Length > 500 ? jsonContent.Substring(0, 500) : jsonContent)}");
-
                 // Deserialize JSON to SystemModel with case-insensitive property matching
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var system = JsonSerializer.Deserialize<SystemModel>(jsonContent, options) ?? new SystemModel();
@@ -507,8 +460,6 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
                 {
                     system.Id = partitionKey;
                 }
-
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Parsed system - Id: {system.Id}, Environment: {system.environment}, Location: {system.location}, NetworkLogicalName: {system.network_logical_name}");
 
                 return new SystemEntity
                 {
@@ -520,11 +471,10 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Error parsing TFVARS: {ex.GetType().Name}: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[DeserializeTfvars] Exception stack trace: {ex.StackTrace}");
                 throw new RepositoryOperationException(
-                    $"Failed to deserialize TFVARS content: {ex.Message}",
-                    RepositoryErrorCategory.Unknown);
+                    "The system TFVars file could not be parsed.",
+                    RepositoryErrorCategory.ValidationError,
+                    innerException: ex);
             }
         }
 
@@ -560,20 +510,13 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
 
             // Build TFVARS path: WORKSPACES/SYSTEM/{partitionKey}/{rowKey}.tfvars
             string tfvarsPath = $"WORKSPACES/SYSTEM/{partitionKey}/{rowKey}.tfvars";
-            System.Diagnostics.Debug.WriteLine($"[RepositorySystemService.GetByIdAsync] Attempting to load TFVARS from: {tfvarsPath}");
-
             try
             {
                 var fileResponse = await _dataAccessProvider.GetFileAsync(tfvarsPath);
-                System.Diagnostics.Debug.WriteLine($"[RepositorySystemService.GetByIdAsync] Successfully retrieved TFVARS file, content length: {fileResponse.Content?.Length ?? 0}");
-
-                var systemEntity = DeserializeTfvars(fileResponse.Content, partitionKey);
-                System.Diagnostics.Debug.WriteLine($"[RepositorySystemService.GetByIdAsync] Successfully deserialized system: {systemEntity?.PartitionKey}");
-                return systemEntity;
+                return DeserializeTfvars(fileResponse.Content, partitionKey);
             }
             catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                System.Diagnostics.Debug.WriteLine($"[RepositorySystemService.GetByIdAsync] TFVARS file not found at {tfvarsPath}, returning null");
                 return null;
             }
         }
@@ -647,34 +590,36 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
         private async Task<List<AppFile>> GetFilesAsync(string directoryPath, string expectedPartitionKey)
         {
             var result = new List<AppFile>();
+            RepositoryListResponse response;
 
             try
             {
-                var response = await _dataAccessProvider.ListFilesAsync(directoryPath);
-                foreach (var item in response.Items.Where(item => !item.IsDirectory))
-                {
-                    var (partitionKey, rowKey) = _pathConvention.ParseAppFilePath(item.Path);
-                    if (expectedPartitionKey != null &&
-                        !string.Equals(partitionKey, expectedPartitionKey, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    var fileResponse = await _dataAccessProvider.GetFileAsync(item.Path);
-                    byte[] content = fileResponse.ContentBytes
-                        ?? System.Text.Encoding.UTF8.GetBytes(fileResponse.Content ?? string.Empty);
-                    result.Add(new AppFile
-                    {
-                        Id = rowKey,
-                        Content = content,
-                        UntrustedName = rowKey,
-                        Size = content.LongLength
-                    });
-                }
+                response = await _dataAccessProvider.ListFilesAsync(directoryPath);
             }
             catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
                 return result;
+            }
+
+            foreach (var item in response.Items.Where(item => !item.IsDirectory))
+            {
+                var (partitionKey, rowKey) = _pathConvention.ParseAppFilePath(item.Path);
+                if (expectedPartitionKey != null &&
+                    !string.Equals(partitionKey, expectedPartitionKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var fileResponse = await _dataAccessProvider.GetFileAsync(item.Path);
+                byte[] content = fileResponse.ContentBytes
+                    ?? System.Text.Encoding.UTF8.GetBytes(fileResponse.Content ?? string.Empty);
+                result.Add(new AppFile
+                {
+                    Id = rowKey,
+                    Content = content,
+                    UntrustedName = rowKey,
+                    Size = content.LongLength
+                });
             }
 
             return result;
@@ -687,33 +632,23 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
                 throw new ArgumentException("RowKey and PartitionKey cannot be null or empty.");
             }
 
-            // Check if this is a custom System file (e.g., "AFS-NOEU-SAP01-X00_custom_naming.json")
-            if (rowKey.Contains("_custom_", StringComparison.OrdinalIgnoreCase))
+            AppFileIdentifier parsed = IdentifierParser.ParseAppFile(rowKey);
+            if (parsed.Kind == AppFileKind.CustomNaming || parsed.Kind == AppFileKind.CustomSizes)
             {
-                // Extract the system ID from the rowKey (everything before _custom_)
-                int customIndex = rowKey.IndexOf("_custom_", StringComparison.OrdinalIgnoreCase);
-                string systemId = rowKey.Substring(0, customIndex);
-
-                // Construct path in SYSTEM folder alongside TFVARS file
-                // Format: WORKSPACES/SYSTEM/{systemId}/{filename}
-                string path = $"WORKSPACES/SYSTEM/{systemId}/{rowKey}";
-                System.Diagnostics.Debug.WriteLine($"[RepositoryAppFileService.GetByIdAsync] Loading custom file from SYSTEM folder: {path}");
-
-                try
+                if (!string.Equals(partitionKey, parsed.PartitionKey, StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(partitionKey, parsed.ObjectId, StringComparison.OrdinalIgnoreCase))
                 {
-                    var fileResponse = await _dataAccessProvider.GetFileAsync(path);
-                    return new AppFile
-                    {
-                        Id = rowKey,
-                        Content = fileResponse.ContentBytes ?? System.Text.Encoding.UTF8.GetBytes(fileResponse.Content)
-                    };
+                    throw new ArgumentException("Partition key does not match the custom file name.", nameof(partitionKey));
                 }
-                catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
+
+                string path = _pathConvention.BuildSystemArtifactPath(parsed.ObjectId, parsed.FileName);
+
+                var fileResponse = await _dataAccessProvider.GetFileAsync(path);
+                return new AppFile
                 {
-                    System.Diagnostics.Debug.WriteLine($"[RepositoryAppFileService.GetByIdAsync] Custom file not found: {path}");
-                    // Return null or rethrow depending on requirements
-                    throw;
-                }
+                    Id = rowKey,
+                    Content = fileResponse.ContentBytes ?? System.Text.Encoding.UTF8.GetBytes(fileResponse.Content)
+                };
             }
 
             // For standard AppFiles (like VM-Images.json), use the default path convention
@@ -741,23 +676,16 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
 
             string content = System.Text.Encoding.UTF8.GetString(file.Content ?? Array.Empty<byte>());
 
-            // Check if this is a custom System file (e.g., "AFS-NOEU-SAP01-X00_custom_naming.json")
-            if (file.Id?.Contains("_custom_", StringComparison.OrdinalIgnoreCase) == true)
+            AppFileIdentifier parsed = IdentifierParser.ParseAppFile(file.Id);
+            if (parsed.Kind == AppFileKind.CustomNaming || parsed.Kind == AppFileKind.CustomSizes)
             {
-                // Extract the system ID from the ID (everything before _custom_)
-                int customIndex = file.Id.IndexOf("_custom_", StringComparison.OrdinalIgnoreCase);
-                string systemId = file.Id.Substring(0, customIndex);
-
-                // Store in SYSTEM folder alongside TFVARS file
-                // Format: /SYSTEM/{systemId}/{filename}
-                string path = $"/SYSTEM/{systemId}/{file.Id}";
-                System.Diagnostics.Debug.WriteLine($"[RepositoryAppFileService.CreateAsync] Creating custom file in SYSTEM folder: {path}");
-
+                string path = _pathConvention.BuildSystemArtifactPath(parsed.ObjectId, parsed.FileName);
+                path = StripWorkspacePrefix(path);
                 await _restHelper.UpdateRepo(path, content);
                 return;
             }
 
-            string standardPath = _pathConvention.BuildAppFilePath(GetPartitionKey(file.Id), file.Id);
+            string standardPath = _pathConvention.BuildAppFilePath(parsed.PartitionKey, parsed.FileName);
             await _restHelper.UpdateRepo(standardPath, content);
         }
 
@@ -770,40 +698,25 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
 
             string content = System.Text.Encoding.UTF8.GetString(file.Content ?? Array.Empty<byte>());
 
-            // Check if this is a custom System file (e.g., "AFS-NOEU-SAP01-X00_custom_naming.json")
-            if (file.Id?.Contains("_custom_", StringComparison.OrdinalIgnoreCase) == true)
+            AppFileIdentifier parsed = IdentifierParser.ParseAppFile(file.Id);
+            if (parsed.Kind == AppFileKind.CustomNaming || parsed.Kind == AppFileKind.CustomSizes)
             {
-                // Extract the system ID from the ID (everything before _custom_)
-                int customIndex = file.Id.IndexOf("_custom_", StringComparison.OrdinalIgnoreCase);
-                string systemId = file.Id.Substring(0, customIndex);
-
-                // Store in SYSTEM folder alongside TFVARS file
-                // Format: /SYSTEM/{systemId}/{filename}
-                string path = $"/SYSTEM/{systemId}/{file.Id}";
-                System.Diagnostics.Debug.WriteLine($"[RepositoryAppFileService.UpdateAsync] Updating custom file in SYSTEM folder: {path}");
-
+                string path = StripWorkspacePrefix(
+                    _pathConvention.BuildSystemArtifactPath(parsed.ObjectId, parsed.FileName));
                 await _restHelper.UpdateRepo(path, content);
                 return;
             }
 
-            string standardPath = _pathConvention.BuildAppFilePath(GetPartitionKey(file.Id), file.Id);
+            string standardPath = _pathConvention.BuildAppFilePath(parsed.PartitionKey, parsed.FileName);
             await _restHelper.UpdateRepo(standardPath, content);
         }
 
-        private static string GetPartitionKey(string id)
+        private static string StripWorkspacePrefix(string path)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentException("App file ID cannot be null or empty.", nameof(id));
-            }
-
-            int separatorIndex = id.IndexOf('-');
-            if (separatorIndex <= 0)
-            {
-                throw new ArgumentException("App file ID must contain a non-empty partition prefix followed by '-'.", nameof(id));
-            }
-
-            return id[..separatorIndex];
+            const string prefix = "WORKSPACES/";
+            return path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                ? path[prefix.Length..]
+                : path;
         }
 
         public async Task DeleteAsync(string rowKey, string partitionKey)
@@ -814,16 +727,10 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             }
 
             // Check if this is a custom System file (e.g., "AFS-NOEU-SAP01-X00_custom_naming.json")
-            if (rowKey.Contains("_custom_", StringComparison.OrdinalIgnoreCase))
+            AppFileIdentifier parsed = IdentifierParser.ParseAppFile(rowKey);
+            if (parsed.Kind == AppFileKind.CustomNaming || parsed.Kind == AppFileKind.CustomSizes)
             {
-                // Extract the system ID from the rowKey (everything before _custom_)
-                int customIndex = rowKey.IndexOf("_custom_", StringComparison.OrdinalIgnoreCase);
-                string systemId = rowKey.Substring(0, customIndex);
-
-                // Delete from SYSTEM folder
-                // Format: WORKSPACES/SYSTEM/{systemId}/{filename}
-                string path = $"WORKSPACES/SYSTEM/{systemId}/{rowKey}";
-                System.Diagnostics.Debug.WriteLine($"[RepositoryAppFileService.DeleteAsync] Deleting custom file from SYSTEM folder: {path}");
+                string path = _pathConvention.BuildSystemArtifactPath(parsed.ObjectId, parsed.FileName);
 
                 var deleteRequest = new RepositoryDeleteRequest
                 {

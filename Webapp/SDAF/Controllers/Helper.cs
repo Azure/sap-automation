@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace SDAFWebApp.Controllers
@@ -460,7 +461,6 @@ namespace SDAFWebApp.Controllers
                             key = "\"" + key + "\"";
                         }
                         string value = null;
-                        Console.WriteLine(key);
                         if (key.EndsWith("tags\""))
                         {
                             StringBuilder valueBuilder = new();
@@ -532,7 +532,9 @@ namespace SDAFWebApp.Controllers
             return jsonFormattedOutput;
         }
 
-        public static async Task<AppFile> GetImagesFile(ITableStorageService<AppFile> appFileService)
+        public static async Task<AppFile> GetImagesFile(
+            ITableStorageService<AppFile> appFileService,
+            ILogger logger = null)
         {
             string filename = "VM-Images.json";
             string partitionKey = "VM";
@@ -541,60 +543,45 @@ namespace SDAFWebApp.Controllers
             try
             {
                 file = await appFileService.GetByIdAsync(filename, partitionKey);
-                if (file == null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[GetImagesFile] File is null, falling back to local ParameterDetails");
-                    throw new KeyNotFoundException();
-                }
-                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Successfully loaded from AppFileService");
-                return file;
+                if (file != null) return file;
             }
-            catch (Exception ex)
+            catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Failed to load from AppFileService: {ex.GetType().Name}: {ex.Message}. Falling back to local ParameterDetails/{filename}");
+                logger?.LogInformation(ex, "Images file was not found in configured persistence; using packaged fallback");
             }
 
             try
             {
                 // Fallback: Load from local ParameterDetails folder
                 string localPath = Path.Combine("ParameterDetails", filename);
-                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Attempting to load from local path: {localPath}");
 
                 byte[] byteContent = System.IO.File.ReadAllBytes(localPath);
                 using MemoryStream memory = new(byteContent);
 
                 file = new AppFile()
                 {
-                    Id = WebUtility.HtmlEncode(filename),
+                    Id = filename,
                     Content = byteContent,
                     UntrustedName = filename,
                     Size = memory.Length,
                     UploadDT = DateTime.UtcNow
                 };
-                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Successfully loaded from local ParameterDetails");
                 return file;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Failed to load from local ParameterDetails: {ex.GetType().Name}: {ex.Message}");
-                return new AppFile();
+                logger?.LogError(ex, "Packaged images fallback could not be loaded");
+                throw new InvalidOperationException("The images configuration is currently unavailable.", ex);
             }
         }
 
         public static async Task<ImageDropdown[]> GetOfferedImages(ITableStorageService<AppFile> appFileService)
         {
-            try
-            {
-                AppFile file = await GetImagesFile(appFileService);
-                byte[] bytes = file.Content;
-                string jsonString = Encoding.UTF8.GetString(bytes);
-                ImageDropdown[] images = System.Text.Json.JsonSerializer.Deserialize<ImageDropdown[]>(jsonString);
-                return images;
-            }
-            catch
-            {
-                return Array.Empty<ImageDropdown>();
-            }
+            AppFile file = await GetImagesFile(appFileService);
+            byte[] bytes = file.Content;
+            string jsonString = Encoding.UTF8.GetString(bytes);
+            return System.Text.Json.JsonSerializer.Deserialize<ImageDropdown[]>(jsonString)
+                ?? Array.Empty<ImageDropdown>();
         }
 
         /// <summary>
@@ -610,9 +597,6 @@ namespace SDAFWebApp.Controllers
             var properties = typeof(T).GetProperties();
             var lines = tfvarsContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
-            System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Parsing {typeof(T).Name}, found {lines.Length} lines, {properties.Length} properties available");
-
-            int parsedCount = 0;
             foreach (var line in lines)
             {
                 var trimmedLine = line.Trim();
@@ -638,7 +622,6 @@ namespace SDAFWebApp.Controllers
 
                 if (prop == null || !prop.CanWrite)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Key '{key}' not found or not writable in {typeof(T).Name}");
                     continue;
                 }
 
@@ -648,19 +631,16 @@ namespace SDAFWebApp.Controllers
                     if (value != null)
                     {
                         prop.SetValue(model, value);
-                        parsedCount++;
-                        System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Set {key} = {value}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Skip properties that fail to parse
-                    System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Error parsing {key}: {ex.Message}");
-                    continue;
+                    throw new FormatException(
+                        $"TFVars property '{key}' could not be parsed as {prop.PropertyType.Name}.",
+                        ex);
                 }
             }
 
-            System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Successfully parsed {parsedCount} properties from TFVARS");
             return model;
         }
 

@@ -15,6 +15,7 @@ namespace SDAFWebApp.Services
         string BuildAppFilePath(string partitionKey, string rowKey);
         string GetAppFilesRootPath();
         string GetAppFilePartitionPath(string partitionKey);
+        string BuildSystemArtifactPath(string systemId, string fileName);
         (string partitionKey, string rowKey) ParseLandscapePath(string path);
         (string partitionKey, string rowKey) ParseSystemPath(string path);
         (string partitionKey, string rowKey) ParseAppFilePath(string path);
@@ -54,6 +55,19 @@ namespace SDAFWebApp.Services
             return CombinePath(GetAppFilesRootPath(), SanitizeSegment(partitionKey));
         }
 
+        public string BuildSystemArtifactPath(string systemId, string fileName)
+        {
+            SystemIdentifier parsedSystem = IdentifierParser.ParseSystem(systemId);
+            AppFileIdentifier parsedFile = IdentifierParser.ParseAppFile(fileName);
+            if (parsedFile.ObjectId != parsedSystem.Value ||
+                (parsedFile.Kind != AppFileKind.CustomNaming && parsedFile.Kind != AppFileKind.CustomSizes))
+            {
+                throw new ArgumentException("Custom file name does not belong to the supplied system ID.", nameof(fileName));
+            }
+
+            return CombinePath(_paths.Root, _paths.Systems, parsedSystem.Value, parsedFile.FileName);
+        }
+
         public (string partitionKey, string rowKey) ParseLandscapePath(string path)
         {
             return ParseJsonObjectPath(path, _paths.Landscapes);
@@ -76,13 +90,15 @@ namespace SDAFWebApp.Services
 
             string relativePath = normalizedPath[(prefix.Length + 1)..];
             string[] parts = relativePath.Split('/');
-            if (parts.Length < 2)
+            if (parts.Length != 2)
             {
                 throw new ArgumentException($"Path '{path}' does not contain expected '<partition>/<row>' structure.", nameof(path));
             }
 
             string partitionKey = parts[0];
-            string rowKey = string.Join("/", parts, 1, parts.Length - 1);
+            string rowKey = parts[1];
+            SanitizeSegment(partitionKey);
+            SanitizeSegment(rowKey);
             return (partitionKey, rowKey);
         }
 
@@ -110,6 +126,8 @@ namespace SDAFWebApp.Services
 
             string partitionKey = parts[0];
             string fileName = parts[1];
+            SanitizeSegment(partitionKey);
+            SanitizeSegment(fileName);
             if (!fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
             {
                 throw new ArgumentException($"Path '{path}' does not end with '.json'.", nameof(path));
@@ -129,7 +147,7 @@ namespace SDAFWebApp.Services
             return path.Replace('\\', '/').Trim('/');
         }
 
-        private static string SanitizeSegment(string segment)
+        internal static string SanitizeSegment(string segment)
         {
             if (string.IsNullOrWhiteSpace(segment))
             {

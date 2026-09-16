@@ -29,6 +29,7 @@ namespace SDAFWebApp.Services
 
         public RepositoryDataAccessProvider(
             IConfiguration configuration,
+            RestHelper restHelper,
             IRepositoryPathConvention pathConvention,
             IOptions<RepositoryPersistenceSettings> persistenceSettings,
             ILogger<RepositoryDataAccessProvider> logger)
@@ -36,14 +37,12 @@ namespace SDAFWebApp.Services
             _pathConvention = pathConvention ?? throw new ArgumentNullException(nameof(pathConvention));
             _settings = persistenceSettings.Value ?? new RepositoryPersistenceSettings();
             _logger = logger;
+            _restHelper = restHelper ?? throw new ArgumentNullException(nameof(restHelper));
 
             // Determine platform from environment or config
             _platform = Environment.GetEnvironmentVariable("DEVOPS_PLATFORM")?.ToLower()
                 ?? configuration["DEVOPS_PLATFORM"]?.ToLower()
                 ?? "ado";
-
-            // Create RestHelper with the configured platform
-            _restHelper = new RestHelper(configuration, _platform);
 
             if (_settings.EnableRepositoryLogging)
             {
@@ -111,8 +110,8 @@ namespace SDAFWebApp.Services
                 if (_settings.EnableRepositoryLogging)
                 {
                     _logger?.LogInformation(
-                        "Successfully listed repository files: DirectoryPath={DirectoryPath}, Count={Count}, Items={Items}",
-                        directoryPath, response.Count, string.Join(", ", response.Items.Select(i => i.Path)));
+                        "Successfully listed repository files: Scope={Scope}, Count={Count}",
+                        GetSafeScope(directoryPath), response.Count);
                 }
 
                 return response;
@@ -187,14 +186,28 @@ namespace SDAFWebApp.Services
 
                 return exists;
             }
-            catch (Exception ex)
+            catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                _logger?.LogWarning(
-                    ex,
-                    "Error checking file existence: Path={Path}",
-                    path);
+                _logger?.LogDebug("Repository file was not found in scope {Scope}", GetSafeScope(path));
                 return false;
             }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Repository file existence check failed in scope {Scope}", GetSafeScope(path));
+                throw;
+            }
+        }
+
+        private static string GetSafeScope(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return "unknown";
+            }
+
+            string normalized = path.Replace('\\', '/').Trim('/');
+            int separator = normalized.IndexOf('/');
+            return separator < 0 ? normalized : normalized[..separator];
         }
     }
 }

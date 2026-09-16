@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using SDAFWebApp.Models;
@@ -25,6 +26,7 @@ namespace SDAFWebApp.Controllers
         private FormViewModel<LandscapeModel> landscapeView;
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
+        private readonly ILogger<LandscapeController> _logger;
 
         private List<SelectListItem> imageOptions = [];
         private readonly string sdafControlPlaneEnvironment;
@@ -34,20 +36,26 @@ namespace SDAFWebApp.Controllers
         private readonly string pipelineId;
         private readonly string branch;
 
-        private static void LogDebug(string message)
+        private void LogDebug(string message)
         {
-            System.Diagnostics.Debug.WriteLine($"[LandscapeController] {message}");
+            _logger.LogDebug("{Message}", message);
         }
 
 
 
-        public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
+        public LandscapeController(
+            ITableStorageService<LandscapeEntity> landscapeService,
+            ITableStorageService<AppFile> appFileService,
+            IConfiguration configuration,
+            RestHelper restHelper,
+            ILogger<LandscapeController> logger)
         {
             _landscapeService = landscapeService;
             _appFileService = appFileService;
             _configuration = configuration;
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
-            restHelper = new RestHelper(configuration, platform);
+            this.restHelper = restHelper;
+            _logger = logger;
             landscapeView = SetViewData();
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
@@ -103,7 +111,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = "Error retrieving existing workload zones: " + e.Message;
+                _logger.LogError(e, "Failed to retrieve workload zones");
+                TempData["error"] = "Workload zones could not be retrieved.";
             }
 
             return View(landscapeIndex);
@@ -159,9 +168,10 @@ namespace SDAFWebApp.Controllers
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
-                return null;
+                _logger.LogError(e, "Failed to retrieve workload-zone environment options");
+                return StatusCode(503, new { error = "Environment options are temporarily unavailable." });
             }
             return Json(options);
         }
@@ -201,7 +211,7 @@ namespace SDAFWebApp.Controllers
         {
             if (landscape != null)
             {
-                landscape.IsValid();
+                PopulateFromWorkloadZone(landscape);
             }
 
             return landscape;
@@ -230,27 +240,13 @@ namespace SDAFWebApp.Controllers
         public async Task<IActionResult> CreateAsync(LandscapeModel landscape)
         {
             LogDebug($"Create (POST) called. InputId={landscape?.Id}");
-            if (ModelState.IsValid || landscape.IsDefault)
+            if (ModelState.IsValid)
             {
                 try
                 {
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
-                    if (!string.IsNullOrEmpty(landscape.subscription))
-                    {
-                        landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
-                    }
-
-                    if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
-                    {
-                        landscape.environment = landscape.workload_zone.Split('-')[0];
-                    }
-                    if (string.IsNullOrEmpty(landscape.network_logical_name) && !string.IsNullOrEmpty(landscape.workload_zone))
-                    {
-                        landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
-                    }
-
                     await PersistDefaultTransitionAsync(
                         landscape,
                         () => _landscapeService.CreateAsync(new LandscapeEntity(landscape)));
@@ -265,7 +261,8 @@ namespace SDAFWebApp.Controllers
                 }
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
+                    _logger.LogError(e, "Failed to create workload zone");
+                    ModelState.AddModelError("LandscapeId", "The workload zone could not be created.");
                 }
             }
             landscapeView.SapObject = landscape;
@@ -295,7 +292,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load workload zone");
+                TempData["error"] = "The workload zone could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -318,10 +316,7 @@ namespace SDAFWebApp.Controllers
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
-                {
-                    landscape.environment = landscape.workload_zone.Split('-')[0];
-                }
+                PopulateFromWorkloadZone(landscape);
 
                 string content = Helper.ConvertToTerraform(landscape);
 
@@ -372,7 +367,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = "Error deploying workload zone " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to deploy workload zone");
+                TempData["error"] = "The workload zone deployment could not be started.";
             }
             return RedirectToAction("Index");
         }
@@ -397,7 +393,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load workload zone");
+                TempData["error"] = "The workload zone could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -425,10 +422,7 @@ namespace SDAFWebApp.Controllers
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
-                {
-                    landscape.environment = landscape.workload_zone.Split('-')[0];
-                }
+                PopulateFromWorkloadZone(landscape);
 
 
                 switch (platform.ToLower())
@@ -493,7 +487,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = "Error removing workload zone " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to remove workload zone");
+                TempData["error"] = "The workload zone could not be removed.";
             }
             return RedirectToAction("Index");
         }
@@ -542,14 +537,7 @@ namespace SDAFWebApp.Controllers
                     landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
-                {
-                    landscape.environment = landscape.workload_zone.Split('-')[0];
-                }
-                if (string.IsNullOrEmpty(landscape.network_logical_name) && !string.IsNullOrEmpty(landscape.workload_zone))
-                {
-                    landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
-                }
+                PopulateFromWorkloadZone(landscape);
                 landscapeView.SapObject = landscape;
                 await PrepareImageOptionsAsync();
                 return View(landscapeView);
@@ -557,7 +545,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load workload zone for editing");
+                TempData["error"] = "The workload zone could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -585,7 +574,7 @@ namespace SDAFWebApp.Controllers
 
                         AppFile file = new()
                         {
-                            Id = WebUtility.HtmlEncode(path),
+                            Id = path,
                             Content = bytes,
                             UntrustedName = path,
                             Size = bytes.Length,
@@ -600,19 +589,6 @@ namespace SDAFWebApp.Controllers
                     {
                         DateTime currentDateAndTime = DateTime.Now;
                         landscape.LastModified = currentDateAndTime.ToShortDateString();
-                        if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
-                        {
-                            landscape.environment = landscape.workload_zone.Split('-')[0];
-                        }
-                        if (string.IsNullOrEmpty(landscape.network_logical_name) && !string.IsNullOrEmpty(landscape.workload_zone))
-                        {
-                            landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
-                        }
-                        if (!string.IsNullOrEmpty(landscape.subscription))
-                        {
-                            landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
-                        }
-
                         await PersistDefaultTransitionAsync(
                             landscape,
                             () => _landscapeService.UpdateAsync(new LandscapeEntity(landscape)));
@@ -625,7 +601,7 @@ namespace SDAFWebApp.Controllers
 
                         AppFile file = new()
                         {
-                            Id = WebUtility.HtmlEncode(path),
+                            Id = path,
                             Content = bytes,
                             UntrustedName = path,
                             Size = bytes.Length,
@@ -639,7 +615,8 @@ namespace SDAFWebApp.Controllers
                 }
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("LandscapeId", "Error editing workload zone: " + e.Message);
+                    _logger.LogError(e, "Failed to update workload zone");
+                    ModelState.AddModelError("LandscapeId", "The workload zone could not be updated.");
                 }
             }
             landscapeView.SapObject = landscape;
@@ -673,7 +650,7 @@ namespace SDAFWebApp.Controllers
 
                     AppFile file = new()
                     {
-                        Id = WebUtility.HtmlEncode(id),
+                        Id = id,
                         Content = bytes,
                         UntrustedName = id,
                         Size = bytes.Length,
@@ -688,7 +665,8 @@ namespace SDAFWebApp.Controllers
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
+                    _logger.LogError(e, "Failed to create workload zone");
+                    ModelState.AddModelError("LandscapeId", "The workload zone could not be created.");
                 }
             }
             landscapeView.SapObject = landscape;
@@ -710,7 +688,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to copy workload zone");
+                TempData["error"] = "The workload zone could not be copied.";
                 return RedirectToAction("Index");
             }
         }
@@ -736,7 +715,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to download workload-zone file");
+                TempData["error"] = "The requested file could not be downloaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -761,7 +741,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Error setting default for workload zone: " + e.Message;
+                _logger.LogError(e, "Failed to set default workload zone");
+                TempData["error"] = "The default workload zone could not be changed.";
             }
             return RedirectToAction("Index");
         }
@@ -804,6 +785,24 @@ namespace SDAFWebApp.Controllers
                 throw new InvalidOperationException(
                     "Failed to clear the previous default workload zone; the replacement was rolled back.",
                     clearException);
+            }
+        }
+
+        private static void PopulateFromWorkloadZone(LandscapeModel landscape)
+        {
+            if (string.IsNullOrWhiteSpace(landscape?.workload_zone))
+            {
+                return;
+            }
+
+            WorkloadZoneIdentifier identifier = IdentifierParser.ParseWorkloadZone(landscape.workload_zone);
+            if (string.IsNullOrEmpty(landscape.environment))
+            {
+                landscape.environment = identifier.Environment;
+            }
+            if (string.IsNullOrEmpty(landscape.network_logical_name))
+            {
+                landscape.network_logical_name = identifier.NetworkLogicalName;
             }
         }
 

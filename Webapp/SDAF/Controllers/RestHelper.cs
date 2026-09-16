@@ -946,8 +946,10 @@ namespace SDAFWebApp.Controllers
             using HttpResponseMessage httpResponse = await client.GetAsync(getUri);
             if (httpResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                // Directory doesn't exist, return empty list
-                return response;
+                throw new RepositoryOperationException(
+                    $"Directory not found: {directoryPath}",
+                    RepositoryErrorCategory.NotFound,
+                    statusCode: 404);
             }
 
             if (!httpResponse.IsSuccessStatusCode)
