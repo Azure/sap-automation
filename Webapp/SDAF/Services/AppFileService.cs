@@ -16,20 +16,31 @@ namespace SDAFWebApp.Services
     {
         private readonly Lazy<Task<TableClient>> client;
         private readonly Lazy<Task<BlobContainerClient>> blobContainerClient;
+        private readonly Lazy<Task<BlobContainerClient>> tfvarsBlobContainerClient;
 
         public AppFileService(TableStorageService tableStorageService, IDatabaseSettings settings)
         {
             client = new(() => tableStorageService.GetTableClient(settings.AppFileCollectionName));
             blobContainerClient = new(() => tableStorageService.GetBlobClient(settings.AppFileBlobCollectionName));
+            tfvarsBlobContainerClient = new(() => tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName));
         }
 
         public async Task<List<AppFile>> GetNAsync(int n)
         {
+            if (n <= 0)
+            {
+                return [];
+            }
+
             List<AppFile> files = [];
             BlobContainerClient containerClient = await blobContainerClient.Value;
             await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
             {
                 files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
+                if (files.Count == n)
+                {
+                    break;
+                }
             }
             return files;
         }
@@ -67,7 +78,7 @@ namespace SDAFWebApp.Services
 
         public Task<AppFile> GetDefault()
         {
-            return null;
+            return Task.FromResult<AppFile>(null);
         }
 
         public async Task CreateAsync(AppFile file)
@@ -99,9 +110,11 @@ namespace SDAFWebApp.Services
             await tableClient.DeleteEntityAsync(partitionKey, rowKey);
         }
 
-        public Task CreateTFVarsAsync(AppFile file)
+        public async Task CreateTFVarsAsync(AppFile file)
         {
-            throw new NotImplementedException();
+            BlobContainerClient containerClient = await tfvarsBlobContainerClient.Value;
+            BlobClient blobClient = containerClient.GetBlobClient(file.Id);
+            await blobClient.UploadAsync(new BinaryData(file.Content), overwrite: true);
         }
     }
 }
