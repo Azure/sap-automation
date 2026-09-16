@@ -36,6 +36,10 @@ namespace SDAFWebApp.Models
         [DisplayName("Workload zone ID")]
         public string Id { get; set; }
 
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string PersistencePartitionKey { get; set; }
+
         public string LastModified { get; set; }
 
         // BASIC

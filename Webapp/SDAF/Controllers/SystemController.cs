@@ -95,7 +95,15 @@ namespace SDAFWebApp.Controllers
             try
             {
                 List<SystemEntity> systemEntities = await _systemService.GetAllAsync();
-                List<SystemModel> systems = systemEntities.FindAll(s => s.System != null).ConvertAll(s => JsonConvert.DeserializeObject<SystemModel>(s.System));
+                List<SystemModel> systems = systemEntities
+                    .FindAll(s => s.System != null)
+                    .ConvertAll(s =>
+                    {
+                        SystemModel system = JsonConvert.DeserializeObject<SystemModel>(s.System)
+                            ?? throw new InvalidOperationException("The stored system definition is invalid.");
+                        system.PersistencePartitionKey = s.PartitionKey;
+                        return system;
+                    });
                 systemIndex.SapObjects = systems;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();

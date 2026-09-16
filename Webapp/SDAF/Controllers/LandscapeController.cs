@@ -103,7 +103,13 @@ namespace SDAFWebApp.Controllers
                 List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
                 List<LandscapeModel> landscapes = landscapeEntities
                     .FindAll(l => l.Landscape != null)
-                    .ConvertAll(l => NormalizeLoadedLandscape(JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape)));
+                    .ConvertAll(l =>
+                    {
+                        LandscapeModel landscape = NormalizeLoadedLandscape(
+                            JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape));
+                        landscape.PersistencePartitionKey = l.PartitionKey;
+                        return landscape;
+                    });
                 landscapeIndex.SapObjects = landscapes;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
