@@ -30,9 +30,8 @@ namespace SDAFWebApp.Controllers
         private readonly RestHelper restHelper;
         private readonly ILogger<SystemController> _logger;
 
-        private ImageDropdown[] imagesOffered;
-        private List<SelectListItem> imageOptions;
-        private Dictionary<string, Image> imageMapping;
+        private List<SelectListItem> imageOptions = [];
+        private Dictionary<string, Image> imageMapping = [];
         private readonly string platform;
         private readonly string pipelineId;
         private readonly string branch;
@@ -58,11 +57,8 @@ namespace SDAFWebApp.Controllers
             restHelper = new RestHelper(configuration, platform);
             systemView = SetViewData();
 
-            imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
             pipelineId = configuration["SYSTEM_PIPELINE_ID"];
             branch = configuration["SourceBranch"];
-
-            InitializeImageOptionsAndMapping();
 
             LogDebug($"Platform: {platform}");
             LogDebug($"PipelineId: {pipelineId}");
@@ -174,9 +170,10 @@ namespace SDAFWebApp.Controllers
             return Json(systemEntity.System);
         }
 
-        public void InitializeImageOptionsAndMapping()
+        private async Task PrepareImageOptionsAsync()
         {
-            LogDebug("InitializeImageOptionsAndMapping called");
+            LogDebug("PrepareImageOptionsAsync called");
+            ImageDropdown[] imagesOffered = await Helper.GetOfferedImages(_appFileService);
             imageMapping = [];
             imageOptions =
             [
@@ -194,12 +191,16 @@ namespace SDAFWebApp.Controllers
                     }
                 }
             }
+
+            ViewBag.ValidImageOptions = imagesOffered.Length != 0;
+            ViewBag.ImageOptions = imageOptions;
         }
 
         [HttpGet]
-        public ActionResult GetImage(string name)
+        public async Task<ActionResult> GetImage(string name)
         {
             LogDebug($"GetImage called. Name={name}");
+            await PrepareImageOptionsAsync();
             if (name != null && imageMapping.ContainsKey(name))
             {
                 return Json(imageMapping[name]);
@@ -209,13 +210,11 @@ namespace SDAFWebApp.Controllers
                 throw new Exception();
             }
         }
-
         [ActionName("Create")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             LogDebug("Create (GET) called");
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
             return View(systemView);
         }
 
@@ -248,11 +247,9 @@ namespace SDAFWebApp.Controllers
                     ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
                 }
             }
-
             systemView.SapObject = system;
 
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View(systemView);
         }
@@ -654,11 +651,9 @@ namespace SDAFWebApp.Controllers
                 {
                     system.network_logical_name = system.workload_zone.Split('-')[2];
                 }
-
                 systemView.SapObject = system;
 
-                ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-                ViewBag.ImageOptions = imageOptions;
+                await PrepareImageOptionsAsync();
 
                 return View(systemView);
             }
@@ -789,11 +784,9 @@ namespace SDAFWebApp.Controllers
                     ModelState.AddModelError("SystemId", "Error editing system: " + e.Message);
                 }
             }
-
             systemView.SapObject = system;
 
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View(systemView);
         }
@@ -839,11 +832,9 @@ namespace SDAFWebApp.Controllers
                     ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
                 }
             }
-
             systemView.SapObject = system;
 
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View("Edit", systemView);
         }

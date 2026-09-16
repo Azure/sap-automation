@@ -26,9 +26,7 @@ namespace SDAFWebApp.Controllers
         private readonly IConfiguration _configuration;
         private readonly RestHelper restHelper;
 
-        private readonly ImageDropdown[] imagesOffered;
-        private List<SelectListItem> imageOptions;
-        private Dictionary<string, Image> imageMapping;
+        private List<SelectListItem> imageOptions = [];
         private readonly string sdafControlPlaneEnvironment;
         private readonly string sdafControlPlaneLocation;
         private readonly string sdafControlPlaneName;
@@ -51,8 +49,6 @@ namespace SDAFWebApp.Controllers
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
             landscapeView = SetViewData();
-            imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
-            InitializeImageOptionsAndMapping();
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
@@ -113,26 +109,26 @@ namespace SDAFWebApp.Controllers
             return View(landscapeIndex);
         }
 
-        public void InitializeImageOptionsAndMapping()
+        private async Task PrepareImageOptionsAsync()
         {
-            LogDebug("InitializeImageOptionsAndMapping called");
-            imageMapping = [];
+            LogDebug("PrepareImageOptionsAsync called");
+            ImageDropdown[] imagesOffered = await Helper.GetOfferedImages(_appFileService);
             imageOptions =
             [
                 new SelectListItem()
             ];
+            HashSet<string> imageNames = [];
 
-            if (imagesOffered.Length > 0)
+            foreach (ImageDropdown imageDropdown in imagesOffered)
             {
-                foreach (ImageDropdown imageDropdown in imagesOffered)
+                if (imageNames.Add(imageDropdown.name))
                 {
-                    if (!imageMapping.ContainsKey(imageDropdown.name))
-                    {
-                        imageMapping.Add(imageDropdown.name, imageDropdown.data);
-                        imageOptions.Add(new SelectListItem(imageDropdown.name, imageDropdown.name));
-                    }
+                    imageOptions.Add(new SelectListItem(imageDropdown.name, imageDropdown.name));
                 }
             }
+
+            ViewBag.ValidImageOptions = imagesOffered.Length != 0;
+            ViewBag.ImageOptions = imageOptions;
         }
 
         [HttpGet]
@@ -221,11 +217,10 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Create")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             LogDebug("Create (GET) called");
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
             return View(landscapeView);
         }
 
@@ -275,10 +270,8 @@ namespace SDAFWebApp.Controllers
                     ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
                 }
             }
-
             landscapeView.SapObject = landscape;
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View(landscapeView);
         }
@@ -559,10 +552,8 @@ namespace SDAFWebApp.Controllers
                 {
                     landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
                 }
-
                 landscapeView.SapObject = landscape;
-                ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-                ViewBag.ImageOptions = imageOptions;
+                await PrepareImageOptionsAsync();
                 return View(landscapeView);
             }
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
@@ -655,10 +646,8 @@ namespace SDAFWebApp.Controllers
                     ModelState.AddModelError("LandscapeId", "Error editing workload zone: " + e.Message);
                 }
             }
-
             landscapeView.SapObject = landscape;
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View(landscapeView);
         }
@@ -708,10 +697,8 @@ namespace SDAFWebApp.Controllers
                     ModelState.AddModelError("LandscapeId", "Error creating workload zone: " + e.Message);
                 }
             }
-
             landscapeView.SapObject = landscape;
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View("Edit", landscapeView);
         }
