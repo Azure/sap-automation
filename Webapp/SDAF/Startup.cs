@@ -3,6 +3,8 @@
 
 using Azure.Identity;
 using Azure.ResourceManager;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Azure;
@@ -30,8 +32,32 @@ namespace SDAFWebApp
             services.Configure<DatabaseSettings>(
                 Configuration.GetSection(nameof(DatabaseSettings)));
 
-            services.Configure<RepositoryPersistenceSettings>(
-                Configuration.GetSection(RepositoryPersistenceSettings.SectionName));
+            services.Configure<ApplicationAuthenticationSettings>(
+                Configuration.GetSection(ApplicationAuthenticationSettings.SectionName));
+
+            services.AddAuthentication(EasyAuthAuthenticationHandler.SchemeName)
+                .AddScheme<AuthenticationSchemeOptions, EasyAuthAuthenticationHandler>(
+                    EasyAuthAuthenticationHandler.SchemeName,
+                    _ => { });
+
+            var applicationAuthenticationEnabled = Configuration.GetValue<bool>(
+                $"{ApplicationAuthenticationSettings.SectionName}:Enabled");
+            services.AddAuthorization(options =>
+            {
+                if (applicationAuthenticationEnabled)
+                {
+                    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+                }
+            });
+
+            services.AddOptions<RepositoryPersistenceSettings>()
+                .Bind(Configuration.GetSection(RepositoryPersistenceSettings.SectionName))
+                .Validate(
+                    settings => settings.TryGetPersistenceMode(out _),
+                    $"RepositoryPersistence:Mode must be one of: {string.Join(", ", Enum.GetNames<RepositoryPersistenceMode>())}.")
+                .ValidateOnStart();
 
             services.AddSingleton<IDatabaseSettings>(sp =>
                 sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
@@ -66,7 +92,6 @@ namespace SDAFWebApp
                     provider.GetRequiredService<IRepositoryDataAccessProvider>(),
                     provider.GetRequiredService<IRepositoryPathConvention>(),
                     provider.GetRequiredService<IDatabaseSettings>(),
-                    provider.GetRequiredService<LandscapeService>(),
                     provider.GetRequiredService<RestHelper>()));
 
             services.AddScoped<RepositorySystemService>(provider =>
@@ -74,7 +99,6 @@ namespace SDAFWebApp
                     provider.GetRequiredService<IRepositoryDataAccessProvider>(),
                     provider.GetRequiredService<IRepositoryPathConvention>(),
                     provider.GetRequiredService<IDatabaseSettings>(),
-                    provider.GetRequiredService<SystemService>(),
                     provider.GetRequiredService<RestHelper>()));
 
             services.AddScoped<RepositoryAppFileService>(provider =>
@@ -82,8 +106,7 @@ namespace SDAFWebApp
                     provider.GetRequiredService<IRepositoryDataAccessProvider>(),
                     provider.GetRequiredService<IRepositoryPathConvention>(),
                     provider.GetRequiredService<RestHelper>(),
-                    provider.GetRequiredService<IDatabaseSettings>(),
-                    provider.GetRequiredService<AppFileService>()));
+                    provider.GetRequiredService<IDatabaseSettings>()));
 
             // Register selectors that implement repository-first with storage fallback strategy
             services.AddScoped<ITableStorageService<LandscapeEntity>>(provider =>
@@ -144,6 +167,9 @@ namespace SDAFWebApp
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

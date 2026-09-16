@@ -50,11 +50,18 @@ namespace SDAFWebApp.Models
         /// </summary>
         public RepositoryPersistenceMode GetPersistenceMode()
         {
-            if (Enum.TryParse<RepositoryPersistenceMode>(Mode, true, out var result))
+            if (TryGetPersistenceMode(out var result))
             {
                 return result;
             }
-            return RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback;
+
+            throw new InvalidOperationException(
+                $"Invalid repository persistence mode '{Mode}'. Valid values are: {string.Join(", ", Enum.GetNames<RepositoryPersistenceMode>())}.");
+        }
+
+        public bool TryGetPersistenceMode(out RepositoryPersistenceMode mode)
+        {
+            return Enum.TryParse(Mode, true, out mode) && Enum.IsDefined(mode);
         }
     }
 
@@ -82,6 +89,6 @@ namespace SDAFWebApp.Models
         /// <summary>
         /// Subdirectory for application files (e.g., "APPDATA/FILES"). Leave empty to disable.
         /// </summary>
-        public string AppFiles { get; set; } = "";
+        public string AppFiles { get; set; } = "APPDATA/FILES";
     }
 }

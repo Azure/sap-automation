@@ -13,6 +13,8 @@ namespace SDAFWebApp.Services
         string BuildLandscapePath(string partitionKey, string rowKey);
         string BuildSystemPath(string partitionKey, string rowKey);
         string BuildAppFilePath(string partitionKey, string rowKey);
+        string GetAppFilesRootPath();
+        string GetAppFilePartitionPath(string partitionKey);
         (string partitionKey, string rowKey) ParseLandscapePath(string path);
         (string partitionKey, string rowKey) ParseSystemPath(string path);
         (string partitionKey, string rowKey) ParseAppFilePath(string path);
@@ -40,6 +42,16 @@ namespace SDAFWebApp.Services
         public string BuildAppFilePath(string partitionKey, string rowKey)
         {
             return CombinePath(_paths.Root, _paths.AppFiles, SanitizeSegment(partitionKey), SanitizeSegment(rowKey));
+        }
+
+        public string GetAppFilesRootPath()
+        {
+            return CombinePath(_paths.Root, _paths.AppFiles);
+        }
+
+        public string GetAppFilePartitionPath(string partitionKey)
+        {
+            return CombinePath(GetAppFilesRootPath(), SanitizeSegment(partitionKey));
         }
 
         public (string partitionKey, string rowKey) ParseLandscapePath(string path)

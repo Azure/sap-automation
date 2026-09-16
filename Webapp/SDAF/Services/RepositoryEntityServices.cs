@@ -2,13 +2,12 @@
 // Licensed under the MIT License.
 
 using SDAFWebApp.Models;
+using SDAFWebApp.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-using SDAFWebApp.Controllers;
 
 namespace SDAFWebApp.Services
 {
@@ -61,11 +60,6 @@ namespace SDAFWebApp.Services
         /// Serializes entity object to TFVARS format (for ADO/GitHub).
         /// </summary>
         protected abstract string SerializeTfvars(T entity);
-
-        /// <summary>
-        /// Gets the default entity (e.g., for landscapes/systems with IsDefault=true).
-        /// </summary>
-        protected abstract Task<T> GetDefaultFromStorageAsync();
 
         /// <summary>
         /// Checks if an entity is marked as default.
@@ -188,17 +182,8 @@ namespace SDAFWebApp.Services
 
         public async Task<T> GetDefault()
         {
-            // First try to find a default entity in repository
             var allEntities = await GetAllAsync();
-            var defaultEntity = allEntities.FirstOrDefault(e => IsDefault(e));
-
-            if (defaultEntity != null)
-            {
-                return defaultEntity;
-            }
-
-            // Fall back to storage default if repository doesn't have one
-            return await GetDefaultFromStorageAsync();
+            return allEntities.FirstOrDefault(e => IsDefault(e));
         }
 
         public async Task CreateAsync(T model)
@@ -289,18 +274,14 @@ namespace SDAFWebApp.Services
     public class RepositoryLandscapeService : RepositoryJsonEntityService<LandscapeEntity>
     {
         private readonly IDatabaseSettings _databaseSettings;
-        private readonly LandscapeService _fallbackService; // For GetDefault fallback and CreateTFVars
-
         public RepositoryLandscapeService(
             IRepositoryDataAccessProvider dataAccessProvider,
             IRepositoryPathConvention pathConvention,
             IDatabaseSettings databaseSettings,
-            LandscapeService fallbackService,
             RestHelper restHelper)
             : base(dataAccessProvider, pathConvention, restHelper)
         {
             _databaseSettings = databaseSettings ?? throw new ArgumentNullException(nameof(databaseSettings));
-            _fallbackService = fallbackService;
         }
 
         protected override string BuildPath(string partitionKey, string rowKey)
@@ -386,11 +367,6 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             return Helper.ConvertToTerraform(landscape);
         }
 
-        protected override async Task<LandscapeEntity> GetDefaultFromStorageAsync()
-        {
-            return _fallbackService != null ? await _fallbackService.GetDefault() : null;
-        }
-
         protected override bool IsDefault(LandscapeEntity entity)
             => entity?.IsDefault ?? false;
 
@@ -453,11 +429,6 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             // UpdateRepo will prepend the pathBase from variable group
             await _restHelper.UpdateRepo(path, content);
 
-            // Also save to fallback service if available
-            if (_fallbackService != null)
-            {
-                await _fallbackService.CreateTFVarsAsync(file);
-            }
         }
     }
 
@@ -468,18 +439,14 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
     public class RepositorySystemService : RepositoryJsonEntityService<SystemEntity>
     {
         private readonly IDatabaseSettings _databaseSettings;
-        private readonly SystemService _fallbackService; // For GetDefault fallback and CreateTFVars
-
         public RepositorySystemService(
             IRepositoryDataAccessProvider dataAccessProvider,
             IRepositoryPathConvention pathConvention,
             IDatabaseSettings databaseSettings,
-            SystemService fallbackService,
             RestHelper restHelper)
             : base(dataAccessProvider, pathConvention, restHelper)
         {
             _databaseSettings = databaseSettings ?? throw new ArgumentNullException(nameof(databaseSettings));
-            _fallbackService = fallbackService;
         }
 
         protected override string BuildPath(string partitionKey, string rowKey)
@@ -568,11 +535,6 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             return Helper.ConvertToTerraform(system);
         }
 
-        protected override async Task<SystemEntity> GetDefaultFromStorageAsync()
-        {
-            return _fallbackService != null ? await _fallbackService.GetDefault() : null;
-        }
-
         protected override bool IsDefault(SystemEntity entity)
             => entity?.IsDefault ?? false;
 
@@ -635,11 +597,6 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             // UpdateRepo will prepend the pathBase from variable group
             await _restHelper.UpdateRepo(path, content);
 
-            // Also save to fallback service if available
-            if (_fallbackService != null)
-            {
-                await _fallbackService.CreateTFVarsAsync(file);
-            }
         }
     }
 
@@ -654,20 +611,16 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
         private readonly IRepositoryPathConvention _pathConvention;
         private readonly RestHelper _restHelper;
         private readonly IDatabaseSettings _databaseSettings;
-        private readonly AppFileService _fallbackService; // For fallback
-
         public RepositoryAppFileService(
             IRepositoryDataAccessProvider dataAccessProvider,
             IRepositoryPathConvention pathConvention,
             RestHelper restHelper,
-            IDatabaseSettings databaseSettings,
-            AppFileService fallbackService)
+            IDatabaseSettings databaseSettings)
         {
             _dataAccessProvider = dataAccessProvider ?? throw new ArgumentNullException(nameof(dataAccessProvider));
             _pathConvention = pathConvention ?? throw new ArgumentNullException(nameof(pathConvention));
             _restHelper = restHelper ?? throw new ArgumentNullException(nameof(restHelper));
             _databaseSettings = databaseSettings ?? throw new ArgumentNullException(nameof(databaseSettings));
-            _fallbackService = fallbackService;
         }
 
         public async Task<List<AppFile>> GetNAsync(int n)
@@ -678,17 +631,52 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
 
         public async Task<List<AppFile>> GetAllAsync()
         {
-            var result = new List<AppFile>();
-
-            // AppFiles path not configured, return empty list
-            return result;
+            return await GetFilesAsync(_pathConvention.GetAppFilesRootPath(), null);
         }
 
         public async Task<List<AppFile>> GetAllAsync(string partitionKey)
         {
+            if (string.IsNullOrWhiteSpace(partitionKey))
+            {
+                throw new ArgumentException("PartitionKey cannot be null or empty.", nameof(partitionKey));
+            }
+
+            return await GetFilesAsync(_pathConvention.GetAppFilePartitionPath(partitionKey), partitionKey);
+        }
+
+        private async Task<List<AppFile>> GetFilesAsync(string directoryPath, string expectedPartitionKey)
+        {
             var result = new List<AppFile>();
 
-            // AppFiles path not configured, return empty list
+            try
+            {
+                var response = await _dataAccessProvider.ListFilesAsync(directoryPath);
+                foreach (var item in response.Items.Where(item => !item.IsDirectory))
+                {
+                    var (partitionKey, rowKey) = _pathConvention.ParseAppFilePath(item.Path);
+                    if (expectedPartitionKey != null &&
+                        !string.Equals(partitionKey, expectedPartitionKey, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var fileResponse = await _dataAccessProvider.GetFileAsync(item.Path);
+                    byte[] content = fileResponse.ContentBytes
+                        ?? System.Text.Encoding.UTF8.GetBytes(fileResponse.Content ?? string.Empty);
+                    result.Add(new AppFile
+                    {
+                        Id = rowKey,
+                        Content = content,
+                        UntrustedName = rowKey,
+                        Size = content.LongLength
+                    });
+                }
+            }
+            catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
+            {
+                return result;
+            }
+
             return result;
         }
 
@@ -769,12 +757,7 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
                 return;
             }
 
-            // For standard AppFiles (like VM-Images.json), use the default path convention
-            var pathParts = file.Id?.Split('/') ?? new[] { "default", "default" };
-            string partitionKey = pathParts.Length > 0 ? pathParts[0] : "default";
-            string rowKey = pathParts.Length > 1 ? string.Join("/", pathParts.Skip(1)) : file.Id;
-
-            string standardPath = _pathConvention.BuildAppFilePath(partitionKey, rowKey);
+            string standardPath = _pathConvention.BuildAppFilePath(GetPartitionKey(file.Id), file.Id);
             await _restHelper.UpdateRepo(standardPath, content);
         }
 
@@ -803,13 +786,24 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
                 return;
             }
 
-            // For standard AppFiles (like VM-Images.json), use the default path convention
-            var pathParts = file.Id?.Split('/') ?? new[] { "default", "default" };
-            string partitionKey = pathParts.Length > 0 ? pathParts[0] : "default";
-            string rowKey = pathParts.Length > 1 ? string.Join("/", pathParts.Skip(1)) : file.Id;
-
-            string standardPath = _pathConvention.BuildAppFilePath(partitionKey, rowKey);
+            string standardPath = _pathConvention.BuildAppFilePath(GetPartitionKey(file.Id), file.Id);
             await _restHelper.UpdateRepo(standardPath, content);
+        }
+
+        private static string GetPartitionKey(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException("App file ID cannot be null or empty.", nameof(id));
+            }
+
+            int separatorIndex = id.IndexOf('-');
+            if (separatorIndex <= 0)
+            {
+                throw new ArgumentException("App file ID must contain a non-empty partition prefix followed by '-'.", nameof(id));
+            }
+
+            return id[..separatorIndex];
         }
 
         public async Task DeleteAsync(string rowKey, string partitionKey)
@@ -862,12 +856,6 @@ protected override LandscapeEntity DeserializeTfvars(string content, string part
             // Create as a regular app file with tfvars naming
             await CreateAsync(file);
 
-            // Also update tfvars blob for compatibility
-            if (_fallbackService != null)
-            {
-                await _fallbackService.CreateTFVarsAsync(file);
-            }
         }
     }
 }
-
