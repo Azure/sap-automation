@@ -372,7 +372,7 @@ namespace SDAFWebApp.Controllers
                                 { "workload_zone_name", id.Replace("-INFRASTRUCTURE", "") },
                                 { "control_plane_name", sdafControlPlaneName }
                             };
-                            await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("03-deploy-sap-workload-zone.yml", branch, inputs);
                             TempData["success"] = "Successfully triggered workload zone deployment action for " + id;
                             break;
                         }
@@ -412,6 +412,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Remove")]
         public async Task<RedirectToActionResult> RemoveConfirmedAsync(
             string id,
@@ -486,13 +487,13 @@ namespace SDAFWebApp.Controllers
                             // Trigger with inputs
                             var inputs = new Dictionary<string, object>
                             {
-                                { "workload_zone_name", "N/A" },
-                                { "cleanup_sap", true },
-                                { "cleanup_workload_zone", false },
-                                { "sap_system_identifier", id }
+                                { "workload_zone_name", id.Replace("-INFRASTRUCTURE", "") },
+                                { "cleanup_sap", false },
+                                { "cleanup_workload_zone", true },
+                                { "sap_system_identifier", "N/A" }
 
                             };
-                            await restHelper.TriggerGitHubWorkflow("10-remover-terraform.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("10-remover-terraform.yml", branch, inputs);
                             TempData["success"] = "Successfully triggered workload zone removal action for " + id;
                             break;
                         }
@@ -759,6 +760,8 @@ namespace SDAFWebApp.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("MakeDefault")]
         public async Task<IActionResult> MakeDefault(string id, string partitionKey)
         {

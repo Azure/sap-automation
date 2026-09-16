@@ -43,11 +43,16 @@ namespace SDAFWebApp.Controllers
         }
 
 
-        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
+        public SystemController(
+            ITableStorageService<SystemEntity> systemService,
+            ITableStorageService<AppFile> appFileService,
+            IConfiguration configuration,
+            ILogger<SystemController> logger)
         {
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
+            _logger = logger;
 
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             restHelper = new RestHelper(configuration, platform);
@@ -373,7 +378,7 @@ namespace SDAFWebApp.Controllers
                                 { "workload_zone_name", parameters.environment },
                                 { "sap_system_identifier", system.sid }
                             };
-                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", branch, inputs);
                             TempData["success"] = "Successfully triggered system deployment action for " + id;
                             break;
 
@@ -467,7 +472,7 @@ namespace SDAFWebApp.Controllers
                                 { "application_server_installation", parameters.application_server_installation },
                                 { "webdispatcher_installation", parameters.webdispatcher_installation }
                             };
-                            await restHelper.TriggerGitHubWorkflow("07-configuration-installation.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("07-configuration-installation.yml", branch, inputs);
                             TempData["success"] = "Successfully triggered system installation action for " + id;
                             break;
                         }
@@ -505,6 +510,7 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("Remove")]
         public async Task<RedirectToActionResult> RemoveConfirmedAsync(
             string id,
@@ -583,7 +589,7 @@ namespace SDAFWebApp.Controllers
                                 { "sap_system_identifier", id }
 
                             };
-                            await restHelper.TriggerGitHubWorkflow("10-remover-terraform.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("10-remover-terraform.yml", branch, inputs);
                             TempData["success"] = "Successfully system removal action for " + id;
                             break;
                         }
@@ -886,6 +892,8 @@ namespace SDAFWebApp.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("MakeDefault")]
         public async Task<IActionResult> MakeDefault(string id, string partitionKey)
         {

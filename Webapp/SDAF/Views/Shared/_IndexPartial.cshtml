@@ -80,9 +80,15 @@
                 var iconType = (sapObj.IsDefault) ? "FavoriteStarFill" : "FavoriteStar";
                 <tr>
                     <td>
-                        <fluent-anchor appearance="stealth" href="@Url.Action("MakeDefault", controllerName, new { id=sapObj.Id, partitionKey=sapObj.Id })">
-                            <i class="ms-Icon ms-Icon--@iconType" aria-hidden="true"></i>
-                        </fluent-anchor>
+                        @using (Html.BeginForm("MakeDefault", controllerName, FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("id", (string)sapObj.Id)
+                            @Html.Hidden("partitionKey", (string)sapObj.Id)
+                            <fluent-button appearance="stealth" type="submit" aria-label="Make @sapObj.Id the default">
+                                <i class="ms-Icon ms-Icon--@iconType" aria-hidden="true"></i>
+                            </fluent-button>
+                        }
                     <td>
                         @Html.DisplayName((string)sapObj.Id)
                     </td>
