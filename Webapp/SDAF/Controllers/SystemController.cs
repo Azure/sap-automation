@@ -266,7 +266,7 @@ namespace SDAFWebApp.Controllers
                 SystemModel system = await GetById(id, partitionKey);
                 systemView.SapObject = system;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                 ViewBag.Environments = environments;
 
                 return View(systemView);
@@ -404,7 +404,7 @@ namespace SDAFWebApp.Controllers
                 SystemModel system = await GetById(id, partitionKey);
                 systemView.SapObject = system;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                 ViewBag.Environments = environments;
 
                 return View(systemView);
@@ -496,7 +496,7 @@ namespace SDAFWebApp.Controllers
                 SystemModel system = await GetById(id, partitionKey);
                 systemView.SapObject = system;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                 ViewBag.Environments = environments;
 
 
@@ -867,12 +867,12 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Download")]
-        public ActionResult DownloadFile(string id, string partitionKey)
+        public async Task<ActionResult> DownloadFile(string id, string partitionKey)
         {
             LogDebug($"Download called. Id={id}, PartitionKey={partitionKey}");
             try
             {
-                SystemModel system = GetById(id, partitionKey).Result;
+                SystemModel system = await GetById(id, partitionKey);
 
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);

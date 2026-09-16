@@ -148,7 +148,7 @@ namespace SDAFWebApp.Controllers
 
                 if (platform == "ado")
                 {
-                    List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                    List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                     foreach (SelectListItem zone in environments)
                     {
                         options.Add(zone);
@@ -156,7 +156,7 @@ namespace SDAFWebApp.Controllers
                 }
                 else
                 {
-                    List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                    List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                     foreach (SelectListItem zone in environments)
                     {
                         options.Add(zone);
@@ -212,10 +212,10 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetDefaultJson()
+        public async Task<ActionResult> GetDefaultJson()
         {
             LogDebug("GetDefaultJson called");
-            LandscapeEntity landscapeEntity = _landscapeService.GetDefault().Result;
+            LandscapeEntity landscapeEntity = await _landscapeService.GetDefault();
             if (landscapeEntity == null) return NotFound();
             return Json(landscapeEntity.Landscape);
         }
@@ -295,7 +295,7 @@ namespace SDAFWebApp.Controllers
                 landscape.controlPlaneName = sdafControlPlaneName;
                 landscapeView.SapObject = landscape;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                 ViewBag.Environments = environments;
 
 
@@ -398,7 +398,7 @@ namespace SDAFWebApp.Controllers
                 landscape.controlPlaneName = sdafControlPlaneName;
                 landscapeView.SapObject = landscape;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                 ViewBag.Environments = environments;
 
 
@@ -735,12 +735,12 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Download")]
-        public ActionResult DownloadFile(string id, string partitionKey)
+        public async Task<ActionResult> DownloadFile(string id, string partitionKey)
         {
             LogDebug($"Download called. Id={id}, PartitionKey={partitionKey}");
             try
             {
-                LandscapeModel landscape = GetById(id, partitionKey).Result;
+                LandscapeModel landscape = await GetById(id, partitionKey);
 
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(landscape);
