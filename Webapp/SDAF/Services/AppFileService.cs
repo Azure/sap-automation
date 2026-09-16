@@ -14,18 +14,20 @@ namespace SDAFWebApp.Services
 {
     public class AppFileService : ITableStorageService<AppFile>
     {
-        private readonly TableClient client;
-        private readonly BlobContainerClient blobContainerClient;
+        private readonly Lazy<Task<TableClient>> client;
+        private readonly Lazy<Task<BlobContainerClient>> blobContainerClient;
+
         public AppFileService(TableStorageService tableStorageService, IDatabaseSettings settings)
         {
-            client = tableStorageService.GetTableClient(settings.AppFileCollectionName).Result;
-            blobContainerClient = tableStorageService.GetBlobClient(settings.AppFileBlobCollectionName).Result;
+            client = new(() => tableStorageService.GetTableClient(settings.AppFileCollectionName));
+            blobContainerClient = new(() => tableStorageService.GetBlobClient(settings.AppFileBlobCollectionName));
         }
 
         public async Task<List<AppFile>> GetNAsync(int n)
         {
             List<AppFile> files = [];
-            await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
+            BlobContainerClient containerClient = await blobContainerClient.Value;
+            await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
             {
                 files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
             }
@@ -35,7 +37,8 @@ namespace SDAFWebApp.Services
         public async Task<List<AppFile>> GetAllAsync()
         {
             List<AppFile> files = [];
-            await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
+            BlobContainerClient containerClient = await blobContainerClient.Value;
+            await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
             {
                 files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
             }
@@ -45,7 +48,8 @@ namespace SDAFWebApp.Services
         public async Task<List<AppFile>> GetAllAsync(string partitionKey)
         {
             List<AppFile> files = [];
-            await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
+            BlobContainerClient containerClient = await blobContainerClient.Value;
+            await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
             {
                 files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
             }
@@ -54,7 +58,8 @@ namespace SDAFWebApp.Services
 
         public async Task<AppFile> GetByIdAsync(string rowKey, string partitionKey)
         {
-            BlobClient blobClient = blobContainerClient.GetBlobClient(rowKey);
+            BlobContainerClient containerClient = await blobContainerClient.Value;
+            BlobClient blobClient = containerClient.GetBlobClient(rowKey);
             using var memoryStream = new MemoryStream();
             await blobClient.DownloadToAsync(memoryStream);
             return new AppFile() { Id = rowKey, Content = memoryStream.ToArray() };
@@ -67,25 +72,31 @@ namespace SDAFWebApp.Services
 
         public async Task CreateAsync(AppFile file)
         {
-            BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
+            BlobContainerClient containerClient = await blobContainerClient.Value;
+            TableClient tableClient = await client.Value;
+            BlobClient blobClient = containerClient.GetBlobClient(file.Id);
             await blobClient.UploadAsync(new BinaryData(file.Content));
             AppFileEntity fileEntity = new(file.Id, blobClient.Uri.ToString());
-            await client.AddEntityAsync(fileEntity);
+            await tableClient.AddEntityAsync(fileEntity);
         }
 
         public async Task UpdateAsync(AppFile file)
         {
-            BlobClient blobClient = blobContainerClient.GetBlobClient(file.Id);
-            await blobClient.UploadAsync(new BinaryData(file.Content), overwrite: blobClient.Exists());
+            BlobContainerClient containerClient = await blobContainerClient.Value;
+            TableClient tableClient = await client.Value;
+            BlobClient blobClient = containerClient.GetBlobClient(file.Id);
+            await blobClient.UploadAsync(new BinaryData(file.Content), overwrite: true);
             AppFileEntity fileEntity = new(file.Id, blobClient.Uri.ToString());
-            await client.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
+            await tableClient.UpsertEntityAsync(fileEntity, TableUpdateMode.Merge);
         }
 
         public async Task DeleteAsync(string rowKey, string partitionKey)
         {
-            BlobClient blobClient = blobContainerClient.GetBlobClient(rowKey);
+            BlobContainerClient containerClient = await blobContainerClient.Value;
+            TableClient tableClient = await client.Value;
+            BlobClient blobClient = containerClient.GetBlobClient(rowKey);
             await blobClient.DeleteAsync();
-            await client.DeleteEntityAsync(partitionKey, rowKey);
+            await tableClient.DeleteEntityAsync(partitionKey, rowKey);
         }
 
         public Task CreateTFVarsAsync(AppFile file)

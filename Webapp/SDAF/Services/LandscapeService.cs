@@ -14,37 +14,39 @@ namespace SDAFWebApp.Services
 {
     public class LandscapeService : ITableStorageService<LandscapeEntity>
     {
-        private readonly TableClient client;
-        private readonly BlobContainerClient tfvarsBlobContainerClient;
-
+        private readonly Lazy<Task<TableClient>> client;
+        private readonly Lazy<Task<BlobContainerClient>> tfvarsBlobContainerClient;
 
         public LandscapeService(TableStorageService tableStorageService, IDatabaseSettings settings)
         {
-            client = tableStorageService.GetTableClient(settings.LandscapeCollectionName).Result;
-            tfvarsBlobContainerClient = tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName).Result;
-
+            client = new(() => tableStorageService.GetTableClient(settings.LandscapeCollectionName));
+            tfvarsBlobContainerClient = new(() => tableStorageService.GetBlobClient(settings.TfVarBlobCollectionName));
         }
 
         public async Task<List<LandscapeEntity>> GetNAsync(int n)
         {
-            return await client.QueryAsync<LandscapeEntity>(entity => true, n).ToListAsync();
+            TableClient tableClient = await client.Value;
+            return await tableClient.QueryAsync<LandscapeEntity>(entity => true, n).ToListAsync();
         }
 
         public async Task<List<LandscapeEntity>> GetAllAsync()
         {
-            return await client.QueryAsync<LandscapeEntity>(entity => true).ToListAsync();
+            TableClient tableClient = await client.Value;
+            return await tableClient.QueryAsync<LandscapeEntity>(entity => true).ToListAsync();
         }
 
         public async Task<List<LandscapeEntity>> GetAllAsync(string partitionKey)
         {
-            return await client.QueryAsync<LandscapeEntity>(entity => entity.PartitionKey == partitionKey).ToListAsync();
+            TableClient tableClient = await client.Value;
+            return await tableClient.QueryAsync<LandscapeEntity>(entity => entity.PartitionKey == partitionKey).ToListAsync();
         }
 
         public async Task<LandscapeEntity> GetByIdAsync(string rowKey, string partitionKey)
         {
+            TableClient tableClient = await client.Value;
             try
             {
-                return await client.GetEntityAsync<LandscapeEntity>(partitionKey, rowKey);
+                return await tableClient.GetEntityAsync<LandscapeEntity>(partitionKey, rowKey);
             }
             catch (RequestFailedException ex) when (ex.Status == 404)
             {
@@ -52,37 +54,41 @@ namespace SDAFWebApp.Services
                 // "environment" to the full Id (see LandscapeEntity) will not be found
                 // by the (partitionKey, rowKey) pair above. Fall back to a RowKey-only
                 // lookup so pre-existing Table Storage rows remain reachable.
-                AsyncPageable<LandscapeEntity> matches = client.QueryAsync<LandscapeEntity>(entity => entity.RowKey == rowKey);
+                AsyncPageable<LandscapeEntity> matches = tableClient.QueryAsync<LandscapeEntity>(entity => entity.RowKey == rowKey);
                 return await matches.FirstOrDefaultAsync();
             }
         }
 
         public async Task<LandscapeEntity> GetDefault()
         {
-            AsyncPageable<LandscapeEntity> defaults = client.QueryAsync<LandscapeEntity>(entity => entity.IsDefault);
+            TableClient tableClient = await client.Value;
+            AsyncPageable<LandscapeEntity> defaults = tableClient.QueryAsync<LandscapeEntity>(entity => entity.IsDefault);
             return await defaults.FirstOrDefaultAsync();
         }
 
-        public Task CreateAsync(LandscapeEntity entity)
+        public async Task CreateAsync(LandscapeEntity entity)
         {
-            return client.AddEntityAsync(entity);
+            TableClient tableClient = await client.Value;
+            await tableClient.AddEntityAsync(entity);
         }
 
-        public Task UpdateAsync(LandscapeEntity entity)
+        public async Task UpdateAsync(LandscapeEntity entity)
         {
-            return client.UpsertEntityAsync(entity, TableUpdateMode.Merge);
+            TableClient tableClient = await client.Value;
+            await tableClient.UpsertEntityAsync(entity, TableUpdateMode.Merge);
         }
 
-        public Task DeleteAsync(string rowKey, string partitionKey)
+        public async Task DeleteAsync(string rowKey, string partitionKey)
         {
-            return client.DeleteEntityAsync(partitionKey, rowKey);
-        }
-        public Task CreateTFVarsAsync(AppFile file)
-        {
-            BlobClient blobClient = tfvarsBlobContainerClient.GetBlobClient(file.Id);
-            return blobClient.UploadAsync(new BinaryData(file.Content), overwrite: blobClient.Exists());
-
+            TableClient tableClient = await client.Value;
+            await tableClient.DeleteEntityAsync(partitionKey, rowKey);
         }
 
+        public async Task CreateTFVarsAsync(AppFile file)
+        {
+            BlobContainerClient containerClient = await tfvarsBlobContainerClient.Value;
+            BlobClient blobClient = containerClient.GetBlobClient(file.Id);
+            await blobClient.UploadAsync(new BinaryData(file.Content), overwrite: true);
+        }
     }
 }
