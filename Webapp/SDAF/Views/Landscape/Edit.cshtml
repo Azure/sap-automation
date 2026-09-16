@@ -110,13 +110,13 @@
             </td>
 
             <td>
-                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Deploy", "Landscape", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Deploy", "Landscape", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.Id })">
                     Deploy
                 </fluent-anchor>
             </td>
             <td>
                 &nbsp
-                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "Landscape", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "Landscape", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.Id })">
                     Download
                 </fluent-anchor>
             </td>

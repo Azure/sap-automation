@@ -33,6 +33,15 @@ namespace SDAFWebApp.Controllers
         private readonly string sdafControlPlaneLocation;
         private readonly string sdafControlPlaneName;
         private readonly string platform;
+        private readonly string pipelineId;
+        private readonly string branch;
+
+        private static void LogDebug(string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LandscapeController] {message}");
+        }
+
+
 
         public LandscapeController(ITableStorageService<LandscapeEntity> landscapeService, ITableStorageService<AppFile> appFileService, IConfiguration configuration)
         {
@@ -47,6 +56,16 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
             sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
             sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
+            pipelineId = configuration["WORKLOADZONE_PIPELINE_ID"];
+            branch = configuration["SourceBranch"];
+
+            LogDebug($"Platform: {platform}");
+            LogDebug($"PipelineId: {pipelineId}");
+            LogDebug($"Branch: {branch}");
+            LogDebug($"ControlPlaneEnvironment: {sdafControlPlaneEnvironment}");
+            LogDebug($"ControlPlaneLocation: {sdafControlPlaneLocation}");
+            LogDebug($"ControlPlaneName: {sdafControlPlaneName}");
+
 
         }
         private FormViewModel<LandscapeModel> SetViewData()
@@ -72,12 +91,15 @@ namespace SDAFWebApp.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
+            LogDebug("Index called");
             SapObjectIndexModel<LandscapeModel> landscapeIndex = new();
 
             try
             {
                 List<LandscapeEntity> landscapeEntities = await _landscapeService.GetAllAsync();
-                List<LandscapeModel> landscapes = landscapeEntities.FindAll(l => l.Landscape != null).ConvertAll(l => JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape));
+                List<LandscapeModel> landscapes = landscapeEntities
+                    .FindAll(l => l.Landscape != null)
+                    .ConvertAll(l => NormalizeLoadedLandscape(JsonConvert.DeserializeObject<LandscapeModel>(l.Landscape)));
                 landscapeIndex.SapObjects = landscapes;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
@@ -93,6 +115,7 @@ namespace SDAFWebApp.Controllers
 
         public void InitializeImageOptionsAndMapping()
         {
+            LogDebug("InitializeImageOptionsAndMapping called");
             imageMapping = [];
             imageOptions =
             [
@@ -115,13 +138,14 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<ActionResult> GetWorkloadZones()
         {
+            LogDebug("GetWorkloadZones called");
             List<SelectListItem> options =
       [
                 new SelectListItem { Text = "", Value = "" }
             ];
             try
             {
-                
+
                 if (platform == "ado")
                 {
                     List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
@@ -149,19 +173,21 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<LandscapeModel> GetById(string id, string partitionKey)
         {
+            LogDebug($"GetById called. Id={id}, PartitionKey={partitionKey}");
             if (id == null) throw new ArgumentNullException(nameof(id), "Parameter 'id' cannot be null.");
             if (partitionKey == null) throw new ArgumentNullException(nameof(partitionKey), "Parameter 'partitionKey' cannot be null.");
             var landscapeEntity = await _landscapeService.GetByIdAsync(id, partitionKey);
             if (landscapeEntity == null || landscapeEntity.Landscape == null) throw new KeyNotFoundException();
-            return JsonConvert.DeserializeObject<LandscapeModel>(landscapeEntity.Landscape);
+            return NormalizeLoadedLandscape(JsonConvert.DeserializeObject<LandscapeModel>(landscapeEntity.Landscape));
         }
 
         // Format correctly for javascript consumption
         [HttpGet]
         public async Task<ActionResult> GetByIdJson(string id)
         {
-            string environment = id[..id.IndexOf('-')];
-            LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, environment);
+            LogDebug($"GetByIdJson called. Id={id}");
+            // PartitionKey is the landscape's full Id (see LandscapeEntity), not the environment prefix.
+            LandscapeEntity landscape = await _landscapeService.GetByIdAsync(id, id);
             if (landscape == null || landscape.Landscape == null) return NotFound();
             return Json(landscape.Landscape);
         }
@@ -169,14 +195,26 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<LandscapeModel> GetDefault()
         {
+            LogDebug("GetDefault called");
             LandscapeEntity defaultLandscape = await _landscapeService.GetDefault();
             if (defaultLandscape == null || defaultLandscape.Landscape == null) return null;
-            return JsonConvert.DeserializeObject<LandscapeModel>(defaultLandscape.Landscape);
+            return NormalizeLoadedLandscape(JsonConvert.DeserializeObject<LandscapeModel>(defaultLandscape.Landscape));
+        }
+
+        private static LandscapeModel NormalizeLoadedLandscape(LandscapeModel landscape)
+        {
+            if (landscape != null)
+            {
+                landscape.IsValid();
+            }
+
+            return landscape;
         }
 
         [HttpGet]
         public ActionResult GetDefaultJson()
         {
+            LogDebug("GetDefaultJson called");
             LandscapeEntity landscapeEntity = _landscapeService.GetDefault().Result;
             if (landscapeEntity == null) return NotFound();
             return Json(landscapeEntity.Landscape);
@@ -185,6 +223,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Create")]
         public IActionResult Create()
         {
+            LogDebug("Create (GET) called");
             ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
             ViewBag.ImageOptions = imageOptions;
             return View(landscapeView);
@@ -195,6 +234,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(LandscapeModel landscape)
         {
+            LogDebug($"Create (POST) called. InputId={landscape?.Id}");
             if (ModelState.IsValid || landscape.IsDefault)
             {
                 try
@@ -222,6 +262,11 @@ namespace SDAFWebApp.Controllers
 
                     await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
+                    LogDebug($"Successfully created workload zone {landscape.Id}");
+
+                    string id = landscape.Id;
+                    string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+                    string content = Helper.ConvertToTerraform(landscape);
 
                     return RedirectToAction("Index");
                 }
@@ -241,6 +286,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Deploy")]
         public async Task<IActionResult> DeployAsync(string id, string partitionKey)
         {
+            LogDebug($"Deploy (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
@@ -268,6 +314,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Deploy")]
         public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
+            LogDebug($"Deploy (POST) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 LandscapeModel landscape = await GetById(id, partitionKey);
@@ -293,11 +340,9 @@ namespace SDAFWebApp.Controllers
                 {
                     case "ado":
                         {
-                        string pipelineId = _configuration["WORKLOADZONE_PIPELINE_ID"];
-                        string branch = _configuration["SourceBranch"];
 
                         parameters.workload_zone = id;
-                        parameters.environment = null; 
+                        parameters.environment = null;
                         PipelineRequestBody requestBody = new()
                         {
                             resources = new Resources
@@ -313,7 +358,8 @@ namespace SDAFWebApp.Controllers
                             templateParameters = parameters
                         };
 
-                        await restHelper.TriggerPipeline(pipelineId, requestBody);
+                            LogDebug($"Calling pipeline {pipelineId} for {id}");
+                            await restHelper.TriggerPipeline(pipelineId, requestBody);
 
                         TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
                         break;
@@ -340,9 +386,131 @@ namespace SDAFWebApp.Controllers
             return RedirectToAction("Index");
         }
 
+        [ActionName("Remove")]
+        public async Task<IActionResult> RemoveAsync(string id, string partitionKey)
+        {
+            LogDebug($"Remove (GET) called. Id={id}, PartitionKey={partitionKey}");
+            try
+            {
+                LandscapeModel landscape = await GetById(id, partitionKey);
+                landscape.controlPlaneEnvironment = sdafControlPlaneEnvironment;
+                landscape.controlPlaneLocation = sdafControlPlaneLocation;
+                landscape.controlPlaneName = sdafControlPlaneName;
+                landscapeView.SapObject = landscape;
+
+                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                ViewBag.Environments = environments;
+
+
+                return View(landscapeView);
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = e.Message;
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ActionName("Remove")]
+        public async Task<RedirectToActionResult> RemoveConfirmedAsync(
+            string id,
+            string partitionKey,
+            [Bind("cleanup_sap,sap_system,cleanup_zone,workload_zone,use_deployer")] RemovalTemplateParameters parameters)
+        {
+            LogDebug($"Remove (POST) called. Id={id}, PartitionKey={partitionKey}");
+            try
+            {
+                LandscapeModel landscape = await GetById(id, partitionKey);
+
+                string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+                parameters.cleanup_zone = true;
+                parameters.cleanup_sap = false;
+
+
+                if (!string.IsNullOrEmpty(landscape.subscription))
+                {
+                    landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
+                }
+
+                if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
+                {
+                    landscape.environment = landscape.workload_zone.Split('-')[0];
+                }
+
+
+                switch (platform.ToLower())
+                {
+                    case "ado":
+                        {
+                        string pipelineId = _configuration["REMOVAL_PIPELINE_ID"];
+                        string branch = _configuration["SourceBranch"];
+
+                        parameters.workload_zone = id.Replace("-INFRASTRUCTURE", "");
+                        parameters.sap_system = "";
+                        parameters.cleanup_sap = false;
+                        parameters.cleanup_zone = true;
+
+                        PipelineRequestBody requestBody = new()
+                        {
+                            resources = new Resources
+                            {
+                                repositories = new Repositories
+                                {
+                                    self = new Self
+                                    {
+                                        refName = $"refs/heads/{branch}"
+                                    }
+                                }
+                            },
+
+
+                            templateParameters = new Dictionary<string, object>
+                            {
+                                { "workload_zone", id.Replace("-INFRASTRUCTURE", "") },
+                                { "cleanup_sap", false },
+                                { "cleanup_zone", true },
+                                { "sap_system", "N/A" }
+                            }
+                        };
+
+                        LogDebug($"Calling pipeline {pipelineId} for {id}");
+
+                        await restHelper.TriggerPipeline(pipelineId, requestBody);
+
+                        TempData["success"] = "Successfully triggered workload zone removal pipeline for " + id;
+                        break;
+                        }
+                    case "github":
+                    {
+                            // Trigger with inputs
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone_name", "N/A" },
+                                { "cleanup_sap", true },
+                                { "cleanup_workload_zone", false },
+                                { "sap_system_identifier", id }
+
+                            };
+                            await restHelper.TriggerGitHubWorkflow("10-remover-terraform.yml", "main", inputs);
+                            TempData["success"] = "Successfully triggered workload zone removal action for " + id;
+                            break;
+                        }
+                }
+
+            }
+            catch (Exception e)
+            {
+                TempData["error"] = "Error removing workload zone " + id + ": " + e.Message;
+            }
+            return RedirectToAction("Index");
+        }
+
+
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteAsync(string id, string partitionKey)
         {
+            LogDebug($"Delete (GET) called. Id={id}, PartitionKey={partitionKey}");
             if (id == null)
             {
                 return BadRequest();
@@ -363,6 +531,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedAsync(string id, string partitionKey)
         {
+            LogDebug($"Delete (POST) called. Id={id}, PartitionKey={partitionKey}");
             await _landscapeService.DeleteAsync(id, partitionKey);
             TempData["success"] = "Successfully deleted workload zone " + id;
             return RedirectToAction("Index");
@@ -371,6 +540,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id, string partitionKey)
         {
+            LogDebug($"Edit (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
@@ -407,6 +577,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAsync(LandscapeModel landscape)
         {
+            LogDebug($"Edit (POST) called. Id={landscape?.Id}");
             if (ModelState.IsValid)
             {
                 try
@@ -433,7 +604,7 @@ namespace SDAFWebApp.Controllers
 
                         await _landscapeService.CreateTFVarsAsync(file);
 
-                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.Id });  //RedirectToAction("Index");
                     }
                     else
                     {
@@ -475,7 +646,7 @@ namespace SDAFWebApp.Controllers
 
                         await _landscapeService.CreateTFVarsAsync(file);
 
-                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.environment });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.Id });  //RedirectToAction("Index");
                     }
                 }
                 catch (Exception e)
@@ -496,6 +667,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitNewAsync(LandscapeModel landscape)
         {
+            LogDebug($"SubmitNew (POST) called. Id={landscape?.Id}");
             if (ModelState.IsValid)
             {
                 try
@@ -546,6 +718,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id, string partitionKey)
         {
+            LogDebug($"Details called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
@@ -563,6 +736,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Download")]
         public ActionResult DownloadFile(string id, string partitionKey)
         {
+            LogDebug($"Download called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 LandscapeModel landscape = GetById(id, partitionKey).Result;
@@ -588,6 +762,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("MakeDefault")]
         public async Task<IActionResult> MakeDefault(string id, string partitionKey)
         {
+            LogDebug($"MakeDefault called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 await UnsetDefault(id);
@@ -610,6 +785,7 @@ namespace SDAFWebApp.Controllers
 
         public async Task UnsetDefault(string id)
         {
+            LogDebug($"UnsetDefault called. Id={id}");
             try
             {
                 LandscapeModel existingDefault = await GetDefault();

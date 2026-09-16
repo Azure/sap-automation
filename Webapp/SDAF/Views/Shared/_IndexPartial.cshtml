@@ -80,7 +80,7 @@
                 var iconType = (sapObj.IsDefault) ? "FavoriteStarFill" : "FavoriteStar";
                 <tr>
                     <td>
-                        <fluent-anchor appearance="stealth" href="@Url.Action("MakeDefault", controllerName, new { id=sapObj.Id, partitionKey=sapObj.environment })">
+                        <fluent-anchor appearance="stealth" href="@Url.Action("MakeDefault", controllerName, new { id=sapObj.Id, partitionKey=sapObj.Id })">
                             <i class="ms-Icon ms-Icon--@iconType" aria-hidden="true"></i>
                         </fluent-anchor>
                     <td>
@@ -108,16 +108,17 @@
                         }
                     </td>
                     <td class="td-align-right">
-                        @Html.ActionLink("Edit", "Edit", new { id = sapObj.Id, partitionKey = sapObj.environment }) |
-                        @Html.ActionLink("Details", "Details", new { id = sapObj.Id, partitionKey = sapObj.environment }) |
-                        @Html.ActionLink("Download", "Download", new { id = sapObj.Id, partitionKey = sapObj.environment }) |
-                        @Html.ActionLink("Delete", "Delete", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                        @Html.ActionLink("Edit", "Edit", new { id = sapObj.Id, partitionKey = sapObj.Id }) |
+                        @Html.ActionLink("Details", "Details", new { id = sapObj.Id, partitionKey = sapObj.Id }) |
+                        @Html.ActionLink("Download", "Download", new { id = sapObj.Id, partitionKey = sapObj.Id }) |
+                        @Html.ActionLink("Delete", "Delete", new { id = sapObj.Id, partitionKey = sapObj.Id })
                         @if (!String.IsNullOrEmpty(ViewBag.IsPipelineDeployment) && sapObj.IsValid())
                         {
-                            @: | @Html.ActionLink("Deploy", "Deploy", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                            @: | @Html.ActionLink("Deploy", "Deploy", new { id = sapObj.Id, partitionKey = sapObj.Id })
+                            @: | @Html.ActionLink("Remove", "Remove", new { id = sapObj.Id, partitionKey = sapObj.Id })
                             @if (controllerName == "System")
                             {
-                                @: | @Html.ActionLink("Install", "Install", new { id = sapObj.Id, partitionKey = sapObj.environment })
+                                @: | @Html.ActionLink("Install", "Install", new { id = sapObj.Id, partitionKey = sapObj.Id })
                             }
                         }
                     </td>

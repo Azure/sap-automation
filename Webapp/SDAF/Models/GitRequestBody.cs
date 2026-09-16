@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-﻿namespace SDAFWebApp.Models
+using System;
+
+namespace SDAFWebApp.Models
 {
 
     public class GitRequestBody

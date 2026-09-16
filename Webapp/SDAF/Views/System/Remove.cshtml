@@ -1,7 +1,7 @@
 @model SDAFWebApp.Models.FormViewModel<SystemModel>
 
 @{
-    ViewBag.Title = "Deploy system";
+    ViewBag.Title = "Remove system";
     ViewData["environment"] = Model.SapObject.environment;
     IEnumerable<SelectListItem> environments = ViewBag.Environments;
 }
@@ -30,11 +30,11 @@
 </fluent-breadcrumb>
 
 <div class="text-center">
-    <h2>Deploy the infrastructure for the SAP system</h2>
-    This will deploy the required infrastructure for the SAP system. 
+    <h2>Remove a system</h2>
+    This will perform a removal of the system infrastructure and remove the deployed resources from Azure.
 </div>
 
-<h4>Are you sure you want to deploy @Model.SapObject.Id?</h4>
+<h4>Are you sure you want to remove @Model.SapObject.Id?</h4>
 <div>
     @await Html.PartialAsync("_DetailsPartial", Model)
 
@@ -44,8 +44,8 @@
 
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.Label("environment", "Workload zone", new { @class = $"ms-Label required" })
-                <p>Please specify the workload zone to deploy to.</p>
+                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label required" })
+                <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
             </div>
 
             <div class="right-input">
@@ -55,8 +55,8 @@
 
         <fluent-checkbox id="confirm-deploy-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-system-button')" disabled>I confirm that I wish to deploy this system</fluent-checkbox><br />
 
-        <fluent-button id="deploy-system-button" appearance="accent" value="Deploy" type="submit" disabled>
-            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Deploy
+        <fluent-button id="remove-system-button" appearance="accent" value="Remove" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Remove
         </fluent-button>
 
         <fluent-anchor href="@Url.Action("Index", "System")">

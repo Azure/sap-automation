@@ -40,7 +40,19 @@ namespace SDAFWebApp.Services
 
         public async Task<SystemEntity> GetByIdAsync(string rowKey, string partitionKey)
         {
-            return await client.GetEntityAsync<SystemEntity>(partitionKey, rowKey);
+            try
+            {
+                return await client.GetEntityAsync<SystemEntity>(partitionKey, rowKey);
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                // Entities created before the PartitionKey convention changed from
+                // "environment" to the full Id (see SystemEntity) will not be found
+                // by the (partitionKey, rowKey) pair above. Fall back to a RowKey-only
+                // lookup so pre-existing Table Storage rows remain reachable.
+                AsyncPageable<SystemEntity> matches = client.QueryAsync<SystemEntity>(entity => entity.RowKey == rowKey);
+                return await matches.FirstOrDefaultAsync();
+            }
         }
 
         public async Task<SystemEntity> GetDefault()

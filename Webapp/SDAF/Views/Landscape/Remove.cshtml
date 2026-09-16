@@ -1,0 +1,68 @@
+@model SDAFWebApp.Models.FormViewModel<LandscapeModel>
+
+@{
+    ViewBag.Title = "Remove workload zone";
+    ViewData["workload_environment_parameter"] = Model.SapObject.workload_zone;
+    IEnumerable<SelectListItem> environments = ViewBag.Environments;
+    IEnumerable<SelectListItem> locations = new List<SelectListItem>();
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+
+        toggleNullParameters();
+
+        populateLocations("deployer_region_parameter", "@Model.SapObject.Id.Split('-')[1]");
+    }
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Landscape")">Workload zones</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Deploy</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Remove a workload zone</h2>
+    This will perform a removal of the workload zone and remove the deployed resources from Azure.
+</div>
+
+<h4>Are you sure you want to remove @Model.SapObject.Id?</h4>
+<div>
+    @await Html.PartialAsync("_DetailsPartial", Model)
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("workload_environment_parameter", "Workload Zone Environment", new { @class = $"ms-Label" })
+                <p>Workload environment to deploy to</p>
+            </div>
+
+            <div class="right-input">
+                @Html.DropDownList("workload_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['workload_environment_parameter'], 'confirm-deploy-landscape-checkbox')" })
+            </div>
+        </div>
+
+        <fluent-checkbox id="confirm-deploy-landscape-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-landscape-button')" >I confirm that I wish to remove this workload zone</fluent-checkbox><br />
+
+        <fluent-button id="deploy-landscape-button" appearance="accent" value="Remove" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Remove
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "Landscape")">
+            Cancel
+        </fluent-anchor>
+
+    }
+</div>

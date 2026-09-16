@@ -23,7 +23,7 @@
 @await Html.PartialAsync("_DetailsPartial", Model)
 
 <p>
-    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "System", new { id = Model.SapObject.Id, partitionKey = Model.SapObject.environment })">
+    <fluent-anchor appearance="accent" href="@Url.Action("Edit", "System", new { id = Model.SapObject.Id, partitionKey = Model.SapObject.Id })">
         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> Edit
     </fluent-anchor>
     <fluent-anchor href="@Url.Action("Index", "System")">

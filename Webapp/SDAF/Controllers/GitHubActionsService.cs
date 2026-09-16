@@ -25,7 +25,7 @@ public class GitHubActionsService
     public async Task<bool> TriggerWorkflowAsync(string workflowFileName, string branch, object inputs = null)
     {
         var url = $"https://api.github.com/repos/{_owner}/{_repo}/actions/workflows/{workflowFileName}/dispatches";
-        
+
         var requestBody = new
         {
             @ref = branch,

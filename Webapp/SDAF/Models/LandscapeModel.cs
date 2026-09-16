@@ -13,11 +13,24 @@ namespace SDAFWebApp.Models
     {
         public bool IsValid()
         {
-            return
-                environment != null &&
+            bool returnVal = environment != null &&
                 location != null &&
                 network_logical_name != null
                 ;
+
+            if ( returnVal )
+                workload_zone=string.Format("{0}-{1}-{2}", environment, Helper.MapRegion(location).ToUpper(), network_logical_name);
+
+            if (!string.IsNullOrEmpty(subscription_id))
+            {
+                if(!subscription_id.StartsWith("/subscriptions/"))
+                {
+                    subscription_id = string.Format("/subscriptions/{0}", subscription_id);
+                }
+            }
+            locationCode = Helper.MapRegion(location).ToUpper();
+            return returnVal;
+                
         }
 
         [DisplayName("Workload zone ID")]
@@ -399,7 +412,22 @@ namespace SDAFWebApp.Models
         [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
         public string subscription { get; set; }
 
-        public string subscription_id { get; set; }
+        public string subscription_id
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(subscription))
+                {
+                    return subscription.Replace("/subscriptions/", "");
+                }
+                return null;
+            }
+            set
+            {
+                subscription = string.Format("/subscriptions/{0}", value);
+                
+            }
+        }
 
         /*---------------------------------------------------------------------------8
         |                                                                            |

@@ -537,16 +537,32 @@ namespace SDAFWebApp.Controllers
             string filename = "VM-Images.json";
             string partitionKey = "VM";
             AppFile file = null;
+
             try
             {
                 file = await appFileService.GetByIdAsync(filename, partitionKey);
-                if (file == null) throw new KeyNotFoundException();
+                if (file == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GetImagesFile] File is null, falling back to local ParameterDetails");
+                    throw new KeyNotFoundException();
+                }
+                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Successfully loaded from AppFileService");
+                return file;
             }
-            catch
+            catch (Exception ex)
             {
-                byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + filename);
+                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Failed to load from AppFileService: {ex.GetType().Name}: {ex.Message}. Falling back to local ParameterDetails/{filename}");
+            }
 
+            try
+            {
+                // Fallback: Load from local ParameterDetails folder
+                string localPath = Path.Combine("ParameterDetails", filename);
+                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Attempting to load from local path: {localPath}");
+
+                byte[] byteContent = System.IO.File.ReadAllBytes(localPath);
                 using MemoryStream memory = new(byteContent);
+
                 file = new AppFile()
                 {
                     Id = WebUtility.HtmlEncode(filename),
@@ -555,8 +571,14 @@ namespace SDAFWebApp.Controllers
                     Size = memory.Length,
                     UploadDT = DateTime.UtcNow
                 };
+                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Successfully loaded from local ParameterDetails");
+                return file;
             }
-            return file ?? new AppFile();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetImagesFile] Failed to load from local ParameterDetails: {ex.GetType().Name}: {ex.Message}");
+                return new AppFile();
+            }
         }
 
         public static async Task<ImageDropdown[]> GetOfferedImages(ITableStorageService<AppFile> appFileService)
@@ -573,6 +595,106 @@ namespace SDAFWebApp.Controllers
             {
                 return Array.Empty<ImageDropdown>();
             }
+        }
+
+        /// <summary>
+        /// Parses TFVARS content back to a model object.
+        /// Extracts key = value pairs from HCL/TFVARS format and maps to model properties.
+        /// </summary>
+        public static T ConvertFromTerraform<T>(string tfvarsContent) where T : new()
+        {
+            var model = new T();
+            if (string.IsNullOrEmpty(tfvarsContent))
+                return model;
+
+            var properties = typeof(T).GetProperties();
+            var lines = tfvarsContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+            System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Parsing {typeof(T).Name}, found {lines.Length} lines, {properties.Length} properties available");
+
+            int parsedCount = 0;
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+
+                // Skip comments and empty lines
+                if (trimmedLine.StartsWith("#") || string.IsNullOrEmpty(trimmedLine))
+                    continue;
+
+                // Parse key = value format
+                if (!trimmedLine.Contains("="))
+                    continue;
+
+                var parts = trimmedLine.Split(new[] { '=' }, 2);
+                if (parts.Length != 2)
+                    continue;
+
+                var key = parts[0].Trim();
+                var valueRaw = parts[1].Trim().TrimEnd(',');
+
+                // Find matching property (case-insensitive)
+                var prop = properties.FirstOrDefault(p =>
+                    p.Name.Equals(key, StringComparison.OrdinalIgnoreCase));
+
+                if (prop == null || !prop.CanWrite)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Key '{key}' not found or not writable in {typeof(T).Name}");
+                    continue;
+                }
+
+                try
+                {
+                    var value = ParseTfvarsValue(valueRaw, prop.PropertyType);
+                    if (value != null)
+                    {
+                        prop.SetValue(model, value);
+                        parsedCount++;
+                        System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Set {key} = {value}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Skip properties that fail to parse
+                    System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Error parsing {key}: {ex.Message}");
+                    continue;
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[ConvertFromTerraform] Successfully parsed {parsedCount} properties from TFVARS");
+            return model;
+        }
+
+        private static object ParseTfvarsValue(string valueStr, Type targetType)
+        {
+            // Remove quotes if present
+            if (valueStr.StartsWith("\"") && valueStr.EndsWith("\""))
+            {
+                valueStr = valueStr.Substring(1, valueStr.Length - 2);
+            }
+
+            if (targetType == typeof(string) || targetType == typeof(string[]))
+            {
+                // Handle arrays
+                if (valueStr.StartsWith("[") && valueStr.EndsWith("]"))
+                {
+                    var arrayStr = valueStr.Substring(1, valueStr.Length - 2);
+                    var items = arrayStr.Split(new[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().Trim('"'))
+                        .ToArray();
+                    return targetType == typeof(string[]) ? items : items.FirstOrDefault();
+                }
+                return valueStr;
+            }
+            else if (targetType == typeof(bool) || targetType == typeof(bool?))
+            {
+                return bool.Parse(valueStr.ToLower());
+            }
+            else if (targetType == typeof(int) || targetType == typeof(int?))
+            {
+                return int.Parse(valueStr);
+            }
+
+            return valueStr;
         }
 
     }

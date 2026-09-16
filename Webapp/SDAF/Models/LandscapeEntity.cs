@@ -14,7 +14,7 @@ namespace SDAFWebApp.Models
         public LandscapeEntity(LandscapeModel landscape)
         {
             RowKey = landscape.Id;
-            PartitionKey = landscape.environment;
+            PartitionKey = landscape.Id;  // Use full ID for better organization in ADO/GitHub
             IsDefault = landscape.IsDefault;
             Landscape = JsonSerializer.Serialize(landscape, new JsonSerializerOptions() { });
         }
