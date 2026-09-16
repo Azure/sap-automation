@@ -252,7 +252,7 @@ namespace SDAFWebApp.Controllers
                 {
                     path = path.Substring(1);
                 }
-                var changeSet = await uploader.CreateOrUpdateFileAsync(path, content, "Update file via SDAF App Service", "main");
+                var changeSet = await uploader.CreateOrUpdateFileAsync(path, content, "Update file via SDAF App Service", branch);
                 if (changeSet == null || changeSet.Content == null)
                 {
                     throw new HttpRequestException("Failed to create or update the file on GitHub.");
@@ -281,13 +281,14 @@ namespace SDAFWebApp.Controllers
 
         // Add this method to the RestHelper class to trigger a GitHub Action workflow
 
-        public async Task TriggerGitHubWorkflow(string workflowFileName, string branch = "main", Dictionary<string, object> inputs = null)
+        public async Task TriggerGitHubWorkflow(string workflowFileName, string sourceBranch = null, Dictionary<string, object> inputs = null)
         {
-            LogDebug($"TriggerGitHubWorkflow called. Workflow={workflowFileName}, Branch={branch}, InputCount={inputs?.Count ?? 0}");
+            string workflowBranch = sourceBranch ?? branch;
+            LogDebug($"TriggerGitHubWorkflow called. Workflow={workflowFileName}, Branch={workflowBranch}, InputCount={inputs?.Count ?? 0}");
             var githubClient = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("SDAF"));
             githubClient.Credentials = new Octokit.Credentials(ghToken);
 
-            var workflowDispatch = new Octokit.CreateWorkflowDispatch(branch)
+            var workflowDispatch = new Octokit.CreateWorkflowDispatch(workflowBranch)
             {
                 Inputs = inputs ?? new Dictionary<string, object>()
             };

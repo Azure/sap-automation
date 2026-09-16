@@ -49,11 +49,11 @@
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['environment'], 'confirm-deploy-system-checkbox')" })
+                @Html.DropDownList("environment", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['environment'], 'confirm-remove-system-checkbox')" })
             </div>
         </div>
 
-        <fluent-checkbox id="confirm-deploy-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-system-button')" disabled>I confirm that I wish to deploy this system</fluent-checkbox><br />
+        <fluent-checkbox id="confirm-remove-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'remove-system-button')" disabled>I confirm that I wish to remove this system</fluent-checkbox><br />
 
         <fluent-button id="remove-system-button" appearance="accent" value="Remove" type="submit" disabled>
             <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Remove
