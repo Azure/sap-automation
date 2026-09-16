@@ -192,7 +192,7 @@ namespace SDAFWebApp.Controllers
         {
             LogDebug("GetProjectId called");
             string getUri = $"{collectionUri}_apis/projects/{project}?api-version=7.1";
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
+            using HttpResponseMessage response = await client.GetAsync(getUri);
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
 
@@ -210,7 +210,7 @@ namespace SDAFWebApp.Controllers
                 string postUri = $"{collectionUri}{project}/_apis/git/repositories/{repositoryId}/pushes?api-version=5.1";
                 string ooId;
 
-                using HttpResponseMessage response = client.GetAsync(getUri).Result;
+                using HttpResponseMessage response = await client.GetAsync(getUri);
                 string responseBody = await response.Content.ReadAsStringAsync();
                 HandleResponse(response, responseBody);
 
@@ -265,7 +265,7 @@ namespace SDAFWebApp.Controllers
         {
             LogDebug($"TriggerPipeline called. PipelineId={pipelineId}, Branch={branch}");
             string getUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}";
-            using HttpResponseMessage getResponse = client.GetAsync(getUri).Result;
+            using HttpResponseMessage getResponse = await client.GetAsync(getUri);
             string getResponseBody = await getResponse.Content.ReadAsStringAsync();
             HandleResponse(getResponse, getResponseBody);
 
@@ -316,7 +316,7 @@ namespace SDAFWebApp.Controllers
             //}
             try
             {
-                using HttpResponseMessage response = client.GetAsync(getUri).Result;
+                using HttpResponseMessage response = await client.GetAsync(getUri);
                 string responseBody = await response.Content.ReadAsStringAsync();
                 HandleResponse(response, responseBody);
                 List<string> fileNames = [];
@@ -362,7 +362,7 @@ namespace SDAFWebApp.Controllers
             LogDebug($"GetTemplateFile called. Path={path}");
             string getUri = $"{sampleUrl}/contents/{path}?ref=main";
 
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
+            using HttpResponseMessage response = await client.GetAsync(getUri);
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
 
@@ -376,7 +376,7 @@ namespace SDAFWebApp.Controllers
             LogDebug("GetVariableGroupsJson called");
             string getUri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups?api-version=7.1";
 
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
+            using HttpResponseMessage response = await client.GetAsync(getUri);
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
 
@@ -476,7 +476,7 @@ namespace SDAFWebApp.Controllers
             LogDebug($"GetVariableGroup called. Id={id}");
             string getUri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups/{id}?api-version=7.1";
 
-            using HttpResponseMessage response = client.GetAsync(getUri).Result;
+            using HttpResponseMessage response = await client.GetAsync(getUri);
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
 
@@ -517,7 +517,7 @@ namespace SDAFWebApp.Controllers
                 }
                 string getUri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups/{id}?api-version=7.1";
 
-                using HttpResponseMessage response = client.GetAsync(getUri).Result;
+                using HttpResponseMessage response = await client.GetAsync(getUri);
                 string responseBody = await response.Content.ReadAsStringAsync();
                 HandleResponse(response, responseBody);
 
@@ -542,7 +542,7 @@ namespace SDAFWebApp.Controllers
             LogDebug($"CreateVariableGroup called. Name={newName}");
             string postUri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups?api-version=7.1";
 
-            string projectId = GetProjectId().Result;
+            string projectId = await GetProjectId();
 
             newName = "SDAF-" + newName.Replace("SDAF-", "");
             environment.name = newName;
@@ -576,7 +576,7 @@ namespace SDAFWebApp.Controllers
             string uri = $"{collectionUri}{project}/_apis/distributedtask/variablegroups/{environment.id}?api-version=7.1";
 
             // Get the existing environment
-            using HttpResponseMessage getResponse = client.GetAsync(uri).Result;
+            using HttpResponseMessage getResponse = await client.GetAsync(uri);
             string getResponseBody = await getResponse.Content.ReadAsStringAsync();
             HandleResponse(getResponse, getResponseBody);
 

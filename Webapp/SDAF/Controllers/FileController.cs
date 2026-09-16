@@ -38,12 +38,12 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Templates")]
-        public ActionResult Templates(string sourceController)
+        public async Task<ActionResult> Templates(string sourceController)
         {
             try
             {
-                string[] landscapeFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/LANDSCAPE").Result;
-                string[] systemFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/SYSTEM").Result;
+                string[] landscapeFilePaths = await restHelper.GetTemplateFileNames("Terraform/WORKSPACES/LANDSCAPE");
+                string[] systemFilePaths = await restHelper.GetTemplateFileNames("Terraform/WORKSPACES/SYSTEM");
 
                 Dictionary<string, string[]> filePaths = new()
             {
@@ -63,9 +63,9 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("UseTemplate")]
-        public IActionResult UseTemplate(string fileName, string sourceController)
+        public async Task<IActionResult> UseTemplate(string fileName, string sourceController)
         {
-            string content = restHelper.GetTemplateFile(fileName).Result;
+            string content = await restHelper.GetTemplateFile(fileName);
             ViewBag.Message = content;
             ViewBag.TemplateName = fileName[(fileName.LastIndexOf('/') + 1)..];
             ViewBag.SourceController = sourceController;

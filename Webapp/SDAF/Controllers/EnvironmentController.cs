@@ -21,12 +21,12 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Index")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             EnvironmentModel[] variableGroups = Array.Empty<EnvironmentModel>();
             try
             {
-                variableGroups = restHelper.GetVariableGroups().Result;
+                variableGroups = await restHelper.GetVariableGroups();
             }
             catch (Exception e)
             {
