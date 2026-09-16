@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Microsoft.Extensions.Logging;
@@ -20,7 +21,8 @@ using Microsoft.Extensions.Logging;
 namespace SDAFWebApp.Controllers
 {
     public class FileController(ITableStorageService<AppFile> appFileService, ITableStorageService<LandscapeEntity> landscapeService,
-        ITableStorageService<SystemEntity> systemService, RestHelper restHelper, ILogger<FileController> logger) : Controller
+        ITableStorageService<SystemEntity> systemService, RestHelper restHelper, ILogger<FileController> logger,
+        IConfiguration configuration) : Controller
     {
         private readonly ITableStorageService<AppFile> _appFileService = appFileService;
         private readonly ITableStorageService<LandscapeEntity> _landscapeService = landscapeService;
@@ -167,7 +169,8 @@ namespace SDAFWebApp.Controllers
                 {
                     LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
                     landscape.Id = id;
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    await _landscapeService.CreateAsync(
+                        new LandscapeEntity(landscape, configuration["DEVOPS_PLATFORM"]));
                     TempData["success"] = "Successfully converted file " + id + " to a workload zone object";
                 }
                 else

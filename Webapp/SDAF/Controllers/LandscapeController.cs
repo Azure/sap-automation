@@ -249,7 +249,7 @@ namespace SDAFWebApp.Controllers
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
                     await PersistDefaultTransitionAsync(
                         landscape,
-                        () => _landscapeService.CreateAsync(new LandscapeEntity(landscape)));
+                        () => _landscapeService.CreateAsync(new LandscapeEntity(landscape, platform)));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     LogDebug($"Successfully created workload zone {landscape.Id}");
 
@@ -591,7 +591,7 @@ namespace SDAFWebApp.Controllers
                         landscape.LastModified = currentDateAndTime.ToShortDateString();
                         await PersistDefaultTransitionAsync(
                             landscape,
-                            () => _landscapeService.UpdateAsync(new LandscapeEntity(landscape)));
+                            () => _landscapeService.UpdateAsync(new LandscapeEntity(landscape, platform)));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;
 
                         string id = landscape.Id;
@@ -641,7 +641,7 @@ namespace SDAFWebApp.Controllers
 
                     await PersistDefaultTransitionAsync(
                         landscape,
-                        () => _landscapeService.CreateAsync(new LandscapeEntity(landscape)));
+                        () => _landscapeService.CreateAsync(new LandscapeEntity(landscape, platform)));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     string id = landscape.Id;
                     string content = Helper.ConvertToTerraform(landscape);
@@ -735,7 +735,7 @@ namespace SDAFWebApp.Controllers
                 landscape.IsDefault = true;
                 await PersistDefaultTransitionAsync(
                     landscape,
-                    () => _landscapeService.UpdateAsync(new LandscapeEntity(landscape)));
+                    () => _landscapeService.UpdateAsync(new LandscapeEntity(landscape, platform)));
                 TempData["success"] = id + " is now the default workload zone";
             }
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
@@ -765,14 +765,14 @@ namespace SDAFWebApp.Controllers
             previousDefault.IsDefault = false;
             try
             {
-                await _landscapeService.UpdateAsync(new LandscapeEntity(previousDefault));
+                await _landscapeService.UpdateAsync(new LandscapeEntity(previousDefault, platform));
             }
             catch (Exception clearException)
             {
                 replacement.IsDefault = false;
                 try
                 {
-                    await _landscapeService.UpdateAsync(new LandscapeEntity(replacement));
+                    await _landscapeService.UpdateAsync(new LandscapeEntity(replacement, platform));
                 }
                 catch (Exception rollbackException)
                 {
