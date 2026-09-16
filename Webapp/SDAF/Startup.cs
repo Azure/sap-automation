@@ -17,6 +17,8 @@ using SDAFWebApp.Controllers;
 using SDAFWebApp.Models;
 using SDAFWebApp.Services;
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace SDAFWebApp
 {
@@ -69,13 +71,47 @@ namespace SDAFWebApp
 
             services.AddSingleton<TableStorageService>();
 
-            // Register RestHelper as singleton (it's stateless and can be reused)
+            services.AddTransient<AzureDevOpsAuthenticationHandler>();
+            services.AddTransient<GitHubAuthenticationHandler>();
+
+            services.AddHttpClient(DevOpsHttpClientNames.AzureDevOps, client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("sap-automation/1.0");
+            }).AddHttpMessageHandler<AzureDevOpsAuthenticationHandler>();
+
+            services.AddHttpClient(DevOpsHttpClientNames.GitHub, client =>
+            {
+                client.BaseAddress = new Uri("https://api.github.com/");
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("sap-automation/1.0");
+            }).AddHttpMessageHandler<GitHubAuthenticationHandler>();
+
+            services.AddHttpClient(DevOpsHttpClientNames.Unauthenticated, client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("sap-automation/1.0");
+            });
+
+            services.AddSingleton<GitHubEnvironmentHelper>();
+            services.AddSingleton<GitHubActionsService>();
+
             services.AddSingleton<RestHelper>(provider =>
             {
                 string platform = Environment.GetEnvironmentVariable("DEVOPS_PLATFORM")?.ToLower()
                     ?? Configuration["DEVOPS_PLATFORM"]?.ToLower()
                     ?? "ado";
-                return new RestHelper(Configuration, platform);
+                return new RestHelper(
+                    Configuration,
+                    provider.GetRequiredService<IHttpClientFactory>(),
+                    provider.GetRequiredService<GitHubEnvironmentHelper>(),
+                    platform);
             });
 
             // Register repository data access provider

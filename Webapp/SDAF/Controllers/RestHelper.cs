@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Azure.Core;
-using Azure.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
@@ -11,14 +9,13 @@ using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using Octokit;
 using SDAFWebApp.Models;
+using SDAFWebApp.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -31,7 +28,6 @@ namespace SDAFWebApp.Controllers
         private readonly string collectionUri;
         private readonly string project;
         private readonly string repositoryId;
-        private readonly string PAT;
         private readonly string branch;
         private readonly string sdafGeneralId;
         private readonly string sdafControlPlaneEnvironment;
@@ -43,11 +39,14 @@ namespace SDAFWebApp.Controllers
         private readonly string repoType;
         private readonly string managedIdentityClientId;
 
-        private readonly Azure.Identity.DefaultAzureCredential credential;
-
         private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
 
-        private HttpClient client;
+        private readonly IHttpClientFactory httpClientFactory;
+        private readonly GitHubEnvironmentHelper gitHubEnvironmentHelper;
+        private readonly string repositoryClientName;
+        private readonly string sampleClientName;
+        private HttpClient client => httpClientFactory.CreateClient(repositoryClientName);
+        private HttpClient sampleClient => httpClientFactory.CreateClient(sampleClientName);
 
         private JsonSerializerOptions jsonSerializerOptions;
 
@@ -56,10 +55,17 @@ namespace SDAFWebApp.Controllers
             System.Diagnostics.Debug.WriteLine($"[RestHelper] {message}");
         }
 
-        public RestHelper(IConfiguration configuration, string type = "ADO")
+        public RestHelper(
+            IConfiguration configuration,
+            IHttpClientFactory httpClientFactory,
+            GitHubEnvironmentHelper gitHubEnvironmentHelper,
+            string type = "ADO")
         {
             string devops_authentication;
             string ghOrgAndRepository;
+
+            this.httpClientFactory = httpClientFactory;
+            this.gitHubEnvironmentHelper = gitHubEnvironmentHelper;
 
             try
             {
@@ -67,7 +73,6 @@ namespace SDAFWebApp.Controllers
                 project = configuration["ProjectName"];
                 repoType = type;
                 repositoryId = configuration["RepositoryId"];
-                PAT = configuration["PAT"];
                 devops_authentication = configuration["AUTHENTICATION_TYPE"];
                 branch = configuration["SourceBranch"];
                 sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
@@ -110,50 +115,29 @@ namespace SDAFWebApp.Controllers
 
             if (repoType.ToLower() == "ado")
             {
-                if (devops_authentication == "PAT")
-                {
-                    client = new HttpClient();
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                    Convert.ToBase64String(
-                        System.Text.ASCIIEncoding.ASCII.GetBytes(
-                            string.Format("{0}:{1}", "", PAT))));
-                }
-                else
+                if (!string.Equals(devops_authentication, "PAT", StringComparison.OrdinalIgnoreCase))
                 {
                     if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(managedIdentityClientId))
                     {
                         throw new ArgumentNullException("TenantId and ManagedIdentityClientId must be provided for Managed Identity authentication.");
                     }
-
-                    credential = new DefaultAzureCredential(
-                        new DefaultAzureCredentialOptions
-                        {
-                            TenantId = tenantId,
-                            ManagedIdentityClientId = managedIdentityClientId
-                        });
-
-                    //var tokenRequestContext = new TokenRequestContext(new[] { "https://management.azure.com/.default", "499b84ac-1321-427f-aa17-267ca6975798/.default" });
-
-                    var tokenRequestContext = new TokenRequestContext(new[] { "499b84ac-1321-427f-aa17-267ca6975798/.default" });
-                    var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
-
-                    var accessToken = token.Token;
-
-                    client = new HttpClient();
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-                        accessToken);
                 }
 
-                client.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
+                repositoryClientName = DevOpsHttpClientNames.AzureDevOps;
+                sampleClientName = DevOpsHttpClientNames.Unauthenticated;
             }
             else if (repoType.ToLower() == "github")
             {
-                if (ghOrgAndRepository.Length > 0)
+                if (!string.IsNullOrWhiteSpace(ghOrgAndRepository))
                 {
-                    ghOrganization = ghOrgAndRepository.Split("/")[0];
-                    ghRepository = ghOrgAndRepository.Split("/")[1];
+                    string[] repositoryParts = ghOrgAndRepository.Split('/', 2, StringSplitOptions.RemoveEmptyEntries);
+                    if (repositoryParts.Length != 2)
+                    {
+                        throw new ArgumentException("GITHUB_REPOSITORY must be provided as 'owner/repository'.");
+                    }
+
+                    ghOrganization = repositoryParts[0];
+                    ghRepository = repositoryParts[1];
                     ghToken = configuration["GITHUB_PAT"];
                 }
                 else
@@ -161,29 +145,13 @@ namespace SDAFWebApp.Controllers
                     throw new ArgumentNullException("GitHub repository must be provided for GitHub operations.");
 
                 }
-
-                client = new HttpClient();
-
-                client.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SDAF", "1.0"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ghToken);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-
-
+                repositoryClientName = DevOpsHttpClientNames.GitHub;
+                sampleClientName = DevOpsHttpClientNames.GitHub;
             }
             else
             {
-                client = new HttpClient();
-
-                client.DefaultRequestHeaders.Accept.Add(
-                    new MediaTypeWithQualityHeaderValue("application/json"));
-
-                client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
-
-
+                repositoryClientName = DevOpsHttpClientNames.Unauthenticated;
+                sampleClientName = DevOpsHttpClientNames.Unauthenticated;
             }
         }
 
@@ -309,14 +277,9 @@ namespace SDAFWebApp.Controllers
             LogDebug($"GetTemplateFileNames called. ScopePath={scopePath}");
             string getUri = $"{sampleUrl}/contents/{scopePath}?ref=main";
 
-            //if (!string.IsNullOrEmpty(ghToken))
-            //{
-            //    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ghToken);
-            //    getUri += "&access_token=ghToken";
-            //}
             try
             {
-                using HttpResponseMessage response = await client.GetAsync(getUri);
+                using HttpResponseMessage response = await sampleClient.GetAsync(getUri);
                 string responseBody = await response.Content.ReadAsStringAsync();
                 HandleResponse(response, responseBody);
                 List<string> fileNames = [];
@@ -362,7 +325,7 @@ namespace SDAFWebApp.Controllers
             LogDebug($"GetTemplateFile called. Path={path}");
             string getUri = $"{sampleUrl}/contents/{path}?ref=main";
 
-            using HttpResponseMessage response = await client.GetAsync(getUri);
+            using HttpResponseMessage response = await sampleClient.GetAsync(getUri);
             string responseBody = await response.Content.ReadAsStringAsync();
             HandleResponse(response, responseBody);
 
@@ -428,9 +391,7 @@ namespace SDAFWebApp.Controllers
             {
                 case "github":
                     {
-                        var helper = new GitHubEnvironmentHelper(ghToken, ghOrganization, ghRepository);
-                        // FIX: Await the async method and use the result directly
-                        var environments = await helper.ListEnvironmentsAsync();
+                        var environments = await gitHubEnvironmentHelper.ListEnvironmentsAsync();
 
                         foreach (var env in environments)
                         {
@@ -1247,11 +1208,6 @@ namespace SDAFWebApp.Controllers
                 throw new HttpRequestException(errorMessage);
             }
         }
-
-        public static List<ProductInfoHeaderValue> AppUserAgent { get; } =
-        [
-            new ProductInfoHeaderValue("SDAF")
-        ];
 
     }
 }
