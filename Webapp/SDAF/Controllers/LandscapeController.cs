@@ -234,10 +234,6 @@ namespace SDAFWebApp.Controllers
             {
                 try
                 {
-                    if (landscape.IsDefault)
-                    {
-                        await UnsetDefault(landscape.Id);
-                    }
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
@@ -255,7 +251,9 @@ namespace SDAFWebApp.Controllers
                         landscape.network_logical_name = landscape.workload_zone.Split('-')[2];
                     }
 
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    await PersistDefaultTransitionAsync(
+                        landscape,
+                        () => _landscapeService.CreateAsync(new LandscapeEntity(landscape)));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     LogDebug($"Successfully created workload zone {landscape.Id}");
 
@@ -600,10 +598,6 @@ namespace SDAFWebApp.Controllers
                     }
                     else
                     {
-                        if (landscape.IsDefault)
-                        {
-                            await UnsetDefault(landscape.Id);
-                        }
                         DateTime currentDateAndTime = DateTime.Now;
                         landscape.LastModified = currentDateAndTime.ToShortDateString();
                         if (string.IsNullOrEmpty(landscape.environment) && !string.IsNullOrEmpty(landscape.workload_zone))
@@ -619,7 +613,9 @@ namespace SDAFWebApp.Controllers
                             landscape.subscription_id = landscape.subscription.Replace("/subscriptions/", "");
                         }
 
-                       await _landscapeService.UpdateAsync(new LandscapeEntity(landscape));
+                        await PersistDefaultTransitionAsync(
+                            landscape,
+                            () => _landscapeService.UpdateAsync(new LandscapeEntity(landscape)));
                         TempData["success"] = "Successfully updated workload zone " + landscape.Id;
 
                         string id = landscape.Id;
@@ -662,15 +658,13 @@ namespace SDAFWebApp.Controllers
             {
                 try
                 {
-                    if (landscape.IsDefault)
-                    {
-                        await UnsetDefault(landscape.Id);
-                    }
                     landscape.Id = Helper.GenerateId(landscape);
                     DateTime currentDateAndTime = DateTime.Now;
                     landscape.LastModified = currentDateAndTime.ToShortDateString();
 
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    await PersistDefaultTransitionAsync(
+                        landscape,
+                        () => _landscapeService.CreateAsync(new LandscapeEntity(landscape)));
                     TempData["success"] = "Successfully created workload zone " + landscape.Id;
                     string id = landscape.Id;
                     string content = Helper.ConvertToTerraform(landscape);
@@ -755,14 +749,13 @@ namespace SDAFWebApp.Controllers
             LogDebug($"MakeDefault called. Id={id}, PartitionKey={partitionKey}");
             try
             {
-                await UnsetDefault(id);
-
                 ActionResult<LandscapeModel> result = await GetById(id, partitionKey);
                 LandscapeModel landscape = result.Value;
 
                 landscape.IsDefault = true;
-                LandscapeEntity landscapeEntity = new(landscape);
-                await _landscapeService.UpdateAsync(landscapeEntity);
+                await PersistDefaultTransitionAsync(
+                    landscape,
+                    () => _landscapeService.UpdateAsync(new LandscapeEntity(landscape)));
                 TempData["success"] = id + " is now the default workload zone";
             }
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
@@ -773,23 +766,44 @@ namespace SDAFWebApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task UnsetDefault(string id)
+        private async Task PersistDefaultTransitionAsync(
+            LandscapeModel replacement,
+            Func<Task> persistReplacement)
         {
-            LogDebug($"UnsetDefault called. Id={id}");
+            LandscapeModel previousDefault = replacement.IsDefault
+                ? await GetDefault()
+                : null;
+
+            await persistReplacement();
+
+            if (previousDefault == null || previousDefault.Id == replacement.Id)
+            {
+                return;
+            }
+
+            previousDefault.IsDefault = false;
             try
             {
-                LandscapeModel existingDefault = await GetDefault();
-                if (existingDefault != null && existingDefault.Id != id)
-                {
-                    existingDefault.IsDefault = false;
-                    await _landscapeService.UpdateAsync(new LandscapeEntity(existingDefault));
-                    Console.WriteLine("Unset existing default " + existingDefault.Id);
-                }
+                await _landscapeService.UpdateAsync(new LandscapeEntity(previousDefault));
             }
-            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
-            catch (Exception e)
+            catch (Exception clearException)
             {
-                throw new Exception("Error unsetting the current default object: " + e.Message);
+                replacement.IsDefault = false;
+                try
+                {
+                    await _landscapeService.UpdateAsync(new LandscapeEntity(replacement));
+                }
+                catch (Exception rollbackException)
+                {
+                    throw new AggregateException(
+                        "Failed to clear the previous default workload zone and roll back the replacement.",
+                        clearException,
+                        rollbackException);
+                }
+
+                throw new InvalidOperationException(
+                    "Failed to clear the previous default workload zone; the replacement was rolled back.",
+                    clearException);
             }
         }
 

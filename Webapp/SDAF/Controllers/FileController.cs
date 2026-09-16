@@ -140,9 +140,12 @@ namespace SDAFWebApp.Controllers
         }
 
 
+        [HttpPost]
         [ActionName("Convert")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConvertFileToObject(string id, string sourceController)
         {
+            sourceController = string.IsNullOrWhiteSpace(sourceController) ? "File" : sourceController;
             try
             {
                 // Convert a file to a landscape or system object
@@ -428,7 +431,7 @@ namespace SDAFWebApp.Controllers
             return id[..id.IndexOf('-')];
         }
 
-        public async Task<AppFile> GetImagesFile(string filename, int type, string partitionKey)
+        private async Task<AppFile> GetImagesFile(string filename, int type, string partitionKey)
         {
             AppFile file = null;
             try

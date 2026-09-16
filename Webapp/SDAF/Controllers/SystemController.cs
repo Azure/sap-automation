@@ -228,16 +228,13 @@ namespace SDAFWebApp.Controllers
             {
                 try
                 {
-                    if (system.IsDefault)
-                    {
-                        await UnsetDefault(system.Id);
-                    }
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
-                    SystemEntity systemEntity = new(system);
-                    await _systemService.CreateAsync(systemEntity);
+                    await PersistDefaultTransitionAsync(
+                        system,
+                        () => _systemService.CreateAsync(new SystemEntity(system)));
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
@@ -726,10 +723,6 @@ namespace SDAFWebApp.Controllers
                     }
                     else
                     {
-                        if (system.IsDefault)
-                        {
-                            await UnsetDefault(system.Id);
-                        }
                         if (String.IsNullOrEmpty(system.Description))
                         {
                             if (system.database_high_availability == true || system.scs_high_availability == true)
@@ -757,7 +750,9 @@ namespace SDAFWebApp.Controllers
 
                         DateTime currentDateAndTime = DateTime.Now;
                         system.LastModified = currentDateAndTime.ToShortDateString();
-                        await _systemService.UpdateAsync(new SystemEntity(system));
+                        await PersistDefaultTransitionAsync(
+                            system,
+                            () => _systemService.UpdateAsync(new SystemEntity(system)));
 
                         TempData["success"] = "Successfully updated system " + system.Id;
                         string id = system.Id;
@@ -801,10 +796,6 @@ namespace SDAFWebApp.Controllers
             {
                 try
                 {
-                    if (system.IsDefault)
-                    {
-                        await UnsetDefault(system.Id);
-                    }
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
@@ -822,7 +813,9 @@ namespace SDAFWebApp.Controllers
                         system.network_logical_name = system.workload_zone.Split('-')[2];
                     }
 
-                    await _systemService.CreateAsync(new SystemEntity(system));
+                    await PersistDefaultTransitionAsync(
+                        system,
+                        () => _systemService.CreateAsync(new SystemEntity(system)));
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
@@ -891,14 +884,11 @@ namespace SDAFWebApp.Controllers
             LogDebug($"MakeDefault called. Id={id}, PartitionKey={partitionKey}");
             try
             {
-                // Unset the existing default
-                await UnsetDefault(id);
-
-                // Update current system as default
                 SystemModel system = await GetById(id, partitionKey);
                 system.IsDefault = true;
-                SystemEntity systemEntity = new(system);
-                await _systemService.UpdateAsync(systemEntity);
+                await PersistDefaultTransitionAsync(
+                    system,
+                    () => _systemService.UpdateAsync(new SystemEntity(system)));
             }
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
@@ -908,23 +898,44 @@ namespace SDAFWebApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task UnsetDefault(string id)
+        private async Task PersistDefaultTransitionAsync(
+            SystemModel replacement,
+            Func<Task> persistReplacement)
         {
-            LogDebug($"UnsetDefault called. Id={id}");
+            SystemModel previousDefault = replacement.IsDefault
+                ? await GetDefault()
+                : null;
+
+            await persistReplacement();
+
+            if (previousDefault == null || previousDefault.Id == replacement.Id)
+            {
+                return;
+            }
+
+            previousDefault.IsDefault = false;
             try
             {
-                SystemModel existingDefault = await GetDefault();
-                if (existingDefault != null && existingDefault.Id != id)
-                {
-                    existingDefault.IsDefault = false;
-                    await _systemService.UpdateAsync(new SystemEntity(existingDefault));
-                    Console.WriteLine("Unset existing default " + existingDefault.Id);
-                }
+                await _systemService.UpdateAsync(new SystemEntity(previousDefault));
             }
-            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
-            catch (Exception e)
+            catch (Exception clearException)
             {
-                throw new Exception("Error unsetting the current default object: " + e.Message);
+                replacement.IsDefault = false;
+                try
+                {
+                    await _systemService.UpdateAsync(new SystemEntity(replacement));
+                }
+                catch (Exception rollbackException)
+                {
+                    throw new AggregateException(
+                        "Failed to clear the previous default system and roll back the replacement.",
+                        clearException,
+                        rollbackException);
+                }
+
+                throw new InvalidOperationException(
+                    "Failed to clear the previous default system; the replacement was rolled back.",
+                    clearException);
             }
         }
 

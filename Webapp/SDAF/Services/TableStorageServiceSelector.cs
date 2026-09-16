@@ -11,8 +11,7 @@ using System.Threading.Tasks;
 namespace SDAFWebApp.Services
 {
     /// <summary>
-    /// Service selector that implements repository-first with storage fallback strategy.
-    /// Delegates to repository or storage implementation based on persistence mode.
+    /// Routes persistence operations to the configured backend.
     /// </summary>
     public class TableStorageServiceSelector<T> : ITableStorageService<T> where T : class
     {
@@ -27,479 +26,237 @@ namespace SDAFWebApp.Services
             ITableStorageService<T> storageService,
             ILogger<TableStorageServiceSelector<T>> logger)
         {
-            _persistenceMode = persistenceSettings.Value?.GetPersistenceMode()
-                ?? RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback;
+            ArgumentNullException.ThrowIfNull(persistenceSettings);
+            _persistenceMode = persistenceSettings.Value.GetPersistenceMode();
             _repositoryService = repositoryService ?? throw new ArgumentNullException(nameof(repositoryService));
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
-            _logger = logger;
-
-            _logger?.LogInformation(
-                "TableStorageServiceSelector<{EntityType}> initialized with mode: {Mode}",
-                typeof(T).Name, _persistenceMode);
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<T>> GetNAsync(int n)
+        public Task<List<T>> GetNAsync(int n)
         {
             return _persistenceMode switch
             {
-                RepositoryPersistenceMode.RepositoryOnly => await _repositoryService.GetNAsync(n),
-                RepositoryPersistenceMode.StorageOnly => await _storageService.GetNAsync(n),
+                RepositoryPersistenceMode.RepositoryOnly => _repositoryService.GetNAsync(n),
+                RepositoryPersistenceMode.StorageOnly => _storageService.GetNAsync(n),
                 RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback =>
-                    await GetNWithFallbackAsync(n),
-                _ => await _storageService.GetNAsync(n)
+                    ReadCollectionWithFallbackAsync(
+                        () => _repositoryService.GetNAsync(n),
+                        () => _storageService.GetNAsync(n),
+                        nameof(GetNAsync)),
+                _ => throw CreateUnknownModeException()
             };
         }
 
-        public async Task<List<T>> GetAllAsync()
+        public Task<List<T>> GetAllAsync()
         {
             return _persistenceMode switch
             {
-                RepositoryPersistenceMode.RepositoryOnly => await _repositoryService.GetAllAsync(),
-                RepositoryPersistenceMode.StorageOnly => await _storageService.GetAllAsync(),
+                RepositoryPersistenceMode.RepositoryOnly => _repositoryService.GetAllAsync(),
+                RepositoryPersistenceMode.StorageOnly => _storageService.GetAllAsync(),
                 RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback =>
-                    await GetAllWithFallbackAsync(),
-                _ => await _storageService.GetAllAsync()
+                    ReadCollectionWithFallbackAsync(
+                        _repositoryService.GetAllAsync,
+                        _storageService.GetAllAsync,
+                        nameof(GetAllAsync)),
+                _ => throw CreateUnknownModeException()
             };
         }
 
-        public async Task<List<T>> GetAllAsync(string partitionKey)
+        public Task<List<T>> GetAllAsync(string partitionKey)
         {
             return _persistenceMode switch
             {
-                RepositoryPersistenceMode.RepositoryOnly => await _repositoryService.GetAllAsync(partitionKey),
-                RepositoryPersistenceMode.StorageOnly => await _storageService.GetAllAsync(partitionKey),
+                RepositoryPersistenceMode.RepositoryOnly => _repositoryService.GetAllAsync(partitionKey),
+                RepositoryPersistenceMode.StorageOnly => _storageService.GetAllAsync(partitionKey),
                 RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback =>
-                    await GetAllWithFallbackAsync(partitionKey),
-                _ => await _storageService.GetAllAsync(partitionKey)
+                    ReadCollectionWithFallbackAsync(
+                        () => _repositoryService.GetAllAsync(partitionKey),
+                        () => _storageService.GetAllAsync(partitionKey),
+                        nameof(GetAllAsync)),
+                _ => throw CreateUnknownModeException()
             };
         }
 
-        public async Task<T> GetByIdAsync(string rowKey, string partitionKey)
+        public Task<T> GetByIdAsync(string rowKey, string partitionKey)
         {
             return _persistenceMode switch
             {
-                RepositoryPersistenceMode.RepositoryOnly =>
-                    await _repositoryService.GetByIdAsync(rowKey, partitionKey),
-                RepositoryPersistenceMode.StorageOnly =>
-                    await _storageService.GetByIdAsync(rowKey, partitionKey),
+                RepositoryPersistenceMode.RepositoryOnly => _repositoryService.GetByIdAsync(rowKey, partitionKey),
+                RepositoryPersistenceMode.StorageOnly => _storageService.GetByIdAsync(rowKey, partitionKey),
                 RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback =>
-                    await GetByIdWithFallbackAsync(rowKey, partitionKey),
-                _ => await _storageService.GetByIdAsync(rowKey, partitionKey)
+                    ReadNullableWithFallbackAsync(
+                        () => _repositoryService.GetByIdAsync(rowKey, partitionKey),
+                        () => _storageService.GetByIdAsync(rowKey, partitionKey),
+                        nameof(GetByIdAsync)),
+                _ => throw CreateUnknownModeException()
             };
         }
 
-        public async Task<T> GetDefault()
+        public Task<T> GetDefault()
         {
             return _persistenceMode switch
             {
-                RepositoryPersistenceMode.RepositoryOnly => await _repositoryService.GetDefault(),
-                RepositoryPersistenceMode.StorageOnly => await _storageService.GetDefault(),
+                RepositoryPersistenceMode.RepositoryOnly => _repositoryService.GetDefault(),
+                RepositoryPersistenceMode.StorageOnly => _storageService.GetDefault(),
                 RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback =>
-                    await GetDefaultWithFallbackAsync(),
-                _ => await _storageService.GetDefault()
+                    ReadNullableWithFallbackAsync(
+                        _repositoryService.GetDefault,
+                        _storageService.GetDefault,
+                        nameof(GetDefault)),
+                _ => throw CreateUnknownModeException()
             };
         }
 
-        public async Task CreateAsync(T model)
+        public Task CreateAsync(T model)
+        {
+            return ExecuteWriteAsync(
+                () => _repositoryService.CreateAsync(model),
+                () => _storageService.CreateAsync(model),
+                nameof(CreateAsync));
+        }
+
+        public Task UpdateAsync(T model)
+        {
+            return ExecuteWriteAsync(
+                () => _repositoryService.UpdateAsync(model),
+                () => _storageService.UpdateAsync(model),
+                nameof(UpdateAsync));
+        }
+
+        public Task DeleteAsync(string rowKey, string partitionKey)
+        {
+            return ExecuteWriteAsync(
+                () => _repositoryService.DeleteAsync(rowKey, partitionKey),
+                () => _storageService.DeleteAsync(rowKey, partitionKey),
+                nameof(DeleteAsync));
+        }
+
+        public Task CreateTFVarsAsync(AppFile file)
+        {
+            return ExecuteWriteAsync(
+                () => _repositoryService.CreateTFVarsAsync(file),
+                () => _storageService.CreateTFVarsAsync(file),
+                nameof(CreateTFVarsAsync));
+        }
+
+        private async Task<List<T>> ReadCollectionWithFallbackAsync(
+            Func<Task<List<T>>> repositoryOperation,
+            Func<Task<List<T>>> storageOperation,
+            string operationName)
         {
             try
             {
-                if (_persistenceMode == RepositoryPersistenceMode.StorageOnly)
-                {
-                    await _storageService.CreateAsync(model);
-                }
-                else
-                {
-                    // Try repository first
-                    await _repositoryService.CreateAsync(model);
-
-                    // Also write to storage if in fallback mode (for redundancy during transition)
-                    if (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
-                    {
-                        try
-                        {
-                            await _storageService.CreateAsync(model);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger?.LogWarning(
-                                ex,
-                                "Failed to write to storage fallback during create for {EntityType}. Repository write succeeded.",
-                                typeof(T).Name);
-                            // Don't fail the operation; repository write is what matters
-                        }
-                    }
-                }
+                return await repositoryOperation();
             }
-            catch (Exception ex) when (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
+            catch (Exception repositoryException)
             {
-                _logger?.LogWarning(
-                    ex,
-                    "Repository create failed for {EntityType}, attempting fallback to storage.",
-                    typeof(T).Name);
-
-                // Try storage fallback
-                try
-                {
-                    await _storageService.CreateAsync(model);
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(
-                        fallbackEx,
-                        "Storage fallback also failed after repository create failed for {EntityType}.",
-                        typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to create {typeof(T).Name}: repository failed and storage fallback also failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
+                LogFallback(repositoryException, operationName);
+                return await ExecuteStorageFallbackAsync(storageOperation, repositoryException, operationName);
             }
         }
 
-        public async Task UpdateAsync(T model)
+        private async Task<T> ReadNullableWithFallbackAsync(
+            Func<Task<T>> repositoryOperation,
+            Func<Task<T>> storageOperation,
+            string operationName)
         {
             try
             {
-                if (_persistenceMode == RepositoryPersistenceMode.StorageOnly)
-                {
-                    await _storageService.UpdateAsync(model);
-                }
-                else
-                {
-                    // Try repository first
-                    await _repositoryService.UpdateAsync(model);
-
-                    // Also write to storage if in fallback mode (for redundancy during transition)
-                    if (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
-                    {
-                        try
-                        {
-                            await _storageService.UpdateAsync(model);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger?.LogWarning(
-                                ex,
-                                "Failed to write to storage fallback during update for {EntityType}. Repository write succeeded.",
-                                typeof(T).Name);
-                            // Don't fail the operation; repository write is what matters
-                        }
-                    }
-                }
+                var result = await repositoryOperation();
+                return result ?? await storageOperation();
             }
-            catch (Exception ex) when (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
+            catch (Exception repositoryException)
             {
-                _logger?.LogWarning(
-                    ex,
-                    "Repository update failed for {EntityType}, attempting fallback to storage.",
-                    typeof(T).Name);
-
-                // Try storage fallback
-                try
-                {
-                    await _storageService.UpdateAsync(model);
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(
-                        fallbackEx,
-                        "Storage fallback also failed after repository update failed for {EntityType}.",
-                        typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to update {typeof(T).Name}: repository failed and storage fallback also failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
+                LogFallback(repositoryException, operationName);
+                return await ExecuteStorageFallbackAsync(storageOperation, repositoryException, operationName);
             }
         }
 
-        public async Task DeleteAsync(string rowKey, string partitionKey)
+        private Task ExecuteWriteAsync(
+            Func<Task> repositoryOperation,
+            Func<Task> storageOperation,
+            string operationName)
+        {
+            return _persistenceMode switch
+            {
+                RepositoryPersistenceMode.RepositoryOnly => repositoryOperation(),
+                RepositoryPersistenceMode.StorageOnly => storageOperation(),
+                RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback =>
+                    ExecuteWriteWithFallbackAsync(repositoryOperation, storageOperation, operationName),
+                _ => throw CreateUnknownModeException()
+            };
+        }
+
+        private async Task ExecuteWriteWithFallbackAsync(
+            Func<Task> repositoryOperation,
+            Func<Task> storageOperation,
+            string operationName)
         {
             try
             {
-                if (_persistenceMode == RepositoryPersistenceMode.StorageOnly)
-                {
-                    await _storageService.DeleteAsync(rowKey, partitionKey);
-                }
-                else
-                {
-                    // Try repository first
-                    await _repositoryService.DeleteAsync(rowKey, partitionKey);
-
-                    // Also delete from storage if in fallback mode (for redundancy during transition)
-                    if (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
-                    {
-                        try
-                        {
-                            await _storageService.DeleteAsync(rowKey, partitionKey);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger?.LogWarning(
-                                ex,
-                                "Failed to delete from storage fallback for {EntityType}. Repository delete succeeded.",
-                                typeof(T).Name);
-                            // Don't fail the operation; repository delete is what matters
-                        }
-                    }
-                }
+                await repositoryOperation();
             }
-            catch (Exception ex) when (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
+            catch (Exception repositoryException)
             {
-                _logger?.LogWarning(
-                    ex,
-                    "Repository delete failed for {EntityType}, attempting fallback to storage.",
-                    typeof(T).Name);
-
-                // Try storage fallback
-                try
-                {
-                    await _storageService.DeleteAsync(rowKey, partitionKey);
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(
-                        fallbackEx,
-                        "Storage fallback also failed after repository delete failed for {EntityType}.",
-                        typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to delete {typeof(T).Name}: repository failed and storage fallback also failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
+                LogFallback(repositoryException, operationName);
+                await ExecuteStorageFallbackAsync(storageOperation, repositoryException, operationName);
             }
         }
 
-        public async Task CreateTFVarsAsync(AppFile file)
+        private async Task<TResult> ExecuteStorageFallbackAsync<TResult>(
+            Func<Task<TResult>> storageOperation,
+            Exception repositoryException,
+            string operationName)
         {
             try
             {
-                if (_persistenceMode == RepositoryPersistenceMode.StorageOnly)
-                {
-                    await _storageService.CreateTFVarsAsync(file);
-                }
-                else
-                {
-                    await _repositoryService.CreateTFVarsAsync(file);
-
-                    if (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
-                    {
-                        try
-                        {
-                            await _storageService.CreateTFVarsAsync(file);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger?.LogWarning(ex, "Failed to create TFVars in storage fallback. Repository write succeeded.");
-                        }
-                    }
-                }
+                return await storageOperation();
             }
-            catch (Exception ex) when (_persistenceMode == RepositoryPersistenceMode.RepositoryPreferredWithStorageFallback)
+            catch (Exception storageException)
             {
-                try
-                {
-                    await _storageService.CreateTFVarsAsync(file);
-                }
-                catch (Exception fallbackEx)
-                {
-                    throw new InvalidOperationException(
-                        "Failed to create TFVars: repository failed and storage fallback also failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
+                throw CreateAggregateFailure(operationName, repositoryException, storageException);
             }
         }
 
-        // Private fallback methods
-        private async Task<List<T>> GetNWithFallbackAsync(int n)
+        private async Task ExecuteStorageFallbackAsync(
+            Func<Task> storageOperation,
+            Exception repositoryException,
+            string operationName)
         {
             try
             {
-                return await _repositoryService.GetNAsync(n);
+                await storageOperation();
             }
-            catch (Exception ex)
+            catch (Exception storageException)
             {
-                _logger?.LogWarning(ex, "Repository GetN failed for {EntityType}, falling back to storage.", typeof(T).Name);
-                try
-                {
-                    return await _storageService.GetNAsync(n);
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(fallbackEx, "Storage fallback also failed for GetN {EntityType}.", typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to get {n} {typeof(T).Name}: both repository and storage failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
+                throw CreateAggregateFailure(operationName, repositoryException, storageException);
             }
         }
 
-        private async Task<List<T>> GetAllWithFallbackAsync()
+        private void LogFallback(Exception exception, string operationName)
         {
-            List<T> repositoryResult;
-            try
-            {
-                repositoryResult = await _repositoryService.GetAllAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Repository GetAll failed for {EntityType}, falling back to storage.", typeof(T).Name);
-                try
-                {
-                    return await _storageService.GetAllAsync();
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(fallbackEx, "Storage fallback also failed for GetAll {EntityType}.", typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to get all {typeof(T).Name}: both repository and storage failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
-            }
-
-            // The repository-backed implementations treat a "not found" root/partition
-            // directory as an empty result rather than throwing, so an empty repository
-            // result does not necessarily mean the exception-based fallback above ran.
-            // Explicitly fall back to storage in that case so entities that only exist
-            // in legacy Table Storage (not yet migrated to the repository) are still returned.
-            if (repositoryResult == null || repositoryResult.Count == 0)
-            {
-                try
-                {
-                    var storageResult = await _storageService.GetAllAsync();
-                    if (storageResult != null && storageResult.Count > 0)
-                    {
-                        _logger?.LogInformation(
-                            "Repository returned no {EntityType} entities; using storage fallback which returned {Count}.",
-                            typeof(T).Name, storageResult.Count);
-                        return storageResult;
-                    }
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogWarning(fallbackEx, "Storage fallback also returned no results for empty GetAll {EntityType}.", typeof(T).Name);
-                }
-            }
-
-            return repositoryResult ?? new List<T>();
+            _logger.LogWarning(
+                exception,
+                "Repository {Operation} failed for {EntityType}; trying storage fallback.",
+                operationName,
+                typeof(T).Name);
         }
 
-        private async Task<List<T>> GetAllWithFallbackAsync(string partitionKey)
+        private AggregateException CreateAggregateFailure(
+            string operationName,
+            Exception repositoryException,
+            Exception storageException)
         {
-            List<T> repositoryResult;
-            try
-            {
-                repositoryResult = await _repositoryService.GetAllAsync(partitionKey);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Repository GetAll for partition {PartitionKey} failed for {EntityType}, falling back to storage.", partitionKey, typeof(T).Name);
-                try
-                {
-                    return await _storageService.GetAllAsync(partitionKey);
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(fallbackEx, "Storage fallback also failed for GetAll partition {PartitionKey} {EntityType}.", partitionKey, typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to get all {typeof(T).Name} for partition {partitionKey}: both repository and storage failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
-            }
-
-            // See comment in the parameterless overload: an empty repository result
-            // can mean "not yet migrated", so explicitly try storage too.
-            if (repositoryResult == null || repositoryResult.Count == 0)
-            {
-                try
-                {
-                    var storageResult = await _storageService.GetAllAsync(partitionKey);
-                    if (storageResult != null && storageResult.Count > 0)
-                    {
-                        _logger?.LogInformation(
-                            "Repository returned no {EntityType} entities for partition {PartitionKey}; using storage fallback which returned {Count}.",
-                            typeof(T).Name, partitionKey, storageResult.Count);
-                        return storageResult;
-                    }
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogWarning(fallbackEx, "Storage fallback also returned no results for empty GetAll partition {PartitionKey} {EntityType}.", partitionKey, typeof(T).Name);
-                }
-            }
-
-            return repositoryResult ?? new List<T>();
+            return new AggregateException(
+                $"Both repository and storage {operationName} operations failed for {typeof(T).Name}.",
+                repositoryException,
+                storageException);
         }
 
-        private async Task<T> GetByIdWithFallbackAsync(string rowKey, string partitionKey)
+        private InvalidOperationException CreateUnknownModeException()
         {
-            T repositoryResult;
-            try
-            {
-                repositoryResult = await _repositoryService.GetByIdAsync(rowKey, partitionKey);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Repository GetById {RowKey}/{PartitionKey} failed for {EntityType}, falling back to storage.", rowKey, partitionKey, typeof(T).Name);
-                try
-                {
-                    return await _storageService.GetByIdAsync(rowKey, partitionKey);
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(fallbackEx, "Storage fallback also failed for GetById {RowKey}/{PartitionKey} {EntityType}.", rowKey, partitionKey, typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to get {typeof(T).Name} {rowKey}/{partitionKey}: both repository and storage failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
-            }
-
-            // The repository-backed GetByIdAsync implementations for Landscape/System
-            // return null on "not found" rather than throwing, so a null result does not
-            // necessarily mean the exception-based fallback above ran. Explicitly try
-            // storage in that case so entities that only exist in legacy Table Storage
-            // (not yet migrated to the repository) can still be found.
-            if (repositoryResult == null)
-            {
-                try
-                {
-                    var storageResult = await _storageService.GetByIdAsync(rowKey, partitionKey);
-                    if (storageResult != null)
-                    {
-                        _logger?.LogInformation(
-                            "Repository returned no {EntityType} for {RowKey}/{PartitionKey}; found it via storage fallback.",
-                            typeof(T).Name, rowKey, partitionKey);
-                        return storageResult;
-                    }
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogWarning(fallbackEx, "Storage fallback also failed to find {EntityType} {RowKey}/{PartitionKey}.", typeof(T).Name, rowKey, partitionKey);
-                }
-            }
-
-            return repositoryResult;
-        }
-
-        private async Task<T> GetDefaultWithFallbackAsync()
-        {
-            try
-            {
-                return await _repositoryService.GetDefault();
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Repository GetDefault failed for {EntityType}, falling back to storage.", typeof(T).Name);
-                try
-                {
-                    return await _storageService.GetDefault();
-                }
-                catch (Exception fallbackEx)
-                {
-                    _logger?.LogError(fallbackEx, "Storage fallback also failed for GetDefault {EntityType}.", typeof(T).Name);
-                    throw new InvalidOperationException(
-                        $"Failed to get default {typeof(T).Name}: both repository and storage failed.",
-                        new AggregateException(ex, fallbackEx));
-                }
-            }
+            return new InvalidOperationException($"Unsupported persistence mode value: {(int)_persistenceMode}.");
         }
     }
 }
