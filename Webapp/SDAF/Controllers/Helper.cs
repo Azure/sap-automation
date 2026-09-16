@@ -575,13 +575,30 @@ namespace SDAFWebApp.Controllers
             }
         }
 
-        public static async Task<ImageDropdown[]> GetOfferedImages(ITableStorageService<AppFile> appFileService)
+        public static async Task<ImageDropdown[]> GetOfferedImages(
+            ITableStorageService<AppFile> appFileService,
+            ILogger logger = null)
         {
-            AppFile file = await GetImagesFile(appFileService);
-            byte[] bytes = file.Content;
-            string jsonString = Encoding.UTF8.GetString(bytes);
-            return System.Text.Json.JsonSerializer.Deserialize<ImageDropdown[]>(jsonString)
-                ?? Array.Empty<ImageDropdown>();
+            try
+            {
+                AppFile file = await GetImagesFile(appFileService, logger);
+                if (file?.Content == null || file.Content.Length == 0)
+                {
+                    throw new InvalidDataException("The images configuration is empty.");
+                }
+
+                string jsonString = Encoding.UTF8.GetString(file.Content);
+                return System.Text.Json.JsonSerializer.Deserialize<ImageDropdown[]>(jsonString)
+                    ?? Array.Empty<ImageDropdown>();
+            }
+            catch (Exception ex) when (
+                ex is InvalidDataException ||
+                ex is InvalidOperationException ||
+                ex is System.Text.Json.JsonException)
+            {
+                logger?.LogWarning(ex, "Image options are unavailable; continuing without image suggestions");
+                return Array.Empty<ImageDropdown>();
+            }
         }
 
         /// <summary>

@@ -180,7 +180,7 @@ namespace SDAFWebApp.Controllers
         private async Task PrepareImageOptionsAsync()
         {
             LogDebug("PrepareImageOptionsAsync called");
-            ImageDropdown[] imagesOffered = await Helper.GetOfferedImages(_appFileService);
+            ImageDropdown[] imagesOffered = await Helper.GetOfferedImages(_appFileService, _logger);
             imageMapping = [];
             imageOptions =
             [
