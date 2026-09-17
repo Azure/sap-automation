@@ -785,7 +785,9 @@ namespace SDAFWebApp.Models
         [PrivateEndpointIdValidator]
         public string sapmnt_private_endpoint_id { get; set; }
 
-        /*---------------------------------------------------------------------------8
+        public bool? AFS_usr_sap { get; set; }
+
+        /*--------------------------------------------  -------------------------------8
         |                                                                            |
         |                               ANF Support                                  |
         |                                                                            |
