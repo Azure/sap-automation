@@ -168,7 +168,15 @@ namespace SDAFWebApp.Controllers
                 if (file.Id.EndsWith("INFRASTRUCTURE.tfvars"))
                 {
                     LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
-                    landscape.Id = id;
+                    if (id.EndsWith("-INFRASTRUCTURE"))
+                    {
+                        landscape.Id = id;
+                    }
+                    else
+                    {
+                        landscape.Id = id + "-INFRASTRUCTURE";
+                    }
+
                     await _landscapeService.CreateAsync(
                         new LandscapeEntity(landscape, configuration["DEVOPS_PLATFORM"]));
                     TempData["success"] = "Successfully converted file " + id + " to a workload zone object";
