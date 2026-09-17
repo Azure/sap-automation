@@ -141,6 +141,7 @@ resource "azurerm_windows_web_app" "webapp" {
     "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name))
     "TFSTATE_STORAGE_ACCOUNT_NAME"            = format("https://%s.blob.core.windows.net", try(var.app_service.tfstate_storage_account_name, ""))
     "SourceBranch"                            = var.infrastructure.devops.branch
+    "REPOSITORY_PERSISTENCE_MODE"             = "RepositoryPreferredWithStorageFallback"
   }
 
   sticky_settings {
