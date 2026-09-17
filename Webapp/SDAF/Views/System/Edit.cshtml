@@ -21,6 +21,20 @@
         var formHeader = $("#form-sticky-header");
         var sticky = $("#form-sticky-header").offset().top;
         $(window).scroll(function () { stickifyHeader(formHeader, sticky) });
+
+        var form = $("form.wrapper");
+        form.on("input change", function (event) {
+            if (event.originalEvent) {
+                formChanged = true;
+            }
+        });
+        form.on("select2:select select2:unselect", function () {
+            formChanged = true;
+        });
+        form.on("submit", function () {
+            submitting = true;
+            formChanged = false;
+        });
     });
 
     window.onload = function () {
@@ -36,9 +50,11 @@
     }
 
     var submitting = false;
-    window.onbeforeunload = function(){
-        if (!submitting) {
-            return "";
+    var formChanged = false;
+    window.onbeforeunload = function(event) {
+        if (formChanged && !submitting) {
+            event.preventDefault();
+            event.returnValue = "";
         }
     };
 
@@ -120,7 +136,7 @@
         <tr>
             <td>
               &nbsp
-              <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+              <fluent-button appearance="accent" style="margin-top: 15px" type="submit">
                 <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i>Update
               </fluent-button>
             </td>
