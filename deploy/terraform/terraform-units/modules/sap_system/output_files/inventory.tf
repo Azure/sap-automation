@@ -178,12 +178,18 @@ resource "local_file" "ansible_inventory_new_yml" {
   directory_permission = "0770"
 }
 
+data "azurerm_storage_container" "tfvars" {
+  provider               = azurerm.deployer
+  name                  = "tfvars"
+  storage_account_id    = var.infrastructure.terraform_storage_account_id
+}
+
+
 resource "azurerm_storage_blob" "ansible_inventory_yaml" {
   provider               = azurerm.deployer
   depends_on             = [local_file.ansible_inventory_new_yml]
   name                   = format("SYSTEM/%s/%s_hosts.yaml", trimspace(var.naming.prefix.SDU), trimspace(var.sap_sid))
-  storage_account_name   = local.tfstate_storage_account_name
-  storage_container_name = "tfvars"
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = local_file.ansible_inventory_new_yml.filename
 }
@@ -192,8 +198,7 @@ resource "azurerm_storage_blob" "tfvarsfile" {
   provider               = azurerm.deployer
   depends_on             = [local_file.ansible_inventory_new_yml]
   name                   = format("SYSTEM/%s/%s.tfvars", trimspace(var.naming.prefix.SDU), trimspace(var.naming.prefix.SDU))
-  storage_account_name   = local.tfstate_storage_account_name
-  storage_container_name = "tfvars"
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = format("%s/%s.tfvars", path.cwd, trimspace(var.naming.prefix.SDU))
 }
@@ -203,8 +208,7 @@ resource "azurerm_storage_blob" "tfvars_state" {
   count                  = fileexists(format("%s/.terraform/terraform.tfstate", path.cwd)) ? 1 : 0
   depends_on             = [local_file.ansible_inventory_new_yml]
   name                   = format("SYSTEM/%s/.terraform/terraform.tfstate", trimspace(var.naming.prefix.SDU))
-  storage_account_name   = local.tfstate_storage_account_name
-  storage_container_name = "tfvars"
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = format("%s/.terraform/terraform.tfstate", path.cwd)
 }

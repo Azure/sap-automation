@@ -714,12 +714,17 @@ resource "local_file" "resource_group_md" {
   directory_permission = "0770"
 }
 
+data "azurerm_storage_container" "tfvars" {
+  provider               = azurerm.deployer
+  name                  = "tfvars"
+  storage_account_id    = var.infrastructure.terraform_storage_account_id
+}
+
 resource "azurerm_storage_blob" "readme" {
   provider               = azurerm.deployer
-  depends_on            = [local_file.resource_group_md]
+  depends_on             = [local_file.resource_group_md]
   name                   = format("LANDSCAPE/%s/readme.md", trimspace(var.naming.prefix.WORKLOAD_ZONE))
-  storage_account_name   = var.infrastructure.terraform_storage_account_name
-  storage_container_name = "tfvars"
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = local_file.resource_group_md.filename
 }
@@ -729,8 +734,7 @@ resource "azurerm_storage_blob" "tfvars" {
   provider               = azurerm.deployer
   depends_on            = [local_file.resource_group_md]
   name                   = format("LANDSCAPE/%s-INFRASTRUCTURE/%s-INFRASTRUCTURE.tfvars", trimspace(var.naming.prefix.WORKLOAD_ZONE), trimspace(var.naming.prefix.WORKLOAD_ZONE))
-  storage_account_name   = var.infrastructure.terraform_storage_account_name
-  storage_container_name = "tfvars"   
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = format("%s/%s-INFRASTRUCTURE.tfvars", path.cwd,trimspace(var.naming.prefix.WORKLOAD_ZONE))
 }
@@ -740,8 +744,7 @@ resource "azurerm_storage_blob" "tfvars_state" {
   count                  = fileexists(format("%s/.terraform/terraform.tfstate", path.cwd)) ? 1 : 0
   depends_on             = [local_file.resource_group_md]
   name                   = format("LANDSCAPE/%s-INFRASTRUCTURE/.terraform/terraform.tfstate", trimspace(var.naming.prefix.WORKLOAD_ZONE))
-  storage_account_name   = var.infrastructure.terraform_storage_account_name
-  storage_container_name = "tfvars"
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = format("%s/.terraform/terraform.tfstate", path.cwd)
 }
