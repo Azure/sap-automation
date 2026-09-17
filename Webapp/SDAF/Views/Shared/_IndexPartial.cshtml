@@ -165,7 +165,12 @@
                     <td class="td-align-right">
                         @Html.ActionLink("Edit", "Edit", "File", new { id = file.Id, sourceController = controllerName }, null) |
                         @Html.ActionLink("Details", "Details", "File", new { id = file.Id, sourceController = controllerName }, null) |
-                        @Html.ActionLink("Convert", "Convert", "File", new { id = file.Id, sourceController = controllerName }, null) |
+                        <form asp-action="Convert" asp-controller="File" method="post" style="display: inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@file.Id" />
+                            <input type="hidden" name="sourceController" value="@controllerName" />
+                            <button type="submit" style="border: 0; padding: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer">Convert</button>
+                        </form> |
                         @Html.ActionLink("Download", "Download", "File", new { id = file.Id, sourceController = controllerName }, null) |
                         @Html.ActionLink("Delete", "Delete", "File", new { id = file.Id, sourceController = controllerName }, null)
                     </td>
