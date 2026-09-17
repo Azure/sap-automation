@@ -549,10 +549,13 @@ namespace SDAFWebApp.Controllers
             {
                 logger?.LogInformation(ex, "Images file was not found in configured persistence; using packaged fallback");
             }
+            catch (Exception FileEx)
+            {
+                logger?.LogError(FileEx, "Packaged images fallback could not be loaded");
+            }
 
             try
             {
-                // Fallback: Load from local ParameterDetails folder
                 string localPath = Path.Combine("ParameterDetails", filename);
 
                 byte[] byteContent = System.IO.File.ReadAllBytes(localPath);
@@ -566,13 +569,13 @@ namespace SDAFWebApp.Controllers
                     Size = memory.Length,
                     UploadDT = DateTime.UtcNow
                 };
-                return file;
             }
             catch (Exception ex)
             {
                 logger?.LogError(ex, "Packaged images fallback could not be loaded");
                 throw new InvalidOperationException("The images configuration is currently unavailable.", ex);
             }
+            return file;
         }
 
         public static async Task<ImageDropdown[]> GetOfferedImages(

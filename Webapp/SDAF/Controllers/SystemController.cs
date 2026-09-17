@@ -16,6 +16,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Identity;
+using Microsoft.Extensions.Options;
 
 namespace SDAFWebApp.Controllers
 {
@@ -35,6 +36,8 @@ namespace SDAFWebApp.Controllers
         private readonly string pipelineId;
         private readonly string branch;
 
+        private readonly RepositoryPersistenceMode persistenceMode;
+
         private void LogDebug(string message)
         {
             _logger.LogDebug("{Message}", message);
@@ -46,12 +49,14 @@ namespace SDAFWebApp.Controllers
             ITableStorageService<AppFile> appFileService,
             IConfiguration configuration,
             RestHelper restHelper,
-            ILogger<SystemController> logger)
+            ILogger<SystemController> logger, 
+            IOptions<RepositoryPersistenceSettings> persistenceSettings)
         {
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
             _logger = logger;
+            persistenceMode = persistenceSettings.Value.GetPersistenceMode();
 
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
             this.restHelper = restHelper;
@@ -129,6 +134,10 @@ namespace SDAFWebApp.Controllers
             if (systemEntity == null || systemEntity.System == null) throw new KeyNotFoundException();
             SystemModel s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System)
                 ?? throw new InvalidOperationException("The stored system definition is invalid.");
+
+            s.locationCode = Helper.MapRegion(s.location).ToUpper();
+
+            s.workload_zone = String.Format("{0}-{1}-{2}", s.environment , s.locationCode,  s.network_logical_name);
             try
             {
                 AppFile file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
@@ -140,6 +149,10 @@ namespace SDAFWebApp.Controllers
             catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
                 _logger?.LogInformation(e, "No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInformation(ex, "No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
             }
 
             try
@@ -154,6 +167,10 @@ namespace SDAFWebApp.Controllers
             catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
                 _logger?.LogInformation(e, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInformation(ex, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
             }
 
             return s;
@@ -300,6 +317,10 @@ namespace SDAFWebApp.Controllers
                 {
                     _logger?.LogInformation("No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
                 }
+                catch (Exception ex)
+                {
+                    _logger?.LogInformation("No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
+                }
 
                 if (file != null)
                 {
@@ -318,6 +339,10 @@ namespace SDAFWebApp.Controllers
                     file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
                 }
                 catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
+                {
+                    _logger?.LogInformation("No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
+                }
+                catch (Exception ex) 
                 {
                     _logger?.LogInformation("No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
                 }
@@ -533,7 +558,7 @@ namespace SDAFWebApp.Controllers
                 string path = $"/LANDSCAPE/{id}/{id}.tfvars";
                 parameters.cleanup_zone = true;
                 parameters.cleanup_sap = false;
-
+                string sidPart = "-" + system.sid;
 
                 if (!string.IsNullOrEmpty(system.subscription))
                 {
@@ -549,8 +574,9 @@ namespace SDAFWebApp.Controllers
                         {
                             string pipelineId = _configuration["REMOVAL_PIPELINE_ID"];
                             string branch = _configuration["SourceBranch"];
+                            
 
-                            parameters.workload_zone = id.Replace("-INFRASTRUCTURE", "");
+                            parameters.workload_zone = id.Replace(sidPart, "");
                             parameters.sap_system = id;
                             parameters.cleanup_sap = true;
                             parameters.cleanup_zone = false;
@@ -569,7 +595,7 @@ namespace SDAFWebApp.Controllers
                                 },
                                 templateParameters = new Dictionary<string, object>
                             {
-                                { "workload_zone", system.workload_zone },
+                                { "workload_zone", parameters.workload_zone },
                                 { "cleanup_sap", true },
                                 { "cleanup_zone", false },
                                 { "sap_system", id }
@@ -588,7 +614,7 @@ namespace SDAFWebApp.Controllers
                             // Trigger with inputs
                             var inputs = new Dictionary<string, object>
                             {
-                                { "workload_zone_name", system.workload_zone },
+                                { "workload_zone_name", id.Replace(sidPart, "") },
                                 { "cleanup_sap", true },
                                 { "cleanup_workload_zone", false },
                                 { "sap_system_identifier", id }

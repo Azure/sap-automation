@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
@@ -15,6 +16,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace SDAFWebApp.Controllers
 {
@@ -36,6 +38,8 @@ namespace SDAFWebApp.Controllers
         private readonly string pipelineId;
         private readonly string branch;
 
+        private readonly RepositoryPersistenceMode persistenceMode;
+
         private void LogDebug(string message)
         {
             _logger.LogDebug("{Message}", message);
@@ -48,7 +52,8 @@ namespace SDAFWebApp.Controllers
             ITableStorageService<AppFile> appFileService,
             IConfiguration configuration,
             RestHelper restHelper,
-            ILogger<LandscapeController> logger)
+            ILogger<LandscapeController> logger,
+            IOptions<RepositoryPersistenceSettings> persistenceSettings   )
         {
             _landscapeService = landscapeService;
             _appFileService = appFileService;
@@ -62,6 +67,7 @@ namespace SDAFWebApp.Controllers
             sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
             pipelineId = configuration["WORKLOADZONE_PIPELINE_ID"];
             branch = configuration["SourceBranch"];
+            persistenceMode = persistenceSettings.Value.GetPersistenceMode();
 
             LogDebug($"Platform: {platform}");
             LogDebug($"PipelineId: {pipelineId}");
@@ -589,8 +595,9 @@ namespace SDAFWebApp.Controllers
 
                         await _landscapeService.CreateTFVarsAsync(file);
 
-                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.Id });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = persistenceMode == RepositoryPersistenceMode.StorageOnly ? landscape.environment : landscape.Id });  //RedirectToAction("Index");
                     }
+
                     else
                     {
                         DateTime currentDateAndTime = DateTime.Now;
@@ -616,10 +623,10 @@ namespace SDAFWebApp.Controllers
 
                         await _landscapeService.CreateTFVarsAsync(file);
 
-                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = landscape.Id });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = persistenceMode == RepositoryPersistenceMode.StorageOnly ? landscape.environment : landscape.Id   });  //RedirectToAction("Index");
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) 
                 {
                     _logger.LogError(e, "Failed to update workload zone");
                     ModelState.AddModelError("LandscapeId", "The workload zone could not be updated.");

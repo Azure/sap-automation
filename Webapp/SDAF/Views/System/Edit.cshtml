@@ -157,6 +157,13 @@
 
             <td>
                 &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Remove", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.Id })">
+                    Remove
+                </fluent-anchor>
+            </td>
+
+            <td>
+                &nbsp
                 <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.Id })">
                     Download
                 </fluent-anchor>

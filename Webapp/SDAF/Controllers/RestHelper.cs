@@ -232,6 +232,11 @@ namespace SDAFWebApp.Controllers
         public async Task TriggerPipeline(string pipelineId, PipelineRequestBody requestBody)
         {
             LogDebug($"TriggerPipeline called. PipelineId={pipelineId}, Branch={branch}");
+
+            if(string.IsNullOrEmpty(pipelineId))
+            {
+                throw new ArgumentException("PipelineId cannot be null or empty.", nameof(pipelineId));
+            }
             string getUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}";
             using HttpResponseMessage getResponse = await client.GetAsync(getUri);
             string getResponseBody = await getResponse.Content.ReadAsStringAsync();
