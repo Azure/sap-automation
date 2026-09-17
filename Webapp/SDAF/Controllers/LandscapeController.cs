@@ -356,8 +356,8 @@ namespace SDAFWebApp.Controllers
                             templateParameters = parameters
                         };
 
-                            LogDebug($"Calling pipeline {pipelineId} for {id}");
-                            await restHelper.TriggerPipeline(pipelineId, requestBody);
+                        LogDebug($"Calling pipeline {pipelineId} for {id}");
+                        await restHelper.TriggerPipeline(pipelineId, requestBody);
 
                         TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
                         break;

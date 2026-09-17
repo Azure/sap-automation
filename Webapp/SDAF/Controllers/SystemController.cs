@@ -593,14 +593,12 @@ namespace SDAFWebApp.Controllers
                                         }
                                     }
                                 },
-                                templateParameters = new Dictionary<string, object>
-{
-    { "workload_zone", parameters.workload_zone },
-    { "workload_environment", system.environment },
-    { "cleanup_sap", true },
-    { "cleanup_zone", false },
-    { "sap_system", id }
-}
+                                templateParameters = new Dictionary<string, object>{
+                                    { "workload_zone", parameters.workload_zone },
+                                    { "cleanup_sap", true },
+                                    { "cleanup_zone", false },
+                                    { "sap_system", id }
+                                }
                             };
 
                             LogDebug($"Calling removal pipeline {pipelineId} for {id}");

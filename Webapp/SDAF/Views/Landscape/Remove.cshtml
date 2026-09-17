@@ -46,18 +46,18 @@
         <div class="ms-TextField">
             <div class="left-input">
                 @Html.Label("workload_environment_parameter", "Workload Zone Environment", new { @class = $"ms-Label" })
-                <p>Workload environment to deploy to</p>
+                <p>Workload environment to remove</p>
             </div>
 
             <div class="right-input">
-                @Html.DropDownList("workload_environment_parameter", environments, new { @class = "js-example-placeholder-single", @style = "width: 100%;", @onchange = $"toggleDisableViaNInputs(['workload_environment_parameter'], 'confirm-deploy-landscape-checkbox')" })
+                @Html.Label("workload_environment_parameter", Model.SapObject.Id, new { @class = "ms-Label" })
             </div>
         </div>
 
-        <fluent-checkbox id="confirm-deploy-landscape-checkbox" onchange="toggleDisableViaCheckbox(this, 'deploy-landscape-button')" >I confirm that I wish to remove this workload zone</fluent-checkbox><br />
+        <fluent-checkbox id="confirm-remove-landscape-checkbox" onchange="toggleDisableViaCheckbox(this, 'remove-landscape-button')" >I confirm that I wish to remove this workload zone</fluent-checkbox><br />
 
-        <fluent-button id="deploy-landscape-button" appearance="accent" value="Remove" type="submit" disabled>
-            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i> Remove
+        <fluent-button id="remove-landscape-button" appearance="accent" value="Remove" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i>Remove
         </fluent-button>
 
         <fluent-anchor href="@Url.Action("Index", "Landscape")">
