@@ -465,10 +465,11 @@ namespace SDAFWebApp.Controllers
 
                             templateParameters = new Dictionary<string, object>
                             {
-                                { "workload_zone", id.Replace("-INFRASTRUCTURE", "") },
-                                { "cleanup_sap", false },
-                                { "cleanup_zone", true },
-                                { "sap_system", "N/A" }
+{ "workload_zone", id },
+{ "workload_environment", landscape.environment },
+{ "cleanup_sap", false },
+{ "cleanup_zone", true },
+{ "sap_system", "N/A" }
                             }
                         };
 
