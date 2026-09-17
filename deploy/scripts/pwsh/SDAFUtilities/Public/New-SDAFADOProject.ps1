@@ -976,6 +976,7 @@ resources:
 			$WorkloadZonePipelineId = (az pipelines list --project $AdoProject --query "[?name=='Deploy Workload Zone'].id | [0]" --output tsv)
 			$SystemPipelineId = (az pipelines list --project $AdoProject --query "[?name=='SAP SID Infrastructure deployment'].id | [0]" --output tsv)
 			$InstallationPipelineId = (az pipelines list --project $AdoProject --query "[?name=='Configuration and SAP installation'].id | [0]" --output tsv)
+			$RemovePipelineId = (az pipelines list --project $AdoProject --query "[?name=='Remove System or Workload Zone'].id | [0]" --output tsv)
 			#endregion
 			#region GitHubConnections
 
@@ -1016,7 +1017,7 @@ resources:
 			$ControlPlaneVariableGroupId = (az pipelines variable-group list --query "[?name=='$ControlPlanePrefix'].id | [0]" --only-show-errors)
 			if ($ControlPlaneVariableGroupId.Length -eq 0) {
 				Write-Host "Creating the variable group" $ControlPlanePrefix -ForegroundColor Green
-				$ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables AGENT='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
+				$ControlPlaneVariableGroupId = (az pipelines variable-group create --name $ControlPlanePrefix --variables AGENT='Azure Pipelines' ARM_SUBSCRIPTION_ID=$ControlPlaneSubscriptionId ARM_TENANT_ID=$ArmTenantId POOL=$AgentPoolName AZURE_CONNECTION_NAME='Control_Plane_Service_Connection' WORKLOADZONE_PIPELINE_ID=$WorkloadZonePipelineId REMOVE_PIPELINE_ID=$RemovePipelineId SYSTEM_PIPELINE_ID=$SystemPipelineId SDAF_GeneralGroupId=$GeneralGroupId SAP_INSTALL_PIPELINE_ID=$InstallationPipelineId TF_LOG=OFF --query id --output tsv --authorize true)
 			}
 			$VariableGroups.Add($ControlPlaneVariableGroupId)
 
