@@ -20,16 +20,10 @@ namespace SDAFWebApp.Models
                            sid != null ;
 
             if (returnVal)
-                workload_zone = string.Format("{0}-{1}-{2}", environment, Helper.MapRegion(location).ToUpper(), network_logical_name);
-
-            if (!string.IsNullOrEmpty(subscription))
             {
-                if (!subscription_id.StartsWith("/subscriptions/"))
-                {
-                    subscription_id = string.Format("/subscriptions/{0}", subscription);
-                }
+                workload_zone = string.Format("{0}-{1}-{2}", environment, Helper.MapRegion(location).ToUpper(), network_logical_name);
+                locationCode = Helper.MapRegion(location).ToUpper();
             }
-            locationCode = Helper.MapRegion(location).ToUpper();
             return returnVal;
 
         }
