@@ -52,9 +52,9 @@
             </div>
         </div>
 
-        <fluent-checkbox id="confirm-remove-system-checkbox">I confirm that I wish to remove this system</fluent-checkbox><br />
+        <fluent-checkbox id="confirm-remove-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'remove-system-button')">I confirm that I wish to remove this system</fluent-checkbox><br />
 
-        <fluent-button id="remove-system-button" appearance="accent" value="Remove" type="submit" >
+        <fluent-button id="remove-system-button" appearance="accent" value="Remove" type="submit" disabled>
             <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i>Remove
         </fluent-button>
 
