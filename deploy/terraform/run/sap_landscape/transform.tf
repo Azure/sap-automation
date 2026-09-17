@@ -62,6 +62,8 @@ locals {
                                            workload_zone_name             = local.workload_zone_name
                                            control_plane_name             = trimspace(coalesce(var.control_plane_name, try(data.terraform_remote_state.deployer[0].outputs.control_plane_name, ""), " "))
                                            terraform_storage_account_name = local.tfstate_storage_account_name
+                                           terraform_storage_account_id   = var.tfstate_resource_id
+
                                          }
 
   authentication                       = {
