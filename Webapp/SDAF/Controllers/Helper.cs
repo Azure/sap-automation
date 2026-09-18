@@ -432,11 +432,7 @@ namespace SDAFWebApp.Controllers
                 string currLine = stringReader.ReadLine();
                 if (currLine == null)
                 {
-                    while (jsonString.Length > 0 && (jsonString[^1] == ',' || jsonString[^1] == '\n' || jsonString[^1] == '\r' || char.IsWhiteSpace(jsonString[^1])))
-                    {
-                        jsonString.Length--;
-                    }
-
+                    RemoveTrailingComma(jsonString);
                     jsonString.Append('}');
                     jsonFormattedOutput = jsonString.ToString();
                     break;
@@ -447,7 +443,7 @@ namespace SDAFWebApp.Controllers
                 }
                 else if (currLine.StartsWith('}'))
                 {
-                    jsonString.Remove(jsonString.Length - 3, 1);
+                    RemoveTrailingComma(jsonString);
                     jsonString.AppendLine("},");
                 }
                 else
@@ -465,20 +461,27 @@ namespace SDAFWebApp.Controllers
                         {
                             StringBuilder valueBuilder = new();
                             valueBuilder.Append('[');
-                            currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith('}'))
+                            currLine = stringReader.ReadLine()?.TrimStart();
+                            while (currLine != null && !currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf('=');
-                                var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith('"'))
+                                if (string.IsNullOrWhiteSpace(currLine) || currLine.StartsWith('#'))
                                 {
-                                    tagKey = "\"" + tagKey + "\"";
+                                    currLine = stringReader.ReadLine()?.TrimStart();
+                                    continue;
                                 }
-                                var tagValue = currLine[(equalIndex + 1)..].Trim();
+
+                                equalIndex = currLine.IndexOf('=');
+                                if (equalIndex < 0)
+                                {
+                                    throw new FormatException($"Invalid tag entry: {currLine}");
+                                }
+
+                                string tagKey = ConvertTfvarsMapTokenToJsonString(currLine[..equalIndex]);
+                                string tagValue = ConvertTfvarsMapTokenToJsonString(currLine[(equalIndex + 1)..]);
                                 valueBuilder.Append('{');
-                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
+                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue);
                                 valueBuilder.Append("},");
-                                currLine = stringReader.ReadLine().TrimStart();
+                                currLine = stringReader.ReadLine()?.TrimStart();
                             }
                             value = valueBuilder.ToString().Trim(',') + "],";
                         }
@@ -491,8 +494,8 @@ namespace SDAFWebApp.Controllers
                             }
                             else
                             {
-                                string fixedValue = value.Replace('[', ' ').Replace(']', ' ').Replace(',', '-');
-                                value = fixedValue.Trim() + ",";
+                                string[] cidrValues = JsonSerializer.Deserialize<string[]>(value);
+                                value = JsonSerializer.Serialize(string.Join("-", cidrValues)) + ",";
                             }
 
                         }
@@ -500,26 +503,39 @@ namespace SDAFWebApp.Controllers
                         {
                             StringBuilder valueBuilder = new();
                             valueBuilder.Append('[');
-                            currLine = stringReader.ReadLine();
-                            while (!currLine.StartsWith('}'))
+                            currLine = stringReader.ReadLine()?.TrimStart();
+                            while (currLine != null && !currLine.StartsWith('}'))
                             {
-                                equalIndex = currLine.IndexOf('=');
-                                var tagKey = currLine[..equalIndex].Trim();
-                                if (!tagKey.StartsWith('\"'))
+                                if (string.IsNullOrWhiteSpace(currLine) || currLine.StartsWith('#'))
                                 {
-                                    tagKey = "\"" + tagKey + "\"";
+                                    currLine = stringReader.ReadLine()?.TrimStart();
+                                    continue;
                                 }
-                                var tagValue = currLine[(equalIndex + 1)..].Trim();
+
+                                equalIndex = currLine.IndexOf('=');
+                                if (equalIndex < 0)
+                                {
+                                    throw new FormatException($"Invalid configuration setting entry: {currLine}");
+                                }
+
+                                string tagKey = ConvertTfvarsMapTokenToJsonString(currLine[..equalIndex]);
+                                string tagValue = ConvertTfvarsMapTokenToJsonString(currLine[(equalIndex + 1)..]);
                                 valueBuilder.Append('{');
-                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue.Trim(','));
+                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue);
                                 valueBuilder.Append("},");
-                                currLine = stringReader.ReadLine();
+                                currLine = stringReader.ReadLine()?.TrimStart();
                             }
                             value = valueBuilder.ToString().Trim(',') + "],";
                         }
                         else
                         {
                             value = currLine[(equalIndex + 1)..].Trim();
+                            string arrayValue = value.TrimEnd(',');
+                            if (arrayValue.StartsWith('[') && arrayValue.EndsWith(']'))
+                            {
+                                value = NormalizeStringArray(arrayValue);
+                            }
+
                             if (!value.EndsWith(',') && !value.EndsWith('{'))
                             {
                                 value += ",";
@@ -530,6 +546,43 @@ namespace SDAFWebApp.Controllers
                 }
             }
             return jsonFormattedOutput;
+        }
+
+        private static string NormalizeStringArray(string value)
+        {
+            using JsonDocument document = JsonDocument.Parse(value);
+            string[] values = document.RootElement
+                .EnumerateArray()
+                .Select(element => element.ValueKind == JsonValueKind.String
+                    ? element.GetString()
+                    : element.GetRawText())
+                .ToArray();
+
+            return JsonSerializer.Serialize(values);
+        }
+
+        private static string ConvertTfvarsMapTokenToJsonString(string value)
+        {
+            string token = value.Trim().TrimEnd(',').TrimEnd();
+            if (token.StartsWith('"'))
+            {
+                token = JsonSerializer.Deserialize<string>(token);
+            }
+
+            return JsonSerializer.Serialize(token);
+        }
+
+        private static void RemoveTrailingComma(StringBuilder value)
+        {
+            while (value.Length > 0 && char.IsWhiteSpace(value[^1]))
+            {
+                value.Length--;
+            }
+
+            if (value.Length > 0 && value[^1] == ',')
+            {
+                value.Length--;
+            }
         }
 
         public static async Task<AppFile> GetImagesFile(
