@@ -177,15 +177,12 @@ jobs:
         full_run="${{ inputs.full_run }}"
 
         if [[ "$full_run" == "true" ]]; then
-          # Full-run mode: one entry per module, no test_file (runs all tests sequentially)
-          matrix=$(jq -n '{include: [
-            {"module": "deploy/terraform/run/sap_deployer", "test_file": ""},
-            {"module": "deploy/terraform/bootstrap/sap_deployer", "test_file": ""},
-            {"module": "deploy/terraform/bootstrap/sap_library", "test_file": ""},
-            {"module": "deploy/terraform/run/sap_system", "test_file": ""},
-            {"module": "deploy/terraform/run/sap_library", "test_file": ""},
-            {"module": "deploy/terraform/run/sap_landscape", "test_file": ""}
-          ]}')
+          # Full-run mode: one entry per module, no test_file (runs all tests sequentially).
+          # Modules are derived from the shard manifests so newly added unit-module test
+          # suites are picked up here as well as in sharded mode.
+          matrix=$(find deploy/terraform -path '*/tests/shard-manifest.json' -print0 \
+            | xargs -0 jq -s '[.[] | {module: .module, test_file: ""}] | unique
+              | {include: .}')
         else
           # Sharded mode: one entry per module/test-file from shard manifests
           matrix=$(find deploy/terraform -path '*/tests/shard-manifest.json' -print0 \
