@@ -470,9 +470,9 @@ locals {
   deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.database.user_assigned_identity_id) > 0
 
   use_avg = (
-              var.hana_ANF_volumes.use_AVG_for_data) && (
+              var.hana_ANF_volumes.use_AVG) && (
               var.hana_ANF_volumes.use_for_data || var.hana_ANF_volumes.use_for_log || var.hana_ANF_volumes.use_for_shared
-            ) && !var.use_scalesets_for_deployment
+            )
 
 
   create_data_volumes                  = !local.use_avg && var.hana_ANF_volumes.use_for_data && !var.hana_ANF_volumes.use_existing_data_volume
