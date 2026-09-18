@@ -62,7 +62,7 @@ data "azurerm_netapp_volume" "hanadata" {
                                           0
                                         ) : 0
   name                                 = local.use_avg ? (
-                                           format("%s%s%s%s%d",
+                                           format("%s%s%s%s%02d",
                                              var.naming.resource_prefixes.hanadata,
                                              local.prefix,
                                              var.naming.separator,
@@ -82,7 +82,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   depends_on                           = [azurerm_netapp_volume_group_sap_hana.avg_HANA_full]
 
   count                                = local.create_log_volumes ? (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count : 0
-  name                                 = format("%s%s%s%s%d",
+  name                                 = format("%s%s%s%s%02d",
                                            var.naming.resource_prefixes.hanalog,
                                            local.prefix,
                                            var.naming.separator,
@@ -131,7 +131,7 @@ data "azurerm_netapp_volume" "hanalog" {
                                            0
                                          ) : 0
   name                                 = local.use_avg ? (
-                                           format("%s%s%s%s%d",
+                                           format("%s%s%s%s%02d",
                                              var.naming.resource_prefixes.hanalog,
                                              local.prefix,
                                              var.naming.separator,
@@ -208,7 +208,7 @@ data "azurerm_netapp_volume" "hanashared" {
                                            0
                                          ) : 0
   name                                 = local.use_avg ? (
-                                        format("%s%s%s%s%d",
+                                        format("%s%s%s%s%02d",
                                           var.naming.resource_prefixes.hanashared,
                                           local.prefix,
                                           var.naming.separator,
