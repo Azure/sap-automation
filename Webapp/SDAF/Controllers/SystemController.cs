@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using System;
@@ -16,6 +15,8 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Identity;
+using Microsoft.Extensions.Options;
 
 namespace SDAFWebApp.Controllers
 {
@@ -29,23 +30,44 @@ namespace SDAFWebApp.Controllers
         private readonly RestHelper restHelper;
         private readonly ILogger<SystemController> _logger;
 
-        private ImageDropdown[] imagesOffered;
-        private List<SelectListItem> imageOptions;
-        private Dictionary<string, Image> imageMapping;
+        private List<SelectListItem> imageOptions = [];
+        private Dictionary<string, Image> imageMapping = [];
         private readonly string platform;
+        private readonly string pipelineId;
+        private readonly string branch;
 
-        public SystemController(ITableStorageService<SystemEntity> systemService, ITableStorageService<AppFile> appFileService, IConfiguration configuration, ILogger<SystemController> logger)
+        private readonly RepositoryPersistenceMode persistenceMode;
+
+        private void LogDebug(string message)
+        {
+            _logger.LogDebug("{Message}", message);
+        }
+
+
+        public SystemController(
+            ITableStorageService<SystemEntity> systemService,
+            ITableStorageService<AppFile> appFileService,
+            IConfiguration configuration,
+            RestHelper restHelper,
+            ILogger<SystemController> logger, 
+            IOptions<RepositoryPersistenceSettings> persistenceSettings)
         {
             _systemService = systemService;
             _appFileService = appFileService;
             _configuration = configuration;
             _logger = logger;
+            persistenceMode = persistenceSettings.Value.GetPersistenceMode();
+
             platform = configuration["DEVOPS_PLATFORM"] ?? "ado";
-            restHelper = new RestHelper(configuration, platform);
+            this.restHelper = restHelper;
             systemView = SetViewData();
 
-            imagesOffered = Helper.GetOfferedImages(_appFileService).Result;
-            InitializeImageOptionsAndMapping();
+            pipelineId = configuration["SYSTEM_PIPELINE_ID"];
+            branch = configuration["SourceBranch"];
+
+            LogDebug($"Platform: {platform}");
+            LogDebug($"PipelineId: {pipelineId}");
+            LogDebug($"Branch: {branch}");
 
         }
         private FormViewModel<SystemModel> SetViewData()
@@ -60,8 +82,9 @@ namespace SDAFWebApp.Controllers
 
                 systemView.ParameterGroupings = parameterArray;
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogWarning(e, "Failed to load system parameter metadata");
                 systemView.ParameterGroupings = Array.Empty<Grouping>();
             }
 
@@ -71,23 +94,32 @@ namespace SDAFWebApp.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> Index()
         {
+            LogDebug("Index called");
             SapObjectIndexModel<SystemModel> systemIndex = new();
 
             try
             {
                 List<SystemEntity> systemEntities = await _systemService.GetAllAsync();
-                List<SystemModel> systems = systemEntities.FindAll(s => s.System != null).ConvertAll(s => JsonConvert.DeserializeObject<SystemModel>(s.System));
+                List<SystemModel> systems = systemEntities
+                    .FindAll(s => s.System != null)
+                    .ConvertAll(s =>
+                    {
+                        SystemModel system = JsonConvert.DeserializeObject<SystemModel>(s.System)
+                            ?? throw new InvalidOperationException("The stored system definition is invalid.");
+                        system.PersistencePartitionKey = s.PartitionKey;
+                        return system;
+                    });
                 systemIndex.SapObjects = systems;
 
                 List<AppFile> appfiles = await _appFileService.GetAllAsync();
                 systemIndex.AppFiles = appfiles.FindAll(file => !file.Id.EndsWith("INFRASTRUCTURE.tfvars") && file.Id != "VM-Images.json" && file.Id.IndexOf("_custom_") == -1);
 
-                systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService);
+                systemIndex.ImagesFile = await Helper.GetImagesFile(_appFileService, _logger);
             }
-            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Error retrieving existing systems: " + e.Message;
+                _logger.LogError(e, "Failed to retrieve existing systems");
+                TempData["error"] = "Existing systems could not be retrieved.";
             }
 
             return View(systemIndex);
@@ -96,38 +128,49 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<SystemModel> GetById(string id, string partitionKey)
         {
+            LogDebug($"GetById called. Id={id}, PartitionKey={partitionKey}");
             if (id == null || partitionKey == null) throw new ArgumentNullException();
             var systemEntity = await _systemService.GetByIdAsync(id, partitionKey);
             if (systemEntity == null || systemEntity.System == null) throw new KeyNotFoundException();
-            SystemModel s = null;
-            try
-            {
-                s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
-            }
-            catch (Exception e)
-            {
-                _logger?.LogWarning(e, "Failed to deserialize system {Id} in partition {PartitionKey}", Helper.SanitizeForLog(id), Helper.SanitizeForLog(partitionKey));
-            }
-            if (s == null) return null;
+            SystemModel s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System)
+                ?? throw new InvalidOperationException("The stored system definition is invalid.");
+
+            s.locationCode = Helper.MapRegion(s.location).ToUpper();
+
+            s.workload_zone = String.Format("{0}-{1}-{2}", s.environment , s.locationCode,  s.network_logical_name);
             try
             {
                 AppFile file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
-                s.name_override_file = id + "_custom_naming.json";
+                if (file != null)
+                {
+                    s.name_override_file = id + "_custom_naming.json";
+                }
             }
-            catch (Exception e)
+            catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
                 _logger?.LogInformation(e, "No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInformation(ex, "No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
             }
 
             try
             {
                 AppFile file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
-                s.custom_disk_sizes_filename = id + "_custom_sizes.json";
-                s.database_size = "Custom";
+                if (file != null)
+                {
+                    s.custom_disk_sizes_filename = id + "_custom_sizes.json";
+                    s.database_size = "Custom";
+                }
             }
-            catch (Exception e)
+            catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
                 _logger?.LogInformation(e, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInformation(ex, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
             }
 
             return s;
@@ -136,6 +179,7 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<SystemModel> GetDefault()
         {
+            LogDebug("GetDefault called");
             SystemEntity defaultSystem = await _systemService.GetDefault();
             if (defaultSystem == null || defaultSystem.System == null) return null;
             return JsonConvert.DeserializeObject<SystemModel>(defaultSystem.System);
@@ -144,13 +188,16 @@ namespace SDAFWebApp.Controllers
         [HttpGet]
         public async Task<ActionResult> GetDefaultJson()
         {
+            LogDebug("GetDefaultJson called");
             SystemEntity systemEntity = await _systemService.GetDefault();
             if (systemEntity == null) return NotFound();
             return Json(systemEntity.System);
         }
 
-        public void InitializeImageOptionsAndMapping()
+        private async Task PrepareImageOptionsAsync()
         {
+            LogDebug("PrepareImageOptionsAsync called");
+            ImageDropdown[] imagesOffered = await Helper.GetOfferedImages(_appFileService, _logger);
             imageMapping = [];
             imageOptions =
             [
@@ -168,26 +215,30 @@ namespace SDAFWebApp.Controllers
                     }
                 }
             }
+
+            ViewBag.ValidImageOptions = imagesOffered.Length != 0;
+            ViewBag.ImageOptions = imageOptions;
         }
 
         [HttpGet]
-        public ActionResult GetImage(string name)
+        public async Task<ActionResult> GetImage(string name)
         {
-            if (name != null && imageMapping.TryGetValue(name, out Image image))
+            LogDebug($"GetImage called. Name={name}");
+            await PrepareImageOptionsAsync();
+            if (name != null && imageMapping.ContainsKey(name))
             {
-                return Json(image);
+                return Json(imageMapping[name]);
             }
             else
             {
                 throw new Exception();
             }
         }
-
         [ActionName("Create")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            LogDebug("Create (GET) called");
+            await PrepareImageOptionsAsync();
             return View(systemView);
         }
 
@@ -196,34 +247,30 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(SystemModel system)
         {
+            LogDebug($"Create (POST) called. Id={system?.Id}");
             if (ModelState.IsValid)
             {
                 try
                 {
-                    if (system.IsDefault)
-                    {
-                        await UnsetDefault(system.Id);
-                    }
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
-                    SystemEntity systemEntity = new(system);
-                    await _systemService.CreateAsync(systemEntity);
+                    await PersistDefaultTransitionAsync(
+                        system,
+                        () => _systemService.CreateAsync(new SystemEntity(system)));
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
-                catch (Exception e)
+                catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
                 {
-                    ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
+                    _logger.LogError(e, "Failed to create system");
+                    ModelState.AddModelError("SystemId", "The system could not be created.");
                 }
             }
-
             systemView.SapObject = system;
 
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View(systemView);
         }
@@ -231,12 +278,13 @@ namespace SDAFWebApp.Controllers
         [ActionName("Deploy")]
         public async Task<IActionResult> DeployAsync(string id, string partitionKey)
         {
+            LogDebug($"Deploy (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
                 systemView.SapObject = system;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                 ViewBag.Environments = environments;
 
                 return View(systemView);
@@ -244,7 +292,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to prepare deployment for system {Id}", Helper.SanitizeForLog(id));
+                TempData["error"] = "The system deployment could not be prepared.";
                 return RedirectToAction("Index");
             }
         }
@@ -254,6 +303,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Deploy")]
         public async Task<RedirectToActionResult> DeployConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
+            LogDebug($"Deploy (POST) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -262,6 +312,18 @@ namespace SDAFWebApp.Controllers
                 try
                 {
                     file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
+                }
+                catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
+                {
+                    _logger?.LogInformation("No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogInformation("No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
+                }
+
+                if (file != null)
+                {
                     system.name_override_file = id + "_custom_naming.json";
                     using var stream = new MemoryStream(file.Content);
 
@@ -270,14 +332,23 @@ namespace SDAFWebApp.Controllers
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch (Exception e)
-                {
-                    _logger?.LogWarning(e, "Failed to save custom naming file for system {Id}; continuing with default naming", Helper.SanitizeForLog(id));
-                }
 
+                file = null;
                 try
                 {
                     file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
+                }
+                catch (RepositoryOperationException e) when (e.ErrorCategory == RepositoryErrorCategory.NotFound)
+                {
+                    _logger?.LogInformation("No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
+                }
+                catch (Exception ex) 
+                {
+                    _logger?.LogInformation("No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
+                }
+
+                if (file != null)
+                {
                     using var stream = new MemoryStream(file.Content);
 
                     system.custom_disk_sizes_filename = id + "_custom_sizes.json";
@@ -288,10 +359,6 @@ namespace SDAFWebApp.Controllers
 
                     await restHelper.UpdateRepo(pathForNaming, thisContent);
                 }
-                catch (Exception e)
-                {
-                    _logger?.LogWarning(e, "Failed to save custom sizes file for system {Id}; continuing with default sizing", Helper.SanitizeForLog(id));
-                }
 
                 string path = $"/SYSTEM/{id}/{id}.tfvars";
 
@@ -300,14 +367,7 @@ namespace SDAFWebApp.Controllers
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.environment = system.workload_zone.Split('-')[0];
-                }
-                if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.network_logical_name = system.workload_zone.Split('-')[2];
-                }
+                PopulateFromWorkloadZone(system);
 
                 string content = Helper.ConvertToTerraform(system);
 
@@ -318,8 +378,6 @@ namespace SDAFWebApp.Controllers
                     case "ado":
                         {
 
-                            string pipelineId = _configuration["SYSTEM_PIPELINE_ID"];
-                            string branch = _configuration["SourceBranch"];
                             parameters.sap_system = id;
                             PipelineRequestBody requestBody = new()
                             {
@@ -349,10 +407,11 @@ namespace SDAFWebApp.Controllers
                                 { "workload_zone_name", parameters.environment },
                                 { "sap_system_identifier", system.sid }
                             };
-                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("05-sap-system-deployment.yml", branch, inputs);
                             TempData["success"] = "Successfully triggered system deployment action for " + id;
                             break;
-                            
+
+
                         }
                 }
 
@@ -360,7 +419,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Error deploying system " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to deploy system {Id}", Helper.SanitizeForLog(id));
+                TempData["error"] = "The system could not be deployed.";
             }
             return RedirectToAction("Index");
         }
@@ -368,12 +428,13 @@ namespace SDAFWebApp.Controllers
         [ActionName("Install")]
         public async Task<IActionResult> InstallAsync(string id, string partitionKey)
         {
+            LogDebug($"Install (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
                 systemView.SapObject = system;
 
-                List<SelectListItem> environments = restHelper.GetEnvironmentsList().Result;
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
                 ViewBag.Environments = environments;
 
                 return View(systemView);
@@ -381,7 +442,8 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load system");
+                TempData["error"] = "The system could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -391,6 +453,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Install")]
         public async Task<IActionResult> InstallConfirmedAsync(string id, string partitionKey, Templateparameters parameters)
         {
+            LogDebug($"Install (POST) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -440,7 +503,7 @@ namespace SDAFWebApp.Controllers
                                 { "application_server_installation", parameters.application_server_installation },
                                 { "webdispatcher_installation", parameters.webdispatcher_installation }
                             };
-                            await restHelper.TriggerGitHubWorkflow("07-configuration-installation.yml", "main", inputs);
+                            await restHelper.TriggerGitHubWorkflow("07-configuration-installation.yml", branch, inputs);
                             TempData["success"] = "Successfully triggered system installation action for " + id;
                             break;
                         }
@@ -450,14 +513,132 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Error triggering SAP installation pipeline for system " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to trigger SAP installation pipeline");
+                TempData["error"] = "The SAP installation pipeline could not be started.";
             }
             return RedirectToAction("Index");
         }
 
+        [ActionName("Remove")]
+        public async Task<IActionResult> RemoveAsync(string id, string partitionKey)
+        {
+            LogDebug($"Remove (GET) called. Id={id}, PartitionKey={partitionKey}");
+            try
+            {
+                SystemModel system = await GetById(id, partitionKey);
+                systemView.SapObject = system;
+
+                List<SelectListItem> environments = await restHelper.GetEnvironmentsList();
+                ViewBag.Environments = environments;
+
+
+                return View(systemView);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to load system");
+                TempData["error"] = "The system could not be loaded.";
+                return RedirectToAction("Index");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName("Remove")]
+        public async Task<RedirectToActionResult> RemoveConfirmedAsync(
+            string id,
+            string partitionKey,
+            [Bind("cleanup_sap,sap_system,cleanup_zone,workload_zone,use_deployer")] RemovalTemplateParameters parameters)
+        {
+            LogDebug($"Remove (POST) called. Id={id}, PartitionKey={partitionKey}");
+            try
+            {
+                SystemModel system = await GetById(id, partitionKey);
+
+                string path = $"/LANDSCAPE/{id}/{id}.tfvars";
+                parameters.cleanup_zone = true;
+                parameters.cleanup_sap = false;
+                string sidPart = "-" + system.sid;
+
+                if (!string.IsNullOrEmpty(system.subscription))
+                {
+                    system.subscription_id = system.subscription.Replace("/subscriptions/", "");
+                }
+
+                PopulateFromWorkloadZone(system);
+
+
+                switch (platform.ToLower())
+                {
+                    case "ado":
+                        {
+                            string pipelineId = _configuration["REMOVAL_PIPELINE_ID"];
+                            string branch = _configuration["SourceBranch"];
+                            
+
+                            parameters.workload_zone = id.Replace(sidPart, "");
+                            parameters.sap_system = id;
+                            parameters.cleanup_sap = true;
+                            parameters.cleanup_zone = false;
+
+                            PipelineRequestBody requestBody = new()
+                            {
+                                resources = new Resources
+                                {
+                                    repositories = new Repositories
+                                    {
+                                        self = new Self
+                                        {
+                                            refName = $"refs/heads/{branch}"
+                                        }
+                                    }
+                                },
+                                templateParameters = new Dictionary<string, object>{
+                                    { "workload_zone", parameters.workload_zone },
+                                    { "cleanup_sap", true },
+                                    { "cleanup_zone", false },
+                                    { "sap_system", id }
+                                }
+                            };
+
+                            LogDebug($"Calling removal pipeline {pipelineId} for {id}");
+
+                            await restHelper.TriggerPipeline(pipelineId, requestBody);
+
+                            TempData["success"] = "Successfully triggered workload zone removal pipeline for " + id;
+                            break;
+                        }
+                    case "github":
+                        {
+                            // Trigger with inputs
+                            var inputs = new Dictionary<string, object>
+                            {
+                                { "workload_zone_name", id.Replace(sidPart, "") },
+                                { "cleanup_sap", true },
+                                { "cleanup_workload_zone", false },
+                                { "sap_system_identifier", id }
+
+                            };
+                            await restHelper.TriggerGitHubWorkflow("10-remover-terraform.yml", branch, inputs);
+                            TempData["success"] = "Successfully system removal action for " + id;
+                            break;
+                        }
+                }
+
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to remove system");
+                TempData["error"] = "The system could not be removed.";
+            }
+            return RedirectToAction("Index");
+        }
+
+
         [ActionName("Delete")]
         public async Task<IActionResult> DeleteAsync(string id, string partitionKey)
         {
+            LogDebug($"Delete (GET) called. Id={id}, PartitionKey={partitionKey}");
             if (id == null)
             {
                 return BadRequest();
@@ -478,6 +659,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmedAsync(string id, string partitionKey)
         {
+            LogDebug($"Delete (POST) called. Id={id}, PartitionKey={partitionKey}");
             await _systemService.DeleteAsync(id, partitionKey);
             TempData["success"] = "Successfully deleted system " + id;
             return RedirectToAction("Index");
@@ -486,6 +668,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Edit")]
         public async Task<IActionResult> EditAsync(string id, string partitionKey)
         {
+            LogDebug($"Edit (GET) called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -494,26 +677,18 @@ namespace SDAFWebApp.Controllers
                     system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                 }
 
-                if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.environment = system.workload_zone.Split('-')[0];
-                }
-                if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                {
-                    system.network_logical_name = system.workload_zone.Split('-')[2];
-                }
-
+                PopulateFromWorkloadZone(system);
                 systemView.SapObject = system;
 
-                ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-                ViewBag.ImageOptions = imageOptions;
+                await PrepareImageOptionsAsync();
 
                 return View(systemView);
             }
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load system for editing");
+                TempData["error"] = "The system could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -523,6 +698,7 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAsync(SystemModel system)
         {
+            LogDebug($"Edit (POST) called. Id={system?.Id}");
             if (ModelState.IsValid)
             {
                 try
@@ -542,20 +718,6 @@ namespace SDAFWebApp.Controllers
                                 system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
                             }
                         }
-                        if (!string.IsNullOrEmpty(system.subscription))
-                        {
-                            system.subscription_id = system.subscription.Replace("/subscriptions/", "");
-                        }
-
-                        if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.environment = system.workload_zone.Split('-')[0];
-                        }
-                        if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.network_logical_name = system.workload_zone.Split('-')[2];
-                        }
-
                         await SubmitNewAsync(system);
                         string id = system.Id;
                         string path = $"/SYSTEM/{id}/{id}.tfvars";
@@ -564,7 +726,7 @@ namespace SDAFWebApp.Controllers
 
                         AppFile file = new()
                         {
-                            Id = WebUtility.HtmlEncode(path),
+                            Id = path,
                             Content = bytes,
                             UntrustedName = path,
                             Size = bytes.Length,
@@ -572,16 +734,12 @@ namespace SDAFWebApp.Controllers
                         };
 
                         await _systemService.CreateTFVarsAsync(file);
-                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.Id });  //RedirectToAction("Index");
 
 
                     }
                     else
                     {
-                        if (system.IsDefault)
-                        {
-                            await UnsetDefault(system.Id);
-                        }
                         if (String.IsNullOrEmpty(system.Description))
                         {
                             if (system.database_high_availability == true || system.scs_high_availability == true)
@@ -598,18 +756,13 @@ namespace SDAFWebApp.Controllers
                             system.subscription_id = system.subscription.Replace("/subscriptions/", "");
                         }
 
-                        if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.environment = system.workload_zone.Split('-')[0];
-                        }
-                        if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                        {
-                            system.network_logical_name = system.workload_zone.Split('-')[2];
-                        }
+                        PopulateFromWorkloadZone(system);
 
                         DateTime currentDateAndTime = DateTime.Now;
                         system.LastModified = currentDateAndTime.ToShortDateString();
-                        await _systemService.UpdateAsync(new SystemEntity(system));
+                        await PersistDefaultTransitionAsync(
+                            system,
+                            () => _systemService.UpdateAsync(new SystemEntity(system)));
 
                         TempData["success"] = "Successfully updated system " + system.Id;
                         string id = system.Id;
@@ -619,7 +772,7 @@ namespace SDAFWebApp.Controllers
 
                         AppFile file = new()
                         {
-                            Id = WebUtility.HtmlEncode(path),
+                            Id = path,
                             Content = bytes,
                             UntrustedName = path,
                             Size = bytes.Length,
@@ -627,20 +780,19 @@ namespace SDAFWebApp.Controllers
                         };
 
                         await _systemService.CreateTFVarsAsync(file);
-                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.Id });  //RedirectToAction("Index");
                     }
                 }
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("SystemId", "Error editing system: " + e.Message);
+                    _logger.LogError(e, "Failed to update system");
+                    ModelState.AddModelError("SystemId", "The system could not be updated.");
                 }
             }
-
             systemView.SapObject = system;
 
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View(systemView);
         }
@@ -650,46 +802,30 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitNewAsync(SystemModel system)
         {
+            LogDebug($"SubmitNew (POST) called. Id={system?.Id}");
             if (ModelState.IsValid)
             {
                 try
                 {
-                    if (system.IsDefault)
-                    {
-                        await UnsetDefault(system.Id);
-                    }
                     system.Id = Helper.GenerateId(system);
                     DateTime currentDateAndTime = DateTime.Now;
                     system.LastModified = currentDateAndTime.ToShortDateString();
-                    if (!string.IsNullOrEmpty(system.subscription))
-                    {
-                        system.subscription_id = system.subscription.Replace("/subscriptions/", "");
-                    }
-
-                    if (string.IsNullOrEmpty(system.environment) && !string.IsNullOrEmpty(system.workload_zone))
-                    {
-                        system.environment = system.workload_zone.Split('-')[0];
-                    }
-                    if (string.IsNullOrEmpty(system.network_logical_name) && !string.IsNullOrEmpty(system.workload_zone))
-                    {
-                        system.network_logical_name = system.workload_zone.Split('-')[2];
-                    }
-
-                    await _systemService.CreateAsync(new SystemEntity(system));
+                    await PersistDefaultTransitionAsync(
+                        system,
+                        () => _systemService.CreateAsync(new SystemEntity(system)));
                     TempData["success"] = "Successfully created system " + system.Id;
                     return RedirectToAction("Index");
                 }
                 // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
                 catch (Exception e)
                 {
-                    ModelState.AddModelError("SystemId", "Error creating system: " + e.Message);
+                    _logger.LogError(e, "Failed to create system");
+                    ModelState.AddModelError("SystemId", "The system could not be created.");
                 }
             }
-
             systemView.SapObject = system;
 
-            ViewBag.ValidImageOptions = (imagesOffered.Length != 0);
-            ViewBag.ImageOptions = imageOptions;
+            await PrepareImageOptionsAsync();
 
             return View("Edit", systemView);
         }
@@ -697,6 +833,7 @@ namespace SDAFWebApp.Controllers
         [ActionName("Details")]
         public async Task<IActionResult> DetailsAsync(string id, string partitionKey)
         {
+            LogDebug($"Details called. Id={id}, PartitionKey={partitionKey}");
             try
             {
                 SystemModel system = await GetById(id, partitionKey);
@@ -706,17 +843,19 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to copy system");
+                TempData["error"] = "The system could not be copied.";
                 return RedirectToAction("Index");
             }
         }
 
         [ActionName("Download")]
-        public ActionResult DownloadFile(string id, string partitionKey)
+        public async Task<ActionResult> DownloadFile(string id, string partitionKey)
         {
+            LogDebug($"Download called. Id={id}, PartitionKey={partitionKey}");
             try
             {
-                SystemModel system = GetById(id, partitionKey).Result;
+                SystemModel system = await GetById(id, partitionKey);
 
                 string path = $"{id}.tfvars";
                 string content = Helper.ConvertToTerraform(system);
@@ -731,49 +870,91 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to download system file");
+                TempData["error"] = "The requested file could not be downloaded.";
                 return RedirectToAction("Index");
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         [ActionName("MakeDefault")]
         public async Task<IActionResult> MakeDefault(string id, string partitionKey)
         {
+            LogDebug($"MakeDefault called. Id={id}, PartitionKey={partitionKey}");
             try
             {
-                // Unset the existing default
-                await UnsetDefault(id);
-
-                // Update current system as default
                 SystemModel system = await GetById(id, partitionKey);
                 system.IsDefault = true;
-                SystemEntity systemEntity = new(system);
-                await _systemService.UpdateAsync(systemEntity);
+                await PersistDefaultTransitionAsync(
+                    system,
+                    () => _systemService.UpdateAsync(new SystemEntity(system)));
             }
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                ModelState.AddModelError("SystemId", "Error setting default for system: " + e.Message);
+                _logger.LogError(e, "Failed to set default system");
+                ModelState.AddModelError("SystemId", "The default system could not be changed.");
             }
             return RedirectToAction("Index");
         }
 
-        public async Task UnsetDefault(string id)
+        private async Task PersistDefaultTransitionAsync(
+            SystemModel replacement,
+            Func<Task> persistReplacement)
         {
+            SystemModel previousDefault = replacement.IsDefault
+                ? await GetDefault()
+                : null;
+
+            await persistReplacement();
+
+            if (previousDefault == null || previousDefault.Id == replacement.Id)
+            {
+                return;
+            }
+
+            previousDefault.IsDefault = false;
             try
             {
-                SystemModel existingDefault = await GetDefault();
-                if (existingDefault != null && existingDefault.Id != id)
-                {
-                    existingDefault.IsDefault = false;
-                    await _systemService.UpdateAsync(new SystemEntity(existingDefault));
-                    Console.WriteLine("Unset existing default " + existingDefault.Id);
-                }
+                await _systemService.UpdateAsync(new SystemEntity(previousDefault));
             }
-            // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
-            catch (Exception e)
+            catch (Exception clearException)
             {
-                throw new Exception("Error unsetting the current default object: " + e.Message);
+                replacement.IsDefault = false;
+                try
+                {
+                    await _systemService.UpdateAsync(new SystemEntity(replacement));
+                }
+                catch (Exception rollbackException)
+                {
+                    throw new AggregateException(
+                        "Failed to clear the previous default system and roll back the replacement.",
+                        clearException,
+                        rollbackException);
+                }
+
+                throw new InvalidOperationException(
+                    "Failed to clear the previous default system; the replacement was rolled back.",
+                    clearException);
+            }
+        }
+
+        private static void PopulateFromWorkloadZone(SystemModel system)
+        {
+            if (string.IsNullOrWhiteSpace(system?.workload_zone))
+            {
+                return;
+            }
+
+            WorkloadZoneIdentifier identifier = IdentifierParser.ParseWorkloadZone(system.workload_zone);
+            if (string.IsNullOrEmpty(system.environment))
+            {
+                system.environment = identifier.Environment;
+            }
+            if (string.IsNullOrEmpty(system.network_logical_name))
+            {
+                system.network_logical_name = identifier.NetworkLogicalName;
             }
         }
 

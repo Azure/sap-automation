@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace SDAFWebApp.Controllers
@@ -460,7 +461,6 @@ namespace SDAFWebApp.Controllers
                             key = "\"" + key + "\"";
                         }
                         string value = null;
-                        Console.WriteLine(key);
                         if (key.EndsWith("tags\""))
                         {
                             StringBuilder valueBuilder = new();
@@ -532,47 +532,169 @@ namespace SDAFWebApp.Controllers
             return jsonFormattedOutput;
         }
 
-        public static async Task<AppFile> GetImagesFile(ITableStorageService<AppFile> appFileService)
+        public static async Task<AppFile> GetImagesFile(
+            ITableStorageService<AppFile> appFileService,
+            ILogger logger = null)
         {
             string filename = "VM-Images.json";
             string partitionKey = "VM";
             AppFile file = null;
+
             try
             {
                 file = await appFileService.GetByIdAsync(filename, partitionKey);
-                if (file == null) throw new KeyNotFoundException();
+                if (file != null) return file;
             }
-            catch
+            catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + filename);
+                logger?.LogInformation(ex, "Images file was not found in configured persistence; using packaged fallback");
+            }
+            catch (Exception FileEx)
+            {
+                logger?.LogError(FileEx, "Packaged images fallback could not be loaded");
+            }
 
+            try
+            {
+                string localPath = Path.Combine("ParameterDetails", filename);
+
+                byte[] byteContent = System.IO.File.ReadAllBytes(localPath);
                 using MemoryStream memory = new(byteContent);
+
                 file = new AppFile()
                 {
-                    Id = WebUtility.HtmlEncode(filename),
+                    Id = filename,
                     Content = byteContent,
                     UntrustedName = filename,
                     Size = memory.Length,
                     UploadDT = DateTime.UtcNow
                 };
             }
-            return file ?? new AppFile();
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "Packaged images fallback could not be loaded");
+                throw new InvalidOperationException("The images configuration is currently unavailable.", ex);
+            }
+            return file;
         }
 
-        public static async Task<ImageDropdown[]> GetOfferedImages(ITableStorageService<AppFile> appFileService)
+        public static async Task<ImageDropdown[]> GetOfferedImages(
+            ITableStorageService<AppFile> appFileService,
+            ILogger logger = null)
         {
             try
             {
-                AppFile file = await GetImagesFile(appFileService);
-                byte[] bytes = file.Content;
-                string jsonString = Encoding.UTF8.GetString(bytes);
-                ImageDropdown[] images = System.Text.Json.JsonSerializer.Deserialize<ImageDropdown[]>(jsonString);
-                return images;
+                AppFile file = await GetImagesFile(appFileService, logger);
+                if (file?.Content == null || file.Content.Length == 0)
+                {
+                    throw new InvalidDataException("The images configuration is empty.");
+                }
+
+                string jsonString = Encoding.UTF8.GetString(file.Content);
+                return System.Text.Json.JsonSerializer.Deserialize<ImageDropdown[]>(jsonString)
+                    ?? Array.Empty<ImageDropdown>();
             }
-            catch
+            catch (Exception ex) when (
+                ex is InvalidDataException ||
+                ex is InvalidOperationException ||
+                ex is System.Text.Json.JsonException)
             {
+                logger?.LogWarning(ex, "Image options are unavailable; continuing without image suggestions");
                 return Array.Empty<ImageDropdown>();
             }
+        }
+
+        /// <summary>
+        /// Parses TFVARS content back to a model object.
+        /// Extracts key = value pairs from HCL/TFVARS format and maps to model properties.
+        /// </summary>
+        public static T ConvertFromTerraform<T>(string tfvarsContent) where T : new()
+        {
+            var model = new T();
+            if (string.IsNullOrEmpty(tfvarsContent))
+                return model;
+
+            var properties = typeof(T).GetProperties();
+            var lines = tfvarsContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+
+                // Skip comments and empty lines
+                if (trimmedLine.StartsWith("#") || string.IsNullOrEmpty(trimmedLine))
+                    continue;
+
+                // Parse key = value format
+                if (!trimmedLine.Contains("="))
+                    continue;
+
+                var parts = trimmedLine.Split(new[] { '=' }, 2);
+                if (parts.Length != 2)
+                    continue;
+
+                var key = parts[0].Trim();
+                var valueRaw = parts[1].Trim().TrimEnd(',');
+
+                // Find matching property (case-insensitive)
+                var prop = properties.FirstOrDefault(p =>
+                    p.Name.Equals(key, StringComparison.OrdinalIgnoreCase));
+
+                if (prop == null || !prop.CanWrite)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var value = ParseTfvarsValue(valueRaw, prop.PropertyType);
+                    if (value != null)
+                    {
+                        prop.SetValue(model, value);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new FormatException(
+                        $"TFVars property '{key}' could not be parsed as {prop.PropertyType.Name}.",
+                        ex);
+                }
+            }
+
+            return model;
+        }
+
+        private static object ParseTfvarsValue(string valueStr, Type targetType)
+        {
+            // Remove quotes if present
+            if (valueStr.StartsWith("\"") && valueStr.EndsWith("\""))
+            {
+                valueStr = valueStr.Substring(1, valueStr.Length - 2);
+            }
+
+            if (targetType == typeof(string) || targetType == typeof(string[]))
+            {
+                // Handle arrays
+                if (valueStr.StartsWith("[") && valueStr.EndsWith("]"))
+                {
+                    var arrayStr = valueStr.Substring(1, valueStr.Length - 2);
+                    var items = arrayStr.Split(new[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().Trim('"'))
+                        .ToArray();
+                    return targetType == typeof(string[]) ? items : items.FirstOrDefault();
+                }
+                return valueStr;
+            }
+            else if (targetType == typeof(bool) || targetType == typeof(bool?))
+            {
+                return bool.Parse(valueStr.ToLower());
+            }
+            else if (targetType == typeof(int) || targetType == typeof(int?))
+            {
+                return int.Parse(valueStr);
+            }
+
+            return valueStr;
         }
 
     }
