@@ -40,6 +40,7 @@ No modules.
 | [local_file.sap_inventory_md](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.sap_vms_resource_id](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/client_config) | data source |
+| [azurerm_storage_container.tfvars](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/storage_container) | data source |
 
 ## Inputs
 
