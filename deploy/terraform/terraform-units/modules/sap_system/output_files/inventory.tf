@@ -181,7 +181,7 @@ resource "local_file" "ansible_inventory_new_yml" {
 data "azurerm_storage_container" "tfvars" {
   provider               = azurerm.deployer
   name                  = "tfvars"
-  storage_account_id    = var.infrastructure.terraform_storage_account_id
+  storage_account_id    = var.tfstate_resource_id
 }
 
 
