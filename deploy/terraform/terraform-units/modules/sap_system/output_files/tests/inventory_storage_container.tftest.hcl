@@ -8,7 +8,7 @@
 # mock_provider.
 
 mock_provider "azurerm" {
-  mock_resource "azurerm_client_config" {
+  mock_data "azurerm_client_config" {
     defaults = {
       tenant_id = "00000000-0000-0000-0000-000000000000"
     }
@@ -25,7 +25,7 @@ mock_provider "azurerm" {
 
 mock_provider "azurerm" {
   alias = "deployer"
-  mock_resource "azurerm_storage_container" {
+  mock_data "azurerm_storage_container" {
     defaults = {
       id = "/subscriptions/22222222-2222-2222-2222-222222222222/resourceGroups/rg-tfstate/providers/Microsoft.Storage/storageAccounts/sttfstate001/blobServices/default/containers/tfvars"
     }
