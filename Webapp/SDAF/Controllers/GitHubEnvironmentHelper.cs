@@ -1,54 +1,66 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using SDAFWebApp.Services;
 
 namespace SDAFWebApp.Controllers
 {
     public class GitHubEnvironmentHelper
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _token;
-        private readonly string _owner;
-        private readonly string _repo;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
+        private HttpClient HttpClient => _httpClientFactory.CreateClient(DevOpsHttpClientNames.GitHub);
 
-        public GitHubEnvironmentHelper(string token, string owner, string repo)
+        public GitHubEnvironmentHelper(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
-            _token = token;
-            _owner = owner;
-            _repo = repo;
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SDAF", "1.0"));
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
-        public async Task<List<GitHubEnvironment>> ListEnvironmentsAsync()
+        public async Task<List<GitHubEnvironment>> ListEnvironmentsAsync(CancellationToken cancellationToken = default)
         {
-            var url = $"https://api.github.com/repos/{_owner}/{_repo}/environments";
+            var (owner, repo) = GetRepository();
+            var url = $"repos/{owner}/{repo}/environments";
 
-            var response = await _httpClient.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var result = JsonSerializer.Deserialize<GitHubEnvironmentsResponse>(content);
 
             return result?.Environments ?? [];
         }
 
-        public async Task<GitHubEnvironment> GetEnvironmentAsync(string environmentName)
+        public async Task<GitHubEnvironment> GetEnvironmentAsync(
+            string environmentName,
+            CancellationToken cancellationToken = default)
         {
-            var url = $"https://api.github.com/repos/{_owner}/{_repo}/environments/{environmentName}";
+            var (owner, repo) = GetRepository();
+            var url = $"repos/{owner}/{repo}/environments/{Uri.EscapeDataString(environmentName)}";
 
-            var response = await _httpClient.GetAsync(url);
+            using var response = await HttpClient.GetAsync(url, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var environment = JsonSerializer.Deserialize<GitHubEnvironment>(content);
 
             return environment;
+        }
+
+        private (string Owner, string Repository) GetRepository()
+        {
+            string repository = _configuration["GITHUB_REPOSITORY"];
+            string[] parts = repository?.Split('/', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts?.Length != 2)
+            {
+                throw new InvalidOperationException("GITHUB_REPOSITORY must be provided as 'owner/repository'.");
+            }
+
+            return (parts[0], parts[1]);
         }
     }
 
