@@ -273,9 +273,11 @@ jobs:
       run: |
         exit_code=0
 
-        # Collect all .tftest.hcl files under deploy/terraform/*/*/tests/
+        # Collect all .tftest.hcl files under any deploy/terraform/.../tests/ directory,
+        # including deeper reusable-module layouts such as
+        # deploy/terraform/terraform-units/modules/sap_system/output_files/tests/.
         mapfile -t actual_files < <(find deploy/terraform -path '*/tests/*.tftest.hcl' \
-          | sed 's|^\(deploy/terraform/[^/]*/[^/]*\)/tests/\(.*\)|\1 \2|' \
+          | sed 's|^\(.*\)/tests/\([^/]*\)$|\1 \2|' \
           | sort)
 
         # Collect all files declared in shard manifests
