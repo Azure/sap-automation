@@ -26,6 +26,7 @@ locals {
                                             application_configuration_id       = var.application_configuration_id
                                             use_application_configuration      = length(var.application_configuration_id) > 0 ? true : false
                                             workload_zone_name                 = local.workload_zone_name
+                                            configuration_settings             = var.configuration_settings
                                          }
 
 
