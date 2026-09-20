@@ -335,7 +335,7 @@ namespace SDAFWebApp.Services
                 {
                     PartitionKey = landscape.Id,
                     RowKey = landscape.Id,
-                    Landscape = jsonContent,
+                    Landscape = JsonSerializer.Serialize(landscape),
                     IsDefault = landscape.IsDefault
                 };
             }
@@ -489,7 +489,7 @@ namespace SDAFWebApp.Services
                 {
                     PartitionKey = system.Id,
                     RowKey = system.Id,
-                    System = jsonContent,
+                    System = JsonSerializer.Serialize(system),
                     IsDefault = system.IsDefault
                 };
             }

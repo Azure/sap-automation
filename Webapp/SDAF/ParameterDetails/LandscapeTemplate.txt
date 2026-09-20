@@ -63,6 +63,9 @@ $$name_override_file$$
 # The subscription ID is used to control where the resources are deployed
 $$subscription_id$$
 
+# workload zone name
+$$workload_zone$$
+
 #########################################################################################
 #                                                                                       #
 #  Networking                                                                           #
