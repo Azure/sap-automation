@@ -9,7 +9,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
+  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, data.azurerm_netapp_pool.workload_netapp_pool ]
   count                                = var.hana_ANF_volumes.use_AVG ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hana_avg,
@@ -37,7 +37,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
@@ -49,6 +49,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
+                               tags                         = var.tags
 
                                export_policy_rule {
                                                     rule_index          = 1
@@ -75,7 +76,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
@@ -87,6 +88,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
+                               tags                         = var.tags
 
                                export_policy_rule {
                                                     rule_index          = 1
@@ -116,7 +118,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
@@ -127,6 +129,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
+                               tags                         = var.tags
 
                                export_policy_rule {
                                                     rule_index          = 1
@@ -145,7 +148,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
+  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, data.azurerm_netapp_pool.workload_netapp_pool ]
   count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count / length(var.database.zones) > 1) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s2_%d",
                                            var.naming.resource_prefixes.hana_avg,
@@ -174,7 +177,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
@@ -196,6 +199,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                     unix_read_write     = true
                                                     root_access_enabled = true
                                                   }
+                               tags                         = var.tags
                             }
 
   volume                    {
@@ -212,8 +216,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
+                               tags                         = var.tags
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
                                volume_spec_name             = "log"
@@ -236,13 +241,12 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                   }
                             }
 
-
 }
 
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
+  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, data.azurerm_netapp_pool.workload_netapp_pool ]
   count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count / length(var.database.zones) > 2) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s3_%d",
                                            var.naming.resource_prefixes.hana_avg,
@@ -271,8 +275,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
+                               tags                         = var.tags
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
                                volume_spec_name             = "data"
@@ -309,7 +314,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
@@ -337,7 +342,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
+  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, data.azurerm_netapp_pool.workload_netapp_pool ]
   count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count / length(var.database.zones) > 3) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s4_%d",
                                            var.naming.resource_prefixes.hana_avg,
@@ -366,7 +371,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
@@ -388,6 +393,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                     unix_read_write     = true
                                                     root_access_enabled = true
                                                   }
+                               tags                         = var.tags
                             }
 
   volume                    {
@@ -404,7 +410,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                                 count.index + 1
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
-                               capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
+                               capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
@@ -426,8 +432,8 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                     unix_read_write     = true
                                                     root_access_enabled = true
                                                   }
+                               tags                         = var.tags
                             }
-
 
 }
 
