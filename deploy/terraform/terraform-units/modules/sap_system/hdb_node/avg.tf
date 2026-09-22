@@ -168,7 +168,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                                 local.resource_suffixes.hanadata,
                                                                 count.index + 1
                                                               )
-                               volume_path                  = format("%s-%s2-%02d",
+                               volume_path                  = format("%s-%s-2-%02d",
                                                                 var.sap_sid,
                                                                 local.resource_suffixes.hanadata,
                                                                 count.index + 1
@@ -206,7 +206,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1
                                                               )
-                               volume_path                  = format("%s-%s_2%02d",
+                               volume_path                  = format("%s-%s-2%02d",
                                                                 var.sap_sid,
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1
@@ -244,7 +244,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
   count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count / length(var.database.zones) > 2) ? length(var.database.zones) : 0
-  name                                 = format("%s%s%s%sdata3_%d",
+  name                                 = format("%s%s%s%s3_%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
                                            var.naming.separator,
@@ -265,7 +265,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                                                 local.resource_suffixes.hanadata,
                                                                 count.index + 1
                                                               )
-                               volume_path                  = format("%s-%s_3%02d",
+                               volume_path                  = format("%s-%s-3%02d",
                                                                 var.sap_sid,
                                                                 local.resource_suffixes.hanadata,
                                                                 count.index + 1
@@ -303,7 +303,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1
                                                               )
-                               volume_path                  = format("%s-%s_3%02d",
+                               volume_path                  = format("%s-%s-3%02d",
                                                                 var.sap_sid,
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1
@@ -339,7 +339,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode ]
   count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count / length(var.database.zones) > 3) ? length(var.database.zones) : 0
-  name                                 = format("%s%s%s%sdata4_%d",
+  name                                 = format("%s%s%s%s4_%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
                                            var.naming.separator,
@@ -360,7 +360,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                               local.resource_suffixes.hanadata,
                                                               count.index + 1
                                                               )
-                               volume_path                  = format("%s-%s_4%02d",
+                               volume_path                  = format("%s-%s-4%02d",
                                                                 var.sap_sid,
                                                                 local.resource_suffixes.hanadata,
                                                                 count.index + 1
@@ -368,7 +368,6 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = data.azurerm_netapp_pool.workload_netapp_pool[0].id
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
                                proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
                                zone                         = var.database.zones[count.index]
                                volume_spec_name             = "data"
@@ -399,7 +398,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1
                                                               )
-                               volume_path                  = format("%s-%s_4%02d",
+                               volume_path                  = format("%s-%s-4%02d",
                                                                 var.sap_sid,
                                                                 local.resource_suffixes.hanalog,
                                                                 count.index + 1

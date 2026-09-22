@@ -346,3 +346,4 @@ output "hana_shared_afs_path"          {
                                                            ) : ""
                                                          ]) : []
                                         }
+

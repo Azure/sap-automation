@@ -62,12 +62,12 @@ data "azurerm_netapp_volume" "hanadata" {
                                           0
                                         ) : 0
   name                                 = local.use_avg ? (
-                                           format("%s%s%s%s%02d",
-                                             var.naming.resource_prefixes.hanadata,
-                                             local.prefix,
-                                             var.naming.separator,
-                                             local.resource_suffixes.hanadata, count.index + 1
-                                          )) : (
+                                           format("%s%s%s%s%s",
+                                            var.naming.resource_prefixes.hanadata,
+                                            local.prefix,
+                                            var.naming.separator,
+                                            local.resource_suffixes.hanadata, count.index==0 ? format("%02d", count.index + 1) : format("%02d1", count.index + 1))
+                                            ) : (
                                            var.hana_ANF_volumes.data_volume_name[count.index]
                                          )
   resource_group_name                  = local.ANF_pool_settings.resource_group_name
@@ -131,12 +131,12 @@ data "azurerm_netapp_volume" "hanalog" {
                                            0
                                          ) : 0
   name                                 = local.use_avg ? (
-                                           format("%s%s%s%s%02d",
-                                             var.naming.resource_prefixes.hanalog,
-                                             local.prefix,
-                                             var.naming.separator,
-                                             local.resource_suffixes.hanalog, count.index + 1
-                                               )) : (
+                                           format("%s%s%s%s%s",
+                                            var.naming.resource_prefixes.hanalog,
+                                            local.prefix,
+                                            var.naming.separator,
+                                            local.resource_suffixes.hanalog, count.index==0 ? format("%02d", count.index + 1) : format("%02d1", count.index + 1))
+                                            ) : (
                                            var.hana_ANF_volumes.log_volume_name[count.index]
                                            )
   resource_group_name                  = local.ANF_pool_settings.resource_group_name
@@ -208,11 +208,11 @@ data "azurerm_netapp_volume" "hanashared" {
                                            0
                                          ) : 0
   name                                 = local.use_avg ? (
-                                        format("%s%s%s%s%02d",
+                                        format("%s%s%s%s%s",
                                           var.naming.resource_prefixes.hanashared,
                                           local.prefix,
                                           var.naming.separator,
-                                          local.resource_suffixes.hanashared, count.index + 1)
+                                          local.resource_suffixes.hanashared, count.index==0 ? format("%02d", count.index + 1) : format("%02d1", count.index + 1))
                                         ) : (
                                           var.hana_ANF_volumes.shared_volume_name[count.index]
                                         )
