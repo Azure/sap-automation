@@ -143,6 +143,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                              }
                    }
 
+  lifecycle {
+    [volume.capacity_pool_id]
+  }
 }
 
 
@@ -241,6 +244,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                   }
                             }
 
+  lifecycle {
+    [volume.capacity_pool_id]
+  }
 
 }
 
@@ -338,6 +344,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                                     root_access_enabled = true
                                                   }
                             }
+    lifecycle {
+    [volume.capacity_pool_id]
+  }
 
 }
 
@@ -435,6 +444,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                   }
                                tags                         = var.tags
                             }
+  lifecycle {
+    [volume.capacity_pool_id]
+  }
 
 
 }
