@@ -9,7 +9,7 @@
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, , data.azurerm_netapp_pool.workload_netapp_pool ]
+  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, data.azurerm_netapp_pool.workload_netapp_pool ]
   count                                = var.hana_ANF_volumes.use_AVG ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s%d",
                                            var.naming.resource_prefixes.hana_avg,
@@ -343,7 +343,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
 
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, , data.azurerm_netapp_pool.workload_netapp_pool ]
+  depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, data.azurerm_netapp_pool.workload_netapp_pool ]
   count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count / length(var.database.zones) > 3) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s4_%d",
                                            var.naming.resource_prefixes.hana_avg,
