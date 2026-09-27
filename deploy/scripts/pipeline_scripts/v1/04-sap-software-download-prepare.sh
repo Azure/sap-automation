@@ -46,7 +46,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.15.7}"
+	configureNonDeployer "${tf_version:-1.16.4}"
 fi
 
 echo -e "$green--- Validations ---$reset"
