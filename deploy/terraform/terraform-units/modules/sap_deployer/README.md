@@ -7,16 +7,16 @@
 | ---- | ------- |
 | <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) | 2.7.0 |
 | <a name="requirement_azuread"></a> [azuread](#requirement\_azuread) | 3.8.0 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 5.7.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
 | <a name="provider_azapi"></a> [azapi](#provider\_azapi) | 2.7.0 |
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.80.0 |
-| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.80.0 |
-| <a name="provider_azurerm.privatelinkdnsmanagement"></a> [azurerm.privatelinkdnsmanagement](#provider\_azurerm.privatelinkdnsmanagement) | 4.80.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 5.7.0 |
+| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 5.7.0 |
+| <a name="provider_azurerm.privatelinkdnsmanagement"></a> [azurerm.privatelinkdnsmanagement](#provider\_azurerm.privatelinkdnsmanagement) | 5.7.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
@@ -32,94 +32,94 @@ No modules.
 | Name | Type |
 | ---- | ---- |
 | [azapi_resource.deployer](https://registry.terraform.io/providers/azure/azapi/2.7.0/docs/resources/resource) | resource |
-| [azurerm_app_configuration.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration) | resource |
-| [azurerm_app_configuration_key.deployer_keyvault_id](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.deployer_keyvault_name](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.deployer_msi_id](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.deployer_network_id](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.deployer_resourcegroup_name](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.deployer_state_file_name](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.deployer_subnet_id](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.deployer_subscription_id](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.web_application_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_app_configuration_key.web_application_resource_id](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/app_configuration_key) | resource |
-| [azurerm_bastion_host.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/bastion_host) | resource |
-| [azurerm_dev_center.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/dev_center) | resource |
-| [azurerm_dev_center_dev_box_definition.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/dev_center_dev_box_definition) | resource |
-| [azurerm_dev_center_network_connection.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/dev_center_network_connection) | resource |
-| [azurerm_dev_center_project.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/dev_center_project) | resource |
-| [azurerm_firewall.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/firewall) | resource |
-| [azurerm_firewall_network_rule_collection.firewall-azure](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/firewall_network_rule_collection) | resource |
-| [azurerm_key_vault.kv_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault) | resource |
-| [azurerm_key_vault_access_policy.kv_user_additional_users](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_access_policy) | resource |
-| [azurerm_key_vault_access_policy.kv_user_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_access_policy) | resource |
-| [azurerm_key_vault_access_policy.kv_user_pre_deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_access_policy) | resource |
-| [azurerm_key_vault_access_policy.kv_user_systemidentity](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_access_policy) | resource |
-| [azurerm_key_vault_secret.app_token](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.github_pat](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.pat](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.pk](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.ppk](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.pwd](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.subscription](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.tenant](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.username](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_linux_virtual_machine.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_management_lock.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/management_lock) | resource |
-| [azurerm_network_interface.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_security_group.nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
-| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter) | resource |
-| [azurerm_network_security_perimeter_association.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_association) | resource |
-| [azurerm_network_security_perimeter_association.vault](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_association) | resource |
-| [azurerm_network_security_perimeter_association.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_association) | resource |
-| [azurerm_network_security_perimeter_profile.profile](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_profile) | resource |
-| [azurerm_network_security_rule.nsr_rdp](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
-| [azurerm_network_security_rule.nsr_ssh](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
-| [azurerm_network_security_rule.nsr_winrm](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
-| [azurerm_private_endpoint.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_endpoint) | resource |
-| [azurerm_private_endpoint.kv_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_endpoint) | resource |
-| [azurerm_public_ip.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/public_ip) | resource |
-| [azurerm_public_ip.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/public_ip) | resource |
-| [azurerm_public_ip.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/public_ip) | resource |
-| [azurerm_resource_group.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/resource_group) | resource |
-| [azurerm_resource_group_template_deployment.sap_deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/resource_group_template_deployment) | resource |
-| [azurerm_role_assignment.appconfig_data_owner_current](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.appconfig_data_owner_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.deployer_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.dev_center_network_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.dev_center_reader](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.resource_group_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.resource_group_contributor_contributor_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.resource_group_user_access_admin_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.resource_group_user_access_admin_spn](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_additional_users](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_msi_officer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_msi_officer_bootstrap](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_spn](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_system_identity](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.subscription_contributor_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.subscription_contributor_system_identity](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.subscription_useraccessadmin_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_route.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/route) | resource |
-| [azurerm_route_table.rt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/route_table) | resource |
-| [azurerm_service_plan.appserviceplan](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/service_plan) | resource |
-| [azurerm_storage_account.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_account) | resource |
-| [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.subnet_agent](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.subnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet_network_security_group_association.associate_nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
-| [azurerm_user_assigned_identity.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/user_assigned_identity) | resource |
-| [azurerm_virtual_machine_extension.configure](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_deployer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_deployer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_network.vnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_network) | resource |
-| [azurerm_virtual_network_peering.peering_agent_management](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_network_peering) | resource |
-| [azurerm_virtual_network_peering.peering_management_agent](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_network_peering) | resource |
-| [azurerm_windows_web_app.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_web_app) | resource |
+| [azurerm_app_configuration.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration) | resource |
+| [azurerm_app_configuration_key.deployer_keyvault_id](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.deployer_keyvault_name](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.deployer_msi_id](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.deployer_network_id](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.deployer_resourcegroup_name](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.deployer_state_file_name](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.deployer_subnet_id](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.deployer_subscription_id](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.web_application_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_app_configuration_key.web_application_resource_id](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/app_configuration_key) | resource |
+| [azurerm_bastion_host.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/bastion_host) | resource |
+| [azurerm_dev_center.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/dev_center) | resource |
+| [azurerm_dev_center_dev_box_definition.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/dev_center_dev_box_definition) | resource |
+| [azurerm_dev_center_network_connection.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/dev_center_network_connection) | resource |
+| [azurerm_dev_center_project.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/dev_center_project) | resource |
+| [azurerm_firewall.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/firewall) | resource |
+| [azurerm_firewall_network_rule_collection.firewall-azure](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/firewall_network_rule_collection) | resource |
+| [azurerm_key_vault.kv_user](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault) | resource |
+| [azurerm_key_vault_access_policy.kv_user_additional_users](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_access_policy.kv_user_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_access_policy.kv_user_pre_deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_access_policy.kv_user_systemidentity](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_access_policy) | resource |
+| [azurerm_key_vault_secret.app_token](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.github_pat](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.pat](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.pk](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.ppk](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.pwd](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.subscription](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.tenant](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.username](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_linux_virtual_machine.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_management_lock.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/management_lock) | resource |
+| [azurerm_network_interface.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_interface) | resource |
+| [azurerm_network_security_group.nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_perimeter) | resource |
+| [azurerm_network_security_perimeter_association.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_perimeter_association) | resource |
+| [azurerm_network_security_perimeter_association.vault](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_perimeter_association) | resource |
+| [azurerm_network_security_perimeter_association.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_perimeter_association) | resource |
+| [azurerm_network_security_perimeter_profile.profile](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_perimeter_profile) | resource |
+| [azurerm_network_security_rule.nsr_rdp](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_rule) | resource |
+| [azurerm_network_security_rule.nsr_ssh](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_rule) | resource |
+| [azurerm_network_security_rule.nsr_winrm](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/network_security_rule) | resource |
+| [azurerm_private_endpoint.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/private_endpoint) | resource |
+| [azurerm_private_endpoint.kv_user](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/private_endpoint) | resource |
+| [azurerm_public_ip.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/public_ip) | resource |
+| [azurerm_public_ip.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/public_ip) | resource |
+| [azurerm_public_ip.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/public_ip) | resource |
+| [azurerm_resource_group.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/resource_group) | resource |
+| [azurerm_resource_group_template_deployment.sap_deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/resource_group_template_deployment) | resource |
+| [azurerm_role_assignment.appconfig_data_owner_current](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.appconfig_data_owner_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.deployer_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.dev_center_network_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.dev_center_reader](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.resource_group_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.resource_group_contributor_contributor_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.resource_group_user_access_admin_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.resource_group_user_access_admin_spn](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_additional_users](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_msi_officer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_msi_officer_bootstrap](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_spn](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_system_identity](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.subscription_contributor_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.subscription_contributor_system_identity](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.subscription_useraccessadmin_msi](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/role_assignment) | resource |
+| [azurerm_route.admin](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/route) | resource |
+| [azurerm_route_table.rt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/route_table) | resource |
+| [azurerm_service_plan.appserviceplan](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/service_plan) | resource |
+| [azurerm_storage_account.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/storage_account) | resource |
+| [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.subnet_agent](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.subnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/subnet) | resource |
+| [azurerm_subnet_network_security_group_association.associate_nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_user_assigned_identity.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/user_assigned_identity) | resource |
+| [azurerm_virtual_machine_extension.configure](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_deployer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_deployer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_network.vnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/virtual_network) | resource |
+| [azurerm_virtual_network_peering.peering_agent_management](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/virtual_network_peering) | resource |
+| [azurerm_virtual_network_peering.peering_management_agent](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/virtual_network_peering) | resource |
+| [azurerm_windows_web_app.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/resources/windows_web_app) | resource |
 | [local_file.configure_deployer](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.deployer_exports](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.deployer_md](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -134,25 +134,25 @@ No modules.
 | [time_sleep.wait_for_keyvault](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [time_sleep.wait_for_role_assignments](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [tls_private_key.deployer](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
-| [azurerm_app_configuration.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/app_configuration) | data source |
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/client_config) | data source |
-| [azurerm_client_config.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/client_config) | data source |
-| [azurerm_key_vault.kv_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/key_vault) | data source |
-| [azurerm_network_security_group.nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
-| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter) | data source |
-| [azurerm_private_dns_zone.appconfig](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/private_dns_zone) | data source |
-| [azurerm_private_dns_zone.vault](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/private_dns_zone) | data source |
-| [azurerm_resource_group.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/resource_group) | data source |
-| [azurerm_storage_account.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/storage_account) | data source |
-| [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.subnet_agent](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.subnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subscription.primary](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subscription) | data source |
-| [azurerm_user_assigned_identity.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/user_assigned_identity) | data source |
-| [azurerm_virtual_network.agent_virtual_network](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/virtual_network) | data source |
-| [azurerm_virtual_network.vnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/virtual_network) | data source |
+| [azurerm_app_configuration.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/app_configuration) | data source |
+| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/client_config) | data source |
+| [azurerm_client_config.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/client_config) | data source |
+| [azurerm_key_vault.kv_user](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/key_vault) | data source |
+| [azurerm_network_security_group.nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/network_security_group) | data source |
+| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/network_security_perimeter) | data source |
+| [azurerm_private_dns_zone.appconfig](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/private_dns_zone) | data source |
+| [azurerm_private_dns_zone.vault](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/private_dns_zone) | data source |
+| [azurerm_resource_group.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/resource_group) | data source |
+| [azurerm_storage_account.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/storage_account) | data source |
+| [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.subnet_agent](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.subnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/subnet) | data source |
+| [azurerm_subscription.primary](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/subscription) | data source |
+| [azurerm_user_assigned_identity.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/user_assigned_identity) | data source |
+| [azurerm_virtual_network.agent_virtual_network](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/virtual_network) | data source |
+| [azurerm_virtual_network.vnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/5.7.0/docs/data-sources/virtual_network) | data source |
 
 ## Inputs
 
