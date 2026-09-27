@@ -635,6 +635,7 @@ locals {
                                             use_AVG                            = var.ANF_HANA_use_AVG
                                             use_zones                          = var.ANF_HANA_use_Zones
 
+
                                           }
 
     dns_settings                         = {

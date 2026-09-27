@@ -142,6 +142,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                                   }
                              }
                    }
+  lifecycle {
+    prevent_destroy = true
+  }
 
 }
 
@@ -240,6 +243,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                                     root_access_enabled = true
                                                   }
                             }
+  lifecycle {
+    prevent_destroy = true
+  }
 
 }
 
@@ -337,6 +343,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                                     root_access_enabled = true
                                                   }
                             }
+  lifecycle {
+    prevent_destroy = true
+  }
 
 }
 
@@ -434,7 +443,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                                   }
                                tags                         = var.tags
                             }
-
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 
