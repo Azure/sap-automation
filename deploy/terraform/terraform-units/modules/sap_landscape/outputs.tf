@@ -487,8 +487,8 @@ output "saptransport_path"                     {
                                                               var.create_transport_storage && var.NFS_provider == "ANF" ? (
                                                                 format("%s:/%s",
                                                                   var.ANF_settings.use_existing_transport_volume ? (
-                                                                    data.azurerm_netapp_volume.transport[0].mount_ip_addresses[0]) : (
-                                                                    try(azurerm_netapp_volume.transport[0].mount_ip_addresses[0], "")
+                                                                    data.azurerm_netapp_volume.transport[0].mount_target[0].ip_address) : (
+                                                                    try(azurerm_netapp_volume.transport[0].mount_target[0].ip_address, "")
                                                                   ),
                                                                   var.ANF_settings.use_existing_transport_volume ? (
                                                                     data.azurerm_netapp_volume.transport[0].volume_path) : (
@@ -544,8 +544,8 @@ output "install_path"                           {
                                                                  var.NFS_provider == "ANF" ? (
                                                                    format("%s:/%s",
                                                                      var.ANF_settings.use_existing_install_volume ? (
-                                                                       data.azurerm_netapp_volume.install[0].mount_ip_addresses[0]) : (
-                                                                       azurerm_netapp_volume.install[0].mount_ip_addresses[0]
+                                                                       data.azurerm_netapp_volume.install[0].mount_target[0].ip_address) : (
+                                                                       azurerm_netapp_volume.install[0].mount_target[0].ip_address
                                                                      ),
                                                                      var.ANF_settings.use_existing_install_volume ? (
                                                                        data.azurerm_netapp_volume.install[0].volume_path) : (
