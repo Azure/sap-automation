@@ -39,14 +39,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
                                tags                         = var.tags
@@ -78,14 +78,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
                                tags                         = var.tags
@@ -119,14 +119,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                                               )
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                volume_spec_name             = "shared"
                                storage_quota_in_gb          = var.hana_ANF_volumes.shared_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.shared_volume_throughput
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
                                tags                         = var.tags
@@ -144,6 +144,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                    }
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [volume[0].capacity_pool_id, volume[1].capacity_pool_id, volume[2].capacity_pool_id]
   }
 
 }
@@ -182,14 +183,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -222,14 +223,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                tags                         = var.tags
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -245,6 +246,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                             }
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [volume[0].capacity_pool_id, volume[1].capacity_pool_id]
   }
 
 }
@@ -284,12 +286,12 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
                                tags                         = var.tags
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
 
                                protocols                    = ["NFSv4.1"]
                                security_style               = "unix"
@@ -322,14 +324,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -345,6 +347,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                             }
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [volume[0].capacity_pool_id, volume[1].capacity_pool_id]
   }
 
 }
@@ -382,14 +385,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -421,14 +424,14 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                service_level                = local.ANF_pool_settings.service_level
                                capacity_pool_id             = provider::azurerm::normalise_resource_id(data.azurerm_netapp_pool.workload_netapp_pool[0].id)
                                subnet_id                    = try(local.ANF_pool_settings.subnet_id, "")
-                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : var.ppg[count.index % max(length(var.database.zones), 1)]
-                               zone                         = var.database.zones[count.index]
+                               proximity_placement_group_id = var.use_scalesets_for_deployment ? null : try(var.ppg[count.index % max(length(var.database.zones), 1)], null)
+                               zone                         = var.hana_ANF_volumes.use_zones ? var.database.zones[count.index] : null
                                volume_spec_name             = "log"
                                storage_quota_in_gb          = var.hana_ANF_volumes.log_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -445,6 +448,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                             }
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [volume[0].capacity_pool_id, volume[1].capacity_pool_id]
   }
 }
 

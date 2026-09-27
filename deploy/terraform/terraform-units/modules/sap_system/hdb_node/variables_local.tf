@@ -456,7 +456,7 @@ locals {
                                            (var.database_server_count - var.database.stand_by_node_count) * var.hana_ANF_volumes.log_volume_count) : (
                                            0
                                          )
-  shared_volume_count                 = (local.create_shared_volumes) ? (
+  shared_volume_count                 = (var.hana_ANF_volumes.use_for_shared || var.hana_ANF_volumes.use_existing_shared_volume) ? (
                                            length(var.ppg)) : (
                                            0
                                          )

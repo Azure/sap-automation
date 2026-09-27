@@ -70,7 +70,7 @@ data "azurerm_netapp_volume" "hanadata" {
                                             var.naming.resource_prefixes.hanadata,
                                             local.prefix,
                                             var.naming.separator,
-                                            local.resource_suffixes.hanadata, count.index==0 ? format("%02d", count.index + 1) : format("_%01d01", count.index + 1))
+                                            local.resource_suffixes.hanadata, count.index < max(length(var.database.zones), 1) ? format("%02d", count.index + 1) : format("_%d%02d", floor(count.index / max(length(var.database.zones), 1)) + 1, count.index % max(length(var.database.zones), 1) + 1))
                                             ) : (
                                            var.hana_ANF_volumes.data_volume_name[count.index]
                                          )
@@ -143,7 +143,7 @@ data "azurerm_netapp_volume" "hanalog" {
                                             var.naming.resource_prefixes.hanalog,
                                             local.prefix,
                                             var.naming.separator,
-                                            local.resource_suffixes.hanalog, count.index==0 ? format("%02d", count.index + 1) : format("_%01d01", count.index + 1))
+                                            local.resource_suffixes.hanalog, count.index==0 ? format("%02d", count.index + 1) : length(var.database.zones) == 1 ? format("_%01d01", count.index + 1) : format("%02d", count.index + 1))
                                             ) : (
                                            var.hana_ANF_volumes.log_volume_name[count.index]
                                            )
@@ -224,7 +224,7 @@ data "azurerm_netapp_volume" "hanashared" {
                                           var.naming.resource_prefixes.hanashared,
                                           local.prefix,
                                           var.naming.separator,
-                                          local.resource_suffixes.hanashared, count.index==0 ? format("%02d", count.index + 1) : format("_%01d01", count.index + 1))
+                                          local.resource_suffixes.hanashared, count.index==0 ? format("%02d", count.index + 1) : length(var.database.zones) == 1 ? format("_%01d01", count.index + 1) : format("%02d", count.index + 1))
                                         ) : (
                                           var.hana_ANF_volumes.shared_volume_name[count.index]
                                         )
