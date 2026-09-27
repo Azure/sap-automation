@@ -483,6 +483,10 @@ namespace SDAFWebApp.Controllers
                                 valueBuilder.Append("},");
                                 currLine = stringReader.ReadLine()?.TrimStart();
                             }
+                            if (currLine == null)
+                            {
+                                throw new FormatException("Unterminated tags map.");
+                            }
                             value = valueBuilder.ToString().Trim(',') + "],";
                         }
                         else if (key.ToLower() == "\"network_address_space\"")
