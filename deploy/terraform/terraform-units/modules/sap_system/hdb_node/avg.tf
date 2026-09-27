@@ -46,7 +46,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
                                tags                         = var.tags
@@ -85,7 +85,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
                                tags                         = var.tags
@@ -126,7 +126,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
                                storage_quota_in_gb          = var.hana_ANF_volumes.shared_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.shared_volume_throughput
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
                                tags                         = var.tags
@@ -153,7 +153,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_full" {
 resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
   provider                             = azurerm.main
   depends_on                           = [ azurerm_linux_virtual_machine.vm_dbnode, data.azurerm_netapp_pool.workload_netapp_pool ]
-  count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count / length(var.database.zones) > 1) ? length(var.database.zones) : 0
+  count                                = length(var.database.zones) > 0 && var.hana_ANF_volumes.use_AVG && (var.database_server_count /length(var.database.zones) >= 1) ? length(var.database.zones) : 0
   name                                 = format("%s%s%s%s2_%d",
                                            var.naming.resource_prefixes.hana_avg,
                                            local.prefix,
@@ -190,7 +190,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -230,7 +230,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data2" {
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -291,7 +291,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                volume_spec_name             = "data"
                                storage_quota_in_gb          = var.hana_ANF_volumes.data_volume_size
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
 
                                protocols                    = ["NFSv4.1"]
                                security_style               = "unix"
@@ -331,7 +331,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data3" {
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -392,7 +392,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.data_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
@@ -431,7 +431,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "avg_HANA_data4" {
                                throughput_in_mibps          = upper(try(local.ANF_pool_settings.qos_type, "MANUAL")) == "AUTO" ? null : var.hana_ANF_volumes.log_volume_throughput
 
                                protocols                    = ["NFSv4.1"]
-                               network_features             = var.use_scalesets_for_deployment || length(var.database.zones) > 1 ? "Standard" : "Basic"
+                               network_features             = var.use_scalesets_for_deployment || var.hana_ANF_volumes.use_zones ? "Standard" : "Basic"
                                security_style               = "unix"
                                snapshot_directory_visible   = false
 
