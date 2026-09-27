@@ -464,7 +464,7 @@ namespace SDAFWebApp.Controllers
                             currLine = stringReader.ReadLine()?.TrimStart();
                             while (currLine != null && !currLine.StartsWith('}'))
                             {
-                                if (string.IsNullOrWhiteSpace(currLine) || currLine.StartsWith('#'))
+                                if (string.IsNullOrWhiteSpace(currLine) || currLine.StartsWith('#') || currLine.StartsWith("//", StringComparison.Ordinal))
                                 {
                                     currLine = stringReader.ReadLine()?.TrimStart();
                                     continue;
