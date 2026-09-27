@@ -272,8 +272,8 @@ output "sapmnt_path"                             {
                                                                    var.NFS_provider == "ANF" ? (
                                                                      format("%s:/%s",
                                                                        try(var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
-                                                                         data.azurerm_netapp_volume.sapmnt[0].mount_ip_addresses[0]) : (
-                                                                         azurerm_netapp_volume.sapmnt[0].mount_ip_addresses[0]
+                                                                         data.azurerm_netapp_volume.sapmnt[0].mount_target[0].ip_address
+                                                                         azurerm_netapp_volume.sapmnt[0].mount_target[0].ip_address
                                                                        ), ""),
                                                                        try(var.hana_ANF_volumes.use_existing_sapmnt_volume ? (
                                                                          data.azurerm_netapp_volume.sapmnt[0].volume_path) : (
@@ -290,7 +290,7 @@ output "sapmnt_path_secondary"                   {
                                                    description = "Defines the sapmnt mount path"
                                                    value       = var.NFS_provider == "ANF" && var.application_tier.enable_deployment && var.hana_ANF_volumes.sapmnt_use_clone_in_secondary_zone ? (
                                                                    format("%s:/%s",
-                                                                     azurerm_netapp_volume.sapmnt_secondary[0].mount_ip_addresses[0],
+                                                                     azurerm_netapp_volume.sapmnt_secondary[0].mount_target[0].ip_address,
                                                                      azurerm_netapp_volume.sapmnt_secondary[0].volume_path
                                                                    )
                                                                    ) : (
@@ -303,8 +303,8 @@ output "usrsap_path"                             {
                                                    value       = var.NFS_provider == "ANF" && var.application_tier.enable_deployment && var.hana_ANF_volumes.use_for_usr_sap ? (
                                                                    format("%s:/%s",
                                                                      var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
-                                                                       data.azurerm_netapp_volume.usrsap[0].mount_ip_addresses[0]) : (
-                                                                       azurerm_netapp_volume.usrsap[0].mount_ip_addresses[0]
+                                                                       data.azurerm_netapp_volume.usrsap[0].mount_target[0].ip_address) : (
+                                                                       azurerm_netapp_volume.usrsap[0].mount_target[0].ip_address
                                                                      ),
                                                                      var.hana_ANF_volumes.use_existing_usr_sap_volume ? (
                                                                        data.azurerm_netapp_volume.usrsap[0].volume_path) : (
