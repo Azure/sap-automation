@@ -1512,7 +1512,6 @@ variable "ANF_sapmnt_volume_throughput"         {
                                                   default     = 64
                                                 }
 
-
 #########################################################################################
 #                                                                                       #
 #  Anchor VM variables                                                                  #
