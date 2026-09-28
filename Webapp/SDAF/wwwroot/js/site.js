@@ -171,22 +171,6 @@ var hanadb_sizes = [
         "value": "E96s_v6"
     },
     {
-        "text": "Standard E128ds v5",
-        "value": "E128ds_v5"
-    },
-    {
-        "text": "Standard E128s v5",
-        "value": "E128s_v5"
-    },
-    {
-        "text": "Standard E192ds v5",
-        "value": "E192ds_v5"
-    },
-    {
-        "text": "Standard E192s v5",
-        "value": "E192s_v5"
-    },
-    {
         "text": "Standard M32ts",
         "value": "M32ts"
     },
@@ -333,10 +317,6 @@ var hanadb_sizes = [
     {
         "text": "Standard M416s_6_v3",
         "value": "M416s_6_v3"
-    },
-    {
-        "text": "Standard M416ds_8_v2",
-        "value": "M416ds_8_v2"
     },
     {
         "text": "Standard M416s_8_v2",
