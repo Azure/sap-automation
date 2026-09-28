@@ -433,6 +433,8 @@ namespace SDAFWebApp.Controllers
                     }
 
             }
+            variableGroups.Sort((left, right) =>
+                StringComparer.OrdinalIgnoreCase.Compare(left.Text, right.Text));
             return variableGroups;
         }
 
