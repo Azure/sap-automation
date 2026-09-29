@@ -1,17 +1,18 @@
 steps:
-  - pwsh: |
-      $ErrorActionPreference = 'Stop'
-      $workspace = "$(Pipeline.Workspace)"
+  - bash: |
+      set -euo pipefail
 
-      if (-not (Test-Path -LiteralPath $workspace -PathType Container)) {
-        Write-Host "Pipeline workspace '$workspace' does not exist."
+      workspace="${PIPELINE_WORKSPACE:?PIPELINE_WORKSPACE is not set}"
+
+      if [[ ! -d "$workspace" ]]; then
+        echo "Pipeline workspace '$workspace' does not exist."
         exit 0
-      }
+      fi
 
-      Write-Host "Cleaning pipeline workspace '$workspace'."
-      Get-ChildItem -LiteralPath $workspace -Force | ForEach-Object {
-        Remove-Item -LiteralPath $_.FullName -Recurse -Force
-      }
+      echo "Cleaning pipeline workspace '$workspace'."
+      find "$workspace" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
     displayName: Clean pipeline workspace
     condition: always()
+    env:
+      PIPELINE_WORKSPACE: $(Pipeline.Workspace)
     workingDirectory: $(Agent.TempDirectory)
