@@ -3,16 +3,22 @@
 
 using Azure.Identity;
 using Azure.ResourceManager;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SDAFWebApp.Controllers;
 using SDAFWebApp.Models;
 using SDAFWebApp.Services;
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace SDAFWebApp
 {
@@ -28,14 +34,137 @@ namespace SDAFWebApp
             services.Configure<DatabaseSettings>(
                 Configuration.GetSection(nameof(DatabaseSettings)));
 
+            services.Configure<ApplicationAuthenticationSettings>(
+                Configuration.GetSection(ApplicationAuthenticationSettings.SectionName));
+
+            services.AddAuthentication(EasyAuthAuthenticationHandler.SchemeName)
+                .AddScheme<AuthenticationSchemeOptions, EasyAuthAuthenticationHandler>(
+                    EasyAuthAuthenticationHandler.SchemeName,
+                    _ => { });
+
+            var applicationAuthenticationEnabled = Configuration.GetValue<bool>(
+                $"{ApplicationAuthenticationSettings.SectionName}:Enabled");
+            services.AddAuthorization(options =>
+            {
+                if (applicationAuthenticationEnabled)
+                {
+                    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+                }
+            });
+
+            services.AddOptions<RepositoryPersistenceSettings>()
+                .Bind(Configuration.GetSection(RepositoryPersistenceSettings.SectionName))
+                .Validate(
+                    settings => settings.TryGetPersistenceMode(out _),
+                    $"RepositoryPersistence:Mode must be one of: {string.Join(", ", Enum.GetNames<RepositoryPersistenceMode>())}.")
+                .ValidateOnStart();
+
             services.AddSingleton<IDatabaseSettings>(sp =>
                 sp.GetRequiredService<IOptions<DatabaseSettings>>().Value);
 
+            services.AddSingleton(sp =>
+                sp.GetRequiredService<IOptions<RepositoryPersistenceSettings>>().Value);
+
+            services.AddSingleton<IRepositoryPathConvention, RepositoryPathConvention>();
+
             services.AddSingleton<TableStorageService>();
 
-            services.AddScoped<ITableStorageService<LandscapeEntity>, LandscapeService>();
-            services.AddScoped<ITableStorageService<SystemEntity>, SystemService>();
-            services.AddScoped<ITableStorageService<AppFile>, AppFileService>();
+            services.AddTransient<AzureDevOpsAuthenticationHandler>();
+            services.AddTransient<GitHubAuthenticationHandler>();
+
+            services.AddHttpClient(DevOpsHttpClientNames.AzureDevOps, client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("sap-automation/1.0");
+            }).AddHttpMessageHandler<AzureDevOpsAuthenticationHandler>();
+
+            services.AddHttpClient(DevOpsHttpClientNames.GitHub, client =>
+            {
+                client.BaseAddress = new Uri("https://api.github.com/");
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("sap-automation/1.0");
+            }).AddHttpMessageHandler<GitHubAuthenticationHandler>();
+
+            services.AddHttpClient(DevOpsHttpClientNames.Unauthenticated, client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Accept.Add(
+                    new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("sap-automation/1.0");
+            });
+
+            services.AddSingleton<GitHubEnvironmentHelper>();
+            services.AddSingleton<GitHubActionsService>();
+
+            services.AddSingleton<RestHelper>(provider =>
+            {
+                string platform = Environment.GetEnvironmentVariable("DEVOPS_PLATFORM")?.ToLower()
+                    ?? Configuration["DEVOPS_PLATFORM"]?.ToLower()
+                    ?? "ado";
+                return new RestHelper(
+                    Configuration,
+                    provider.GetRequiredService<IHttpClientFactory>(),
+                    provider.GetRequiredService<GitHubEnvironmentHelper>(),
+                    platform);
+            });
+
+            // Register repository data access provider
+            services.AddSingleton<IRepositoryDataAccessProvider, RepositoryDataAccessProvider>();
+
+            // Register storage services (for fallback and legacy support)
+            services.AddScoped<LandscapeService>();
+            services.AddScoped<SystemService>();
+            services.AddScoped<AppFileService>();
+
+            // Register repository implementations
+            services.AddScoped<RepositoryLandscapeService>(provider =>
+                new RepositoryLandscapeService(
+                    provider.GetRequiredService<IRepositoryDataAccessProvider>(),
+                    provider.GetRequiredService<IRepositoryPathConvention>(),
+                    provider.GetRequiredService<IDatabaseSettings>(),
+                    provider.GetRequiredService<RestHelper>()));
+
+            services.AddScoped<RepositorySystemService>(provider =>
+                new RepositorySystemService(
+                    provider.GetRequiredService<IRepositoryDataAccessProvider>(),
+                    provider.GetRequiredService<IRepositoryPathConvention>(),
+                    provider.GetRequiredService<IDatabaseSettings>(),
+                    provider.GetRequiredService<RestHelper>()));
+
+            services.AddScoped<RepositoryAppFileService>(provider =>
+                new RepositoryAppFileService(
+                    provider.GetRequiredService<IRepositoryDataAccessProvider>(),
+                    provider.GetRequiredService<IRepositoryPathConvention>(),
+                    provider.GetRequiredService<RestHelper>(),
+                    provider.GetRequiredService<IDatabaseSettings>()));
+
+            // Register selectors that implement repository-first with storage fallback strategy
+            services.AddScoped<ITableStorageService<LandscapeEntity>>(provider =>
+                new TableStorageServiceSelector<LandscapeEntity>(
+                    provider.GetRequiredService<IOptions<RepositoryPersistenceSettings>>(),
+                    provider.GetRequiredService<RepositoryLandscapeService>(),
+                    provider.GetRequiredService<LandscapeService>(),
+                    provider.GetRequiredService<ILogger<TableStorageServiceSelector<LandscapeEntity>>>()));
+
+            services.AddScoped<ITableStorageService<SystemEntity>>(provider =>
+                new TableStorageServiceSelector<SystemEntity>(
+                    provider.GetRequiredService<IOptions<RepositoryPersistenceSettings>>(),
+                    provider.GetRequiredService<RepositorySystemService>(),
+                    provider.GetRequiredService<SystemService>(),
+                    provider.GetRequiredService<ILogger<TableStorageServiceSelector<SystemEntity>>>()));
+
+            services.AddScoped<ITableStorageService<AppFile>>(provider =>
+                new TableStorageServiceSelector<AppFile>(
+                    provider.GetRequiredService<IOptions<RepositoryPersistenceSettings>>(),
+                    provider.GetRequiredService<RepositoryAppFileService>(),
+                    provider.GetRequiredService<AppFileService>(),
+                    provider.GetRequiredService<ILogger<TableStorageServiceSelector<AppFile>>>()));
 
             services.AddAzureClients(builder =>
             {
@@ -74,6 +203,9 @@ namespace SDAFWebApp
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
