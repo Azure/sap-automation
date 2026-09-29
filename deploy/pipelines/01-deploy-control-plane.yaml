@@ -122,7 +122,6 @@ stages:
               USE_MSI:                            $(Use_MSI)
               WEB_APP_CLIENT_SECRET:              $(WEB_APP_CLIENT_SECRET)
               keyvault:                           $(DEPLOYER_KEYVAULT)
-          - template: templates\cleanup-workspace.yaml
   - stage:                                        PopulateKeyVault
     dependsOn:
       - Prepare_Deployer
@@ -173,7 +172,6 @@ stages:
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               USE_MSI:                            $(Use_MSI)
               ZONE:                               ${{ upper(replace(parameters.deployer, '-INFRASTRUCTURE', '')) }}
-          - template: templates\cleanup-workspace.yaml
 
   - stage:                                        Deploy_controlplane
     dependsOn:
@@ -265,7 +263,6 @@ stages:
             env:
               APP_SERVICE_DEPLOYMENT:             $(APP_SERVICE_DEPLOYMENT)
               WEB_APP:                            ${{ parameters.use_webapp_param }}
-          - template: templates\cleanup-workspace.yaml
 
   - stage:                                        Web_App_Deployment
     pool:                                         $(this_agent)
@@ -369,4 +366,3 @@ stages:
               WEBAPP_IDENTITY:                    $(WEBAPP_IDENTITY)
               APPLICATION_CONFIGURATION_ID:       $(APPLICATION_CONFIGURATION_ID)
               CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
-          - template: templates\cleanup-workspace.yaml

@@ -106,6 +106,8 @@ stages:
 
       - job:                                      Remove_sap_deployment_artifacts_in_WORKSPACES
         displayName:                              Remove SAP System deployment artifacts from WORKSPACES
+        workspace:
+          clean:                                  all
         variables:
           - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
@@ -121,7 +123,6 @@ stages:
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
-          - template: templates\cleanup-workspace.yaml
 
   - stage:                                        Remove_SAP_workload_zone
     displayName:                                  Remove SAP workload zone
@@ -155,6 +156,8 @@ stages:
 
       - job:                                      Remove_zone_deployment_artifacts_in_WORKSPACES
         displayName:                              Remove Workload Zone deployment artifacts
+        workspace:
+          clean:                                  all
         variables:
           - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
@@ -170,7 +173,6 @@ stages:
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
-          - template: templates\cleanup-workspace.yaml
 
   - stage:                                        Remove_Control_plane
     displayName:                                  Remove Control Plane
@@ -189,6 +191,8 @@ stages:
     jobs:
       - job:                                      Remove_control_plane_deployment
         displayName:                              Remove Control Plane deployment
+        workspace:
+          clean:                                  all
         variables:
           - group:                                SDAF-${{ parameters.deployer_environment }}
         steps:
@@ -212,4 +216,3 @@ stages:
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                            $(Use_MSI)
               PAT:                                $(PAT)
-          - template: templates\cleanup-workspace.yaml

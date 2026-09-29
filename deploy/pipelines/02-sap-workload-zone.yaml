@@ -154,7 +154,6 @@ stages:
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               USE_MSI:                            $(Use_MSI)
               ZONE:                               ${{ upper(parameters.workload_environment) }}
-          - template: templates\cleanup-workspace.yaml
 
   - stage:                                        Deploy_SAP_workload_zone
     dependsOn:
@@ -207,4 +206,3 @@ stages:
               TF_LOG:                             $(TF_LOG)
               TF_VAR_subscription_id:             $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                            $(Use_MSI)
-          - template: templates\cleanup-workspace.yaml

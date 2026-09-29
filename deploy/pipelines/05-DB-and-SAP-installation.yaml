@@ -533,4 +533,3 @@ stages:
               logPath:                            ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/logs
               qualityAssuranceResultsPath:        ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/quality_assurance
               collectQualityChecks:               ${{ parameters.sap_on_azure_quality_checks }}
-          - template: templates\cleanup-workspace.yaml

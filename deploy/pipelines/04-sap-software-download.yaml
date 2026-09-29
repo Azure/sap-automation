@@ -99,7 +99,6 @@ stages:
               SUSERNAME:                          $(S-Username)
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               USE_MSI:                            $(Use_MSI)
-          - template: templates\cleanup-workspace.yaml
   - stage:                                        Software_download
     variables:
       - template:                                 variables/04-sap-software-download-variables.yaml
@@ -113,6 +112,8 @@ stages:
     jobs:
       - job:                                      Software_download
         displayName:                              Download software
+        workspace:
+          clean:                                  all
         variables:
           BOM_NAME:                               $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.BOM_NAME'] ]
           KV_NAME:                                $[ stageDependencies.Prepare_download.Prepare_download_job.outputs['Preparation.KV_NAME'] ]
@@ -147,4 +148,3 @@ stages:
               SAMPLE_REPO_PATH:                   ${{ parameters.sample_repo_path }}
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               USE_MSI:                            $(Use_MSI)
-          - template: templates\cleanup-workspace.yaml

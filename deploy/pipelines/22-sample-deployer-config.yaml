@@ -296,4 +296,3 @@ stages:
               failOnStderr:                       false
               showWarnings:                       true
               pwsh:                               true
-          - template: templates\cleanup-workspace.yaml

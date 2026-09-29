@@ -75,5 +75,4 @@ stages:
               Deployer_Key_Vault:      $(Deployer_Key_Vault)
               DEPLOYMENT_REPO_PATH:    $(Build.Repository.LocalPath)
             failOnStderr:              false
-          - template: templates\cleanup-workspace.yaml
 ...
