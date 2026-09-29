@@ -81,7 +81,6 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - task:                      PostBuildCleanup@4
           - checkout:                  self
             persistCredentials:        true
           - bash: |
@@ -164,3 +163,4 @@ stages:
 
               echo "##vso[task.uploadsummary]$(Build.Repository.LocalPath)/Web Application Configuration.md"
             displayName:                         'Documentation'
+          - template: templates\cleanup-workspace.yaml

@@ -1,0 +1,17 @@
+steps:
+  - pwsh: |
+      $ErrorActionPreference = 'Stop'
+      $workspace = "$(Pipeline.Workspace)"
+
+      if (-not (Test-Path -LiteralPath $workspace -PathType Container)) {
+        Write-Host "Pipeline workspace '$workspace' does not exist."
+        exit 0
+      }
+
+      Write-Host "Cleaning pipeline workspace '$workspace'."
+      Get-ChildItem -LiteralPath $workspace -Force | ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Recurse -Force
+      }
+    displayName: Clean pipeline workspace
+    condition: always()
+    workingDirectory: $(Agent.TempDirectory)

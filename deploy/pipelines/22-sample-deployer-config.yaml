@@ -104,7 +104,6 @@ stages:
         workspace:
           clean:                                  all
         steps:
-          - task:                                 PostBuildCleanup@4
           - checkout:                             self
             persistCredentials:                   true
           - task:                                 PowerShell@2
@@ -297,3 +296,4 @@ stages:
               failOnStderr:                       false
               showWarnings:                       true
               pwsh:                               true
+          - template: templates\cleanup-workspace.yaml

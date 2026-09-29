@@ -110,7 +110,6 @@ stages:
           - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 Bash@3
             inputs:
               targetType:                         'filePath'
@@ -122,6 +121,7 @@ stages:
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
+          - template: templates\cleanup-workspace.yaml
 
   - stage:                                        Remove_SAP_workload_zone
     displayName:                                  Remove SAP workload zone
@@ -159,7 +159,6 @@ stages:
           - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 Bash@3
             inputs:
               targetType:                         'filePath'
@@ -171,6 +170,7 @@ stages:
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+          - template: templates\cleanup-workspace.yaml
 
   - stage:                                        Remove_Control_plane
     displayName:                                  Remove Control Plane
@@ -193,7 +193,6 @@ stages:
           - group:                                SDAF-${{ parameters.deployer_environment }}
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 AzureCLI@2
             continueOnError:                      false
             inputs:
@@ -213,3 +212,4 @@ stages:
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                            $(Use_MSI)
               PAT:                                $(PAT)
+          - template: templates\cleanup-workspace.yaml

@@ -79,7 +79,6 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - task:                      PostBuildCleanup@4
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
@@ -214,6 +213,7 @@ stages:
             failOnStderr:              true
           - publish:                   $(Build.Repository.LocalPath)/$(Deployment_Configuration_Path)/SYSTEM/$(sap_system_folder)/artifacts
             artifact:                  ansible_data
+          - template: templates\cleanup-workspace.yaml
 
   - stage:                             Validate_Parameters
     displayName:                       Validate the input parameters
@@ -408,7 +408,6 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         steps:
-          - task:                      PostBuildCleanup@4
           - script: |
               #!/bin/bash
               echo "nothing to do here right now"
@@ -417,5 +416,6 @@ stages:
               SYSTEM_ACCESSTOKEN:      $(System.AccessToken)
               DEPLOYMENT_REPO_PATH:    $(DEPLOYMENT_REPO_PATH)
             failOnStderr:              false
+          - template: templates\cleanup-workspace.yaml
 
 ...
