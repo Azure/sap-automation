@@ -12,15 +12,13 @@ steps:
       echo "Cleaning pipeline workspace '$workspace'."
       cd "$workspace"
       cd s/sap-automation
+      echo "Cleaning sap-automation directory."
       git clean -fdx
-      cd "$workspace"
-      rm -rf s/sap-automation
 
       cd "$workspace"
       cd s/config
+      echo "Cleaning config directory."
       git clean -fdx
-      cd "$workspace"
-      rm -rf s/config
 
     displayName: Clean pipeline workspace
     condition: always()
