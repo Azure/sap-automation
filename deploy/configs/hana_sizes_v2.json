@@ -4184,8 +4184,8 @@
           "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            0,
-          "disk_iops_read_write": 25000,
-          "disk_mbps_read_write": 1200
+          "disk_iops_read_write": 40000,
+          "disk_mbps_read_write": 2000
         },
         {
           "name":                 "log",
@@ -4412,8 +4412,8 @@
           "caching":              "None",
           "write_accelerator":    false,
           "lun_start":            0,
-          "disk_iops_read_write": 25000,
-          "disk_mbps_read_write": 1200
+          "disk_iops_read_write": 40000,
+          "disk_mbps_read_write": 2000
         },
         {
           "name":                 "log",
