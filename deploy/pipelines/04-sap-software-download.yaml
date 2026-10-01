@@ -148,3 +148,4 @@ stages:
               SAMPLE_REPO_PATH:                   ${{ parameters.sample_repo_path }}
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               USE_MSI:                            $(Use_MSI)
+          - template:                             templates\cleanup-workspace.yaml

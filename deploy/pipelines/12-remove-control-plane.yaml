@@ -88,6 +88,7 @@ stages:
               TF_LOG:                             $(TF_LOG)
               USE_MSI:                            $(Use_MSI)
               key_vault:                          $(DEPLOYER_KEYVAULT)
+          - template:                             templates\cleanup-workspace.yaml
   - stage:                                        Remove_control_plane
     displayName:                                  "Finalize control plane removal"
     variables:
@@ -143,3 +144,4 @@ stages:
               TF_LOG:                             $(TF_LOG)
               USE_MSI:                            $(Use_MSI)
               key_vault:                          $(DEPLOYER_KEYVAULT)
+          - template:                             templates\cleanup-workspace.yaml

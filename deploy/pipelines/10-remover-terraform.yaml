@@ -101,6 +101,7 @@ stages:
               TF_VAR_workload_zone_name:          ${{ parameters.workload_environment }}
               USE_MSI:                            $(Use_MSI)
               WORKLOAD_ZONE_NAME:                 ${{ parameters.workload_zone }}
+          - template:                             templates\cleanup-workspace.yaml
 
   - stage:                                        Remove_SAP_workload_zone
     displayName:                                  "Removing the SAP workload zone"
@@ -149,3 +150,4 @@ stages:
               TF_VAR_workload_zone_name:          ${{ parameters.workload_environment }}
               USE_MSI:                            $(Use_MSI)
               WORKLOAD_ZONE_NAME:                 ${{ parameters.workload_environment }}
+          - template:                             templates\cleanup-workspace.yaml
