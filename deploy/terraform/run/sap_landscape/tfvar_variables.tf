@@ -28,7 +28,7 @@ variable "location"                             {
                                                  description = "The Azure region for the resources"
                                                  type        = string
                                                   validation {
-                                                     condition     = length(var.location) == 0
+                                                     condition     = length(var.location) != 0
                                                      error_message = "The 'location' variable must be specified."
                                                    }
                                                 }
