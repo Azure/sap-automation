@@ -110,8 +110,8 @@ resource "azurerm_private_endpoint" "sapmnt" {
                                            azurerm_resource_group.resource_group[0].location
                                          )
   subnet_id                            = try(var.landscape_tfstate.use_separate_storage_subnet, false) ? (
-                                         var.landscape_tfstate.storage_subnet_id ) : (
-                                         var.landscape_tfstate.app_subnet_id
+                                         coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.id, var.landscape_tfstate.storage_subnet_id) ) : (
+                                         coalesce(var.infrastructure.virtual_networks.sap.subnet_app.id, var.landscape_tfstate.app_subnet_id)
                                        )
   tags                                 = var.tags
 
