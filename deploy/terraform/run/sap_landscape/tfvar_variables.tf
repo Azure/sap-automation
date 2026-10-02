@@ -28,8 +28,8 @@ variable "location"                             {
                                                  description = "The Azure region for the resources"
                                                  type        = string
                                                   validation {
-                                                     condition     = length(var.location) <= 5 && length(var.location) > 0
-                                                     error_message = "The 'location' variable must be specified and at most 5 characters long."
+                                                     condition     = length(var.location) == 0
+                                                     error_message = "The 'location' variable must be specified."
                                                    }
                                                 }
 
