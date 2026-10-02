@@ -27,7 +27,10 @@ variable "codename"                             {
 variable "location"                             {
                                                  description = "The Azure region for the resources"
                                                  type        = string
-                                                 default     = ""
+                                                  validation {
+                                                     condition     = length(var.location) <= 5 && length(var.location) > 0
+                                                     error_message = "The 'location' variable must be specified and at most 5 characters long."
+                                                   }
                                                 }
 
 variable "name_override_file"                   {
@@ -80,6 +83,13 @@ variable "use_deployer"                          {
                                                    description = "Use deployer to deploy the resources"
                                                    default     = true
                                                  }
+
+variable "workload_zone"                          {
+                                                   description = "The workload zone for the deployment"
+                                                   default     = ""
+                                                 }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
@@ -121,6 +131,10 @@ variable "network_name"                         {
 variable "network_logical_name"                 {
                                                   description = "The logical name of the virtual network, used for resource naming"
                                                   default     = ""
+                                                  validation {
+                                                     condition     = length(var.network_logical_name) <= 5 && length(var.network_logical_name) > 0
+                                                     error_message = "The 'network_logical_name' variable must be specified and at most 5 characters long."
+                                                   }
                                                 }
 
 variable "network_address_space"                {
