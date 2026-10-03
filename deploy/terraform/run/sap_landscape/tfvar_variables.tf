@@ -133,8 +133,8 @@ variable "network_logical_name"                 {
                                                   description = "The logical name of the virtual network, used for resource naming"
                                                   default     = ""
                                                   validation {
-                                                     condition     = length(var.network_logical_name) <= 5 && length(var.network_logical_name) > 0
-                                                     error_message = "The 'network_logical_name' variable must be specified and at most 5 characters long."
+                                                     condition     = length(var.network_logical_name) <= 7 && length(var.network_logical_name) > 0
+                                                     error_message = "The 'network_logical_name' variable must be specified and at most 7 characters long."
                                                    }
                                                 }
 
