@@ -86,6 +86,7 @@ variable "use_deployer"                          {
 
 variable "workload_zone"                          {
                                                    description = "The workload zone for the deployment"
+                                                   type        = string
                                                    default     = ""
                                                  }
 

@@ -369,4 +369,4 @@ stages:
               WEBAPP_IDENTITY:                    $(WEBAPP_IDENTITY)
               APPLICATION_CONFIGURATION_ID:       $(APPLICATION_CONFIGURATION_ID)
               CONTROL_PLANE_NAME:                 $(CONTROL_PLANE_NAME)
-          -   template:                           templates\cleanup-workspace.yaml
+          - template:                             templates\cleanup-workspace.yaml
