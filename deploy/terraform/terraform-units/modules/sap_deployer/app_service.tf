@@ -115,6 +115,7 @@ resource "azurerm_windows_web_app" "webapp" {
   app_settings = {
     "CollectionUri"                            = var.infrastructure.devops.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
+    "ApplicationAuthentication__Enabled"       = length(var.app_service.app_registration_id) > 0
     "ASPNETCORE_ENVIRONMENT"                   = "PRODUCTION"
     "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
     "WEBSITE_AUTH_CUSTOM_AUTHORIZATION"        = true
@@ -139,6 +140,8 @@ resource "azurerm_windows_web_app" "webapp" {
     "CONTROLPLANE_LOC"                        = var.naming_new.location_short
     "CONTROL_PLANE_NAME"                      = upper(format("%s-%s-%s", var.infrastructure.environment, var.naming_new.location_short, var.infrastructure.virtual_network.logical_name))
     "TFSTATE_STORAGE_ACCOUNT_NAME"            = format("https://%s.blob.core.windows.net", try(var.app_service.tfstate_storage_account_name, ""))
+    "SourceBranch"                            = var.infrastructure.devops.branch
+    "REPOSITORY_PERSISTENCE_MODE"             = "RepositoryPreferredWithStorageFallback"
   }
 
   sticky_settings {
