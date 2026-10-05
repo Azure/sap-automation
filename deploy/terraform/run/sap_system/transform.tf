@@ -26,6 +26,8 @@ locals {
                                             application_configuration_id       = var.application_configuration_id
                                             use_application_configuration      = length(var.application_configuration_id) > 0 ? true : false
                                             workload_zone_name                 = local.workload_zone_name
+                                            configuration_settings             = var.configuration_settings
+
                                          }
 
 
@@ -630,8 +632,9 @@ locals {
                                             sapmnt_volume_throughput           = var.ANF_sapmnt_volume_throughput
                                             sapmnt_use_clone_in_secondary_zone = var.ANF_sapmnt_use_clone_in_secondary_zone
 
-                                            use_AVG_for_data                   = var.ANF_HANA_use_AVG
+                                            use_AVG                            = var.ANF_HANA_use_AVG
                                             use_zones                          = var.ANF_HANA_use_Zones
+
 
                                           }
 
