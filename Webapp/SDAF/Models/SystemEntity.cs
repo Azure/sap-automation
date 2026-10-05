@@ -15,7 +15,7 @@ namespace SDAFWebApp.Models
         public SystemEntity(SystemModel system)
         {
             RowKey = system.Id;
-            PartitionKey = system.environment;
+            PartitionKey = system.Id;  // Use full ID for better organization in ADO/GitHub
             IsDefault = system.IsDefault;
             System = JsonSerializer.Serialize(system, new JsonSerializerOptions() { });
         }
