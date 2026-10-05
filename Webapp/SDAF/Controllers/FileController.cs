@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -16,20 +15,20 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
-using System.Drawing.Drawing2D;
-using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace SDAFWebApp.Controllers
 {
     public class FileController(ITableStorageService<AppFile> appFileService, ITableStorageService<LandscapeEntity> landscapeService,
-        ITableStorageService<SystemEntity> systemService, IConfiguration configuration) : Controller
+        ITableStorageService<SystemEntity> systemService, RestHelper restHelper, ILogger<FileController> logger,
+        IConfiguration configuration) : Controller
     {
         private readonly ITableStorageService<AppFile> _appFileService = appFileService;
         private readonly ITableStorageService<LandscapeEntity> _landscapeService = landscapeService;
         private readonly ITableStorageService<SystemEntity> _systemService = systemService;
-        private readonly RestHelper restHelper = new RestHelper(configuration, "GIT");
+        private readonly RestHelper restHelper = restHelper;
+        private readonly ILogger<FileController> _logger = logger;
 
         [ActionName("Index")]
         public async Task<IActionResult> Index()
@@ -38,12 +37,12 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Templates")]
-        public ActionResult Templates(string sourceController)
+        public async Task<ActionResult> Templates(string sourceController)
         {
             try
             {
-                string[] landscapeFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/LANDSCAPE").Result;
-                string[] systemFilePaths = restHelper.GetTemplateFileNames("Terraform/WORKSPACES/SYSTEM").Result;
+                string[] landscapeFilePaths = await restHelper.GetTemplateFileNames("Terraform/WORKSPACES/LANDSCAPE");
+                string[] systemFilePaths = await restHelper.GetTemplateFileNames("Terraform/WORKSPACES/SYSTEM");
 
                 Dictionary<string, string[]> filePaths = new()
             {
@@ -55,7 +54,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = "Error retrieving templates: " + e.Message;
+                _logger.LogError(e, "Failed to retrieve repository templates");
+                TempData["error"] = "Templates could not be retrieved.";
             }
             return RedirectToAction("Index");
 
@@ -63,9 +63,9 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("UseTemplate")]
-        public IActionResult UseTemplate(string fileName, string sourceController)
+        public async Task<IActionResult> UseTemplate(string fileName, string sourceController)
         {
-            string content = restHelper.GetTemplateFile(fileName).Result;
+            string content = await restHelper.GetTemplateFile(fileName);
             ViewBag.Message = content;
             ViewBag.TemplateName = fileName[(fileName.LastIndexOf('/') + 1)..];
             ViewBag.SourceController = sourceController;
@@ -121,7 +121,7 @@ namespace SDAFWebApp.Controllers
                             UntrustedName = formFile.FileName,
                             Size = formFile.Length,
                             UploadDT = DateTime.UtcNow,
-                            Id = WebUtility.HtmlEncode(formFile.FileName)
+                            Id = IdentifierParser.ParseAppFile(formFile.FileName).FileName
                         };
 
                         await _appFileService.CreateAsync(file);
@@ -129,9 +129,17 @@ namespace SDAFWebApp.Controllers
                         TempData["success"] = "Successfully uploaded file(s)";
                     }
                 }
+                catch (ArgumentException e)
+                {
+                    _logger.LogWarning(e, "Rejected uploaded file with an invalid identifier");
+                    ModelState.AddModelError("FormFiles", "The uploaded filename is invalid.");
+                    ViewBag.SourceController = sourceController;
+                    return View();
+                }
                 catch (Exception e)
                 {
-                    TempData["error"] = "Error uploading files: " + e.Message;
+                    _logger.LogError(e, "Failed to upload app files");
+                    TempData["error"] = "The files could not be uploaded.";
                 }
                 return RedirectToAction("Index", sourceController);
             }
@@ -140,24 +148,37 @@ namespace SDAFWebApp.Controllers
         }
 
 
+        [HttpPost]
         [ActionName("Convert")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConvertFileToObject(string id, string sourceController)
         {
+            sourceController = string.IsNullOrWhiteSpace(sourceController) ? "File" : sourceController;
             try
             {
                 // Convert a file to a landscape or system object
                 AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
                 if (file == null) return NotFound();
 
-                id = id[..id.IndexOf('.')];
+                AppFileIdentifier parsedFile = IdentifierParser.ParseAppFile(id);
+                id = parsedFile.ObjectId;
                 byte[] bytes = file.Content;
                 string bitString = Encoding.UTF8.GetString(bytes);
                 string jsonString = Helper.TfvarToJson(bitString);
                 if (file.Id.EndsWith("INFRASTRUCTURE.tfvars"))
                 {
                     LandscapeModel landscape = JsonSerializer.Deserialize<LandscapeModel>(jsonString);
-                    landscape.Id = id;
-                    await _landscapeService.CreateAsync(new LandscapeEntity(landscape));
+                    if (id.EndsWith("-INFRASTRUCTURE"))
+                    {
+                        landscape.Id = id;
+                    }
+                    else
+                    {
+                        landscape.Id = id + "-INFRASTRUCTURE";
+                    }
+
+                    await _landscapeService.CreateAsync(
+                        new LandscapeEntity(landscape, configuration["DEVOPS_PLATFORM"]));
                     TempData["success"] = "Successfully converted file " + id + " to a workload zone object";
                 }
                 else
@@ -168,9 +189,16 @@ namespace SDAFWebApp.Controllers
                     TempData["success"] = "Successfully converted file " + id + " to a system object";
                 }
             }
+            catch (ArgumentException e)
+            {
+                _logger.LogWarning(e, "Rejected invalid file identifier");
+                ModelState.AddModelError("id", "The file identifier is invalid.");
+                TempData["error"] = "The selected file identifier is invalid.";
+            }
             catch (Exception e)
             {
-                TempData["error"] = "Error converting file: " + e.Message;
+                _logger.LogError(e, "Failed to convert app file");
+                TempData["error"] = "The file could not be converted.";
             }
             return RedirectToAction("Index", sourceController);
         }
@@ -200,13 +228,22 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAsync(string id, string fileContent, string templateName, string sourceController)
         {
+            if (!IdentifierParser.TryParseAppFile(id, out AppFileIdentifier parsedId, out string validationError))
+            {
+                ModelState.AddModelError("id", validationError);
+                ViewBag.TemplateName = templateName;
+                ViewBag.Message = fileContent;
+                ViewBag.SourceController = sourceController;
+                return View();
+            }
+
             try
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(fileContent);
 
                 AppFile file = new()
                 {
-                    Id = WebUtility.HtmlEncode(id),
+                    Id = parsedId.FileName,
                     Content = bytes,
                     UntrustedName = id,
                     Size = bytes.Length,
@@ -221,7 +258,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("FileId", "Error creating file: " + e.Message);
+                _logger.LogError(e, "Failed to create app file of kind {FileKind}", parsedId.Kind);
+                ModelState.AddModelError("id", "The file could not be created.");
             }
 
             ViewBag.TemplateName = templateName;
@@ -245,7 +283,7 @@ namespace SDAFWebApp.Controllers
                     break;
                 case 1:
                 case 2:
-                    file = await GetImagesFile(id + "_" + fileName, type, GetPartitionKey(id));
+                    file = await GetImagesFile(id + "_" + fileName, type, IdentifierParser.ParseSystem(id).PartitionKey);
                     ViewBag.IsImagesFile = true;
                     ViewBag.FilePattern = id + "_" + fileName;
                     file.FileType = type;
@@ -270,6 +308,19 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAsync(string id, string newId, string fileContent, string sourceController, int type)
         {
+            if (!IdentifierParser.TryParseAppFile(id, out AppFileIdentifier oldIdentifier, out string oldError))
+            {
+                return BadRequest(new { field = "id", error = oldError });
+            }
+            if (!IdentifierParser.TryParseAppFile(newId, out AppFileIdentifier newIdentifier, out string newError))
+            {
+                ModelState.AddModelError("newId", newError);
+                ViewBag.Message = fileContent;
+                ViewBag.SourceController = sourceController;
+                ViewBag.Type = type;
+                return View(new AppFile { Id = id, Content = Encoding.UTF8.GetBytes(fileContent ?? string.Empty) });
+            }
+
             AppFile file = null;
             ViewBag.IsImagesFile = false;
             int newType = type;
@@ -325,13 +376,17 @@ namespace SDAFWebApp.Controllers
                 }
                 else
                 {
-                    string newName = id[..id.IndexOf("_custom")];
-                    return RedirectToAction("Edit", sourceController, new { @id = newName, @partitionKey = GetPartitionKey(id) });
+                    return RedirectToAction("Edit", sourceController, new
+                    {
+                        @id = newIdentifier.ObjectId,
+                        @partitionKey = newIdentifier.PartitionKey
+                    });
                 }
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("FileId", "Error updating file: " + e.Message);
+                _logger.LogError(e, "Failed to update app file of kind {FileKind}", newIdentifier.Kind);
+                ModelState.AddModelError("newId", "The file could not be updated.");
             }
             ViewBag.Message = fileContent;
             ViewBag.SourceController = sourceController;
@@ -346,6 +401,16 @@ namespace SDAFWebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitNewAsync(string id, string newId, string fileContent, string sourceController)
         {
+            if (!IdentifierParser.TryParseAppFile(id, out AppFileIdentifier existingIdentifier, out string existingError))
+            {
+                return BadRequest(new { field = "id", error = existingError });
+            }
+            if (!IdentifierParser.TryParseAppFile(newId, out AppFileIdentifier newIdentifier, out string newError))
+            {
+                ModelState.AddModelError("newId", newError);
+                return View("Edit", new AppFile { Id = id, Content = Encoding.UTF8.GetBytes(fileContent ?? string.Empty) });
+            }
+
             AppFile file = await _appFileService.GetByIdAsync(id, GetPartitionKey(id));
             if (file == null) return NotFound();
 
@@ -363,7 +428,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("FileId", "Error creating file: " + e.Message);
+                _logger.LogError(e, "Failed to create a copy of app file kind {FileKind}", newIdentifier.Kind);
+                ModelState.AddModelError("newId", "The file could not be created.");
             }
 
             ViewBag.Message = fileContent;
@@ -418,64 +484,64 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = "Something went wrong downloading file " + id + ": " + e.Message;
+                _logger.LogError(e, "Failed to download app file");
+                TempData["error"] = "The file could not be downloaded.";
                 return RedirectToAction("Index", sourceController);
             }
         }
 
         private static string GetPartitionKey(string id)
         {
-            return id[..id.IndexOf('-')];
+            return IdentifierParser.ParseAppFile(id).PartitionKey;
         }
 
-        public async Task<AppFile> GetImagesFile(string filename, int type, string partitionKey)
+        private async Task<AppFile> GetImagesFile(string filename, int type, string partitionKey)
         {
-            AppFile file = null;
             try
             {
-                file = await _appFileService.GetByIdAsync(filename, partitionKey);
+                AppFile file = await _appFileService.GetByIdAsync(filename, partitionKey);
+                return file ?? LoadFallbackFile(filename, type);
             }
-            catch
+            catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
-                string newName = filename;
-
-                if (filename.EndsWith("_custom_sizes.json"))
-                {
-                    newName = filename[(filename.IndexOf("_custom_sizes.json") + 1)..];
-                    type = 1;
-                }
-                if (filename.EndsWith("_custom_naming.json"))
-                {
-                    newName = filename[(filename.IndexOf("_custom_naming.json") + 1)..];
-                    type = 2;
-                }
-
-                if (newName.Contains("..") || newName.Contains('/') || newName.Contains('\\'))
-                {
-                    throw new Exception("Invalid filename");
-                }
-                else
-                {
-
-
-                    byte[] byteContent = System.IO.File.ReadAllBytes("ParameterDetails/" + newName);
-
-                    using (MemoryStream memory = new(byteContent))
-                    {
-                        file = new AppFile()
-                        {
-
-                            Id = WebUtility.HtmlEncode(filename),
-                            Content = byteContent,
-                            UntrustedName = filename,
-                            Size = memory.Length,
-                            UploadDT = DateTime.UtcNow,
-                            FileType = type
-                        };
-                    }
-                }
+                _logger.LogInformation(ex, "Images configuration was not found; using packaged fallback for type {FileType}", type);
+                return LoadFallbackFile(filename, type);
             }
-            return file ?? new AppFile();
+        }
+
+        private static AppFile LoadFallbackFile(string filename, int type)
+        {
+            string newName = filename;
+
+            if (filename.EndsWith("_custom_sizes.json", StringComparison.OrdinalIgnoreCase))
+            {
+                newName = "custom_sizes.json";
+                type = 1;
+            }
+            if (filename.EndsWith("_custom_naming.json", StringComparison.OrdinalIgnoreCase))
+            {
+                newName = "custom_naming.json";
+                type = 2;
+            }
+
+            if (!string.Equals(Path.GetFileName(newName), newName, StringComparison.Ordinal) ||
+                newName.Contains("..", StringComparison.Ordinal))
+            {
+                throw new ArgumentException("Invalid fallback file name.", nameof(filename));
+            }
+
+            byte[] byteContent = System.IO.File.ReadAllBytes(
+                Path.Combine("ParameterDetails", newName));
+
+            return new AppFile
+            {
+                Id = filename,
+                Content = byteContent,
+                UntrustedName = filename,
+                Size = byteContent.LongLength,
+                UploadDT = DateTime.UtcNow,
+                FileType = type
+            };
         }
     }
 }

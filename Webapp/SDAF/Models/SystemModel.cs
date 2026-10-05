@@ -13,16 +13,29 @@ namespace SDAFWebApp.Models
     {
         public bool IsValid()
         {
-            return
-                environment != null &&
-                location != null &&
-                network_logical_name != null &&
-                sid != null
-                ;
+
+            bool returnVal = environment != null &&
+                           location != null &&
+                           network_logical_name != null &&
+                           sid != null ;
+
+            if (returnVal)
+            {
+                workload_zone = string.Format("{0}-{1}-{2}", environment, Helper.MapRegion(location).ToUpper(), network_logical_name);
+                locationCode = Helper.MapRegion(location).ToUpper();
+            }
+            return returnVal;
+
         }
+
 
         [DisplayName("System ID")]
         public string Id { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string PersistencePartitionKey { get; set; }
+
         public string LastModified { get; set; }
 
         // BASIC
@@ -229,8 +242,8 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string scaleoutDescription= string.Format("# HANA Scale-out:        {0}", database_HANA_use_scaleout_scenario == true ? "Yes" : "No").PadRight(88);
-                                            
+                string scaleoutDescription= string.Format("# HANA Scale-out:        {0}", (bool)database_HANA_use_scaleout_scenario ? "Yes" : "No").PadRight(88);
+
                 scaleoutDescription += "#";
                 return scaleoutDescription;
             }
@@ -261,8 +274,22 @@ namespace SDAFWebApp.Models
         [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
         public string subscription { get; set; }
 
-        public string subscription_id { get; set; }
+        public string subscription_id
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(subscription))
+                {
+                    return subscription.Replace("/subscriptions/", "");
+                }
+                return null;
+            }
+            set
+            {
+                subscription = string.Format("/subscriptions/{0}", value);
 
+            }
+        }
         public string suse_subscription_id { get; set; }
 
         public bool? AFS_enable_encryption_in_transit { get; set; } = false;
@@ -755,12 +782,12 @@ namespace SDAFWebApp.Models
 
         public bool? use_random_id_for_storageaccounts { get; set; } = true;
 
-        public bool? AFS_usr_sap { get; set; }
-
         [PrivateEndpointIdValidator]
         public string sapmnt_private_endpoint_id { get; set; }
 
-        /*---------------------------------------------------------------------------8
+        public bool? AFS_usr_sap { get; set; }
+
+        /*--------------------------------------------  -------------------------------8
         |                                                                            |
         |                               ANF Support                                  |
         |                                                                            |
@@ -959,7 +986,7 @@ namespace SDAFWebApp.Models
 
     }
 
-    public class Tag
+public class Tag
     {
         public string Key { get; set; }
         public string Value { get; set; }
