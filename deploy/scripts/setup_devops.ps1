@@ -128,17 +128,6 @@ Add-Content -Path $fname -Value "## Deployment details"
 Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value "Azure DevOps organization: $ADO_Organization"
 
-#region Install extension
-
-Write-Host "Installing the DevOps extensions" -ForegroundColor Green
-$extension_name = (az devops extension list --organization $ADO_Organization --query "[?extensionName=='Post Build Cleanup'].extensionName | [0]")
-
-if ($extension_name.Length -eq 0) {
-  az devops extension install --organization $ADO_Organization --extension PostBuildCleanup --publisher-id mspremier --output none
-}
-
-#endregion
-
 #region Create DevOps project
 $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]")
 

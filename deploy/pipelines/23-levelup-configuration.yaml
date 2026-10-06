@@ -57,7 +57,6 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - task: PostBuildCleanup@4
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
