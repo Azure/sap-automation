@@ -161,8 +161,8 @@ resource "azurerm_windows_web_app" "webapp" {
         www_authentication_disabled              = false
         allowed_applications                     = [var.app_service.app_registration_id]
         allowed_audiences                        = []
-        allowed_groups                           = [var.app_service.app_service_allowed_groups]
-        allowed_identities                       = [var.app_service.app_service_allowed_identities]
+        allowed_groups                           = [length(var.app_service.app_service_allowed_groups) > 0 ? var.app_service.app_service_allowed_groups : null]
+        allowed_identities                       = [length(var.app_service.app_service_allowed_identities) > 0 ? var.app_service.app_service_allowed_identities : null]
       }
       login {
         token_store_enabled = false
