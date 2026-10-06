@@ -779,6 +779,17 @@ variable "add_Agent_IP"                              {
                                                         type        = bool
                                                       }
 
+variable "app_service_allowed_groups"                {
+                                                        description = "List of object IDs to add to the app service access restrictions"
+                                                        default     = ""
+                                                     }
+
+variable "app_service_allowed_identities"            {
+                                                        description = "List of identities to add to the app service access restrictions"
+                                                        default     = ""
+                                                     }
+
+
 ###############################################################################
 #                                                                             #
 #                                  Identity                                   #
