@@ -187,7 +187,7 @@ data "azurerm_storage_container" "tfvars" {
 
 resource "azurerm_storage_blob" "ansible_inventory_yaml" {
   provider               = azurerm.deployer
-  depends_on             = [local_file.ansible_inventory_new_yml]
+  depends_on             = [local_file.ansible_inventory_new_yml, data.azurerm_storage_container.tfvars]
   name                   = format("SYSTEM/%s/%s_hosts.yaml", trimspace(var.naming.prefix.SDU), trimspace(var.sap_sid))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
@@ -196,7 +196,7 @@ resource "azurerm_storage_blob" "ansible_inventory_yaml" {
 
 resource "azurerm_storage_blob" "tfvarsfile" {
   provider               = azurerm.deployer
-  depends_on             = [local_file.ansible_inventory_new_yml]
+  depends_on             = [local_file.ansible_inventory_new_yml,data.azurerm_storage_container.tfvars]
   name                   = format("SYSTEM/%s/%s.tfvars", trimspace(var.naming.prefix.SDU), trimspace(var.naming.prefix.SDU))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
@@ -206,7 +206,7 @@ resource "azurerm_storage_blob" "tfvarsfile" {
 resource "azurerm_storage_blob" "tfvars_state" {
   provider               = azurerm.deployer
   count                  = fileexists(format("%s/.terraform/terraform.tfstate", path.cwd)) ? 1 : 0
-  depends_on             = [local_file.ansible_inventory_new_yml]
+  depends_on             = [local_file.ansible_inventory_new_yml, data.azurerm_storage_container.tfvars]
   name                   = format("SYSTEM/%s/.terraform/terraform.tfstate", trimspace(var.naming.prefix.SDU))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
@@ -310,7 +310,7 @@ resource "local_file" "sap-parameters_yml" {
 
 resource "azurerm_storage_blob" "sap_parameters_yaml" {
   provider               = azurerm.deployer
-  depends_on            = [local_file.sap-parameters_yml]
+  depends_on            = [local_file.sap-parameters_yml,data.azurerm_storage_container.tfvars]
   name                   = format("SYSTEM/%s/sap-parameters.yaml", trimspace(var.naming.prefix.SDU))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
@@ -380,7 +380,7 @@ resource "local_file" "sap_inventory_md" {
 
 resource "azurerm_storage_blob" "readme" {
   provider               = azurerm.deployer
-  depends_on            = [local_file.sap_inventory_md]
+  depends_on            = [local_file.sap_inventory_md, data.azurerm_storage_container.tfvars]
   name                   = format("SYSTEM/%s/readme.md", trimspace(var.naming.prefix.SDU))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
