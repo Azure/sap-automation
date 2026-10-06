@@ -85,7 +85,6 @@ stages:
             parameters:
               getLatestFromBranch:                true
 
-          - task:                                 PostBuildCleanup@4
 
           - task:                                 Bash@3
             inputs:

@@ -79,7 +79,6 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - task:                      PostBuildCleanup@4
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
@@ -402,13 +401,14 @@ stages:
     jobs:
       - job:                           Post_Installation_Steps
         displayName:                   Post Installation Steps
+        workspace:
+          clean:                       all
         variables:
           SID_hosts:                   $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.HOSTS'] ]
           SAP_parameters:              $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.SAP_PARAMETERS'] ]
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         steps:
-          - task:                      PostBuildCleanup@4
           - script: |
               #!/bin/bash
               echo "nothing to do here right now"

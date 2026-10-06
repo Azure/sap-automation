@@ -68,11 +68,6 @@ if [ -z ${extension_name} ]; then
 fi
 
 
-extension_name=$(az devops extension show --org $ADO_ORGANIZATION --extension PostBuildCleanup  --publisher-id mspremier --query extensionName) | tr -d \"
-if [ -z ${extension_name} ]; then
-  az devops extension install --org $ADO_ORGANIZATION --extension PostBuildCleanup  --publisher-id mspremier --output none
-fi
-
 id=$(az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]" | tr -d \")
 if [ -z $id ]; then
   echo "Creating the project: ${ADO_PROJECT}"
