@@ -1030,7 +1030,7 @@ case "$(get_distro_name)" in
 ubuntu)
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 10.0
   ;;
 sles)
   # sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm
@@ -1038,11 +1038,11 @@ sles)
   # sudo zypper install dotnet-sdk-7.0
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 10.0
   ;;
 rhel*)
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 10.0
   ;;
 esac
