@@ -165,7 +165,7 @@ resource "azurerm_windows_web_app" "webapp" {
         allowed_identities                       = length(var.app_service.app_service_allowed_identities[0]) > 0 ? var.app_service.app_service_allowed_identities : []
       }
       login {
-        token_store_enabled = false
+        token_store_enabled = true
       }
     }
   }
@@ -185,7 +185,7 @@ resource "azurerm_windows_web_app" "webapp" {
     # scm_use_main_ip_restriction = true
     application_stack {
         current_stack  = "dotnet"
-        dotnet_version = "v9.0"
+        dotnet_version = "v10.0"
       }
     ftps_state                        = "Disabled"
     http2_enabled                     = true
