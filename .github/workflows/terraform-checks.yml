@@ -42,7 +42,7 @@ jobs:
           - deploy/terraform/run/sap_system
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
       with:
         egress-policy: audit
 
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
       with:
         egress-policy: audit
 
@@ -76,7 +76,7 @@ jobs:
     - name: Setup TFLint
       uses: terraform-linters/setup-tflint@6ffdbaa3be476b3431f7275c26966ef32ff60337 # v6.3.2
       with:
-        tflint_version: v0.63.1
+        tflint_version: latest
 
     - name: Init TFLint
       run: tflint --init --config="${GITHUB_WORKSPACE}/.tflint.hcl"
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
       with:
         egress-policy: audit
 
@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
       with:
         egress-policy: audit
 
@@ -163,7 +163,7 @@ jobs:
       matrix: ${{ steps.build.outputs.matrix }}
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
       with:
         egress-policy: audit
 
@@ -177,15 +177,12 @@ jobs:
         full_run="${{ inputs.full_run }}"
 
         if [[ "$full_run" == "true" ]]; then
-          # Full-run mode: one entry per module, no test_file (runs all tests sequentially)
-          matrix=$(jq -n '{include: [
-            {"module": "deploy/terraform/run/sap_deployer", "test_file": ""},
-            {"module": "deploy/terraform/bootstrap/sap_deployer", "test_file": ""},
-            {"module": "deploy/terraform/bootstrap/sap_library", "test_file": ""},
-            {"module": "deploy/terraform/run/sap_system", "test_file": ""},
-            {"module": "deploy/terraform/run/sap_library", "test_file": ""},
-            {"module": "deploy/terraform/run/sap_landscape", "test_file": ""}
-          ]}')
+          # Full-run mode: one entry per module, no test_file (runs all tests sequentially).
+          # Modules are derived from the shard manifests so newly added unit-module test
+          # suites are picked up here as well as in sharded mode.
+          matrix=$(find deploy/terraform -path '*/tests/shard-manifest.json' -print0 \
+            | xargs -0 jq -s '[.[] | {module: .module, test_file: ""}] | unique
+              | {include: .}')
         else
           # Sharded mode: one entry per module/test-file from shard manifests
           matrix=$(find deploy/terraform -path '*/tests/shard-manifest.json' -print0 \
@@ -206,7 +203,7 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
       with:
         egress-policy: audit
 
@@ -261,7 +258,7 @@ jobs:
     if: always()
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
       with:
         egress-policy: audit
 
@@ -273,9 +270,11 @@ jobs:
       run: |
         exit_code=0
 
-        # Collect all .tftest.hcl files under deploy/terraform/*/*/tests/
+        # Collect all .tftest.hcl files under any deploy/terraform/.../tests/ directory,
+        # including deeper reusable-module layouts such as
+        # deploy/terraform/terraform-units/modules/sap_system/output_files/tests/.
         mapfile -t actual_files < <(find deploy/terraform -path '*/tests/*.tftest.hcl' \
-          | sed 's|^\(deploy/terraform/[^/]*/[^/]*\)/tests/\(.*\)|\1 \2|' \
+          | sed 's|^\(.*\)/tests/\([^/]*\)$|\1 \2|' \
           | sort)
 
         # Collect all files declared in shard manifests
