@@ -165,7 +165,7 @@ resource "azurerm_windows_web_app" "webapp" {
         allowed_identities                       = compact(var.app_service.app_service_allowed_identities)
       }
       login {
-        token_store_enabled = true
+        token_store_enabled = false
       }
     }
   }
