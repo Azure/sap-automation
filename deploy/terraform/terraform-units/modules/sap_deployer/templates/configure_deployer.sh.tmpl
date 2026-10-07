@@ -87,8 +87,8 @@ function install_deps_mariner() {
   tdnf install -y \
     ca-certificates \
     curl \
-    dotnet-runtime-9.0 \
-    dotnet-runtime-deps-9.0 \
+    dotnet-runtime-10.0 \
+    dotnet-runtime-deps-10.0 \
     krb5-libs \
     libicu \
     lttng-ust \
@@ -122,8 +122,8 @@ function install_deps_ubuntu() {
     apt-transport-https \
     ca-certificates \
     curl \
-    dotnet-runtime-8.0 \
-    dotnet-sdk-8.0 \
+    dotnet-runtime-10.0 \
+    dotnet-sdk-10.0 \
     gnupg \
     lsb-release \
     moby-compose \
@@ -168,7 +168,7 @@ rg_name="${rg_name}"
 terraform_version="${terraform_version}"
 
 if [ -z "$${terraform_version}" ]; then
-  terraform_version="1.15.7"
+  terraform_version="1.16.5"
 fi
 ARM_CLIENT_ID="${client_id}"
 ARM_SUBSCRIPTION_ID="${subscription_id}"
@@ -1030,7 +1030,7 @@ case "$(get_distro_name)" in
 ubuntu)
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 10.0
   ;;
 sles)
   # sudo rpm -Uvh https://packages.microsoft.com/config/sles/15/packages-microsoft-prod.rpm
@@ -1038,11 +1038,11 @@ sles)
   # sudo zypper install dotnet-sdk-7.0
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 10.0
   ;;
 rhel*)
   sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/$${local_user}/dotnet-install.sh"
   sudo chmod +x "/home/$${local_user}/dotnet-install.sh"
-  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 9.0
+  sudo /home/$${local_user}/dotnet-install.sh --install-dir "$${DOTNET_ROOT}" --channel 10.0
   ;;
 esac

@@ -200,6 +200,8 @@ locals {
                                            use                 = var.app_service_deployment
                                            app_registration_id = var.app_registration_app_id
                                            client_secret       = var.webapp_client_secret
+                                           app_service_allowed_groups     = var.app_service_allowed_groups
+                                           app_service_allowed_identities = var.app_service_allowed_identities
                                          }
 
   dns_settings                         = {
