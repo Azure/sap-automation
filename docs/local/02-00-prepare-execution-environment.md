@@ -120,7 +120,7 @@ Azure deployment.
 7. Prepare the Linux toolchain.
 
    ```bash
-   TF_VERSION=1.14.6 \
+   TF_VERSION=1.16.5 \
      "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/configure_deployer.sh"
    ```
 

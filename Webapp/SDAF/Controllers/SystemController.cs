@@ -319,7 +319,7 @@ namespace SDAFWebApp.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogInformation("No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
+                    _logger?.LogInformation(ex, "No custom naming file found for system {Id}; using default naming", Helper.SanitizeForLog(id));
                 }
 
                 if (file != null)
@@ -344,7 +344,7 @@ namespace SDAFWebApp.Controllers
                 }
                 catch (Exception ex) 
                 {
-                    _logger?.LogInformation("No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
+                    _logger?.LogInformation(ex, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
                 }
 
                 if (file != null)

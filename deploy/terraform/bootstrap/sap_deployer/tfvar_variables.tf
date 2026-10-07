@@ -495,7 +495,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.15.7"
+                                                        default     = "1.16.5"
                                                       }
 
 variable "name_override_file"                         {
@@ -778,6 +778,17 @@ variable "add_Agent_IP"                              {
                                                         default     = true
                                                         type        = bool
                                                       }
+
+variable "app_service_allowed_groups"                {
+                                                        description = "List of object IDs to add to the app service access restrictions"
+                                                        default     = [""]
+                                                     }
+
+variable "app_service_allowed_identities"            {
+                                                        description = "List of identities to add to the app service access restrictions"
+                                                        default     = [""]
+                                                     }
+
 
 ###############################################################################
 #                                                                             #

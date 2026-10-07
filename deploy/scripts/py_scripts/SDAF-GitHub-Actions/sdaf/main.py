@@ -376,7 +376,7 @@ def main():
             "TF_IN_AUTOMATION": "true",
             "TF_LOG": "ERROR",
             "ANSIBLE_CORE_VERSION": "2.16",
-            "TF_VERSION": "1.14.6",
+            "TF_VERSION": "1.16.5",
             "ARM_ENVIRONMENT": user_data["terraform_environment"],
             "AZURE_ENVIRONMENT": user_data["azure_environment"],
             "AZURE_AUDIENCE": user_data["azure_audience"],

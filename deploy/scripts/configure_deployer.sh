@@ -65,7 +65,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-	TF_VERSION="1.14.6"
+	TF_VERSION="1.16.5"
 fi
 
 # Fail if attempting to access and unset variable or parameter
@@ -553,17 +553,17 @@ case "$(get_distro_name)" in
 ubuntu)
 	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
 	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
+	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
 	;;
 sles)
 	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
 	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
+	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
 	;;
 rhel*)
 	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
 	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
+	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
 	;;
 esac
 
@@ -779,7 +779,7 @@ else
 	fi
 
 	ARM_TENANT_ID=$(/usr/bin/az account show --query tenantId --output tsv)
-	
+
 	echo "export ARM_TENANT_ID=${ARM_TENANT_ID}" | tee -a /tmp/deploy_server.sh
 
 fi
