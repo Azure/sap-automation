@@ -20,7 +20,7 @@ var azureResourceIds = [
     "db_subnet_arm_id",
     "db_subnet_nsg_arm_id",
     "diagnostics_storage_account_arm_id",
-    "endpoint_subnet_arm_id"
+    "endpoint_subnet_arm_id",
     "install_private_endpoint_id",
     "install_storage_account_id",
     "iscsi_subnet_arm_id",
@@ -40,7 +40,7 @@ var azureResourceIds = [
     "web_subnet_arm_id",
     "web_subnet_nsg_arm_id",
     "witness_storage_account_arm_id",
-    "workload_zone",
+    "workload_zone"
 ];
 var hanadb_sizes = [
     {
@@ -811,6 +811,7 @@ $("#network_arm_id").on("change", function () {
                 "admin_subnet_arm_id",
                 "anf_subnet_arm_id",
                 "app_subnet_arm_id",
+                "endpoint_subnet_arm_id",
                 "db_subnet_arm_id",
                 "iscsi_subnet_arm_id",
                 "storage_subnet_arm_id",
@@ -828,6 +829,7 @@ $("#network_arm_id").on("change", function () {
                 "anf_subnet_nsg_arm_id",
                 "app_subnet_nsg_arm_id",
                 "db_subnet_nsg_arm_id",
+                "endpoint_subnet_nsg_arm_id",
                 "iscsi_subnet_nsg_arm_id",
                 "storage_subnet_nsg_arm_id",
                 "web_subnet_nsg_arm_id"
