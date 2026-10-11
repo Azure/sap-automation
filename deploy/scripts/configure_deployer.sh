@@ -828,7 +828,7 @@ chown -R "${USER}" "${asad_home}"
 # Ensure that the user's account is logged in to Azure with specified creds
 if [ -n "${isMSI}" ]; then
 	# shellcheck disable=SC2016
-	echo 'az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none' | tee -a /tmp/deploy_server.sh
+	echo 'az login --identity --client-id $ARM_CLIENT_ID --output none' | tee -a /tmp/deploy_server.sh
 	# shellcheck disable=SC2016
 	echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
 fi
@@ -836,7 +836,7 @@ fi
 sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
 sudo rm /tmp/deploy_server.sh
 if [ -n "${isMSI}" ]; then
-	/usr/bin/az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none
+	/usr/bin/az login --identity --client-id $ARM_CLIENT_ID --output none
 else
 	/usr/bin/az login --identity --output none
 fi
