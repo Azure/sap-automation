@@ -366,12 +366,12 @@ rhel)
 	if [ "$major_version" -eq 8 ]; then
 	required_pkgs+=(
 		python36
+		python3-virtualenv
 	)
 	fi
 	required_pkgs+=(
 		sshpass
 		python3-pip
-		python3-virtualenv
 	)
 	;;
 esac
@@ -429,6 +429,8 @@ rhel)
 	echo "we are inside RHEL"
 	if [[ "$(get_distro_version)" == "8."* ]]; then
 		ansible_version="2.11"
+	elif [[ "$(get_distro_version)" == "9."* ]]; then
+		ansible_version="2.15"
 	else
 		ansible_version="2.16"
 	fi
@@ -708,6 +710,11 @@ if [[ "${ansible_version}" == "2.11" ]]; then
 	echo "Installing some ansible collections from old-galaxy.ansible.com"
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
+elif [[ "${ansible_version}" == "2.15" ]]; then
+	echo "Installing community.general"
+	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general==11.4.1 --force --collections-path "${ansible_collections}"
+	echo "Installing ansible.netcommon:5.1.2"
+	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon:5.1.2 --force --collections-path "${ansible_collections}"
 else
 	echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection  --force --collections-path "${ansible_collections}"
 
