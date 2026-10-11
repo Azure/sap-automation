@@ -67,6 +67,12 @@ locals {
                                                                   id     = var.endpoint_subnet_arm_id
                                                                   exists = length(var.endpoint_subnet_arm_id) > 0
                                                                   prefix = var.endpoint_subnet_address_prefix
+                                                                  defined = length(var.endpoint_subnet_address_prefix) > 0 && length(var.endpoint_subnet_arm_id)==0
+                                                                  nsg = {
+                                                                    name        = var.endpoint_subnet_nsg_name
+                                                                    exists      = length(var.endpoint_subnet_nsg_arm_id) > 0
+                                                                    id          = var.endpoint_subnet_nsg_arm_id
+                                                                  }
                                                                 }
                                             }
                                         }

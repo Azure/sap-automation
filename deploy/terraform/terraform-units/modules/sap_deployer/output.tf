@@ -139,9 +139,9 @@ output "random_id" {
 
 output "endpoint_subnet_id"                     {
                                                   description = "Azure resource identifier for the endpoint subnet"
-                                                  value       = var.infrastructure.virtual_networks.management.subnet_endpoint.defined ? (
-                                                                  var.infrastructure.virtual_networks.management.subnet_endpoint.exists ? (
-                                                                    var.infrastructure.virtual_networks.management.subnet_endpoint.id) : (
+                                                  value       = var.infrastructure.virtual_network.management.subnet_endpoint.defined ? (
+                                                                  var.infrastructure.virtual_network.management.subnet_endpoint.exists ? (
+                                                                    var.infrastructure.virtual_network.management.subnet_endpoint.id) : (
                                                                     azurerm_subnet.endpoint[0].id)) : (
                                                                   ""
                                                                 )

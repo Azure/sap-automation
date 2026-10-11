@@ -94,10 +94,10 @@ locals {
   #
   ##############################################################################################
 
-  endpoint_subnet_name                            = var.infrastructure.virtual_networks.management.subnet_endpoint.exists ? (
-                                                      try(split("/", var.infrastructure.virtual_networks.management.subnet_endpoint.id)[10], "")) : (
-                                                      length(try(var.infrastructure.virtual_networks.management.subnet_endpoint.name, "")) > 0 ? (
-                                                        var.infrastructure.virtual_networks.management.subnet_endpoint.name) : (
+  endpoint_subnet_name                            = var.infrastructure.virtual_network.management.subnet_endpoint.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_network.management.subnet_endpoint.id)[10], "")) : (
+                                                      length(try(var.infrastructure.virtual_network.management.subnet_endpoint.name, "")) > 0 ? (
+                                                        var.infrastructure.virtual_network.management.subnet_endpoint.name) : (
                                                         format("%s%s%s%s",
                                                           try(var.naming.resource_prefixes.endpoint_subnet, ""),
                                                           length(local.prefix) > 0 ? (
@@ -119,10 +119,10 @@ locals {
   #
   ##############################################################################################
 
-  endpoint_subnet_nsg_name                        =  var.infrastructure.virtual_networks.management.subnet_endpoint.nsg.exists ? (
-                                                      try(split("/", var.infrastructure.virtual_networks.management.subnet_endpoint.nsg.id)[8], "")) : (
-                                                      length(try(var.infrastructure.virtual_networks.management.subnet_endpoint.nsg.name, "")) > 0 ? (
-                                                        var.infrastructure.virtual_networks.management.subnet_endpoint.nsg.name) : (
+  endpoint_subnet_nsg_name                        =  var.infrastructure.virtual_network.management.subnet_endpoint.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_network.management.subnet_endpoint.nsg.id)[8], "")) : (
+                                                      length(try(var.infrastructure.virtual_network.management.subnet_endpoint.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.virtual_network.management.subnet_endpoint.nsg.name) : (
                                                         format("%s%s%s%s",
                                                           try(var.naming.resource_prefixes.endpoint_subnet_nsg, ""),
                                                           length(local.prefix) > 0 ? (

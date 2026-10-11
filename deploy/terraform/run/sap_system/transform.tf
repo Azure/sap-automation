@@ -33,10 +33,10 @@ locals {
 
   resource_group                       = {
     name                                    = var.resourcegroup_name
-    arm_id                                  = var.resourcegroup_arm_id
+    id                                      = var.resourcegroup_arm_id
                                          }
 
-  resource_group_defined               = (length(local.resource_group.name) + length(local.resource_group.arm_id) ) > 0
+  resource_group_defined               = (length(local.resource_group.name) + length(local.resource_group.id) ) > 0
 
   ppg                                  = {
                                            arm_ids = distinct(var.proximityplacementgroup_arm_ids)
