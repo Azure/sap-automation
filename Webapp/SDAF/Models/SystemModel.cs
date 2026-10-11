@@ -368,7 +368,6 @@ namespace SDAFWebApp.Models
 
         public string db_subnet_name { get; set; }
 
-        [SubnetRequired(subnetType: "db")]
         [AddressPrefixValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
         public string db_subnet_address_prefix { get; set; }
 
@@ -388,7 +387,6 @@ namespace SDAFWebApp.Models
         +------------------------------------4--------------------------------------*/
         public string app_subnet_name { get; set; }
 
-        [SubnetRequired(subnetType: "app")]
         [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
         public string app_subnet_address_prefix { get; set; }
 

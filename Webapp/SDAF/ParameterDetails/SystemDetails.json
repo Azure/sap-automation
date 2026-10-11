@@ -1975,7 +1975,7 @@
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 1
+        "Display": 3
       },
       {
         "Name": "endpoint_subnet_arm_id",
