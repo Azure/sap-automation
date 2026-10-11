@@ -27,7 +27,7 @@ locals {
 
 
   # Conditions for credential retrieval
-  retrieve_subscription_from_kv                = length(var.subscription_id) == 0 
+  retrieve_subscription_from_kv                = length(var.subscription_id) == 0
   retrieve_cp_credentials                      = var.use_spn && length(local.control_plane_name_resolved) > 0
 }
 
@@ -48,7 +48,7 @@ data "azurerm_key_vault_secret" "subscription_id" {
 }
 
 data "azurerm_key_vault_secret" "client_id" {
-  count                                        = local.retrieve_cp_credentials ? 1 : 0
+  count                                        = local.retrieve_cp_credentials && !local.use_spn ? 1 : 0
   name                                         = format("%s-client-id", local.control_plane_name_resolved)
   key_vault_id                                 = local.key_vault.id
 
@@ -57,8 +57,8 @@ data "azurerm_key_vault_secret" "client_id" {
   }
 }
 
-ephemeral "azurerm_key_vault_secret" "client_secret" {
-  count                                        = local.retrieve_cp_credentials ? 1 : 0
+data "azurerm_key_vault_secret" "client_secret" {
+  count                                        = local.retrieve_cp_credentials && !local.use_spn ? 1 : 0
   name                                         = format("%s-client-secret", local.control_plane_name_resolved)
   key_vault_id                                 = local.key_vault.id
 }
