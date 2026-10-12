@@ -1,6 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -107,6 +105,7 @@ No modules.
 | [azurerm_service_plan.appserviceplan](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/service_plan) | resource |
 | [azurerm_storage_account.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_account) | resource |
 | [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.subnet_agent](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.subnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
@@ -145,6 +144,7 @@ No modules.
 | [azurerm_resource_group.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/resource_group) | data source |
 | [azurerm_storage_account.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/storage_account) | data source |
 | [azurerm_subnet.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.firewall](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.subnet_agent](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.subnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
@@ -172,6 +172,9 @@ No modules.
 | <a name="input_bootstrap"></a> [bootstrap](#input\_bootstrap) | Defines the phase of deployment | `any` | n/a | yes |
 | <a name="input_configure"></a> [configure](#input\_configure) | Value indicating if deployer should be configured | `any` | n/a | yes |
 | <a name="input_deployer"></a> [deployer](#input\_deployer) | Dictionary of information about the deployer | `any` | n/a | yes |
+| <a name="input_deployer_vm_count"></a> [deployer\_vm\_count](#input\_deployer\_vm\_count) | Number of deployer VMs to create | `number` | `1` | no |
+| <a name="input_dns_settings"></a> [dns\_settings](#input\_dns\_settings) | DNS details for the deployment | `map` | `{}` | no |
+| <a name="input_enable_firewall_for_keyvaults_and_storage"></a> [enable\_firewall\_for\_keyvaults\_and\_storage](#input\_enable\_firewall\_for\_keyvaults\_and\_storage) | Boolean value indicating if firewall should be enabled for key vaults and storage | `bool` | `false` | no |
 | <a name="input_enable_purge_control_for_keyvaults"></a> [enable\_purge\_control\_for\_keyvaults](#input\_enable\_purge\_control\_for\_keyvaults) | Disables the purge protection for Azure keyvaults. | `any` | n/a | yes |
 | <a name="input_firewall"></a> [firewall](#input\_firewall) | Dictionary of Firewall settings | `any` | n/a | yes |
 | <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary of information about the common infrastructure | `any` | n/a | yes |
@@ -181,20 +184,17 @@ No modules.
 | <a name="input_network_logical_name"></a> [network\_logical\_name](#input\_network\_logical\_name) | Logical name of the network | `any` | n/a | yes |
 | <a name="input_options"></a> [options](#input\_options) | Dictionary of miscallaneous parameters | `any` | n/a | yes |
 | <a name="input_place_delete_lock_on_resources"></a> [place\_delete\_lock\_on\_resources](#input\_place\_delete\_lock\_on\_resources) | If defined, a delete lock will be placed on the key resources | `any` | n/a | yes |
+| <a name="input_platform"></a> [platform](#input\_platform) | Type of agent to be used | `string` | `"devops"` | no |
 | <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled) | Defines if the public access should be enabled for keyvaults and storage accounts | `any` | n/a | yes |
 | <a name="input_sa_connection_string"></a> [sa\_connection\_string](#input\_sa\_connection\_string) | Storage account connection string | `any` | n/a | yes |
 | <a name="input_set_secret_expiry"></a> [set\_secret\_expiry](#input\_set\_secret\_expiry) | Set expiry date for secrets | `any` | n/a | yes |
 | <a name="input_soft_delete_retention_days"></a> [soft\_delete\_retention\_days](#input\_soft\_delete\_retention\_days) | The number of days that items should be retained in the soft delete period | `any` | n/a | yes |
 | <a name="input_spn_id"></a> [spn\_id](#input\_spn\_id) | SPN ID to be used for the deployment | `any` | n/a | yes |
 | <a name="input_ssh-timeout"></a> [ssh-timeout](#input\_ssh-timeout) | SSH timeout | `any` | n/a | yes |
+| <a name="input_subnets_to_add"></a> [subnets\_to\_add](#input\_subnets\_to\_add) | List of subnets to add to storage account and keyvaults firewall | `list` | `[]` | no |
 | <a name="input_use_private_endpoint"></a> [use\_private\_endpoint](#input\_use\_private\_endpoint) | Boolean value indicating if private endpoint should be used for the deployment | `any` | n/a | yes |
 | <a name="input_use_service_endpoint"></a> [use\_service\_endpoint](#input\_use\_service\_endpoint) | Boolean value indicating if service endpoints should be used for the deployment | `any` | n/a | yes |
 | <a name="input_webapp_client_secret"></a> [webapp\_client\_secret](#input\_webapp\_client\_secret) | App registration client secret | `any` | n/a | yes |
-| <a name="input_deployer_vm_count"></a> [deployer\_vm\_count](#input\_deployer\_vm\_count) | Number of deployer VMs to create | `number` | `1` | no |
-| <a name="input_dns_settings"></a> [dns\_settings](#input\_dns\_settings) | DNS details for the deployment | `map` | `{}` | no |
-| <a name="input_enable_firewall_for_keyvaults_and_storage"></a> [enable\_firewall\_for\_keyvaults\_and\_storage](#input\_enable\_firewall\_for\_keyvaults\_and\_storage) | Boolean value indicating if firewall should be enabled for key vaults and storage | `bool` | `false` | no |
-| <a name="input_platform"></a> [platform](#input\_platform) | Type of agent to be used | `string` | `"devops"` | no |
-| <a name="input_subnets_to_add"></a> [subnets\_to\_add](#input\_subnets\_to\_add) | List of subnets to add to storage account and keyvaults firewall | `list` | `[]` | no |
 
 ## Outputs
 
@@ -220,7 +220,7 @@ No modules.
 | <a name="output_deployer_user_assigned_identity"></a> [deployer\_user\_assigned\_identity](#output\_deployer\_user\_assigned\_identity) | Deployer System Assigned Identity |
 | <a name="output_diagnostics_account_id"></a> [diagnostics\_account\_id](#output\_diagnostics\_account\_id) | Diagnostics Storage Account ID |
 | <a name="output_diagnostics_storage_info"></a> [diagnostics\_storage\_info](#output\_diagnostics\_storage\_info) | Diagnostics storage account tags and network security posture for terraform test diagnostics |
-| <a name="output_endpoint_subnet_id"></a> [agent\_subnet\_id](#output\_agent\_subnet\_id) | Endpoint Subnet ID |
+| <a name="output_endpoint_subnet_id"></a> [endpoint\_subnet\_id](#output\_endpoint\_subnet\_id) | Azure resource identifier for the endpoint subnet |
 | <a name="output_extension_ids"></a> [extension\_ids](#output\_extension\_ids) | Virtual machine extension id |
 | <a name="output_firewall_created_count"></a> [firewall\_created\_count](#output\_firewall\_created\_count) | Diagnostic count of created Azure Firewall resources |
 | <a name="output_firewall_id"></a> [firewall\_id](#output\_firewall\_id) | Firewall ID |
@@ -245,5 +245,4 @@ No modules.
 | <a name="output_webapp_id"></a> [webapp\_id](#output\_webapp\_id) | Webapp ID |
 | <a name="output_webapp_identity"></a> [webapp\_identity](#output\_webapp\_identity) | Webapp Identity |
 | <a name="output_webapp_url_base"></a> [webapp\_url\_base](#output\_webapp\_url\_base) | Webapp URL Base |
-
 <!-- END_TF_DOCS -->
