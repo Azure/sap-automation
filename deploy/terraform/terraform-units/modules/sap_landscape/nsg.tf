@@ -118,12 +118,12 @@ resource "azurerm_network_security_group" "endpoint" {
 # Associates endpoint nsg to endpoint subnet
 resource "azurerm_subnet_network_security_group_association" "endpoint" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined && !var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? 1 : 0
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? 1 : 0
   depends_on                           = [
                                            azurerm_subnet.endpoint
                                          ]
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? var.infrastructure.virtual_networks.sap.subnet_endpoint.id : azurerm_subnet.endpoint[0].id
-  network_security_group_id            = azurerm_network_security_group.endpoint[0].id
+  subnet_id                            = azurerm_subnet.endpoint[0].id
+  network_security_group_id            = var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id : azurerm_network_security_group.endpoint[0].id
 }
 
 
