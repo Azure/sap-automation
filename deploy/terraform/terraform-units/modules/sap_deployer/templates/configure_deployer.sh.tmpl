@@ -533,9 +533,24 @@ rhel)
   cli_pkgs+=(
     azure-cli
   )
+  major_version=$(echo "$(get_distro_version)" | cut -d'.' -f1)
+
+	cli_pkgs+=(
+		azure-cli
+	)
+	if [ "$$major_version" -eq 9 ]; then
+	required_pkgs+=(
+		python311
+	)
+	fi
+	if [ "$$major_version" -eq 8 ]; then
+	required_pkgs+=(
+		python36
+		python3-virtualenv
+	)
+	fi
   required_pkgs+=(
     sshpass
-    python36
   )
   ;;
 esac
