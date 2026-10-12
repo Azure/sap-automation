@@ -368,13 +368,13 @@ locals {
                                           coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[10], ""),
                                                     var.infrastructure.virtual_networks.sap.subnet_endpoint.name,
                                                     format("%s%s%s%s",
-                                                      var.naming.resource_prefixes.endpoint_subnet,
+                                                      try(var.naming.resource_prefixes.endpoint_subnet, ""),
                                                       length(local.prefix) > 0 ? (
                                                         local.prefix) : (
                                                         var.infrastructure.environment
                                                       ),
                                                       var.naming.separator,
-                                                      var.naming.resource_suffixes.endpoint_subnet))): (
+                                                      try(var.naming.resource_suffixes.endpoint_subnet, "")))): (
                                           contains(keys(var.infrastructure.virtual_networks.sap), "subnet_endpoint") ?
                                               can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload)) ?
                                                 try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload)[10], "") :

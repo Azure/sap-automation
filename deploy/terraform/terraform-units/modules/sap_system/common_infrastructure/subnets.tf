@@ -106,13 +106,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_endpoint.prefix]
 
-  private_endpoint_network_policies    = var.private_endpoint_network_policies
-
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+  service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }
 
 data "azurerm_subnet" "endpoint" {
