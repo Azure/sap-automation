@@ -7,6 +7,9 @@
 
 var model;
 var azureResourceIds = [
+    "subscription",
+    "workload_zone",
+    "location",
     "admin_subnet_arm_id",
     "admin_subnet_nsg_arm_id",
     "anf_subnet_arm_id",
@@ -26,22 +29,19 @@ var azureResourceIds = [
     "install_storage_account_id",
     "iscsi_subnet_arm_id",
     "iscsi_subnet_nsg_arm_id",
-    "location",
     "network_arm_id",
     "proximityplacementgroup_arm_ids",
     "resourcegroup_arm_id",
     "sapmnt_private_endpoint_id",
     "spn_keyvault_id",
     "spn_keyvault_id",
-    "subscription",
     "transport_private_endpoint_id",
     "transport_storage_account_id",
     "user_keyvault_id",
     "user_keyvault_id",
     "web_subnet_arm_id",
     "web_subnet_nsg_arm_id",
-    "witness_storage_account_arm_id",
-    "workload_zone"
+    "witness_storage_account_arm_id"
 ];
 var hanadb_sizes = [
     {

@@ -835,7 +835,7 @@ $$endpoint_subnet_address_prefix$$
 # If defined, specifies Azure resource identifier for the existing subnet to use
 $$endpoint_subnet_arm_id$$
 
-# If defined, specifies Azure resource identifier for the existing network security group to use
+# If defined, specifies the name of the endpoint
 $$endpoint_subnet_nsg_name$$
 
 # If defined, specifies Azure resource identifier for the existing network security group to use
