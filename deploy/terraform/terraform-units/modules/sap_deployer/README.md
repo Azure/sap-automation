@@ -1,4 +1,6 @@
 <!-- BEGIN_TF_DOCS -->
+
+
 ## Requirements
 
 | Name | Version |
@@ -65,6 +67,7 @@ No modules.
 | [azurerm_linux_virtual_machine.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
 | [azurerm_management_lock.keyvault](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/management_lock) | resource |
 | [azurerm_network_interface.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
+| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_group.nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter) | resource |
 | [azurerm_network_security_perimeter_association.app_config](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_association) | resource |
@@ -111,6 +114,7 @@ No modules.
 | [azurerm_subnet.subnet_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.webapp](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet_network_security_group_association.associate_nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_network_security_group_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_user_assigned_identity.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/user_assigned_identity) | resource |
 | [azurerm_virtual_machine_extension.configure](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_deployer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
@@ -137,6 +141,7 @@ No modules.
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/client_config) | data source |
 | [azurerm_client_config.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault.kv_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/key_vault) | data source |
+| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
 | [azurerm_network_security_group.nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
 | [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter) | data source |
 | [azurerm_private_dns_zone.appconfig](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/private_dns_zone) | data source |
@@ -172,9 +177,6 @@ No modules.
 | <a name="input_bootstrap"></a> [bootstrap](#input\_bootstrap) | Defines the phase of deployment | `any` | n/a | yes |
 | <a name="input_configure"></a> [configure](#input\_configure) | Value indicating if deployer should be configured | `any` | n/a | yes |
 | <a name="input_deployer"></a> [deployer](#input\_deployer) | Dictionary of information about the deployer | `any` | n/a | yes |
-| <a name="input_deployer_vm_count"></a> [deployer\_vm\_count](#input\_deployer\_vm\_count) | Number of deployer VMs to create | `number` | `1` | no |
-| <a name="input_dns_settings"></a> [dns\_settings](#input\_dns\_settings) | DNS details for the deployment | `map` | `{}` | no |
-| <a name="input_enable_firewall_for_keyvaults_and_storage"></a> [enable\_firewall\_for\_keyvaults\_and\_storage](#input\_enable\_firewall\_for\_keyvaults\_and\_storage) | Boolean value indicating if firewall should be enabled for key vaults and storage | `bool` | `false` | no |
 | <a name="input_enable_purge_control_for_keyvaults"></a> [enable\_purge\_control\_for\_keyvaults](#input\_enable\_purge\_control\_for\_keyvaults) | Disables the purge protection for Azure keyvaults. | `any` | n/a | yes |
 | <a name="input_firewall"></a> [firewall](#input\_firewall) | Dictionary of Firewall settings | `any` | n/a | yes |
 | <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary of information about the common infrastructure | `any` | n/a | yes |
@@ -184,17 +186,20 @@ No modules.
 | <a name="input_network_logical_name"></a> [network\_logical\_name](#input\_network\_logical\_name) | Logical name of the network | `any` | n/a | yes |
 | <a name="input_options"></a> [options](#input\_options) | Dictionary of miscallaneous parameters | `any` | n/a | yes |
 | <a name="input_place_delete_lock_on_resources"></a> [place\_delete\_lock\_on\_resources](#input\_place\_delete\_lock\_on\_resources) | If defined, a delete lock will be placed on the key resources | `any` | n/a | yes |
-| <a name="input_platform"></a> [platform](#input\_platform) | Type of agent to be used | `string` | `"devops"` | no |
 | <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled) | Defines if the public access should be enabled for keyvaults and storage accounts | `any` | n/a | yes |
 | <a name="input_sa_connection_string"></a> [sa\_connection\_string](#input\_sa\_connection\_string) | Storage account connection string | `any` | n/a | yes |
 | <a name="input_set_secret_expiry"></a> [set\_secret\_expiry](#input\_set\_secret\_expiry) | Set expiry date for secrets | `any` | n/a | yes |
 | <a name="input_soft_delete_retention_days"></a> [soft\_delete\_retention\_days](#input\_soft\_delete\_retention\_days) | The number of days that items should be retained in the soft delete period | `any` | n/a | yes |
 | <a name="input_spn_id"></a> [spn\_id](#input\_spn\_id) | SPN ID to be used for the deployment | `any` | n/a | yes |
 | <a name="input_ssh-timeout"></a> [ssh-timeout](#input\_ssh-timeout) | SSH timeout | `any` | n/a | yes |
-| <a name="input_subnets_to_add"></a> [subnets\_to\_add](#input\_subnets\_to\_add) | List of subnets to add to storage account and keyvaults firewall | `list` | `[]` | no |
 | <a name="input_use_private_endpoint"></a> [use\_private\_endpoint](#input\_use\_private\_endpoint) | Boolean value indicating if private endpoint should be used for the deployment | `any` | n/a | yes |
 | <a name="input_use_service_endpoint"></a> [use\_service\_endpoint](#input\_use\_service\_endpoint) | Boolean value indicating if service endpoints should be used for the deployment | `any` | n/a | yes |
 | <a name="input_webapp_client_secret"></a> [webapp\_client\_secret](#input\_webapp\_client\_secret) | App registration client secret | `any` | n/a | yes |
+| <a name="input_deployer_vm_count"></a> [deployer\_vm\_count](#input\_deployer\_vm\_count) | Number of deployer VMs to create | `number` | `1` | no |
+| <a name="input_dns_settings"></a> [dns\_settings](#input\_dns\_settings) | DNS details for the deployment | `map` | `{}` | no |
+| <a name="input_enable_firewall_for_keyvaults_and_storage"></a> [enable\_firewall\_for\_keyvaults\_and\_storage](#input\_enable\_firewall\_for\_keyvaults\_and\_storage) | Boolean value indicating if firewall should be enabled for key vaults and storage | `bool` | `false` | no |
+| <a name="input_platform"></a> [platform](#input\_platform) | Type of agent to be used | `string` | `"devops"` | no |
+| <a name="input_subnets_to_add"></a> [subnets\_to\_add](#input\_subnets\_to\_add) | List of subnets to add to storage account and keyvaults firewall | `list` | `[]` | no |
 
 ## Outputs
 
@@ -245,4 +250,5 @@ No modules.
 | <a name="output_webapp_id"></a> [webapp\_id](#output\_webapp\_id) | Webapp ID |
 | <a name="output_webapp_identity"></a> [webapp\_identity](#output\_webapp\_identity) | Webapp Identity |
 | <a name="output_webapp_url_base"></a> [webapp\_url\_base](#output\_webapp\_url\_base) | Webapp URL Base |
+
 <!-- END_TF_DOCS -->

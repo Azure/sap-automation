@@ -1,4 +1,17 @@
 <!-- BEGIN_TF_DOCS -->
+# Module Description
+
+This folder contains the terraform templates for the SAP landscape deployment module.
+
+## variables\_global.tf
+The file variables\_global.tf contains the input variables that are required by the module.
+
+## outputs.tf
+The file outputs.tf contains the output variables that are exposed by the module.
+
+## variables\_local.tf
+The file variables\_local.tf contains the local variables that are required by the module.
+
 ## Requirements
 
 | Name | Version |
@@ -227,42 +240,42 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_AFS_enable_encryption_in_transit"></a> [AFS\_enable\_encryption\_in\_transit](#input\_AFS\_enable\_encryption\_in\_transit) | Enable encryption in transit for Azure Files | `bool` | `false` | no |
-| <a name="input_ANF_settings"></a> [ANF\_settings](#input\_ANF\_settings) | ANF settings | `map` | <pre>{<br/>  "arm_id": "",<br/>  "export_policy_client_access_list": [],<br/>  "install_volume_name": "",<br/>  "install_volume_size": 128,<br/>  "install_volume_throughput": 32,<br/>  "name": "",<br/>  "pool_name": "",<br/>  "qos_type": "Manual",<br/>  "service_level": "Standard",<br/>  "size_in_tb": 4,<br/>  "transport_volume_name": "",<br/>  "transport_volume_size": 32,<br/>  "transport_volume_throughput": 32,<br/>  "use": false,<br/>  "use_existing_install_volume": false,<br/>  "use_existing_pool": false,<br/>  "use_existing_transport_volume": false<br/>}</pre> | no |
-| <a name="input_Agent_IP"></a> [Agent\_IP](#input\_Agent\_IP) | If provided, contains the IP address of the agent | `string` | `""` | no |
 | <a name="input_NFS_provider"></a> [NFS\_provider](#input\_NFS\_provider) | Describes the NFS solution used | `any` | n/a | yes |
-| <a name="input_additional_network_id"></a> [additional\_network\_id](#input\_additional\_network\_id) | Agent Network resource ID | `string` | `""` | no |
 | <a name="input_additional_users_to_add_to_keyvault_policies"></a> [additional\_users\_to\_add\_to\_keyvault\_policies](#input\_additional\_users\_to\_add\_to\_keyvault\_policies) | Additional users to add to the key vault policies | `any` | n/a | yes |
-| <a name="input_authentication"></a> [authentication](#input\_authentication) | Details of ssh key pair | `map` | <pre>{<br/>  "password": "",<br/>  "path_to_private_key": "",<br/>  "path_to_public_key": "",<br/>  "username": "azureadm"<br/>}</pre> | no |
 | <a name="input_create_transport_storage"></a> [create\_transport\_storage](#input\_create\_transport\_storage) | Boolean file indicating if storage should be created for SAP transport | `any` | n/a | yes |
-| <a name="input_data_plane_available"></a> [data\_plane\_available](#input\_data\_plane\_available) | Boolean value indicating if storage account access is via data plane | `bool` | `true` | no |
 | <a name="input_deployer_tfstate"></a> [deployer\_tfstate](#input\_deployer\_tfstate) | Deployer remote tfstate file | `any` | n/a | yes |
-| <a name="input_deployment"></a> [deployment](#input\_deployment) | The type of deployment | `string` | `"update"` | no |
-| <a name="input_diagnostics_storage_account"></a> [diagnostics\_storage\_account](#input\_diagnostics\_storage\_account) | Storage account information for diagnostics account | `map` | <pre>{<br/>  "arm_id": ""<br/>}</pre> | no |
 | <a name="input_dns_settings"></a> [dns\_settings](#input\_dns\_settings) | DNS namespace | `any` | n/a | yes |
 | <a name="input_enable_firewall_for_keyvaults_and_storage"></a> [enable\_firewall\_for\_keyvaults\_and\_storage](#input\_enable\_firewall\_for\_keyvaults\_and\_storage) | Boolean value indicating if firewall should be enabled for key vaults and storage | `any` | n/a | yes |
-| <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Details of the Azure infrastructure to deploy the SAP landscape into | `map` | `{}` | no |
 | <a name="input_install_always_create_fileshares"></a> [install\_always\_create\_fileshares](#input\_install\_always\_create\_fileshares) | Value indicating if file shares are created ehen using existing storage accounts | `any` | n/a | yes |
-| <a name="input_install_create_smb_shares"></a> [install\_create\_smb\_shares](#input\_install\_create\_smb\_shares) | Value indicating if SMB shares should be created | `bool` | `true` | no |
 | <a name="input_install_private_endpoint_id"></a> [install\_private\_endpoint\_id](#input\_install\_private\_endpoint\_id) | Azure Resource Identifier for an private endpoint connection | `any` | n/a | yes |
 | <a name="input_install_storage_account_id"></a> [install\_storage\_account\_id](#input\_install\_storage\_account\_id) | Azure Resource Identifier for an existing storage account | `any` | n/a | yes |
 | <a name="input_install_volume_size"></a> [install\_volume\_size](#input\_install\_volume\_size) | The volume size in GB for install volume | `any` | n/a | yes |
-| <a name="input_key_vault"></a> [key\_vault](#input\_key\_vault) | The user brings existing Azure Key Vaults | `map` | `{}` | no |
 | <a name="input_keyvault_private_endpoint_id"></a> [keyvault\_private\_endpoint\_id](#input\_keyvault\_private\_endpoint\_id) | Existing private endpoint for key vault | `any` | n/a | yes |
 | <a name="input_naming"></a> [naming](#input\_naming) | Defines the names for the resources | `any` | n/a | yes |
 | <a name="input_options"></a> [options](#input\_options) | Configuration options | `any` | n/a | yes |
 | <a name="input_peer_with_control_plane_vnet"></a> [peer\_with\_control\_plane\_vnet](#input\_peer\_with\_control\_plane\_vnet) | Defines in the SAP VNet will be peered with the controlplane VNet | `any` | n/a | yes |
 | <a name="input_place_delete_lock_on_resources"></a> [place\_delete\_lock\_on\_resources](#input\_place\_delete\_lock\_on\_resources) | If defined, a delete lock will be placed on the key resources | `any` | n/a | yes |
-| <a name="input_private_endpoint_network_policies"></a> [private\_endpoint\_network\_policies](#input\_private\_endpoint\_network\_policies) | Controls network policy support for private endpoints on workload zone subnets | `string` | `"Enabled"` | no |
 | <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled) | Defines if the public access should be enabled for keyvaults and storage accounts | `any` | n/a | yes |
-| <a name="input_storage_account_replication_type"></a> [storage\_account\_replication\_type](#input\_storage\_account\_replication\_type) | Storage account replication type | `string` | `"ZRS"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | List of tags to associate to all resources | `any` | n/a | yes |
 | <a name="input_terraform_template_version"></a> [terraform\_template\_version](#input\_terraform\_template\_version) | The version of Terraform templates that were identified in the state file | `any` | n/a | yes |
 | <a name="input_transport_private_endpoint_id"></a> [transport\_private\_endpoint\_id](#input\_transport\_private\_endpoint\_id) | Azure Resource Identifier for an private endpoint connection | `any` | n/a | yes |
 | <a name="input_transport_storage_account_id"></a> [transport\_storage\_account\_id](#input\_transport\_storage\_account\_id) | Azure Resource Identifier for an existing storage account | `any` | n/a | yes |
 | <a name="input_transport_volume_size"></a> [transport\_volume\_size](#input\_transport\_volume\_size) | The volume size in GB for transport volume | `any` | n/a | yes |
-| <a name="input_use_AFS_for_shared_storage"></a> [use\_AFS\_for\_shared\_storage](#input\_use\_AFS\_for\_shared\_storage) | If true, will use AFS for installation media. | `bool` | `false` | no |
 | <a name="input_use_deployer"></a> [use\_deployer](#input\_use\_deployer) | Use the deployer | `any` | n/a | yes |
+| <a name="input_AFS_enable_encryption_in_transit"></a> [AFS\_enable\_encryption\_in\_transit](#input\_AFS\_enable\_encryption\_in\_transit) | Enable encryption in transit for Azure Files | `bool` | `false` | no |
+| <a name="input_ANF_settings"></a> [ANF\_settings](#input\_ANF\_settings) | ANF settings | `map` | <pre>{<br/>  "arm_id": "",<br/>  "export_policy_client_access_list": [],<br/>  "install_volume_name": "",<br/>  "install_volume_size": 128,<br/>  "install_volume_throughput": 32,<br/>  "name": "",<br/>  "pool_name": "",<br/>  "qos_type": "Manual",<br/>  "service_level": "Standard",<br/>  "size_in_tb": 4,<br/>  "transport_volume_name": "",<br/>  "transport_volume_size": 32,<br/>  "transport_volume_throughput": 32,<br/>  "use": false,<br/>  "use_existing_install_volume": false,<br/>  "use_existing_pool": false,<br/>  "use_existing_transport_volume": false<br/>}</pre> | no |
+| <a name="input_Agent_IP"></a> [Agent\_IP](#input\_Agent\_IP) | If provided, contains the IP address of the agent | `string` | `""` | no |
+| <a name="input_additional_network_id"></a> [additional\_network\_id](#input\_additional\_network\_id) | Agent Network resource ID | `string` | `""` | no |
+| <a name="input_authentication"></a> [authentication](#input\_authentication) | Details of ssh key pair | `map` | <pre>{<br/>  "password": "",<br/>  "path_to_private_key": "",<br/>  "path_to_public_key": "",<br/>  "username": "azureadm"<br/>}</pre> | no |
+| <a name="input_data_plane_available"></a> [data\_plane\_available](#input\_data\_plane\_available) | Boolean value indicating if storage account access is via data plane | `bool` | `true` | no |
+| <a name="input_deployment"></a> [deployment](#input\_deployment) | The type of deployment | `string` | `"update"` | no |
+| <a name="input_diagnostics_storage_account"></a> [diagnostics\_storage\_account](#input\_diagnostics\_storage\_account) | Storage account information for diagnostics account | `map` | <pre>{<br/>  "arm_id": ""<br/>}</pre> | no |
+| <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Details of the Azure infrastructure to deploy the SAP landscape into | `map` | `{}` | no |
+| <a name="input_install_create_smb_shares"></a> [install\_create\_smb\_shares](#input\_install\_create\_smb\_shares) | Value indicating if SMB shares should be created | `bool` | `true` | no |
+| <a name="input_key_vault"></a> [key\_vault](#input\_key\_vault) | The user brings existing Azure Key Vaults | `map` | `{}` | no |
+| <a name="input_private_endpoint_network_policies"></a> [private\_endpoint\_network\_policies](#input\_private\_endpoint\_network\_policies) | Controls network policy support for private endpoints on workload zone subnets | `string` | `"Enabled"` | no |
+| <a name="input_storage_account_replication_type"></a> [storage\_account\_replication\_type](#input\_storage\_account\_replication\_type) | Storage account replication type | `string` | `"ZRS"` | no |
+| <a name="input_use_AFS_for_shared_storage"></a> [use\_AFS\_for\_shared\_storage](#input\_use\_AFS\_for\_shared\_storage) | If true, will use AFS for installation media. | `bool` | `false` | no |
 | <a name="input_use_private_endpoint"></a> [use\_private\_endpoint](#input\_use\_private\_endpoint) | Boolean value indicating if private endpoint should be used for the deployment | `bool` | `false` | no |
 | <a name="input_use_service_endpoint"></a> [use\_service\_endpoint](#input\_use\_service\_endpoint) | Boolean value indicating if service endpoints should be used for the deployment | `bool` | `false` | no |
 | <a name="input_utility_storage_settings"></a> [utility\_storage\_settings](#input\_utility\_storage\_settings) | List of utility storage account configurations normalized from transform.tf. | <pre>list(object({<br/>                                                             name                       = string<br/>                                                             account_kind               = string<br/>                                                             account_tier               = string<br/>                                                             account_replication_type    = string<br/>                                                             https_traffic_only_enabled = bool<br/>                                                             file_shares = list(object({<br/>                                                               name     = string<br/>                                                               quota    = number<br/>                                                               protocol = string<br/>                                                             }))<br/>                                                             blob_containers = list(object({<br/>                                                               name = string<br/>                                                               immutability_policy = optional(object({<br/>                                                                 immutability_period_in_days = optional(number, 30)<br/>                                                                 locked                      = optional(bool, false)<br/>                                                                 allow_irreversible_lock     = optional(bool, false)<br/>                                                                 protected_append_writes     = optional(string, "none")<br/>                                                               }), null)<br/>                                                             }))<br/>                                                             versioning_enabled = optional(bool, false)<br/>                                                             version_level_immutability = optional(object({<br/>                                                               immutability_period_in_days   = optional(number, 30)<br/>                                                               state                         = optional(string, "Unlocked")<br/>                                                               allow_protected_append_writes = optional(bool, false)<br/>                                                               allow_irreversible_lock       = optional(bool, false)<br/>                                                             }), null)<br/>                                                           }))</pre> | `[]` | no |
@@ -326,6 +339,7 @@ No modules.
 | <a name="output_user_credential_vault_id"></a> [user\_credential\_vault\_id](#output\_user\_credential\_vault\_id) | Azure resource identifier for the user credential keyvault |
 | <a name="output_utility_account_version_level_immutability_settings"></a> [utility\_account\_version\_level\_immutability\_settings](#output\_utility\_account\_version\_level\_immutability\_settings) | Resolved utility storage account version-level immutability settings for terraform test diagnostics |
 | <a name="output_utility_container_immutability_policy_settings"></a> [utility\_container\_immutability\_policy\_settings](#output\_utility\_container\_immutability\_policy\_settings) | Resolved utility container immutability policy settings for terraform test diagnostics |
+| <a name="output_utility_private_endpoint_subnet_ids"></a> [utility\_private\_endpoint\_subnet\_ids](#output\_utility\_private\_endpoint\_subnet\_ids) | Utility file and blob private endpoint subnet IDs for terraform test diagnostics |
 | <a name="output_utility_storage_account_ids"></a> [utility\_storage\_account\_ids](#output\_utility\_storage\_account\_ids) | List of utility storage account IDs |
 | <a name="output_utility_storage_account_names"></a> [utility\_storage\_account\_names](#output\_utility\_storage\_account\_names) | List of utility storage account names |
 | <a name="output_utility_vm_computer_names"></a> [utility\_vm\_computer\_names](#output\_utility\_vm\_computer\_names) | Planned utility VM computer names |
@@ -338,4 +352,5 @@ No modules.
 | <a name="output_witness_storage_account"></a> [witness\_storage\_account](#output\_witness\_storage\_account) | Witness storage account |
 | <a name="output_witness_storage_account_key"></a> [witness\_storage\_account\_key](#output\_witness\_storage\_account\_key) | Witness storage account key |
 | <a name="output_workload_zone_prefix"></a> [workload\_zone\_prefix](#output\_workload\_zone\_prefix) | Workload zone prefix |
+
 <!-- END_TF_DOCS -->

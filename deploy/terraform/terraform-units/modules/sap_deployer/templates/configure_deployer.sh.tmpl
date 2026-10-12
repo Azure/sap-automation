@@ -498,7 +498,6 @@ required_pkgs=(
   curl
   gnupg
   python3-pip
-  python3-virtualenv
 )
 
 cli_pkgs=(
@@ -512,6 +511,7 @@ ubuntu)
   )
   required_pkgs+=(
     sshpass
+    python3-virtualenv
     apt-transport-https
     lsb-release
     software-properties-common
@@ -523,6 +523,7 @@ sles)
   )
   required_pkgs+=(
     curl
+    python3-virtualenv
     lsb-release
     libicu77
 
@@ -535,20 +536,18 @@ rhel)
   )
   major_version=$(echo "$(get_distro_version)" | cut -d'.' -f1)
 
-	cli_pkgs+=(
-		azure-cli
-	)
-	if [ "$$major_version" -eq 9 ]; then
-	required_pkgs+=(
-		python311
-	)
-	fi
-	if [ "$$major_version" -eq 8 ]; then
-	required_pkgs+=(
-		python36
-		python3-virtualenv
-	)
-	fi
+  if [ "$major_version" -eq 9 ]; then
+    required_pkgs+=(
+      python3.11
+      python3.11-pip
+    )
+  fi
+  if [ "$major_version" -eq 8 ]; then
+    required_pkgs+=(
+      python36
+      python3-virtualenv
+    )
+  fi
   required_pkgs+=(
     sshpass
   )
@@ -616,14 +615,16 @@ sles)
   ;;
 rhel)
   echo "we are inside RHEL block"
-if [[ "$(get_distro_version)" == "8."* ]]; then
-		ansible_version="2.11"
-	elif [[ "$(get_distro_version)" == "9."* ]]; then
-		ansible_version="2.15"
-	else
-		ansible_version="2.16"
-	fi
-	ansible_major="$${ansible_version%%.*}"
+  ansible_python="python3"
+  if [[ "$(get_distro_version)" == "8."* ]]; then
+    ansible_version="2.11"
+  elif [[ "$(get_distro_version)" == "9."* ]]; then
+    ansible_version="2.16"
+    ansible_python="python3.11"
+  else
+    ansible_version="2.16"
+  fi
+  ansible_major="$${ansible_version%%.*}"
   ansible_minor=$(echo "$${ansible_version}." | cut -d . -f 2)
   # Ansible installation directories
   ansible_base="/opt/ansible"
@@ -632,7 +633,6 @@ if [[ "$(get_distro_version)" == "8."* ]]; then
   ansible_venv_bin="$${ansible_venv}/bin"
   ansible_collections="$${ansible_base}/collections"
   ansible_pip3="$${ansible_venv_bin}/pip3"
-  sudo python3 -m pip install virtualenv==20.26.6
   ;;
 *)
   echo "we are in the default case statement"
@@ -763,7 +763,7 @@ case "$(get_distro_name)" in
 rhel)
   if [[ ! -e "$${ansible_venv_bin}/activate" ]]; then
     sudo rm -rf "$${ansible_venv}"
-    sudo python3 -m venv "$${ansible_venv}"
+    sudo "$${ansible_python}" -m venv "$${ansible_venv}"
     source "$${ansible_venv_bin}/activate"
   fi
   ;;

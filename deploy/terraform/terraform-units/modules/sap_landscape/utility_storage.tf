@@ -240,9 +240,13 @@ resource "azurerm_private_endpoint" "utility_file" {
                                           azurerm_resource_group.resource_group[0].location
                                         )
 
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
-                                           var.infrastructure.virtual_networks.sap.subnet_app.id) : (
-                                           azurerm_subnet.app[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                 var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                 azurerm_subnet.app[0].id)
                                          )
 
   private_service_connection {
@@ -317,9 +321,13 @@ resource "azurerm_private_endpoint" "utility_blob" {
                                           azurerm_resource_group.resource_group[0].location
                                         )
 
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
-                                           var.infrastructure.virtual_networks.sap.subnet_app.id) : (
-                                           azurerm_subnet.app[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                 var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                 azurerm_subnet.app[0].id)
                                          )
 
   private_service_connection {

@@ -344,6 +344,120 @@ variables {
 }
 
 
+run "legacy_nested_resource_group_name_is_preserved" {
+  command = plan
+
+  variables {
+    resourcegroup_name = ""
+    resourcegroup_arm_id = ""
+    infrastructure = {
+      resource_group = {
+        name = "rg-legacy-landscape"
+      }
+    }
+  }
+
+  assert {
+    condition     = module.sap_landscape.created_resource_group_name == "rg-legacy-landscape"
+    error_message = "Legacy nested resource group names must remain supported when flat overrides are empty."
+  }
+}
+
+run "flat_resource_group_name_overrides_nested_name" {
+  command = plan
+
+  variables {
+    resourcegroup_name = "rg-flat-landscape"
+    resourcegroup_arm_id = ""
+    infrastructure = {
+      resource_group = {
+        name = "rg-legacy-landscape"
+      }
+    }
+  }
+
+  assert {
+    condition     = module.sap_landscape.created_resource_group_name == "rg-flat-landscape"
+    error_message = "An explicit flat resource group name must take precedence over the legacy nested name."
+  }
+}
+
+run "utility_endpoints_use_existing_endpoint_subnet" {
+  command = plan
+
+  variables {
+    use_private_endpoint = true
+    utility_storage_accounts = [{
+      name                     = "utilendpoint01"
+      account_kind             = "StorageV2"
+      account_tier             = "Standard"
+      account_replication_type = "LRS"
+      file_shares              = [{ name = "share01", quota = 100, protocol = "SMB" }]
+      blob_containers          = [{ name = "container01" }]
+    }]
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_private_endpoint_subnet_ids.file[0] == var.endpoint_subnet_arm_id && module.sap_landscape.utility_private_endpoint_subnet_ids.blob[0] == var.endpoint_subnet_arm_id
+    error_message = "Both utility private endpoints must use the supplied endpoint subnet."
+  }
+}
+
+run "utility_endpoints_use_created_endpoint_subnet" {
+  command = plan
+
+  override_resource {
+    target = module.sap_landscape.azurerm_subnet.endpoint
+    override_during = plan
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/new-endpoint"
+    }
+  }
+
+  variables {
+    use_private_endpoint          = true
+    endpoint_subnet_arm_id         = ""
+    endpoint_subnet_nsg_arm_id     = ""
+    endpoint_subnet_address_prefix = "10.10.9.0/24"
+    utility_storage_accounts = [{
+      name                     = "utilendpoint01"
+      account_kind             = "StorageV2"
+      account_tier             = "Standard"
+      account_replication_type = "LRS"
+      file_shares              = [{ name = "share01", quota = 100, protocol = "SMB" }]
+      blob_containers          = [{ name = "container01" }]
+    }]
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_private_endpoint_subnet_ids.file[0] == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/new-endpoint" && module.sap_landscape.utility_private_endpoint_subnet_ids.blob[0] == module.sap_landscape.utility_private_endpoint_subnet_ids.file[0]
+    error_message = "Both utility private endpoints must use the newly created endpoint subnet."
+  }
+}
+
+run "utility_endpoints_fall_back_to_application_subnet" {
+  command = plan
+
+  variables {
+    use_private_endpoint      = true
+    endpoint_subnet_arm_id     = ""
+    endpoint_subnet_nsg_arm_id = ""
+    utility_storage_accounts = [{
+      name                     = "utilendpoint01"
+      account_kind             = "StorageV2"
+      account_tier             = "Standard"
+      account_replication_type = "LRS"
+      file_shares              = [{ name = "share01", quota = 100, protocol = "SMB" }]
+      blob_containers          = [{ name = "container01" }]
+    }]
+  }
+
+  assert {
+    condition     = module.sap_landscape.utility_private_endpoint_subnet_ids.file[0] == var.app_subnet_arm_id && module.sap_landscape.utility_private_endpoint_subnet_ids.blob[0] == var.app_subnet_arm_id
+    error_message = "Without an endpoint subnet, both utility private endpoints must retain the application-subnet fallback."
+  }
+}
+
 run "workload_zone_prefix_matches_namegenerator" {
   command = plan
 

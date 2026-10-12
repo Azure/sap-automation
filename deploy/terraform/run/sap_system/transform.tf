@@ -476,7 +476,7 @@ locals {
                                             id                     = var.endpoint_subnet_arm_id
                                             exists                 = length(var.endpoint_subnet_arm_id) > 0
                                             prefix                 = var.endpoint_subnet_address_prefix
-                                            defined                = length(var.endpoint_subnet_address_prefix) > 0
+                                            defined                = length(var.endpoint_subnet_address_prefix) > 0 && length(var.endpoint_subnet_arm_id) == 0 && length(try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")) == 0
                                             exists_in_workload     = length(try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")) > 0
                                             id_in_workload         = try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")
                                             nsg                    = {

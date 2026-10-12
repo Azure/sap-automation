@@ -5,8 +5,8 @@
 locals {
 
   resource_group                       = {
-                                            name   = var.resourcegroup_name
-                                            id     = var.resourcegroup_arm_id
+                                            name   = try(coalesce(var.resourcegroup_name, try(var.infrastructure.resource_group.name, "")), "")
+                                            id     = try(coalesce(var.resourcegroup_arm_id, try(var.infrastructure.resource_group.arm_id, ""), try(var.infrastructure.resource_group.id, "")), "")
                                          }
   resource_group_defined               = (
                                            length(local.resource_group.name) +

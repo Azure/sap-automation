@@ -825,6 +825,14 @@ output "network_resource_counts"                    {
                                                      }
                                                     }
 
+output "utility_private_endpoint_subnet_ids"      {
+                                                   description = "Utility file and blob private endpoint subnet IDs for terraform test diagnostics"
+                                                   value = {
+                                                     file = azurerm_private_endpoint.utility_file[*].subnet_id
+                                                     blob = azurerm_private_endpoint.utility_blob[*].subnet_id
+                                                   }
+                                                 }
+
 output "utility_container_immutability_policy_settings" {
                                                      description = "Resolved utility container immutability policy settings for terraform test diagnostics"
                                                      value = {

@@ -7,6 +7,29 @@
 |                                                                              |
 +--------------------------------------4--------------------------------------*/
 
+resource "azurerm_network_security_group" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined && !(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists_in_workload) ? 1 : 0
+  name                                 = local.endpoint_subnet_nsg_name
+  resource_group_name                  = var.options.nsg_asg_with_vnet ? data.azurerm_virtual_network.vnet_sap.resource_group_name : local.resourcegroup_name
+  location                             = var.options.nsg_asg_with_vnet ? data.azurerm_virtual_network.vnet_sap.location : (local.resource_group_exists ? data.azurerm_resource_group.resource_group[0].location : azurerm_resource_group.resource_group[0].location)
+  tags                                 = var.tags
+}
+
+data "azurerm_network_security_group" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined && (var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists_in_workload) ? 1 : 0
+  name                                 = local.endpoint_subnet_nsg_name
+  resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id, var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id_in_workload))[4]
+}
+
+resource "azurerm_subnet_network_security_group_association" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? 1 : 0
+  subnet_id                            = azurerm_subnet.endpoint[0].id
+  network_security_group_id            = var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists_in_workload ? data.azurerm_network_security_group.endpoint[0].id : azurerm_network_security_group.endpoint[0].id
+}
+
 # Creates SAP db subnet nsg
 resource "azurerm_network_security_group" "db" {
   provider                             = azurerm.main

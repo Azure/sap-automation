@@ -359,9 +359,10 @@ rhel)
 		azure-cli
 	)
 	if [ "$major_version" -eq 9 ]; then
-	required_pkgs+=(
-		python311
-	)
+		required_pkgs+=(
+			python3.11
+			python3.11-pip
+		)
 	fi
 	if [ "$major_version" -eq 8 ]; then
 	required_pkgs+=(
@@ -427,10 +428,12 @@ sles)
 	;;
 rhel)
 	echo "we are inside RHEL"
+	ansible_python="python3"
 	if [[ "$(get_distro_version)" == "8."* ]]; then
 		ansible_version="2.11"
 	elif [[ "$(get_distro_version)" == "9."* ]]; then
-		ansible_version="2.15"
+		ansible_version="2.16"
+		ansible_python="python3.11"
 	else
 		ansible_version="2.16"
 	fi
@@ -443,7 +446,6 @@ rhel)
 	ansible_venv_bin="${ansible_venv}/bin"
 	ansible_collections="${ansible_base}/collections"
 	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv
 	;;
 *)
 	echo "we are in the default case statement"
@@ -612,7 +614,7 @@ ubuntu | sles)
 rhel*)
 	if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
 		sudo rm -rf "${ansible_venv}"
-		sudo python3 -m venv "${ansible_venv}"
+		sudo "${ansible_python}" -m venv "${ansible_venv}"
 		source "${ansible_venv_bin}/activate"
 	fi
 	;;

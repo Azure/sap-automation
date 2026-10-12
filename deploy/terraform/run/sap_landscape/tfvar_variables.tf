@@ -356,7 +356,12 @@ variable "endpoint_subnet_arm_id"               {
 
 variable "endpoint_subnet_address_prefix"       {
                                                   description = "The address prefix for the endpoint subnet"
+                                                  type        = string
                                                   default     = ""
+                                                  validation    {
+                                                                  condition     = var.endpoint_subnet_address_prefix == "" || can(cidrhost(var.endpoint_subnet_address_prefix, 0))
+                                                                  error_message = "If specified the 'endpoint_subnet_address_prefix' variable must be a valid CIDR prefix."
+                                                                }
                                                 }
 
 variable "endpoint_subnet_nsg_name"             {

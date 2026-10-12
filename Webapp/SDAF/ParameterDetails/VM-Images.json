@@ -192,7 +192,7 @@
     }
   },
   {
-    "name": "Red Hat 9.8",
+    "name": "Red Hat 9.8 Apps",
     "data": {
       "os_type": "LINUX",
       "source_image_id": "",
