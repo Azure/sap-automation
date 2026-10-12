@@ -109,6 +109,13 @@ resource "azurerm_subnet" "endpoint" {
   service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }
 
+resource "azurerm_subnet_route_table_association" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0
+  subnet_id                            = azurerm_subnet.endpoint[0].id
+  route_table_id                       = var.landscape_tfstate.route_table_id
+}
+
 data "azurerm_subnet" "endpoint" {
   provider                             = azurerm.main
   count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? 1 : 0
