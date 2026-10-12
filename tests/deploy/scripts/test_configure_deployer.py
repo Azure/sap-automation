@@ -5,7 +5,6 @@ import subprocess
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS = [
     ROOT / "deploy/scripts/configure_deployer.sh",
