@@ -220,6 +220,7 @@ No modules.
 | <a name="output_deployer_user_assigned_identity"></a> [deployer\_user\_assigned\_identity](#output\_deployer\_user\_assigned\_identity) | Deployer System Assigned Identity |
 | <a name="output_diagnostics_account_id"></a> [diagnostics\_account\_id](#output\_diagnostics\_account\_id) | Diagnostics Storage Account ID |
 | <a name="output_diagnostics_storage_info"></a> [diagnostics\_storage\_info](#output\_diagnostics\_storage\_info) | Diagnostics storage account tags and network security posture for terraform test diagnostics |
+| <a name="output_endpoint_subnet_id"></a> [agent\_subnet\_id](#output\_agent\_subnet\_id) | Endpoint Subnet ID |
 | <a name="output_extension_ids"></a> [extension\_ids](#output\_extension\_ids) | Virtual machine extension id |
 | <a name="output_firewall_created_count"></a> [firewall\_created\_count](#output\_firewall\_created\_count) | Diagnostic count of created Azure Firewall resources |
 | <a name="output_firewall_id"></a> [firewall\_id](#output\_firewall\_id) | Firewall ID |

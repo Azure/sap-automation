@@ -711,6 +711,9 @@ if [[ "${ansible_version}" == "2.11" ]]; then
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
 elif [[ "${ansible_version}" == "2.15" ]]; then
+	echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection:1.19.0  --force --collections-path "${ansible_collections}"
+
+	echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements-azure.txt"
 	echo "Installing community.general"
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general==11.4.1 --force --collections-path "${ansible_collections}"
 	echo "Installing ansible.netcommon:5.1.2"

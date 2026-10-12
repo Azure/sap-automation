@@ -358,6 +358,49 @@ locals {
                                           )
                                         )
 
+  ##############################################################################################
+  #
+  #  Endpoint subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_name                 = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                          coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[10], ""),
+                                                    var.infrastructure.virtual_networks.sap.subnet_endpoint.name,
+                                                    format("%s%s%s%s",
+                                                      var.naming.resource_prefixes.endpoint_subnet,
+                                                      length(local.prefix) > 0 ? (
+                                                        local.prefix) : (
+                                                        var.infrastructure.environment
+                                                      ),
+                                                      var.naming.separator,
+                                                      var.naming.resource_suffixes.endpoint_subnet))): (
+                                          contains(keys(var.infrastructure.virtual_networks.sap), "subnet_endpoint") ?
+                                              can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload)) ?
+                                                try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload)[10], "") :
+                                                "":
+                                              "")
+
+  ##############################################################################################
+  #
+  #  Endpoint subnet NSG - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_nsg_name              = var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists_in_workload ? (
+                                          split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id, var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id_in_workload)))[8] : (
+                                          coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.name,
+                                                   format("%s%s%s%s",
+                                                     var.naming.resource_prefixes.endpoint_subnet_nsg,
+                                                     length(local.prefix) > 0 ? (
+                                                       local.prefix) : (
+                                                       var.infrastructure.environment
+                                                      ),
+                                                     var.naming.separator,
+                                                     var.naming.resource_suffixes.endpoint_subnet_nsg)
+                                          )
+                                        )
+
   // If the user specifies arm id of key vaults in input,
   // the key vault will be imported instead of using the landscape key vault
   user_key_vault_id                    = length(try(var.key_vault.keyvault_id_for_system_credentials, "")) > 0 ? (

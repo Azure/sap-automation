@@ -222,8 +222,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                               var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                            data.azurerm_subnet.subnet_mgmt[0].id) : (
                                            azurerm_subnet.subnet_mgmt[0].id)
-
-                                                                          )
+                                           )
   custom_network_interface_name        = format("%s%s%s%s",
                                            var.naming.resource_prefixes.keyvault_private_link,
                                            local.prefix,
