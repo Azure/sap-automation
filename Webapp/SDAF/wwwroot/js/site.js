@@ -21,6 +21,7 @@ var azureResourceIds = [
     "db_subnet_nsg_arm_id",
     "diagnostics_storage_account_arm_id",
     "endpoint_subnet_arm_id",
+    "endpoint_subnet_nsg_arm_id",
     "install_private_endpoint_id",
     "install_storage_account_id",
     "iscsi_subnet_arm_id",
