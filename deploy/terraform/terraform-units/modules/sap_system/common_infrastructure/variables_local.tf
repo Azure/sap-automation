@@ -391,13 +391,13 @@ locals {
                                           split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id, var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id_in_workload)))[8] : (
                                           coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.name,
                                                    format("%s%s%s%s",
-                                                     var.naming.resource_prefixes.endpoint_subnet_nsg,
+                                                     try(var.naming.resource_prefixes.endpoint_subnet_nsg,""),
                                                      length(local.prefix) > 0 ? (
                                                        local.prefix) : (
                                                        var.infrastructure.environment
                                                       ),
                                                      var.naming.separator,
-                                                     var.naming.resource_suffixes.endpoint_subnet_nsg)
+                                                     try(var.naming.resource_suffixes.endpoint_subnet_nsg,""))
                                           )
                                         )
 
