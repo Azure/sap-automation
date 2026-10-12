@@ -102,8 +102,8 @@ resource "azurerm_subnet" "endpoint" {
   provider                             = azurerm.main
   count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? 1 : 0
   name                                 = local.endpoint_subnet_name
-  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
-  virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
+  virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_endpoint.prefix]
 
   service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]

@@ -136,6 +136,14 @@ variables {
           exists  = false
           nsg     = { name = "", id = "", exists = false }
         }
+        subnet_endpoint = {
+          name    = ""
+          id      = ""
+          prefix  = ""
+          defined = false
+          exists  = false
+          nsg     = { name = "", id = "", exists = false }
+        }
         subnet_storage = {
           name    = ""
           id      = ""

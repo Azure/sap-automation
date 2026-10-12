@@ -1,6 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -112,10 +110,12 @@ No modules.
 | <a name="input_cloudinit_growpart_config"></a> [cloudinit\_growpart\_config](#input\_cloudinit\_growpart\_config) | A cloud-init config that configures automatic growpart expansion of root partition | `any` | n/a | yes |
 | <a name="input_custom_disk_sizes_filename"></a> [custom\_disk\_sizes\_filename](#input\_custom\_disk\_sizes\_filename) | Disk size json file | `any` | n/a | yes |
 | <a name="input_deploy_application_security_groups"></a> [deploy\_application\_security\_groups](#input\_deploy\_application\_security\_groups) | Defines if application security groups should be deployed | `any` | n/a | yes |
+| <a name="input_deployer_user"></a> [deployer\_user](#input\_deployer\_user) | Details of the users | `list` | `[]` | no |
 | <a name="input_deployment"></a> [deployment](#input\_deployment) | The type of deployment | `any` | n/a | yes |
 | <a name="input_dns_settings"></a> [dns\_settings](#input\_dns\_settings) | DNS Settings | `any` | n/a | yes |
 | <a name="input_fencing_role_name"></a> [fencing\_role\_name](#input\_fencing\_role\_name) | If specified the role name to use for the fencing | `any` | n/a | yes |
 | <a name="input_firewall_id"></a> [firewall\_id](#input\_firewall\_id) | Firewall (if any) id | `any` | n/a | yes |
+| <a name="input_idle_timeout_scs_ers"></a> [idle\_timeout\_scs\_ers](#input\_idle\_timeout\_scs\_ers) | Sets the idle timeout setting for the SCS and ERS loadbalancer | `number` | `4` | no |
 | <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary of information about the common infrastructure | `any` | n/a | yes |
 | <a name="input_landscape_tfstate"></a> [landscape\_tfstate](#input\_landscape\_tfstate) | Terraform output from the workload zone | `any` | n/a | yes |
 | <a name="input_license_type"></a> [license\_type](#input\_license\_type) | Specifies the license type for the OS | `any` | n/a | yes |
@@ -137,11 +137,9 @@ No modules.
 | <a name="input_tags"></a> [tags](#input\_tags) | If provided, tags for all resources | `any` | n/a | yes |
 | <a name="input_terraform_template_version"></a> [terraform\_template\_version](#input\_terraform\_template\_version) | The version of Terraform templates that were identified in the state file | `any` | n/a | yes |
 | <a name="input_use_admin_nic_for_asg"></a> [use\_admin\_nic\_for\_asg](#input\_use\_admin\_nic\_for\_asg) | If true, the admin nic will be assigned to the ASG instead of the second nic | `any` | n/a | yes |
+| <a name="input_use_loadbalancers_for_standalone_deployments"></a> [use\_loadbalancers\_for\_standalone\_deployments](#input\_use\_loadbalancers\_for\_standalone\_deployments) | Defines if load balancers are used even for standalone deployments | `bool` | `true` | no |
 | <a name="input_use_msi_for_clusters"></a> [use\_msi\_for\_clusters](#input\_use\_msi\_for\_clusters) | If true, the Pacemaker cluser will use a managed identity | `any` | n/a | yes |
 | <a name="input_use_scalesets_for_deployment"></a> [use\_scalesets\_for\_deployment](#input\_use\_scalesets\_for\_deployment) | Use Flexible Virtual Machine Scale Sets for the deployment | `any` | n/a | yes |
-| <a name="input_deployer_user"></a> [deployer\_user](#input\_deployer\_user) | Details of the users | `list` | `[]` | no |
-| <a name="input_idle_timeout_scs_ers"></a> [idle\_timeout\_scs\_ers](#input\_idle\_timeout\_scs\_ers) | Sets the idle timeout setting for the SCS and ERS loadbalancer | `number` | `4` | no |
-| <a name="input_use_loadbalancers_for_standalone_deployments"></a> [use\_loadbalancers\_for\_standalone\_deployments](#input\_use\_loadbalancers\_for\_standalone\_deployments) | Defines if load balancers are used even for standalone deployments | `bool` | `true` | no |
 | <a name="input_use_secondary_ips"></a> [use\_secondary\_ips](#input\_use\_secondary\_ips) | Use secondary IPs for the SAP System | `bool` | `false` | no |
 
 ## Outputs
@@ -182,5 +180,4 @@ No modules.
 | <a name="output_webdispatcher_server_secondary_ips"></a> [webdispatcher\_server\_secondary\_ips](#output\_webdispatcher\_server\_secondary\_ips) | Web dispatcher secondary IPs |
 | <a name="output_webdispatcher_server_vm_ids"></a> [webdispatcher\_server\_vm\_ids](#output\_webdispatcher\_server\_vm\_ids) | Web dispatcher virtual machine resource IDs |
 | <a name="output_webdispatcher_server_vm_names"></a> [webdispatcher\_server\_vm\_names](#output\_webdispatcher\_server\_vm\_names) | Web dispatcher virtual machine resource names |
-
 <!-- END_TF_DOCS -->
