@@ -241,6 +241,35 @@ run "invalid_environment" {
   ]
 }
 
+run "accepts_endpoint_subnet_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_arm_id         = ""
+    endpoint_subnet_nsg_arm_id     = ""
+    endpoint_subnet_address_prefix = "10.10.9.0/24"
+  }
+  assert {
+    condition     = module.sap_landscape.network_resource_counts.endpoint_subnet == 1
+    error_message = "A valid endpoint CIDR must be accepted."
+  }
+}
+
+run "rejects_endpoint_subnet_non_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "not-a-cidr"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
+
+run "rejects_endpoint_subnet_invalid_mask" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "10.10.9.0/33"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
+
 run "separate_storage_subnet_accepts_address_prefix" {
   command = plan
 
@@ -542,6 +571,56 @@ run "invalid_app_subnet_nsg_arm_id" {
 
   expect_failures = [
     var.app_subnet_nsg_arm_id,
+  ]
+}
+
+run "valid_endpoint_subnet_arm_id" {
+  command = plan
+
+  variables {
+    endpoint_subnet_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/endpointsubnet"
+  }
+
+  assert {
+    condition     = output.endpoint_subnet_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/endpointsubnet"
+    error_message = "A valid endpoint_subnet_arm_id value must keep the baseline plan healthy."
+  }
+}
+
+run "invalid_endpoint_subnet_arm_id" {
+  command = plan
+
+  variables {
+    endpoint_subnet_arm_id = "not-a-valid-value"
+  }
+
+  expect_failures = [
+    var.endpoint_subnet_arm_id,
+  ]
+}
+
+run "valid_endpoint_subnet_nsg_arm_id" {
+  command = plan
+
+  variables {
+    endpoint_subnet_nsg_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/endpointsubnet-nsg"
+  }
+
+  assert {
+    condition     = output.endpoint_nsg_id == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-sap-dev/providers/Microsoft.Network/networkSecurityGroups/endpointsubnet-nsg"
+    error_message = "A valid endpoint_subnet_nsg_arm_id value must keep the baseline plan healthy."
+  }
+}
+
+run "invalid_endpoint_subnet_nsg_arm_id" {
+  command = plan
+
+  variables {
+    endpoint_subnet_nsg_arm_id = "not-a-valid-value"
+  }
+
+  expect_failures = [
+    var.endpoint_subnet_nsg_arm_id,
   ]
 }
 

@@ -102,9 +102,13 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
                                           data.azurerm_resource_group.resource_group[0].location) : (
                                           azurerm_resource_group.resource_group[0].location
                                         )
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
-                                           var.infrastructure.virtual_networks.sap.subnet_app.id) : (
-                                           azurerm_subnet.app[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                 var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                 azurerm_subnet.app[0].id)
                                          )
   tags                                 = var.tags
 
@@ -238,9 +242,14 @@ resource "azurerm_private_endpoint" "witness_storage" {
                                           data.azurerm_resource_group.resource_group[0].location) : (
                                           azurerm_resource_group.resource_group[0].location
                                         )
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
-                                             var.infrastructure.virtual_networks.sap.subnet_db.id) : (
-                                             azurerm_subnet.db[0].id)
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                               var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
+                                                 var.infrastructure.virtual_networks.sap.subnet_db.id) : (
+                                                 azurerm_subnet.db[0].id)
+                                         )
 
   tags                                 = var.tags
   private_service_connection {
@@ -431,9 +440,14 @@ resource "azurerm_private_endpoint" "transport" {
                                           azurerm_resource_group.resource_group[0].location
                                         )
 
-  subnet_id                             = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
-                                            var.infrastructure.virtual_networks.sap.subnet_app.id) : (
-                                            azurerm_subnet.app[0].id)
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                 var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                 azurerm_subnet.app[0].id)
+                                         )
   private_service_connection {
                                name = format("%s%s%s",
                                         var.naming.resource_prefixes.storage_private_svc_transport,
@@ -621,7 +635,14 @@ resource "azurerm_private_endpoint" "install" {
                                           data.azurerm_resource_group.resource_group[0].location) : (
                                           azurerm_resource_group.resource_group[0].location
                                         )
-  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_app.exists ? var.infrastructure.virtual_networks.sap.subnet_app.id : azurerm_subnet.app[0].id
+  subnet_id                            = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                               var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                 var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                 azurerm_subnet.app[0].id)
+                                         )
 
 
   private_service_connection {

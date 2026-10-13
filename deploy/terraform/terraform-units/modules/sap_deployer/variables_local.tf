@@ -87,6 +87,55 @@ locals {
                                              )
                                          ))
 
+
+  ##############################################################################################
+  #
+  #  Endpoint subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_name                            = var.infrastructure.virtual_network.management.subnet_endpoint.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_network.management.subnet_endpoint.id)[10], "")) : (
+                                                      length(try(var.infrastructure.virtual_network.management.subnet_endpoint.name, "")) > 0 ? (
+                                                        var.infrastructure.virtual_network.management.subnet_endpoint.name) : (
+                                                        format("%s%s%s%s",
+                                                          try(var.naming.resource_prefixes.endpoint_subnet, ""),
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          try(var.naming.resource_suffixes.endpoint_subnet, "endpoint-subnet")
+                                                        )
+                                                      )
+
+                                                    )
+
+
+
+  ##############################################################################################
+  #
+  #  Endpoint subnet NSG - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_nsg_name                        =  var.infrastructure.virtual_network.management.subnet_endpoint.nsg.exists ? (
+                                                      try(split("/", var.infrastructure.virtual_network.management.subnet_endpoint.nsg.id)[8], "")) : (
+                                                      length(try(var.infrastructure.virtual_network.management.subnet_endpoint.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.virtual_network.management.subnet_endpoint.nsg.name) : (
+                                                        format("%s%s%s%s",
+                                                          try(var.naming.resource_prefixes.endpoint_subnet_nsg, ""),
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          try(var.naming.resource_suffixes.endpoint_subnet_nsg, "endpointSubnet-nsg")
+                                                        )
+                                                      )
+                                                    )
+
+
   management_subnet_nsg_allowed_ips    = var.infrastructure.virtual_network.management.subnet_mgmt.nsg.exists ? (
                                            []) : (
                                            length(var.infrastructure.virtual_network.management.subnet_mgmt.nsg.allowed_ips) > 0 ? (

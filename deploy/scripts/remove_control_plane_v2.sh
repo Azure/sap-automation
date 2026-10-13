@@ -47,7 +47,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
     path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-    export PATH=$path
+    export PATH=$PATH:$path
 fi
 
 banner_title="Remove Control Plane"

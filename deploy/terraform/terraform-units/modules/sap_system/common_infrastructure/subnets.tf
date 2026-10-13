@@ -95,3 +95,31 @@ data "azurerm_subnet" "storage" {
   resource_group_name                  = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.id, var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload))[4]
   virtual_network_name                 = split("/", coalesce(var.infrastructure.virtual_networks.sap.subnet_storage.id, var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload))[8]
 }
+
+
+// Creates endpoint subnet of SAP VNET
+resource "azurerm_subnet" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? 1 : 0
+  name                                 = local.endpoint_subnet_name
+  resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
+  virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
+  address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_endpoint.prefix]
+
+  service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
+}
+
+resource "azurerm_subnet_route_table_association" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined && length(var.landscape_tfstate.route_table_id) > 0 ? 1 : 0
+  subnet_id                            = azurerm_subnet.endpoint[0].id
+  route_table_id                       = var.landscape_tfstate.route_table_id
+}
+
+data "azurerm_subnet" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[10]
+  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[8]
+}

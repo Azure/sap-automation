@@ -337,68 +337,104 @@ namespace SDAFWebApp.Models
         [NetworkAddressValidator]
         public string network_arm_id { get; set; }
 
-        // Admin Subnet
 
-        [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
-        public string admin_subnet_address_prefix { get; set; }
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Admin subnet information                             |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string admin_subnet_name { get; set; }
 
         [SubnetArmIdValidator(ErrorMessage = "Invalid admin subnet arm id")]
         public string admin_subnet_arm_id { get; set; }
 
-        public string admin_subnet_name { get; set; }
+        [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
+        public string admin_subnet_address_prefix { get; set; }
+
+
+        public string admin_subnet_nsg_name { get; set; }
 
         [NsgArmIdValidator(ErrorMessage = "Invalid admin subnet nsg arm id")]
         public string admin_subnet_nsg_arm_id { get; set; }
 
-        public string admin_subnet_nsg_name { get; set; }
 
-        // Database subnet
 
-        //[Required]
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Database subnet information                          |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string db_subnet_name { get; set; }
+
         [AddressPrefixValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
         public string db_subnet_address_prefix { get; set; }
 
         [SubnetArmIdValidator(ErrorMessage = "Invalid db subnet arm id")]
         public string db_subnet_arm_id { get; set; }
-        public string db_subnet_name { get; set; }
+
+        public string db_subnet_nsg_name { get; set; }
 
         [NsgArmIdValidator(ErrorMessage = "Invalid db subnet nsg arm id")]
         public string db_subnet_nsg_arm_id { get; set; }
 
-        public string db_subnet_nsg_name { get; set; }
 
-        // Application Subnet
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Application subnet information                          |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+        public string app_subnet_name { get; set; }
 
-        //[Required]
         [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
         public string app_subnet_address_prefix { get; set; }
 
         [SubnetArmIdValidator(ErrorMessage = "Invalid app subnet arm id")]
         public string app_subnet_arm_id { get; set; }
 
-        public string app_subnet_name { get; set; }
+        public string app_subnet_nsg_name { get; set; }
 
         [NsgArmIdValidator(ErrorMessage = "Invalid app subnet nsg arm id")]
         public string app_subnet_nsg_arm_id { get; set; }
 
-        public string app_subnet_nsg_name { get; set; }
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Endpoint subnet information                          |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+        public string endpoint_subnet_name { get; set; }
 
-        // Web subnet
+        [AddressPrefixValidator(ErrorMessage = "Endpoint subnet address space must be a valid RFC 1918 address")]
+        public string endpoint_subnet_address_prefix { get; set; }
 
-        //[Required]
+        [SubnetArmIdValidator(ErrorMessage = "Invalid endpoint subnet arm id")]
+        public string endpoint_subnet_arm_id { get; set; }
+
+        public string endpoint_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid endpoint subnet nsg arm id")]
+        public string endpoint_subnet_nsg_arm_id { get; set; }
+
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Web subnet information                               |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+        public string web_subnet_name { get; set; }
+
+        //[SubnetRequired(subnetType: "web")]
         [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
         public string web_subnet_address_prefix { get; set; }
 
         [SubnetArmIdValidator(ErrorMessage = "Invalid web subnet arm id")]
         public string web_subnet_arm_id { get; set; }
 
-        public string web_subnet_name { get; set; }
+        public string web_subnet_nsg_name { get; set; }
 
         [NsgArmIdValidator(ErrorMessage = "Invalid web subnet nsg arm id")]
         public string web_subnet_nsg_arm_id { get; set; }
-
-        public string web_subnet_nsg_name { get; set; }
-
         public bool? nsg_asg_with_vnet { get; set; } = false;
 
         /*---------------------------------------------------------------------------8

@@ -98,6 +98,34 @@ resource "azurerm_subnet_network_security_group_association" "app" {
   network_security_group_id            = azurerm_network_security_group.app[0].id
 }
 
+# Creates endpoint subnet nsg
+resource "azurerm_network_security_group" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined && !var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? 1 : 0
+  name                                 = local.endpoint_subnet_nsg_name
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                           ) : (
+                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
+                                         )
+  location                             = var.infrastructure.virtual_networks.sap.exists ? (
+                                           data.azurerm_virtual_network.vnet_sap[0].location) : (
+                                           azurerm_virtual_network.vnet_sap[0].location
+                                         )
+  tags                                 = var.tags
+}
+
+# Associates endpoint nsg to endpoint subnet
+resource "azurerm_subnet_network_security_group_association" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? 1 : 0
+  depends_on                           = [
+                                           azurerm_subnet.endpoint
+                                         ]
+  subnet_id                            = azurerm_subnet.endpoint[0].id
+  network_security_group_id            = var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id : azurerm_network_security_group.endpoint[0].id
+}
+
 
 # Creates SAP web subnet nsg
 resource "azurerm_network_security_group" "web" {

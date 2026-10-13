@@ -111,7 +111,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                            azurerm_resource_group.library[0].location
                                          )
 
-  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  subnet_id                            = coalesce(try(var.deployer_tfstate.endpoint_subnet_id, ""), var.deployer_tfstate.subnet_mgmt_id)
 
   custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
@@ -169,7 +169,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                            azurerm_resource_group.library[0].location
                                          )
 
-  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  subnet_id                            = coalesce(try(var.deployer_tfstate.endpoint_subnet_id, ""), var.deployer_tfstate.subnet_mgmt_id)
 
   custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%st%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
@@ -357,7 +357,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
-  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  subnet_id                            = coalesce(try(var.deployer_tfstate.endpoint_subnet_id, ""), var.deployer_tfstate.subnet_mgmt_id)
   custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_sap,
                                            length(local.prefix) > 0 ? (

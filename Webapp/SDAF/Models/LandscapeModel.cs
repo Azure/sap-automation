@@ -273,88 +273,6 @@ namespace SDAFWebApp.Models
 
         public bool? network_enable_route_propagation { get; set; }
 
-        //[SubnetRequired(subnetType: "admin")]
-        [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
-        public string admin_subnet_address_prefix { get; set; }
-
-        [SubnetRequired(subnetType: "db")]
-        [AddressPrefixValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
-        public string db_subnet_address_prefix { get; set; }
-
-        [SubnetRequired(subnetType: "app")]
-        [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
-        public string app_subnet_address_prefix { get; set; }
-
-        //[SubnetRequired(subnetType: "web")]
-        [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
-        public string web_subnet_address_prefix { get; set; }
-
-        [SubnetArmIdValidator(ErrorMessage = "Invalid admin subnet arm id")]
-        public string admin_subnet_arm_id { get; set; }
-
-        public string admin_subnet_name { get; set; }
-
-        [NsgArmIdValidator(ErrorMessage = "Invalid admin subnet nsg arm id")]
-        public string admin_subnet_nsg_arm_id { get; set; }
-
-        public string admin_subnet_nsg_name { get; set; }
-
-        [SubnetArmIdValidator(ErrorMessage = "Invalid db subnet arm id")]
-        public string db_subnet_arm_id { get; set; }
-        public string db_subnet_name { get; set; }
-
-        [NsgArmIdValidator(ErrorMessage = "Invalid db subnet nsg arm id")]
-        public string db_subnet_nsg_arm_id { get; set; }
-
-        public string db_subnet_nsg_name { get; set; }
-
-        [SubnetArmIdValidator(ErrorMessage = "Invalid app subnet arm id")]
-        public string app_subnet_arm_id { get; set; }
-
-        public string app_subnet_name { get; set; }
-
-        [NsgArmIdValidator(ErrorMessage = "Invalid app subnet nsg arm id")]
-        public string app_subnet_nsg_arm_id { get; set; }
-
-        public string app_subnet_nsg_name { get; set; }
-
-        [SubnetArmIdValidator(ErrorMessage = "Invalid web subnet arm id")]
-        public string web_subnet_arm_id { get; set; }
-
-        public string web_subnet_name { get; set; }
-
-        [NsgArmIdValidator(ErrorMessage = "Invalid web subnet nsg arm id")]
-        public string web_subnet_nsg_arm_id { get; set; }
-
-        public string web_subnet_nsg_name { get; set; }
-
-        [SubnetArmIdValidator(ErrorMessage = "Invalid ISCSI subnet arm id")]
-        public string iscsi_subnet_arm_id { get; set; }
-
-        //[Required]
-        [AddressPrefixValidator(ErrorMessage = "ISCSI subnet address space must be a valid RFC 1918 address")]
-        public string iscsi_subnet_address_prefix { get; set; }
-
-        public string iscsi_subnet_name { get; set; }
-
-        [NsgArmIdValidator(ErrorMessage = "Invalid ISCSI subnet nsg arm id")]
-        public string iscsi_subnet_nsg_arm_id { get; set; }
-
-        public string iscsi_subnet_nsg_name { get; set; }
-
-        [SubnetArmIdValidator(ErrorMessage = "Invalid ANF subnet arm id")]
-        public string anf_subnet_arm_id { get; set; }
-
-        [AddressPrefixValidator(ErrorMessage = "ANF subnet address space must be a valid RFC 1918 address")]
-        public string anf_subnet_address_prefix { get; set; }
-
-        public string anf_subnet_name { get; set; }
-
-        [NsgArmIdValidator(ErrorMessage = "Invalid anf subnet nsg arm id")]
-        public string anf_subnet_nsg_arm_id { get; set; }
-
-        public string anf_subnet_nsg_name { get; set; }
-
         public bool? register_virtual_network_to_dns { get; set; } = true;
 
         public bool? use_private_endpoint { get; set; } = true;
@@ -363,6 +281,153 @@ namespace SDAFWebApp.Models
 
         public bool? peer_with_control_plane_vnet { get; set; } = true;
 
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Admin subnet information                             |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string admin_subnet_name { get; set; }
+
+        [SubnetArmIdValidator(ErrorMessage = "Invalid admin subnet arm id")]
+        public string admin_subnet_arm_id { get; set; }
+
+        [AddressPrefixValidator(ErrorMessage = "Admin subnet address space must be a valid RFC 1918 address")]
+        public string admin_subnet_address_prefix { get; set; }
+
+
+        public string admin_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid admin subnet nsg arm id")]
+        public string admin_subnet_nsg_arm_id { get; set; }
+
+
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Database subnet information                          |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string db_subnet_name { get; set; }
+
+        [SubnetRequired(subnetType: "db")]
+        [AddressPrefixValidator(ErrorMessage = "DB subnet address space must be a valid RFC 1918 address")]
+        public string db_subnet_address_prefix { get; set; }
+
+        [SubnetArmIdValidator(ErrorMessage = "Invalid db subnet arm id")]
+        public string db_subnet_arm_id { get; set; }
+
+        public string db_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid db subnet nsg arm id")]
+        public string db_subnet_nsg_arm_id { get; set; }
+
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Application subnet information                          |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+        public string app_subnet_name { get; set; }
+
+        [SubnetRequired(subnetType: "app")]
+        [AddressPrefixValidator(ErrorMessage = "App subnet address space must be a valid RFC 1918 address")]
+        public string app_subnet_address_prefix { get; set; }
+
+        [SubnetArmIdValidator(ErrorMessage = "Invalid app subnet arm id")]
+        public string app_subnet_arm_id { get; set; }
+
+        public string app_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid app subnet nsg arm id")]
+        public string app_subnet_nsg_arm_id { get; set; }
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Endpoint subnet information                          |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+        public string endpoint_subnet_name { get; set; }
+
+        [AddressPrefixValidator(ErrorMessage = "Endpoint subnet address space must be a valid RFC 1918 address")]
+        public string endpoint_subnet_address_prefix { get; set; }
+
+        [SubnetArmIdValidator(ErrorMessage = "Invalid endpoint subnet arm id")]
+        public string endpoint_subnet_arm_id { get; set; }
+
+        public string endpoint_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid endpoint subnet nsg arm id")]
+        public string endpoint_subnet_nsg_arm_id { get; set; }
+
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Web subnet information                               |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+        public string web_subnet_name { get; set; }
+
+        //[SubnetRequired(subnetType: "web")]
+        [AddressPrefixValidator(ErrorMessage = "Web subnet address space must be a valid RFC 1918 address")]
+        public string web_subnet_address_prefix { get; set; }
+
+        [SubnetArmIdValidator(ErrorMessage = "Invalid web subnet arm id")]
+        public string web_subnet_arm_id { get; set; }
+
+        public string web_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid web subnet nsg arm id")]
+        public string web_subnet_nsg_arm_id { get; set; }
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       iSCSI subnet information                             |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string iscsi_subnet_name { get; set; }
+
+        //[Required]
+        [AddressPrefixValidator(ErrorMessage = "ISCSI subnet address space must be a valid RFC 1918 address")]
+        public string iscsi_subnet_address_prefix { get; set; }
+
+        [SubnetArmIdValidator(ErrorMessage = "Invalid ISCSI subnet arm id")]
+        public string iscsi_subnet_arm_id { get; set; }
+
+        public string iscsi_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid ISCSI subnet nsg arm id")]
+        public string iscsi_subnet_nsg_arm_id { get; set; }
+
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       ANF subnet information                               |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string anf_subnet_name { get; set; }
+
+        [SubnetArmIdValidator(ErrorMessage = "Invalid ANF subnet arm id")]
+        public string anf_subnet_arm_id { get; set; }
+
+        [AddressPrefixValidator(ErrorMessage = "ANF subnet address space must be a valid RFC 1918 address")]
+        public string anf_subnet_address_prefix { get; set; }
+        public string anf_subnet_nsg_name { get; set; }
+
+        [NsgArmIdValidator(ErrorMessage = "Invalid anf subnet nsg arm id")]
+        public string anf_subnet_nsg_arm_id { get; set; }
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       AMS subnet information                               |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string ams_subnet_name { get; set; }
+
         [SubnetArmIdValidator(ErrorMessage = "Invalid AMS subnet arm id")]
         public string ams_subnet_arm_id { get; set; }
 
@@ -370,26 +435,30 @@ namespace SDAFWebApp.Models
         [AddressPrefixValidator(ErrorMessage = "AMS subnet address space must be a valid RFC 1918 address")]
         public string ams_subnet_address_prefix { get; set; }
 
-        public string ams_subnet_name { get; set; }
-
         [NsgArmIdValidator(ErrorMessage = "Invalid AMS subnet nsg arm id")]
         public string ams_subnet_nsg_arm_id { get; set; }
 
         public string ams_subnet_nsg_name { get; set; }
 
-        [SubnetArmIdValidator(ErrorMessage = "Invalid Storage subnet arm id")]
-        public string storage_subnet_arm_id { get; set; }
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                       Storage subnet information                           |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
+
+        public string storage_subnet_name { get; set; }
 
         //[Required]
         [AddressPrefixValidator(ErrorMessage = "Storage subnet address space must be a valid RFC 1918 address")]
         public string storage_subnet_address_prefix { get; set; }
 
-        public string storage_subnet_name { get; set; }
+        [SubnetArmIdValidator(ErrorMessage = "Invalid Storage subnet arm id")]
+        public string storage_subnet_arm_id { get; set; }
+
+        public string storage_subnet_nsg_name { get; set; }
 
         [NsgArmIdValidator(ErrorMessage = "Invalid storage subnet nsg arm id")]
         public string storage_subnet_nsg_arm_id { get; set; }
-
-        public string storage_subnet_nsg_name { get; set; }
 
         public bool? use_separate_storage_subnet
         {

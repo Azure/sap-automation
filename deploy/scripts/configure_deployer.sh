@@ -353,14 +353,26 @@ sles)
 	)
 	;;
 rhel)
+	major_version=$(echo "$(get_distro_version)" | cut -d'.' -f1)
+
 	cli_pkgs+=(
 		azure-cli
 	)
+	if [ "$major_version" -eq 9 ]; then
+		required_pkgs+=(
+			python3.11
+			python3.11-pip
+		)
+	fi
+	if [ "$major_version" -eq 8 ]; then
+	required_pkgs+=(
+		python36
+		python3-virtualenv
+	)
+	fi
 	required_pkgs+=(
 		sshpass
-		python36
 		python3-pip
-		python3-virtualenv
 	)
 	;;
 esac
@@ -412,11 +424,19 @@ sles)
 	ansible_venv_bin="${ansible_venv}/bin"
 	ansible_collections="${ansible_base}/collections"
 	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv==20.26.6
+	sudo python3 -m pip install virtualenv
 	;;
 rhel)
 	echo "we are inside RHEL"
-	ansible_version="2.16"
+	ansible_python="python3"
+	if [[ "$(get_distro_version)" == "8."* ]]; then
+		ansible_version="2.11"
+	elif [[ "$(get_distro_version)" == "9."* ]]; then
+		ansible_version="2.16"
+		ansible_python="python3.11"
+	else
+		ansible_version="2.16"
+	fi
 	ansible_major="${ansible_version%%.*}"
 	ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
 	# Ansible installation directories
@@ -426,7 +446,6 @@ rhel)
 	ansible_venv_bin="${ansible_venv}/bin"
 	ansible_collections="${ansible_base}/collections"
 	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv==20.26.6
 	;;
 *)
 	echo "we are in the default case statement"
@@ -536,7 +555,8 @@ sles)
 	;;
 rhel*)
 	sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-	sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+	major_version=$(echo "$(get_distro_version)" | cut -d'.' -f1)
+	sudo dnf install -y https://packages.microsoft.com/config/rhel/"${major_version}"/packages-microsoft-prod.rpm
 	sudo dnf install -y azure-cli
 	;;
 esac
@@ -594,7 +614,7 @@ ubuntu | sles)
 rhel*)
 	if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
 		sudo rm -rf "${ansible_venv}"
-		sudo python3 -m venv "${ansible_venv}"
+		sudo "${ansible_python}" -m venv "${ansible_venv}"
 		source "${ansible_venv_bin}/activate"
 	fi
 	;;
@@ -680,18 +700,31 @@ echo "Installing ansible.posix..."      ; sudo -H "${ansible_venv_bin}/ansible-g
 echo "Installing ansible.utils..."      ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils       --force --collections-path "${ansible_collections}"
 echo "Installing community.windows..."  ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.windows   --force --collections-path "${ansible_collections}"
 echo "Installing microsoft.ad..."       ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad        --force --collections-path "${ansible_collections}"
-echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection  --force --collections-path "${ansible_collections}"
-
-echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements.txt"
 
 if [[ "${ansible_version}" == "2.11" ]]; then
 	# ansible galaxy upstream has changed. Some collections are only available for install via old-galaxy.ansible.com
 	# https://github.com/ansible/ansible/issues/81830
 	# https://stackoverflow.com/questions/77225047/gitlab-pipeline-to-install-ansible-galaxy-role-fails/77238083#77238083
+	echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection:1.19.0  --force --collections-path "${ansible_collections}"
+
+	echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements-azure.txt"
+
 	echo "Installing some ansible collections from old-galaxy.ansible.com"
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
+elif [[ "${ansible_version}" == "2.15" ]]; then
+	echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection:1.19.0  --force --collections-path "${ansible_collections}"
+
+	echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements-azure.txt"
+	echo "Installing community.general"
+	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general==11.4.1 --force --collections-path "${ansible_collections}"
+	echo "Installing ansible.netcommon:5.1.2"
+	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon:5.1.2 --force --collections-path "${ansible_collections}"
 else
+	echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection  --force --collections-path "${ansible_collections}"
+
+	echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements.txt"
+
 	echo "Installing community.general"
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general==11.4.1 --force --collections-path "${ansible_collections}"
 	echo "Installing ansible.netcommon:5.1.2"
@@ -807,7 +840,7 @@ chown -R "${USER}" "${asad_home}"
 # Ensure that the user's account is logged in to Azure with specified creds
 if [ -n "${isMSI}" ]; then
 	# shellcheck disable=SC2016
-	echo 'az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none' | tee -a /tmp/deploy_server.sh
+	echo 'az login --identity --client-id $ARM_CLIENT_ID --output none' | tee -a /tmp/deploy_server.sh
 	# shellcheck disable=SC2016
 	echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
 fi
@@ -815,7 +848,7 @@ fi
 sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
 sudo rm /tmp/deploy_server.sh
 if [ -n "${isMSI}" ]; then
-	/usr/bin/az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none
+	/usr/bin/az login --identity --client-id $ARM_CLIENT_ID --output none
 else
 	/usr/bin/az login --identity --output none
 fi
