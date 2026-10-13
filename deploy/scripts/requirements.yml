@@ -1,0 +1,10 @@
+# requirements.yml
+---
+collections:
+  - name: ansible.windows
+  - name: community.general
+  - name: ansible.posix
+  - name: ansible.utils
+  - name: community.windows
+  - name: ansible.netcommon
+    version: 5.1.2
