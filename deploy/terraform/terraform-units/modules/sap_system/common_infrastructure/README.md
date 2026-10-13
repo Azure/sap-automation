@@ -40,6 +40,7 @@ No modules.
 | [azurerm_network_interface.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
 | [azurerm_network_security_group.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
 | [azurerm_network_security_perimeter_association.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_association) | resource |
 | [azurerm_network_security_rule.nsr_external_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
 | [azurerm_network_security_rule.nsr_internal_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
@@ -54,11 +55,14 @@ No modules.
 | [azurerm_storage_share.sapmnt_smb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_share) | resource |
 | [azurerm_subnet.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
 | [azurerm_subnet_network_security_group_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_network_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_network_security_group_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_route_table_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_subnet_route_table_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_windows_virtual_machine.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_virtual_machine) | resource |
 | [random_id.random_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_id.sapsystem](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
@@ -75,6 +79,7 @@ No modules.
 | [azurerm_netapp_volume.usrsap](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_volume) | data source |
 | [azurerm_network_security_group.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
 | [azurerm_network_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
+| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
 | [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter) | data source |
 | [azurerm_network_security_perimeter_profile.profile](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter_profile) | data source |
 | [azurerm_orchestrated_virtual_machine_scale_set.scale_set](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/orchestrated_virtual_machine_scale_set) | data source |
@@ -86,6 +91,7 @@ No modules.
 | [azurerm_storage_account.storage_bootdiag](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/storage_account) | data source |
 | [azurerm_subnet.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
 | [azurerm_virtual_network.vnet_sap](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/virtual_network) | data source |
 | [template_cloudinit_config.config_growpart](https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/cloudinit_config) | data source |
@@ -154,6 +160,7 @@ No modules.
 | <a name="output_route_table_id"></a> [route\_table\_id](#output\_route\_table\_id) | Azure resource ID of the route table |
 | <a name="output_sapmnt_path"></a> [sapmnt\_path](#output\_sapmnt\_path) | Defines the sapmnt mount path |
 | <a name="output_sapmnt_path_secondary"></a> [sapmnt\_path\_secondary](#output\_sapmnt\_path\_secondary) | Defines the sapmnt mount path |
+| <a name="output_sapmnt_private_endpoint_subnet_ids"></a> [sapmnt\_private\_endpoint\_subnet\_ids](#output\_sapmnt\_private\_endpoint\_subnet\_ids) | SAP mount private endpoint subnet IDs for terraform test diagnostics |
 | <a name="output_scale_set_id"></a> [scale\_set\_id](#output\_scale\_set\_id) | Defines the Scaleset ID |
 | <a name="output_sdu_public_key"></a> [sdu\_public\_key](#output\_sdu\_public\_key) | User public key |
 | <a name="output_sid_keyvault_user_id"></a> [sid\_keyvault\_user\_id](#output\_sid\_keyvault\_user\_id) | User credentials keyvault |

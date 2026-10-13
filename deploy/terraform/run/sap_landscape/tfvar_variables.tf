@@ -334,6 +334,51 @@ variable "app_subnet_nsg_arm_id"                {
                                                 }
 
 
+#######################################4#######################################8
+#                                                                              #
+#               Endpoint Subnet variables                                      #
+#                                                                              #
+#######################################4#######################################8
+
+variable "endpoint_subnet_name"                 {
+                                                  description = "The name of the endpoint subnet"
+                                                  default     = ""
+                                                }
+
+variable "endpoint_subnet_arm_id"               {
+                                                  description = "If provided, Azure resource id for the endpoint subnet"
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.endpoint_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.endpoint_subnet_arm_id))
+                                                                  error_message = "If specified the 'endpoint_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
+                                                }
+
+variable "endpoint_subnet_address_prefix"       {
+                                                  description = "The address prefix for the endpoint subnet"
+                                                  type        = string
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = var.endpoint_subnet_address_prefix == "" || can(cidrhost(var.endpoint_subnet_address_prefix, 0))
+                                                                  error_message = "If specified the 'endpoint_subnet_address_prefix' variable must be a valid CIDR prefix."
+                                                                }
+                                                }
+
+variable "endpoint_subnet_nsg_name"             {
+                                                  description = "The name of the endpoint subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "endpoint_subnet_nsg_arm_id"           {
+                                                  description = "If provided, Azure resource id for the endpoint subnet NSG"
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.endpoint_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.endpoint_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'endpoint_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
+                                                }
+
+
 #########################################################################################
 #                                                                                       #
 #  Web Subnet variables                                                                 #

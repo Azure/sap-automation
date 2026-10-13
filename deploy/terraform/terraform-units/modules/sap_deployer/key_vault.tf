@@ -214,10 +214,15 @@ resource "azurerm_private_endpoint" "kv_user" {
                                            data.azurerm_resource_group.deployer[0].location) : (
                                            azurerm_resource_group.deployer[0].location
                                          )
-  subnet_id                            = var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
+
+  subnet_id                            = var.infrastructure.virtual_network.management.subnet_endpoint.exists ? (
+                                           var.infrastructure.virtual_network.management.subnet_endpoint.id) : (
+                                           var.infrastructure.virtual_network.management.subnet_endpoint.defined ?
+                                             (azurerm_subnet.endpoint[0].id) :
+                                              var.infrastructure.virtual_network.management.subnet_mgmt.exists ? (
                                            data.azurerm_subnet.subnet_mgmt[0].id) : (
-                                           azurerm_subnet.subnet_mgmt[0].id
-                                                                          )
+                                           azurerm_subnet.subnet_mgmt[0].id)
+                                           )
   custom_network_interface_name        = format("%s%s%s%s",
                                            var.naming.resource_prefixes.keyvault_private_link,
                                            local.prefix,

@@ -233,6 +233,27 @@ $$anf_subnet_nsg_name$$
 # anf_subnet_nsg_arm_id is an optional parameter that if provided specifies Azure resource identifier for the existing network security group to use
 $$anf_subnet_nsg_arm_id$$
 
+#######################################4#######################################8
+#                                                                              #
+#               Endpoint Subnet variables                                      #
+#                                                                              #
+#######################################4#######################################8
+
+# If defined these parameters control the subnet name and the subnet prefix
+$$endpoint_subnet_name$$
+
+# If defined, specifies address prefix for the subnet
+$$endpoint_subnet_address_prefix$$
+
+# If defined, specifies Azure resource identifier for the existing subnet to use
+$$endpoint_subnet_arm_id$$
+
+# If defined, specifies the name of the endpoint
+$$endpoint_subnet_nsg_name$$
+
+# If defined, specifies Azure resource identifier for the existing network security group to use
+$$endpoint_subnet_nsg_arm_id$$
+
 
 ###########################################################################
 #                                                                         #
