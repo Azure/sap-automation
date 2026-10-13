@@ -697,7 +697,7 @@ sudo "${ansible_bin}"/activate-global-python-argcomplete
 sudo mkdir -p "${ansible_collections}"
 set +o xtrace
 
-if [ -f "$ANSIBLE_OFFLINE_REQUIREMENTS_FILE" ] ; then
+	if [ -f "${ANSIBLE_OFFLINE_REQUIREMENTS_FILE:-}" ] ; then
 	echo "Running in offline mode. Skipping online collection installations."
 	echo "Installing offline collections..."
 	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install -r "$ANSIBLE_OFFLINE_REQUIREMENTS_FILE" --offline --force --collections-path "${ansible_collections}"
