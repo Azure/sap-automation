@@ -563,32 +563,6 @@ esac
 
 # sudo az upgrade --all --yes --only-show-errors --output none
 
-if [ -v USEDOTNET ] ; then
-
-	export DOTNET_INSTALL_DIR=/opt/dotnet
-
-	sudo mkdir -p ${DOTNET_INSTALL_DIR}
-	export DOTNET_ROOT=${DOTNET_INSTALL_DIR}
-
-	# Install dotNet
-	case "$(get_distro_name)" in
-	ubuntu)
-		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
-		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
-		;;
-	sles)
-		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
-		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
-		;;
-	rhel*)
-		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
-		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
-		;;
-	esac
-fi
 az config set extension.use_dynamic_install=yes_without_prompt
 
 # Fail if any command exits with a non-zero exit status
@@ -746,7 +720,47 @@ set -o xtrace
 #
 echo '# Configure environment settings for deployer interactive sessions' | sudo tee /etc/profile.d/deploy_server.sh
 
-export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${DOTNET_ROOT}"
+export PATH="${PATH}":"${ansible_bin}":"${tf_bin}"
+
+if [ -v USEDOTNET ] ; then
+
+	export DOTNET_INSTALL_DIR=/opt/dotnet
+
+	sudo mkdir -p ${DOTNET_INSTALL_DIR}
+	export DOTNET_ROOT=${DOTNET_INSTALL_DIR}
+
+	# Install dotNet
+	case "$(get_distro_name)" in
+	ubuntu)
+		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
+		;;
+	sles)
+		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
+		;;
+	rhel*)
+		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
+		;;
+	esac
+	# export DOTNET_ROOT
+	export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${DOTNET_ROOT}"
+	case "$(get_distro_name)" in
+	ubuntu)
+		echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+		;;
+	sles)
+		echo "export DOTNET_ROOT=${DOTNET_ROOT}" | tee -a /tmp/deploy_server.sh
+		;;
+	rhel*) ;;
+	esac
+
+fi
+
 
 #
 # Update current session
@@ -829,17 +843,6 @@ fi
 echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
 echo "export ANSIBLE_COLLECTIONS_PATH=${ansible_collections}" | tee -a /tmp/deploy_server.sh
 echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
-
-# export DOTNET_ROOT
-case "$(get_distro_name)" in
-ubuntu)
-	echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
-	;;
-sles)
-	echo "export DOTNET_ROOT=${DOTNET_ROOT}" | tee -a /tmp/deploy_server.sh
-	;;
-rhel*) ;;
-esac
 
 chown -R "${USER}" "${asad_home}"
 
