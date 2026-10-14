@@ -9,7 +9,9 @@ mkdir -p "$ZIP_DIR"
 
 
 echo "Downloading Ansible collections..."
-ansible-galaxy collection download -r "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/requirements.yml" -p "$PACKAGE_DIR/"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ansible-galaxy collection download -r "${script_dir}/requirements.yml" -p "$PACKAGE_DIR/"
+cp "${script_dir}/requirements.yml" "$PACKAGE_DIR/requirements.yml"
 
 # Create a manifest
 echo "Package contents:" > "$PACKAGE_DIR/MANIFEST.txt"
