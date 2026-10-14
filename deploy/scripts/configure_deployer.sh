@@ -675,7 +675,7 @@ if [ -f "${ANSIBLE_OFFLINE_REQUIREMENTS_FILE:-}" ] ; then
 	echo "Running in offline mode. Skipping online collection installations."
 	echo "Installing offline collections..."
 	pushd "$(dirname "${ANSIBLE_OFFLINE_REQUIREMENTS_FILE}")"
-	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install -r "$ANSIBLE_OFFLINE_REQUIREMENTS_FILE" --offline --force --collections-path "${ansible_collections}" -p $(pwd)
+	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install -r requirements.yml  --offline --force --collections-path "${ansible_collections}"
 	popd
 
 else
