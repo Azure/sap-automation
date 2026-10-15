@@ -35,8 +35,6 @@ if [[ "${DEBUG:-false}" == 'true' ]]; then
 fi
 
 # Constants
-script_directory="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-readonly script_directory
 
 SCRIPT_NAME="$(basename "$0")"
 banner_title="Remover"
