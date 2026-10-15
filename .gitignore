@@ -115,3 +115,4 @@ coverage.xml
 
 # Local report-only Copilot skill-eval artifacts
 .skill-eval-results/
+deploy/scripts/tmp/
