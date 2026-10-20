@@ -356,7 +356,7 @@
     msg:
       - "BoM name:        {{ bom_temp.name }}"
       - "BoM target:      {{ bom_temp.target }}"
-      - "BoM version:     {{ bom_temp.version }}"
+      - "BoM version:     {% if bom_temp.version is defined %}{{ bom_temp.version }}{% else %}Not defined{% endif %}"
       - "BoM DB platform: {% if bom_temp.platform is defined %}{{ bom_temp.platform }}{% else %}Not defined{% endif %}"
       - "Instance type:   {% if bom_temp.InstanceType is defined %}{{ bom_temp.InstanceType }}{% else %}Not defined{% endif %}"
   when:
