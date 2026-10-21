@@ -10,9 +10,6 @@
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 echo ${SCRIPT_DIR}
 
-source "${SCRIPT_DIR}/v2/shared_platform_config.sh"
-source "${SCRIPT_DIR}/v2/shared_functions.sh"
-
 SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
