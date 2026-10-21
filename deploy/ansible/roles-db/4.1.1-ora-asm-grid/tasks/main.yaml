@@ -224,7 +224,7 @@
       become:                          true
       become_user:                     root
       ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/SBP/"
+        paths:                         "{{ target_media_location }}/SBP/GIMERGEOCW19P"
         patterns:                      ["{{ bom.patch_information.SBP_OCWRU }}"]
         file_type:                     directory
         recurse:                       true
@@ -244,7 +244,7 @@
           become:                          true
           become_user:                     root
           ansible.builtin.find:
-            paths:                         "{{ target_media_location }}/SBP/"
+            paths:                         "{{ target_media_location }}/SBP/GIMERGEACFS19P"
             patterns:                      ["{{ bom.patch_information.SBP_ACFSRU }}"]
             file_type:                     directory
             recurse:                       true
