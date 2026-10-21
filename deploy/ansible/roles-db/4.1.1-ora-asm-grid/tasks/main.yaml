@@ -220,10 +220,20 @@
         STAGE_SBP_DBRU:                "{{ patch_grid_path }}/{{ bom.patch_information.SBP_DBRU }}"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_DBRU is defined
 
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for SBP_OCWRU"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/SBP/"
+        patterns:                      ["{{ bom.patch_information.SBP_OCWRU }}"]
+        file_type:                     directory
+        recurse:                       true
+      register:                        ocwru_directory
+
     - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_OCWRU"
       ansible.builtin.set_fact:
-        STAGE_SBP_OCWRU:               "{{ patch_grid_path }}/{{ bom.patch_information.SBP_OCWRU }}"
-      when:                            patch_grid_path is defined and bom.patch_information.SBP_OCWRU is defined
+        STAGE_SBP_OCWRU:               "{{ ocwru_directory.files[0].path | dirname }}/{{ bom.patch_information.SBP_OCWRU }}"
+      when:                            ocwru_directory.matched >= 1
 
     - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for Database ACFS Release Update"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_ACFSRU is defined
