@@ -12,7 +12,6 @@ echo ${SCRIPT_DIR}
 
 source "${SCRIPT_DIR}/v2/shared_platform_config.sh"
 source "${SCRIPT_DIR}/shared_functions.sh"
-source "${SCRIPT_DIR}/v2/set-colors.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
