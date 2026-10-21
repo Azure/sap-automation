@@ -8,6 +8,8 @@
 
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+echo ${SCRIPT_DIR}
+
 source "${SCRIPT_DIR}/shared_platform_config.sh"
 source "${SCRIPT_DIR}/shared_functions.sh"
 source "${SCRIPT_DIR}/set-colors.sh"
