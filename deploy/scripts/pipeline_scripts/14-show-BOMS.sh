@@ -89,8 +89,10 @@ account="${account%%.*}" # Keep everything before the first dot
 boms=$(az storage blob list --account-name $account --container sapbits --auth-mode login --query "[].name" --prefix sapfiles/boms --out tsv)
 echo "List of Downloaded Bill of Materials files:"
 for bom in $boms; do
-    name="${bom##*/}"
-    name="${name%.original}"
-    name="${name%.yaml}"
-    echo "$name"
+		if [[ "$bom" == *.original || "$bom" == *.yaml ]]; then
+			name="${bom##*/}"
+			name="${name%.original}"
+			name="${name%.yaml}"
+			echo "$name"
+		fi
 done | sort -u
