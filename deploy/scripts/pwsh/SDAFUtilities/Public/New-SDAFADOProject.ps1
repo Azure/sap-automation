@@ -200,6 +200,8 @@ function New-SDAFADOProject {
 			@{ Name = "Remove System or Workload Zone"; Description = "Removes either the SAP system or the workload zone"; YamlPath = "/pipelines/10-remover-terraform.yml" },
 			@{ Name = "Remove deployments via ARM"; Description = "Removes the resource groups via ARM. Use this only as last resort"; YamlPath = "/pipelines/11-remover-arm-fallback.yml" },
 			@{ Name = "Remove control plane"; Description = "Removes the control plane"; YamlPath = "/pipelines/12-remove-control-plane.yml" },
+      @{ Name = "SAP Quality Assurance"; Description = "Runs the SAP quality assurance tests and configuration checks"; YamlPath = "/pipelines/13-sap-automation-qa.yml" },
+      @{ Name = "Show downloaded BOMs"; Description = "Shows the downloaded Bill of Materials files"; YamlPath = "/pipelines/14-show-BOMS.yml" },
 			@{ Name = "Update Pipelines"; Description = "Updates the pipelines"; YamlPath = "/pipelines/21-update-pipelines.yml" }
 		)
 		# Logging function
