@@ -8,7 +8,6 @@
 
 # Source the shared platform configuration
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
-echo ${SCRIPT_DIR}
 
 SCRIPT_NAME="$(basename "$0")"
 
@@ -22,10 +21,9 @@ fi
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 parent_directory="$(dirname "$script_directory")"
-grand_parent_directory="$(dirname "$parent_directory")"
 #call stack has full script name when using source
 # shellcheck disable=SC1091
-source "${grand_parent_directory}/deploy_utils.sh"
+source "${parent_directory}/deploy_utils.sh"
 source "${parent_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
