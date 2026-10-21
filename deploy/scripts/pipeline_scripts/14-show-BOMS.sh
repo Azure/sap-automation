@@ -82,13 +82,25 @@ url=$(az keyvault secret show --vault-name $keyvault_name \
 account="${url#*://}"    # Remove the scheme
 account="${account%%.*}" # Keep everything before the first dot
 
+PLATFORM="devops"
+OUTPUT_DIR="${BUILD_REPOSITORY_LOCALPATH}"
+
+output_file="$OUTPUT_DIR/DownloadedBOMs.md"
+
 boms=$(az storage blob list --account-name $account --container sapbits --auth-mode login --query "[].name" --prefix sapfiles/boms --out tsv)
 echo "List of Downloaded Bill of Materials files:"
+printf "**List of Downloaded Bill of Materials files**\n\n\n" >"$output_file"
+
 for bom in $boms; do
 		if [[ "$bom" == *.original || "$bom" == *.yaml ]]; then
 			name="${bom##*/}"
 			name="${name%.original}"
 			name="${name%.yaml}"
 			echo "$name"
+			printf " - %s\n" "$name" >>"$output_file"
 		fi
 done | sort -u
+
+
+printf "\n\n" >>"$output_file"
+echo "##vso[task.uploadsummary]${output_file}"
