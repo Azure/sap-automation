@@ -50,7 +50,7 @@ database_bom_name="$(awk '$1 == "database_bom_name:" {print $2}' ${sap_params_fi
 sap_kernel_bom_name="$(awk '$1 == "sap_kernel_bom_name:" {print $2}' ${sap_params_file})"
 save_bom_as="$(awk '$1 == "save_bom_as:" {print $2}' ${sap_params_file})"
 
-if [[ -n "${application_bom_name}" && -n "${database_bom_name}" && -n "${sap_kernel_bom_name}" && -n "${save_bom_as}" ]]; then
+if [[ -n "${application_bom_name}" && -n "${save_bom_as}" ]]; then
         bom_base_name="${application_bom_name}-${database_bom_name}-${sap_kernel_bom_name}-${save_bom_as}"
         print_banner "Software download" "Creating BOM named: ${save_bom_as}" "info" "App: ${application_bom_name} DB: ${database_bom_name} Kernel: ${sap_kernel_bom_name}"
 else

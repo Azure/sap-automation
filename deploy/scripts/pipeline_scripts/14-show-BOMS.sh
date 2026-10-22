@@ -24,7 +24,7 @@ parent_directory="$(dirname "$script_directory")"
 #call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${parent_directory}/deploy_utils.sh"
-source "${parent_directory}/helper.sh"
+source "${script_directory}/helper.sh"
 
 SCRIPT_NAME="$(basename "$0")"
 
@@ -49,21 +49,18 @@ if [ "$USE_MSI" == "true" ]; then
 	export ARM_USE_MSI
 fi
 
-if [ "$PLATFORM" == "devops" ]; then
-	if [ "$USE_MSI" != "true" ]; then
-		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-		export ARM_TENANT_ID
-		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-		export ARM_SUBSCRIPTION_ID
-	else
-		LogonToAzure "${USE_MSI:-false}"
-		return_code=$?
-		if [ 0 != $return_code ]; then
-			echo -e "$bold_red--- Login failed ---$reset"
-			echo "##vso[task.logissue type=error]az login failed."
-			exit $return_code
-		fi
-	fi
+PLATFORM="devops"
+LogonToAzure "${USE_MSI:-false}"
+return_code=$?
+if [ 0 != "$return_code" ]; then
+	echo "##vso[task.logissue type=error]az login failed."
+	exit "$return_code"
+fi
+az account show --output none
+return_code=$?
+if [ 0 != "$return_code" ]; then
+	echo "##vso[task.logissue type=error]No authenticated Azure account is available."
+	exit "$return_code"
 fi
 
 

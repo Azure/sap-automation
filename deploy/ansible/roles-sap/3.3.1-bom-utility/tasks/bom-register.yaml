@@ -333,7 +333,7 @@
       #
         - name:                         "{{ task_prefix }} Check for Microsoft Supplied BoM ({{  this_bom_name }}) in BOM/archives"
           ansible.builtin.stat:
-            path:                       "{{ BOM_directory }}/SAP/archives/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
+            path:                       "{{ BOM_directory }}/BOM/archives/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
           register:                     microsoft_supplied_bom_archive
           delegate_to:                  localhost
           become:                       "{{ bom_processing_become }}"
