@@ -118,10 +118,30 @@
   ansible.builtin.debug:
     msg:                               "Patch GRID path {{ patch_grid_path }}"
 
-- name:                                "4.1.1 ORACLE Grid Update - set STAGE_SBP_OCWRU"
+- name:                                "4.1.1 ORACLE Grid Update - Find Patch ID for SBP_OCWRU"
+  become:                              true
+  become_user:                         root
+  ansible.builtin.find:
+    paths:                             "{{ target_media_location }}/SBP/GIMERGEOCW19P"
+    patterns:                          ["{{ bom.patch_information.SBP_OCWRU }}"]
+    file_type:                         directory
+    recurse:                           true
+  register:                            ocwru_directory
+
+- name:                                "4.1.1 ORACLE Grid Update - Save OCWRU Release Update"
   ansible.builtin.set_fact:
-    STAGE_SBP_OCWRU:                   "{{ patch_grid_path }}/{{ bom.patch_information.SBP_OCWRU }}"
-  when:                                patch_grid_path is defined and bom.patch_information.SBP_OCWRU is defined
+    ocwru_patch_grid_path:             "{{ ocwru_directory.files[1].path }}"
+  when:                                ocwru_directory.matched > 1
+
+- name:                                "4.1.1 ORACLE Grid Update - Save OCWRU Release Update"
+  ansible.builtin.set_fact:
+    ocwru_patch_grid_path:            "{{ ocwru_directory.files[0].path }}"
+  when:                                ocwru_patch_grid_path is not defined and ocwru_directory.matched > 0
+
+- name:                                "4.1.1 ORACLE Grid Update - Set STAGE_SBP_ACFSRU"
+  ansible.builtin.set_fact:
+    STAGE_SBP_OCWRU:                   "{{ ocwru_patch_grid_path }}"
+  when:                                ocwru_patch_grid_path is defined
 
 - name:                                "4.1.1 ORACLE Grid Update - Set Runtime Variables"
   ansible.builtin.set_fact:
