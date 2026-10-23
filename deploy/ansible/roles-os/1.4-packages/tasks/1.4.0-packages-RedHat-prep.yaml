@@ -18,7 +18,7 @@
   ansible.builtin.set_fact:
     is_rhel_90_or_newer:               "{{ ansible_distribution_version is version('9.0', '>=') | default(false) }}"
     init_d_exists:                     "{{ initd_dir.stat.exists }}"
-    rpm_list:                          "{{ 'rhel-{0}-for-x86_64-highavailability-rpms,codeready-builder-for-rhel-{0}-x86_64-rpms' | format(ansible_distribution_major_version) }}"
+    rpm_list:                          "{{ 'rhel-%s-for-x86_64-highavailability-rpms,codeready-builder-for-rhel-%s-x86_64-rpms' | format(ansible_distribution_major_version, ansible_distribution_major_version) }}"
   when:                                ansible_os_family | upper == 'REDHAT'
 
 - name:                                "1.4 Packages - REDHAT - Copy /etc/init.d"
