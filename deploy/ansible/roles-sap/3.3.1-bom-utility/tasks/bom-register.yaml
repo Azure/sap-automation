@@ -270,10 +270,10 @@
       # Step: 05-05-01
       # Description:
       #
-        - name:                         "{{ task_prefix }} Check for Microsoft Supplied BoM ({{  this_bom_name }}) in archives"
+        - name:                         "{{ task_prefix }} Check for Microsoft Supplied BoM ({{  this_bom_name }}) in SAP/archives"
           ansible.builtin.stat:
-            path:                       "{{ BOM_directory }}/archives/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
-          register:                     microsoft_supplied_bom_archive
+            path:                       "{{ BOM_directory }}/SAP/archives/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
+          register:                     microsoft_supplied_sap_archive
           delegate_to:                  localhost
           become:                       "{{ bom_processing_become }}"
           failed_when:                  false
@@ -286,14 +286,75 @@
       #
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BoM {{  this_bom_name }} from archives"
           ansible.builtin.include_vars:
-            file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
+            file:                       "{{ microsoft_supplied_sap_archive.stat.path }}"
             name:                       bom_temp
-          when:                         microsoft_supplied_bom_archive.stat.exists
+          when:                         microsoft_supplied_sap_archive.stat.exists
           # Step: 05-05-02 - END
           # -------------------------------------+---------------------------------------8
 
           # -------------------------------------+---------------------------------------8
           # Step: 05-05-03
+          # Description:
+          #
+        - name:                         "{{ task_prefix }} Register Microsoft Supplied BoM ({{  this_bom_name }}) facts"
+          when:                         microsoft_supplied_sap_archive.stat.exists
+          ansible.builtin.set_fact:
+            bom:                        "{{ bom_temp }}"
+            bom_file:                   "{{ microsoft_supplied_sap_archive.stat.path }}"
+            aggregated_bom_directories: "{{ aggregated_bom_directories | default([]) + [{'path': path, 'location': 'local'}] }}"
+          vars:
+            path:                       "{{ microsoft_supplied_sap_archive.stat.path | dirname }}"
+
+        - name:                        "{{ task_prefix }} Append the file list"
+          ansible.builtin.set_fact:
+            local_media_list:          "{{ bom_temp.materials.media | flatten(levels=1) }}"
+          when:
+            - bom_temp is defined
+            - bom_temp.materials is defined
+            - bom_temp.materials.media is defined
+
+          # Step: 05-05-03 - END
+          # -------------------------------------+---------------------------------------8
+
+    # Step: 05-05 - END
+    # -------------------------------------+---------------------------------------8
+
+    # -------------------------------------+---------------------------------------8
+    # Step: 05-06
+    # Description: Check for files in the Microsoft Supplied BoM archives
+    #
+    - name:                            "{{ task_prefix }} Check for Microsoft Supplied BoM ({{  this_bom_name }}) in BOM/archives"
+      when:                            not bom_found and not (microsoft_supplied_sap_archive.stat.exists | default(false))
+      block:
+
+      # -------------------------------------+---------------------------------------8
+      # Step: 05-06-01
+      # Description:
+      #
+        - name:                         "{{ task_prefix }} Check for Microsoft Supplied BoM ({{  this_bom_name }}) in BOM/archives"
+          ansible.builtin.stat:
+            path:                       "{{ BOM_directory }}/BOM/archives/{{  this_bom_name }}/{{  this_bom_name }}.yaml"
+          register:                     microsoft_supplied_bom_archive
+          delegate_to:                  localhost
+          become:                       "{{ bom_processing_become }}"
+          failed_when:                  false
+      # Step: 05-06-01 - END
+      # -------------------------------------+---------------------------------------8
+
+      # -------------------------------------+---------------------------------------8
+      # Step: 05-06-02
+      # Description:
+      #
+        - name:                         "{{ task_prefix }} Register Microsoft Supplied BoM {{  this_bom_name }} from archives"
+          ansible.builtin.include_vars:
+            file:                       "{{ microsoft_supplied_bom_archive.stat.path }}"
+            name:                       bom_temp
+          when:                         microsoft_supplied_bom_archive.stat.exists
+          # Step: 05-06-02 - END
+          # -------------------------------------+---------------------------------------8
+
+          # -------------------------------------+---------------------------------------8
+          # Step: 05-06-03
           # Description:
           #
         - name:                         "{{ task_prefix }} Register Microsoft Supplied BoM ({{  this_bom_name }}) facts"
@@ -313,8 +374,13 @@
             - bom_temp.materials is defined
             - bom_temp.materials.media is defined
 
-          # Step: 05-05-03 - END
+          # Step: 05-06-03 - END
           # -------------------------------------+---------------------------------------8
+
+    # Step: 05-06 - END
+    # -------------------------------------+---------------------------------------8
+
+
 
 # -------------------------------------+---------------------------------------8
 # Step: 06
@@ -356,7 +422,7 @@
     msg:
       - "BoM name:        {{ bom_temp.name }}"
       - "BoM target:      {{ bom_temp.target }}"
-      - "BoM version:     {{ bom_temp.version }}"
+      - "BoM version:     {% if bom_temp.version is defined %}{{ bom_temp.version }}{% else %}Not defined{% endif %}"
       - "BoM DB platform: {% if bom_temp.platform is defined %}{{ bom_temp.platform }}{% else %}Not defined{% endif %}"
       - "Instance type:   {% if bom_temp.InstanceType is defined %}{{ bom_temp.InstanceType }}{% else %}Not defined{% endif %}"
   when:

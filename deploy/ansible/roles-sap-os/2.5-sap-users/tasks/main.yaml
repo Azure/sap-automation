@@ -42,6 +42,7 @@
 # Newer Python versions removed the crypt module, so Ansible's
 # password_hash filter now requires passlib to be installed explicitly.
 - name:                                "2.5 SAP Users: - Ensure passlib is installed"
+  delegate_to:                         localhost
   block:
     - name:                            "2.5 SAP Users: - Install passlib using OS package manager"
       ansible.builtin.package:

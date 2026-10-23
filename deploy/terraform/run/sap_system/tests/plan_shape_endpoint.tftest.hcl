@@ -390,6 +390,14 @@ run "greenfield_endpoint_subnet_creates_nsg_and_association" {
 run "greenfield_endpoint_subnet_associates_existing_nsg" {
   command = plan
 
+  override_resource {
+    target = module.common_infrastructure.azurerm_subnet.endpoint
+    override_during = plan
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/new-endpoint"
+    }
+  }
+
   override_data {
     target = module.common_infrastructure.data.azurerm_network_security_group.endpoint
     values = {
@@ -400,11 +408,17 @@ run "greenfield_endpoint_subnet_associates_existing_nsg" {
   variables {
     endpoint_subnet_address_prefix = "10.1.5.0/24"
     endpoint_subnet_nsg_arm_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/networkSecurityGroups/endpoint-nsg"
+    NFS_provider                  = "AFS"
+    use_private_endpoint          = true
   }
 
   assert {
     condition     = module.common_infrastructure.database_tier_resource_creation_counts.endpoint_subnet == 1 && module.common_infrastructure.database_tier_resource_creation_counts.endpoint_nsg == 0 && module.common_infrastructure.database_tier_resource_creation_counts.endpoint_nsg_association == 1
     error_message = "The existing endpoint NSG must be associated with the new system subnet."
+  }
+  assert {
+    condition     = module.common_infrastructure.sapmnt_private_endpoint_subnet_ids[0] == "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-landscape/providers/Microsoft.Network/virtualNetworks/vnet-sap01/subnets/new-endpoint"
+    error_message = "SAP mount private endpoints must use the new system endpoint subnet when its NSG already exists."
   }
 }
 
