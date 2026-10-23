@@ -845,7 +845,7 @@ fi
 # Set env for ansible
 echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
 echo "export ANSIBLE_COLLECTIONS_PATH=${ansible_collections}" | tee -a /tmp/deploy_server.sh
-echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
+echo "export BOM_CATALOG=${asad_sample_dir}" | tee -a /tmp/deploy_server.sh
 
 chown -R "${USER}" "${asad_home}"
 
