@@ -220,10 +220,52 @@
         STAGE_SBP_DBRU:                "{{ patch_grid_path }}/{{ bom.patch_information.SBP_DBRU }}"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_DBRU is defined
 
-    - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_OCWRU"
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for SBP_OCWRU"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.stat:
+        path:                          "{{ target_media_location }}/SBP/GIMERGEOCW19P"
+      register:                        ocwru_stat_path
+
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for SBP_OCWRU - post 2608"
+      when:                            ocwru_stat_path.stat.exists
+      become:                          true
+      become_user:                     root
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/SBP/GIMERGEOCW19P"
+        patterns:                      ["{{ bom.patch_information.SBP_OCWRU }}"]
+        file_type:                     directory
+        recurse:                       true
+      register:                        ocwru_directory
+
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for SBP_OCWRU - pre 2608"
+      when:                            not ocwru_stat_path.stat.exists
+      become:                          true
+      become_user:                     root
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/SBP/GIRU19P"
+        patterns:                      ["{{ bom.patch_information.SBP_OCWRU }}"]
+        file_type:                     directory
+        recurse:                       true
+      register:                        ocwru_directory
+
+
+    - name:                            "4.1.1 ORACLE Grid Setup - Save OCWRU Release Update"
       ansible.builtin.set_fact:
-        STAGE_SBP_OCWRU:               "{{ patch_grid_path }}/{{ bom.patch_information.SBP_OCWRU }}"
-      when:                            patch_grid_path is defined and bom.patch_information.SBP_OCWRU is defined
+        ocwru_patch_grid_path:          "{{ ocwru_directory.files[1].path }}"
+      when:                            ocwru_directory.matched > 1
+
+    - name:                            "4.1.1 ORACLE Grid Setup - Save OCWRU Release Update"
+      ansible.builtin.set_fact:
+        ocwru_patch_grid_path:          "{{ ocwru_directory.files[0].path }}"
+      when:
+        - ocwru_patch_grid_path is not defined
+        - ocwru_directory.matched > 0
+
+    - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_ACFSRU"
+      ansible.builtin.set_fact:
+        STAGE_SBP_OCWRU:              "{{ ocwru_patch_grid_path }}"
+      when:                            ocwru_patch_grid_path is defined
 
     - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for Database ACFS Release Update"
       when:                            patch_grid_path is defined and bom.patch_information.SBP_ACFSRU is defined
@@ -234,17 +276,23 @@
           become:                          true
           become_user:                     root
           ansible.builtin.find:
-            paths:                         "{{ target_media_location }}/SBP/"
+            paths:                         "{{ target_media_location }}/SBP/GIMERGEACFS19P"
             patterns:                      ["{{ bom.patch_information.SBP_ACFSRU }}"]
             file_type:                     directory
             recurse:                       true
           register:                        acfs_patch_grid_id_directory
 
+        - name:                            "4.1.1 ORACLE Grid Setup - Save ACFS Release Update"
+          ansible.builtin.set_fact:
+            acfs_patch_grid_path:          "{{ acfs_patch_grid_id_directory.files[1].path }}"
+          when:                            acfs_patch_grid_id_directory.matched > 1
 
         - name:                            "4.1.1 ORACLE Grid Setup - Save ACFS Release Update"
           ansible.builtin.set_fact:
             acfs_patch_grid_path:          "{{ acfs_patch_grid_id_directory.files[0].path }}"
-          when:                            acfs_patch_grid_id_directory.matched > 0
+          when:
+            - acfs_patch_grid_path is not defined
+            - acfs_patch_grid_id_directory.matched > 0
 
         - name:                            "4.1.1 ORACLE Grid Setup - Set STAGE_SBP_ACFSRU"
           ansible.builtin.set_fact:

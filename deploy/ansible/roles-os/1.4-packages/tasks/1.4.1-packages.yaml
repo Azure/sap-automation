@@ -56,6 +56,7 @@
     key:                               /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
   register:                            rpm_key_result
 
+
 - name:                                "1.4 Packages - Update OS packages: {{ distribution_id }}"
   block:
     - name:                            "1.4 Packages - Update OS packages RHEL {{ distribution_id }}"
@@ -67,6 +68,7 @@
                                            list }}"
         state:                         "{{ item.state }}"
         disablerepo:                   "epel*"
+        enablerepo:                    "{{ rpm_list | default(omit) }}"
         skip_broken:                   true
         nobest:                        true
       register:                        package_result
@@ -121,6 +123,7 @@
                                           list }}"
             state:                     "{{ item.state }}"
             disablerepo:              "epel*"
+            enablerepo:               "{{ rpm_list | default(omit) }}"
             skip_broken:              true
             nobest:                   true
             disable_gpg_check:        true
@@ -168,6 +171,7 @@
                                            list }}"
         state:                         "{{ item.state }}"
         disablerepo:                   "epel*"
+        enablerepo:                    "{{ rpm_list | default(omit) }}"
         skip_broken:                   true
         nobest:                        true
       register:                        package_result

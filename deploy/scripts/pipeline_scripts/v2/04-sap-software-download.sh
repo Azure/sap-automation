@@ -148,7 +148,7 @@ PLATFORM="devops"
 OUTPUT_DIR="${BUILD_REPOSITORY_LOCALPATH}"
 bom_name=$(echo $BOM | cut -d'-' -f1)
 
-output_file="$OUTPUT_DIR/Web Application Configuration.md"
+output_file="$OUTPUT_DIR/Software Download.md"
 if [ 0 != $return_code ]; then
     echo -e "$bold_red--- Software download failed ---$reset"
     echo "::error title=Software Download Failed::An error occurred while downloading the software. Please check the logs for details."
