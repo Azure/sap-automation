@@ -227,6 +227,17 @@
         path:                          "{{ target_media_location }}/SBP/GIMERGEOCW19P"
       register:                        ocwru_stat_path
 
+    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for SBP_OCWRU - post 2608"
+      when:                            ocwru_stat_path.stat.exists
+      become:                          true
+      become_user:                     root
+      ansible.builtin.find:
+        paths:                         "{{ target_media_location }}/SBP/GIMERGEOCW19P"
+        patterns:                      ["{{ bom.patch_information.SBP_OCWRU }}"]
+        file_type:                     directory
+        recurse:                       true
+      register:                        ocwru_directory
+
     - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for SBP_OCWRU - pre 2608"
       when:                            not ocwru_stat_path.stat.exists
       become:                          true
@@ -238,16 +249,6 @@
         recurse:                       true
       register:                        ocwru_directory
 
-    - name:                            "4.1.1 ORACLE Grid Setup - Find Patch ID for SBP_OCWRU - post 2608"
-      when:                            ocwru_stat_path.stat.exists
-      become:                          true
-      become_user:                     root
-      ansible.builtin.find:
-        paths:                         "{{ target_media_location }}/SBP/GIMERGEOCW19P"
-        patterns:                      ["{{ bom.patch_information.SBP_OCWRU }}"]
-        file_type:                     directory
-        recurse:                       true
-      register:                        ocwru_directory
 
     - name:                            "4.1.1 ORACLE Grid Setup - Save OCWRU Release Update"
       ansible.builtin.set_fact:
