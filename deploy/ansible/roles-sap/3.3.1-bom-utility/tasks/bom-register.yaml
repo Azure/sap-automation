@@ -324,7 +324,7 @@
     # Description: Check for files in the Microsoft Supplied BoM archives
     #
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BoM ({{  this_bom_name }}) in BOM/archives"
-      when:                            not bom_found
+      when:                            not bom_found and not (microsoft_supplied_sap_archive.stat.exists | default(false))
       block:
 
       # -------------------------------------+---------------------------------------8
