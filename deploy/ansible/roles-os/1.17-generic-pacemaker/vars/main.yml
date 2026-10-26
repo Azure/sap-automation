@@ -134,3 +134,7 @@ package_versions:
     - {name: "pacemaker",               version: "3.0.0",   compare_operator: ">=", version_type: "loose"}
     - {name: "resource-agents",         version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
     - {name: "fence-agents-azure-arm",  version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
+  sles_sap16.1:
+    - {name: "pacemaker",               version: "3.0.0",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents",         version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
+    - {name: "fence-agents-azure-arm",  version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
