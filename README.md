@@ -107,7 +107,7 @@ Complete the SDAF lifecycle in dependency order:
 
 ## Find documentation
 
-Use the [repository documentation hub](docs/index.md) for current
+Use the [repository documentation hub](docs/readme.md) for current
 repository-owned guidance. The hub explains repository responsibilities,
 deployment choices, documentation conventions, and the source used to validate
 capability statements.
