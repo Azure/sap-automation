@@ -42,9 +42,9 @@ their own prerequisites.
 | Family | Published framework scope | Published tested versions |
 | --- | --- | --- |
 | Red Hat Enterprise Linux | 64-bit x86-64, 7.x through 10.0 | 7.9, 8.2, 8.4, 8.6, 8.8, 9.0, 9.2, 9.4, 9.6, 10.0 |
-| SUSE Linux Enterprise Server | 64-bit x86-64, 12.x and 15.x | 12 SP4, 15 SP2, 15 SP3, 15 SP4, 15 SP5, 15 SP6, 15 SP7 |
-| Oracle Linux | 64-bit x86-64 | 8.2, 8.4, 8.6, 8.8, 8.9 |
-| Windows Server | 64-bit x64 | 2016, 2019, 2022 |
+| SUSE Linux Enterprise Server | 64-bit x86-64, 12.x and 15.x | 12 SP4, 15 SP2, 15 SP3, 15 SP4, 15 SP5, 15 SP6, 15 SP7, 16.0 |
+| Oracle Linux | 64-bit x86-64 | 8.2, 8.4, 8.6, 8.8, 8.9, 8.10 |
+| Windows Server | 64-bit x64 | 2016, 2019, 2022, 2025 |
 
 An operating-system version must also be supported for the selected SAP
 product, database, Azure VM family, storage design, and high-availability
