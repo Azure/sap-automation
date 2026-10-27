@@ -86,7 +86,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
 		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
@@ -114,7 +114,7 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 echo -e "$green--- az login ---$reset"
-LogonToAzure $USE_MSI
+LogonToAzure $ARM_USE_MSI
 return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
@@ -160,7 +160,7 @@ if [ -v PARENT_VARIABLE_GROUP ]; then
 			fi
 		fi
 
-		if [ "$USE_MSI" = "true" ]; then
+		if [ "$ARM_USE_MSI" = "true" ]; then
 			ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv)
 			WZ_ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv)
 			if [ -z "$WZ_ARM_CLIENT_ID" ]; then
@@ -203,7 +203,7 @@ keyvault_subscription_id=$(az graph query -q                                    
 															--query data[0].subscriptionId                        \
 															--output tsv)
 
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
 
 	if "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh" --prefix "${ZONE}" --key_vault "${DEPLOYER_KEYVAULT}" --keyvault_subscription "$keyvault_subscription_id" \
 		--subscription "$ARM_SUBSCRIPTION_ID" --client_id "$ARM_CLIENT_ID" --client_secret "$ARM_CLIENT_SECRET" --client_tenant_id "$ARM_TENANT_ID" --ado; then
