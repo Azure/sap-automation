@@ -78,10 +78,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 if [ "$PLATFORM" == "devops" ]; then
 	# Set logon variables
-	if [ $USE_MSI == "true" ]; then
+	if [ $ARM_USE_MSI == "true" ]; then
 		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
 	fi
 
 	if az account show --query name; then
@@ -89,7 +87,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	else
 		# Check if running on deployer
 		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
+		LogonToAzure $ARM_USE_MSI
 		return_code=$?
 		if [ 0 != $return_code ]; then
 			echo -e "$bold_red--- Login failed ---$reset"
@@ -162,6 +160,10 @@ fi
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
 user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value -o tsv)
 
+if [ -z "$user_name" ]; then
+	user_name=$USER
+fi
+
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
 
@@ -209,7 +211,7 @@ if [ -f "${filename}" ]; then
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-							  -e orchestration_ansible_user=${user_name:-$USER}          \
+							  -e 'orchestration_ansible_user=${user_name}'               \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
@@ -227,13 +229,13 @@ command="ansible-playbook -i '$INVENTORY'                                  \
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-								-e orchestration_ansible_user=${user_name:-$USER}          \
+								-e 'orchestration_ansible_user=${user_name}'          \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
 					      $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}	"
 
-redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${user_name:-$USER} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
+redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e 'orchestration_ansible_user=${user_name}' -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
 
 echo "##[section]Executing [$redacted_command]..."
 echo "##[group]- Configuration"
@@ -262,7 +264,7 @@ if [ -f "${filename}" ]; then
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-								-e orchestration_ansible_user=${user_name:-$USER}          \
+								-e 'orchestration_ansible_user=${user_name}'               \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
