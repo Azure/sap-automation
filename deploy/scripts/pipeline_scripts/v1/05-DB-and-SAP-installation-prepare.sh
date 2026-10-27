@@ -137,8 +137,6 @@ workload_environment_file_name=$(get_configuration_file "${automation_config_dir
 
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID"
-
 echo -e "$green--- Get key_vault name ---$reset"
 
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "KEYVAULT" "${workload_environment_file_name}" "workloadkeyvault")
