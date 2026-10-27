@@ -52,12 +52,6 @@ if [ "$PLATFORM" == "devops" ]; then
 
 	platform_flag="--ado"
 
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
@@ -76,22 +70,35 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.17.0}"
 fi
-
 if [ "$PLATFORM" == "devops" ]; then
-		if [ "$ARM_USE_MSI" != "true" ]; then
-				ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-				export ARM_TENANT_ID
-		else
-				unset ARM_CLIENT_SECRET
-		fi
+	# Set logon variables
+	if [ $ARM_USE_MSI == "true" ]; then
+		unset ARM_CLIENT_SECRET
+	fi
 
-		LogonToAzure "${ARM_USE_MSI:-true}"
+	if az account show --query name; then
+		echo -e "$green--- Already logged in to Azure ---$reset"
+	else
+		# Check if running on deployer
+		echo -e "$green--- az login ---$reset"
+		LogonToAzure $ARM_USE_MSI
 		return_code=$?
 		if [ 0 != $return_code ]; then
-				echo -e "$bold_red--- Login failed ---$reset"
-				echo "##vso[task.logissue type=error]az login failed."
-				exit $return_code
+			echo -e "$bold_red--- Login failed ---$reset"
+			echo "##vso[task.logissue type=error]az login failed."
+			exit $return_code
 		fi
+	fi
+fi
+
+if [ "$PLATFORM" == "devops" ]; then
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
 fi
 
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
@@ -103,14 +110,10 @@ tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONF
 control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
 
 export control_plane_subscription
-if [  -v KEY_VAULT ]; then
-  key_vault_name=$KEY_VAULT
-else
 
-	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
-	key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
-	key_vault_name=$(echo "$key_vault_id" | cut -d '/' -f 9)
-fi
+key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
+key_vault_subscription=$(echo "$key_vault_id" | cut -d '/' -f 3)
+key_vault_name=$(echo "$key_vault_id" | cut -d '/' -f 9)
 
 if [ ! -v SSH_KEY_NAME ]; then
 	SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
@@ -136,6 +139,15 @@ else
 	fi
 fi
 
+az account set --subscription "$key_vault_subscription" --output none
+
+if [ -n "$key_vault_subscription" ]; then
+	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
+else
+	echo "##[error]Key Vault subscription not found for vault: $key_vault_name"
+	exit 1
+fi
+
 set -eu
 
 curdir=$(dirname "$SAP_PARAMS")
@@ -156,10 +168,6 @@ fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)
 user_name=$(az keyvault secret show --name "$USERNAME_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value -o tsv)
-
-if [ -z "$user_name" ]; then
-	user_name=$USER
-fi
 
 ANSIBLE_PASSWORD="${password_secret}"
 export ANSIBLE_PASSWORD
@@ -208,7 +216,7 @@ if [ -f "${filename}" ]; then
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-							  -e 'orchestration_ansible_user=${user_name}'               \
+							  -e orchestration_ansible_user=${USER:-$user_name}          \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
@@ -226,13 +234,13 @@ command="ansible-playbook -i '$INVENTORY'                                  \
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-								-e 'orchestration_ansible_user=${user_name}'          \
+								-e orchestration_ansible_user=${USER:-$user_name}          \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
 					      $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}	"
 
-redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e 'orchestration_ansible_user=${user_name}' -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
+redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${USER:-$user_name} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${ANSIBLE_FILE_PATH}"
 
 echo "##[section]Executing [$redacted_command]..."
 echo "##[group]- Configuration"
@@ -253,7 +261,7 @@ echo "Check if file: ${filename} exists"
 if [ -f "${filename}" ]; then
 
 	echo "##[group]- Post configuration"
-	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${user_name:-$USER} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
+	redacted_command="ansible-playbook -i '$INVENTORY' --private-key $SAP_PARAMS/artifacts/$SSH_KEY_NAME -e 'kv_name=$VAULT_NAME' -e 'download_directory=$AGENT_TEMPDIRECTORY' -e '_workspace_directory=$SAP_PARAMS' $EXTRA_PARAMS -e orchestration_ansible_user=${USER:-$user_name} -e ansible_user=$user_name -e ansible_python_interpreter=/usr/bin/python3 -e @$SAP_PARAMS $EXTRA_PARAM_FILE	${filename}"
 	echo "##[section]Executing [$redacted_command]..."
 
 	command="ansible-playbook -i '$INVENTORY'                                \
@@ -261,7 +269,7 @@ if [ -f "${filename}" ]; then
 								-e 'kv_name=$VAULT_NAME'                                   \
 								-e 'download_directory=$AGENT_TEMPDIRECTORY'               \
 								-e '_workspace_directory=$curdir' $EXTRA_PARAMS            \
-								-e 'orchestration_ansible_user=${user_name}'               \
+								-e orchestration_ansible_user=${USER:-$user_name}          \
 								-e ansible_user=$user_name                                 \
 								-e ansible_python_interpreter=/usr/bin/python3             \
     						-e ansible_ssh_pass='${ANSIBLE_PASSWORD}' -e @$SAP_PARAMS  \
