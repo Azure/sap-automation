@@ -177,7 +177,7 @@ stages:
               ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
-              ARM_USE_MSI:                        $(USE_MSI)
+              ARM_USE_MSI:                        $(ARM_USE_MSI)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               BOM_BASE_NAME:                      ${{ parameters.bom_base_name }}
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
@@ -189,7 +189,7 @@ stages:
               SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
               SCRIPT_PATH:                        $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
-              USE_MSI:                            $(Use_MSI)
+              USE_MSI:                            $(ARM_USE_MSI)
           - template:                             templates\run-ansible.yaml
             parameters:
               displayName:                        "Parameter validation"
@@ -199,6 +199,7 @@ stages:
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(ARM_USE_MSI)
               BOM_BASE_NAME:                      ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME:      ${{ parameters.sap_system_configuration_name }}
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
@@ -222,10 +223,11 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -245,10 +247,11 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -271,7 +274,8 @@ stages:
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -294,7 +298,8 @@ stages:
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -317,7 +322,8 @@ stages:
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -337,10 +343,11 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -363,7 +370,8 @@ stages:
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -386,7 +394,8 @@ stages:
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -409,7 +418,8 @@ stages:
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
@@ -428,11 +438,12 @@ stages:
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SAP_SYSTEM_CONFIGURATION_NAME:  ${{ parameters.sap_system_configuration_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
                   parametersFolder:               $(Preparation.FOLDER)
@@ -445,7 +456,6 @@ stages:
                 parameters:
                   displayName:                    Post Configuration Actions
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
                   ansibleFilePath:                ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_post_configuration_actions.yaml
                   ARM_CLIENT_ID:                  $(ARM_CLIENT_ID)
@@ -457,6 +467,8 @@ stages:
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
                   extraParams:                    $(Preparation.NEW_PARAMETERS)
                   parametersFolder:               $(Preparation.FOLDER)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   remoteStateStorageAccount:      $(TERRAFORM_STATE_STORAGE_ACCOUNT)
                   sapParams:                      ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)
                   sidHosts:                       $(Preparation.HOSTS)
@@ -470,6 +482,8 @@ stages:
                   ARM_CLIENT_SECRET:              $(ARM_CLIENT_SECRET)
                   ARM_SUBSCRIPTION_ID:            $(ARM_SUBSCRIPTION_ID)
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   controlPlaneName:               $(CONTROL_PLANE_NAME)
                   controlPlaneSubscriptionId:     $(TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
@@ -492,7 +506,8 @@ stages:
                   ARM_TENANT_ID:                  $(ARM_TENANT_ID)
                   BOM_BASE_NAME:                  ${{ parameters.bom_base_name }}
                   SYSTEM_ACCESSTOKEN:             $(System.AccessToken)
-                  USE_MSI:                        $(Use_MSI)
+                  ARM_USE_MSI:                    $(ARM_USE_MSI)
+                  USE_MSI:                        $(ARM_USE_MSI)
                   acssEnvironment:                ${{ parameters.acss_environment }}
                   acssSapProduct:                 ${{ parameters.acss_sap_product }}
                   ansibleConfigPath:              ${{ parameters.sap_automation_repo_path }}/deploy/ansible/ansible.cfg
