@@ -185,7 +185,7 @@ if [ "${USE_MSI:-false}" == "true" ]; then
 	allParameters+=(--msi)
 fi
 
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
 	allParameters+=(--client_id "$ARM_CLIENT_ID")
 	allParameters+=(--client_secret "$ARM_CLIENT_SECRET")
 	allParameters+=(--client_tenant_id "$ARM_TENANT_ID")
@@ -193,7 +193,7 @@ fi
 
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh"
 
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
 
 	if set_all_secrets "${allParameters[@]}"; then
 		return_code=$?

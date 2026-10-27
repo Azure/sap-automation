@@ -56,7 +56,7 @@ if [ "$ARM_USE_MSI" != "true" ]; then
 fi
 
 # Set logon variables
-if [ $USE_MSI == "true" ]; then
+if [ $ARM_USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
@@ -68,9 +68,9 @@ else
 	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		configureNonDeployer "${tf_version:-1.17.0}"
 		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
+		LogonToAzure $ARM_USE_MSI
 	else
-		LogonToAzure $USE_MSI
+		LogonToAzure $ARM_USE_MSI
 	fi
 	return_code=$?
 	if [ 0 != $return_code ]; then

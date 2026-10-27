@@ -75,7 +75,7 @@ if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
 else
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$USE_MSI"
+	LogonToAzure "$ARM_USE_MSI"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		exit_error "az login failed." $return_code

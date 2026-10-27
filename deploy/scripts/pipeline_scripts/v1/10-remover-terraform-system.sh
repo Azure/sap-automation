@@ -68,7 +68,7 @@ fi
 
 
 # Set logon variables
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
 
 	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 	export ARM_TENANT_ID
@@ -88,7 +88,7 @@ fi
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.17.0}"
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
+	LogonToAzure $ARM_USE_MSI
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
@@ -96,7 +96,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 		exit $return_code
 	fi
 else
-	LogonToAzure $USE_MSI
+	LogonToAzure $ARM_USE_MSI
 fi
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID

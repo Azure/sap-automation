@@ -51,7 +51,7 @@ fi
 configure_devops
 
 # Set logon variables
-if [ $USE_MSI == "true" ]; then
+if [ $ARM_USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
@@ -62,7 +62,7 @@ if az account show --query name; then
 else
 	# Check if running on deployer
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
+	LogonToAzure $ARM_USE_MSI
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"

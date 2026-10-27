@@ -171,7 +171,7 @@ if [ -v MSI_ID ]; then
 
 fi
 
-LogonToAzure $USE_MSI
+LogonToAzure $ARM_USE_MSI
 return_code=$?
 if [ 0 != $return_code ]; then
     echo -e "$bold_red--- Login failed ---$reset"
