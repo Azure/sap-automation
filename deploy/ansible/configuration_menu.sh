@@ -71,6 +71,12 @@ password_secret_name=$prefix-sid-password
 
 password_secret=$(az keyvault secret show --vault-name ${workload_vault_name} --name ${password_secret_name} --query value --output table)
 export ANSIBLE_PASSWORD=$password_secret
+
+user_secret_name=$prefix-sid-username
+
+user_name=$(az keyvault secret show --vault-name ${workload_vault_name} --name ${user_secret_name} --query value --output table)
+
+
 #
 # Ansible configuration settings.
 #
@@ -184,6 +190,7 @@ playbook_options=(
         --extra-vars="_workspace_directory=`pwd`"
         --extra-vars="download_directory=${download_directory}"
         --extra-vars="@${sap_params_file}"
+        --extra-vars="orchestration_ansible_user=${user_name:-$USER}"
         --extra-vars="BOM_CATALOG=${BOM_CATALOG}"
         -e ansible_ssh_pass='{{ lookup("env", "ANSIBLE_PASSWORD") }}'
         "${@}"

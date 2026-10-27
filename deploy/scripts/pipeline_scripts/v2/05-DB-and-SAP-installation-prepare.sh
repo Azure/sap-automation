@@ -12,7 +12,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 # Set platform-specific output
 if [ "$PLATFORM" == "devops" ]; then
-	echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
+    echo "##vso[build.updatebuildnumber]Deploying ${SAP_SYSTEM_CONFIGURATION_NAME} using BoM ${BOM_BASE_NAME}"
 fi
 banner_title="SAP Configuration and Installation Preparation"
 # External helper functions
@@ -34,37 +34,37 @@ echo ""
 
 # Platform-specific configuration
 if [ "$PLATFORM" == "devops" ]; then
-	DEBUG=false
+    DEBUG=false
 
-	if [ "${SYSTEM_DEBUG:-False}" = True ]; then
-		set -x
-		DEBUG=True
-		echo "Environment variables:"
-		printenv | sort
+    if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+        set -x
+        DEBUG=True
+        echo "Environment variables:"
+        printenv | sort
 
-	fi
-	export DEBUG
-	set -eu
-	# Configure DevOps
-	configure_devops
+    fi
+    export DEBUG
+    set -eu
+    # Configure DevOps
+    configure_devops
 
-	platform_flag="--ado"
+    platform_flag="--ado"
 
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
-elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	# Values will be stored in GitHub Environment variables
-	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
-	git config --global --add safe.directory "$CONFIG_REPO_PATH"
-	platform_flag="--github"
+    if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+        echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+        echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+        exit 2
+    fi
+    export VARIABLE_GROUP_ID
+    elif [ "$PLATFORM" == "github" ]; then
+    # No specific variable group setup for GitHub Actions
+    # Values will be stored in GitHub Environment variables
+    echo "Configuring for GitHub Actions"
+    export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+    git config --global --add safe.directory "$CONFIG_REPO_PATH"
+    platform_flag="--github"
 else
-	platform_flag=""
+    platform_flag=""
 fi
 
 WORKLOAD_ZONE_NAME=$(basename "${SAP_SYSTEM_CONFIGURATION_NAME}" | cut -d'-' -f1-3)
@@ -79,68 +79,68 @@ parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/s
 echo -e "$green--- Validations ---$reset"
 
 if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-	exit 2
+    echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+    exit 2
 fi
 
 if [ "azure pipelines" == "$THIS_AGENT" ]; then
-	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
-	exit 2
+    echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT variable group"
+    exit 2
 fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.17.0}"
+    configureNonDeployer "${tf_version:-1.17.0}"
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "$ARM_USE_MSI" != "true" ]; then
+    if [ "$ARM_USE_MSI" != "true" ]; then
 
-		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-		export ARM_TENANT_ID
-		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-		export ARM_SUBSCRIPTION_ID
-	else
-		unset ARM_CLIENT_SECRET
-	fi
+        ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+        export ARM_TENANT_ID
+        ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+        export ARM_SUBSCRIPTION_ID
+    else
+        unset ARM_CLIENT_SECRET
+    fi
 
-	LogonToAzure "${ARM_USE_MSI:-true}"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
+    LogonToAzure "${ARM_USE_MSI:-true}"
+    return_code=$?
+    if [ 0 != $return_code ]; then
+        echo -e "$bold_red--- Login failed ---$reset"
+        echo "##vso[task.logissue type=error]az login failed."
+        exit $return_code
+    fi
 fi
 
-if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-	export APPLICATION_CONFIGURATION_ID
-fi
+if [  -v KEY_VAULT ]; then
+  key_vault=$KEY_VAULT
+else
 
-if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+    if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+        APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+        export APPLICATION_CONFIGURATION_ID
+    fi
 
-	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
-	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
-	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
-	if [ -n $key_vault_subscription_id]; then
-		az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
-	fi
+    if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
 
-fi
+        key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
+        key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
+        key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+        if [ -n "$key_vault_subscription_id" ]; then
+            az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+        fi
 
-if [ -z "$key_vault" ]; then
-	if [ -v KEYVAULT ]; then
-		key_vault=$KEYVAULT
-	else
-		echo "##vso[task.logissue type=error]Key Vault name is not defined."
-	fi
-	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
-	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
-	if [ -n $key_vault_subscription_id]; then
-		az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
-	fi
+    fi
 
+    if [ -z "$key_vault" ]; then
+        key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
+        key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
+        if [ -n "$key_vault_subscription_id" ]; then
+            az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+        fi
+
+    fi
 fi
 
 
@@ -163,12 +163,12 @@ mkdir -p artifacts
 echo "Workload Key Vault:                  ${key_vault}"
 
 if [ ${EXTRA_PARAMETERS:-''} = '$(EXTRA_PARAMETERS)' ]; then
-	new_parameters=$PIPELINE_EXTRA_PARAMETERS
+    new_parameters=$PIPELINE_EXTRA_PARAMETERS
 else
-	if [ "$PLATFORM" == "devops" ]; then
-		echo "##vso[task.logissue type=warning]Extra parameters were provided - ${EXTRA_PARAMETERS:-''}"
-	fi
-	new_parameters="${EXTRA_PARAMETERS:-''} $PIPELINE_EXTRA_PARAMETERS"
+    if [ "$PLATFORM" == "devops" ]; then
+        echo "##vso[task.logissue type=warning]Extra parameters were provided - ${EXTRA_PARAMETERS:-''}"
+    fi
+    new_parameters="${EXTRA_PARAMETERS:-''} $PIPELINE_EXTRA_PARAMETERS"
 fi
 
 echo "##vso[task.setvariable variable=FOLDER;isOutput=true]$CONFIG_REPO_PATH/SYSTEM/$SAP_SYSTEM_CONFIGURATION_NAME"
