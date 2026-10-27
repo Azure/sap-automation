@@ -8,7 +8,7 @@
 - Support for the new supported Virtual machine SKUs
 - Support for overriding the subnet for the private endpoints
 - Support providing custom DNS names for database clusters
-- Terraform version references updated to 1.16.5
+- Terraform version references updated to 1.17.0
 
 - Change the App Service to use .DotNet 10
     
