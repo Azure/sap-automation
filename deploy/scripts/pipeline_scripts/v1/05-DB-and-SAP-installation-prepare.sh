@@ -41,66 +41,29 @@ print_header
 # Configure DevOps
 configure_devops
 
-
-# Check if running on deployer
-if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.17.0}"
-fi
-
-echo -e "$green--- Validations ---$reset"
-if [ "$USE_MSI" != "true" ]; then
-
-	if ! printenv ARM_SUBSCRIPTION_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
-		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
-		exit 2
-	fi
-
-	if ! printenv ARM_CLIENT_SECRET; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group."
-		print_banner "$banner_title" "Variable ARM_CLIENT_SECRET was not defined in the $VARIABLE_GROUP variable group" "error"
-		exit 2
-	fi
-
-	if ! printenv ARM_CLIENT_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group."
-		print_banner "$banner_title" "Variable ARM_CLIENT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
-		exit 2
-	fi
-
-	if ! printenv ARM_TENANT_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-		print_banner "$banner_title" "Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
-		exit 2
-	fi
-else
-	if ! printenv ARM_SUBSCRIPTION_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
-		print_banner "$banner_title" "Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group" "error"
-		exit 2
-	fi
-	if ! printenv ARM_TENANT_ID; then
-		echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
-		print_banner "$banner_title" "Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group" "error"
-		exit 2
-	fi
-
-fi
-
-echo -e "$green--- az login ---$reset"
 # Set logon variables
-if [ "$USE_MSI" == "true" ]; then
+if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
 
-LogonToAzure $USE_MSI
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+	configureNonDeployer "${tf_version:-1.16.5}"
+fi
+
+if az account show --query name; then
+	echo -e "$green--- Already logged in to Azure ---$reset"
+else
+	# Check if running on deployer
+	echo -e "$green--- az login ---$reset"
+	LogonToAzure $USE_MSI
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
@@ -109,17 +72,6 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	exit 2
 fi
 export VARIABLE_GROUP_ID
-
-echo -e "$green--- Validations ---$reset"
-if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
-	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
-	exit 2
-fi
-
-if [ "azure pipelines" == $THIS_AGENT ]; then
-	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$(environment_code) variable group"
-	exit 2
-fi
 
 ENVIRONMENT_IN_FILENAME=$(echo "$SAP_SYSTEM_CONFIGURATION_NAME" | awk -F'-' '{print $1}' | xargs)
 
@@ -136,6 +88,27 @@ automation_config_directory="$CONFIG_REPO_PATH/.sap_deployment_automation/"
 workload_environment_file_name=$(get_configuration_file "${automation_config_directory}" "${ENVIRONMENT_IN_FILENAME}" "${LOCATION_CODE_IN_FILENAME}" "${NETWORK_IN_FILENAME}")
 
 parameters_filename="$CONFIG_REPO_PATH/SYSTEM/${SAP_SYSTEM_CONFIGURATION_NAME}/sap-parameters.yaml"
+
+az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID --output none --only-show-errors
+
+echo -e "$green--- Validations ---$reset"
+if [ ! -f "${workload_environment_file_name}" ]; then
+	echo -e "$bold_red--- ${workload_environment_file_name} was not found ---$reset"
+	echo "##vso[task.logissue type=error]File ${workload_environment_file_name} was not found."
+	exit 2
+fi
+
+if [ -z "$ARM_SUBSCRIPTION_ID" ]; then
+	echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined."
+	exit 2
+fi
+
+if [ "azure pipelines" == "$THIS_AGENT" ]; then
+	echo "##vso[task.logissue type=error]Please use a self hosted agent for this playbook. Define it in the SDAF-$ENVIRONMENT_IN_FILENAME variable group"
+	exit 2
+fi
+
+az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
 
 echo -e "$green--- Get key_vault name ---$reset"
 
