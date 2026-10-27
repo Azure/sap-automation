@@ -61,7 +61,7 @@ fi
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-if [ "$USE_MSI" == "true" ]; then
+if [ "$ARM_USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI

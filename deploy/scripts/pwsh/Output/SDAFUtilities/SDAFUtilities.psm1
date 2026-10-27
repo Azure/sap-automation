@@ -1452,7 +1452,7 @@ resources:
 
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
-        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARMUSE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "true"
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
 
 				$ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
@@ -1509,6 +1509,7 @@ resources:
 					$ControlPlaneClientSecret = "Please update"
 
 					SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "false"
+          SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "false"
 
 					$ServicePrincipalFound = (az ad sp list --all --filter "startswith(displayName, '$ServicePrincipalName')" --query "[?displayName=='$ServicePrincipalName'].displayName | [0]" --only-show-errors)
 					if ($ServicePrincipalFound.Length -gt 0) {
@@ -2299,6 +2300,7 @@ function New-SDAFADOWorkloadZone {
 
         Add-Content -Path $WikiFileName -Value ("Workload zone Service Principal: " + $ServicePrincipalName)
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "false"
+        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "false"
 
         $Scope = "/subscriptions/" + $WorkloadZoneSubscriptionId
 

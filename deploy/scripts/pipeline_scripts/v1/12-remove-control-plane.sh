@@ -41,7 +41,7 @@ echo "##vso[build.updatebuildnumber]Removing the control plane defined in $DEPLO
 print_banner "$banner_title" "Entering $SCRIPT_NAME" "info"
 
 # Set logon variables
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
 
 	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 	export ARM_TENANT_ID

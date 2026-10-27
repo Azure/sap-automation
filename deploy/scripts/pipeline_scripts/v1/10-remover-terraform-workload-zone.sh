@@ -65,7 +65,7 @@ if [ ! -f "$CONFIG_REPO_PATH/$tfvarsFile" ]; then
 fi
 
 # Set logon variables
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
 
 	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 	export ARM_TENANT_ID

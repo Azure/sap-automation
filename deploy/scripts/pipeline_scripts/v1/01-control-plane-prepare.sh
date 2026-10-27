@@ -90,7 +90,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
-	if [ "$USE_MSI" == "true" ]; then
+	if [ "$ARM_USE_MSI" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		ARM_USE_MSI=true
@@ -137,7 +137,7 @@ if az account show --query name; then
 	az account show --query user --output yaml
 else
 
-	LogonToAzure $USE_MSI
+	LogonToAzure $ARM_USE_MSI
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
@@ -339,7 +339,7 @@ fi
 export TF_LOG_PATH=$CONFIG_REPO_PATH/.sap_deployment_automation/terraform.log
 set +eu
 msi_flag=""
-if [ "$USE_MSI" == "true" ]; then
+if [ "$ARM_USE_MSI" == "true" ]; then
 	msi_flag=" --msi "
 	TF_VAR_use_spn=false
 	export TF_VAR_use_spn

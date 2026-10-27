@@ -408,6 +408,7 @@ def main():
         "AZURE_AUDIENCE": user_data["azure_audience"],
         "AZURE_ENVIRONMENT": user_data["azure_environment"],
         "USE_MSI": "true" if use_managed_identity else "false",
+        "ARM_USE_MSI": "true" if use_managed_identity else "false",
         # Add S_USERNAME with a placeholder if not provided
         "S_USERNAME": (
             user_data["s_username"] if user_data["s_username"] else "Add SAP S Username here"

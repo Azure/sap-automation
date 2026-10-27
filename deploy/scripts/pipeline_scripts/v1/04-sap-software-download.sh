@@ -38,7 +38,7 @@ set -eu
 
 cd "$CONFIG_REPO_PATH" || exit
 
-if [ "$USE_MSI" != "true" ]; then
+if [ "$ARM_USE_MSI" != "true" ]; then
   if [ -z "$ARM_CLIENT_ID" ]; then
     echo "##vso[task.logissue type=error]Variable ARM_CLIENT_ID was not defined."
     exit 2

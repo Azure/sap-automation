@@ -134,14 +134,14 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
-if [ "$USE_MSI" == "true" ]; then
+if [ "$ARM_USE_MSI" == "true" ]; then
     unset ARM_CLIENT_SECRET
     ARM_USE_MSI=true
     export ARM_USE_MSI
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
-    if [ "$USE_MSI" != "true" ]; then
+    if [ "$ARM_USE_MSI" != "true" ]; then
 
         ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
         export ARM_TENANT_ID

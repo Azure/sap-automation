@@ -60,7 +60,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
-	if [ "$USE_MSI" == "true" ]; then
+	if [ "$ARM_USE_MSI" == "true" ]; then
 		TF_VAR_use_spn=false
 		export TF_VAR_use_spn
 		ARM_USE_MSI=true

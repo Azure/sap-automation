@@ -70,7 +70,7 @@ fi
 export VARIABLE_GROUP_ID
 
 # Set logon variables
-if [ "$USE_MSI" == "true" ]; then
+if [ "$ARM_USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI

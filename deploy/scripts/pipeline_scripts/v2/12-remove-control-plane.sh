@@ -89,20 +89,20 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
-if [ "$USE_MSI" == "true" ]; then
+if [ "$ARM_USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "$USE_MSI" != "true" ]; then
+	if [ "$ARM_USE_MSI" != "true" ]; then
 		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 		export ARM_TENANT_ID
 		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 		export ARM_SUBSCRIPTION_ID
 	else
-		LogonToAzure "${USE_MSI:-false}"
+		LogonToAzure "${ARM_USE_MSI:-false}"
 		return_code=$?
 		if [ 0 != $return_code ]; then
 			echo -e "$bold_red--- Login failed ---$reset"

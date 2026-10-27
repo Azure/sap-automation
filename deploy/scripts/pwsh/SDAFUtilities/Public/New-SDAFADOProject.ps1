@@ -1128,6 +1128,7 @@ resources:
 
 					SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "false"
 
+
 					$ServicePrincipalFound = (az ad sp list --all --filter "startswith(displayName, '$ServicePrincipalName')" --query "[?displayName=='$ServicePrincipalName'].displayName | [0]" --only-show-errors)
 					if ($ServicePrincipalFound.Length -gt 0) {
 						Write-Host "Found an existing Service Principal:" $ServicePrincipalName
