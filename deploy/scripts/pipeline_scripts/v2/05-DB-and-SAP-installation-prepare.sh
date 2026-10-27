@@ -94,7 +94,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "$USE_MSI" != "true" ]; then
+	if [ "$ARM_USE_MSI" != "true" ]; then
 
 		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 		export ARM_TENANT_ID
@@ -102,11 +102,9 @@ if [ "$PLATFORM" == "devops" ]; then
 		export ARM_SUBSCRIPTION_ID
 	else
 		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
 	fi
 
-	LogonToAzure "${USE_MSI:-true}"
+	LogonToAzure "${ARM_USE_MSI:-true}"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
@@ -125,7 +123,9 @@ if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfigur
 	key_vault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${WORKLOAD_ZONE_NAME}_KeyVaultResourceId" "${WORKLOAD_ZONE_NAME}")
 	key_vault=$(echo "$key_vault_id" | cut -d'/' -f9)
 	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
-	az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+	if [ -n $key_vault_subscription_id]; then
+		az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+	fi
 
 fi
 
@@ -134,11 +134,12 @@ if [ -z "$key_vault" ]; then
 		key_vault=$KEYVAULT
 	else
 		echo "##vso[task.logissue type=error]Key Vault name is not defined."
-		exit 2
 	fi
 	key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
 	key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
-	az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+	if [ -n $key_vault_subscription_id]; then
+		az account set --subscription "$key_vault_subscription_id" --output none --only-show-errors
+	fi
 
 fi
 
