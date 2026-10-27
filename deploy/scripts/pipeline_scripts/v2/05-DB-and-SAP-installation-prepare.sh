@@ -116,8 +116,8 @@ fi
 echo "SID:                                 ${SID}"
 echo "Workload Zone Name:                  $WORKLOAD_ZONE_NAME"
 echo "SAP Application BoM:                 $BOM_BASE_NAME"
-if [ -v KEY_VAULT ]; then
-    key_vault=$KEY_VAULT
+if [ -v KEYVAULT ]; then
+    key_vault=$KEYVAULT
 		echo "Keyvault:                            $key_vault"
 		key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$key_vault' | project id, name, subscription" --query data[0].id --output tsv)
 		key_vault_subscription_id=$(echo "$key_vault_id" | cut -d'/' -f3)
