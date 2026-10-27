@@ -1308,7 +1308,7 @@ resources:
 
 			$GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 			if ($GeneralGroupId.Length -eq 0) {
-				az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.17.0" ansible_core_version="2.16.18" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+				az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.17.0" ansible_core_version="2.16.19" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
 				$GeneralGroupId = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 				az pipelines variable-group variable update --group-id $GeneralGroupId --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 			}
@@ -1452,6 +1452,7 @@ resources:
 
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARM_OBJECT_ID" -VariableValue $ManagedIdentityObjectId
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "USE_MSI" -VariableValue "true"
+        SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "ARMUSE_MSI" -VariableValue "true"
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "MSI_ID" -VariableValue $id
 
 				$ManagedIdentityClientId = (az ad sp show --id $ManagedIdentityObjectId --query appId --output tsv)
