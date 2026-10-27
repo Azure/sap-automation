@@ -98,8 +98,6 @@ if [ "$PLATFORM" == "devops" ]; then
 
 				ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 				export ARM_TENANT_ID
-				ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-				export ARM_SUBSCRIPTION_ID
 		else
 				unset ARM_CLIENT_SECRET
 		fi

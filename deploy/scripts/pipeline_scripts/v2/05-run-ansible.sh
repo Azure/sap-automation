@@ -76,25 +76,22 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.17.0}"
 fi
-if [ "$PLATFORM" == "devops" ]; then
-	# Set logon variables
-	if [ $ARM_USE_MSI == "true" ]; then
-		unset ARM_CLIENT_SECRET
-	fi
 
-	if az account show --query name; then
-		echo -e "$green--- Already logged in to Azure ---$reset"
-	else
-		# Check if running on deployer
-		echo -e "$green--- az login ---$reset"
-		LogonToAzure $ARM_USE_MSI
+if [ "$PLATFORM" == "devops" ]; then
+		if [ "$ARM_USE_MSI" != "true" ]; then
+				ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+				export ARM_TENANT_ID
+		else
+				unset ARM_CLIENT_SECRET
+		fi
+
+		LogonToAzure "${ARM_USE_MSI:-true}"
 		return_code=$?
 		if [ 0 != $return_code ]; then
-			echo -e "$bold_red--- Login failed ---$reset"
-			echo "##vso[task.logissue type=error]az login failed."
-			exit $return_code
+				echo -e "$bold_red--- Login failed ---$reset"
+				echo "##vso[task.logissue type=error]az login failed."
+				exit $return_code
 		fi
-	fi
 fi
 
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
