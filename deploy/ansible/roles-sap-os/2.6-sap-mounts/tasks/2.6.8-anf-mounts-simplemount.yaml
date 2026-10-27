@@ -11,12 +11,12 @@
 - name:                                "ANF Mount: Set the NFSmount options"
   ansible.builtin.set_fact:
     mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
-  when: distribution_full_id not in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', 'redhat9.6', 'redhat10.0', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7', 'sles_sap16.0']
+  when: distribution_full_id not in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', 'redhat9.6', 'redhat9.8', 'redhat10.0', 'redhat10.2', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
 
 - name:                                "ANF Mount: Set the NFSmount options"
   ansible.builtin.set_fact:
     mnt_options:                       'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8'
-  when: distribution_full_id in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', 'redhat9.6', 'redhat10.0', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7', 'sles_sap16.0']
+  when: distribution_full_id in ['redhat8.4', 'redhat8.6', 'redhat8.8', 'redhat9.0', 'redhat9.2', 'redhat9.4', 'redhat9.6', 'redhat9.8', 'redhat10.0', 'redhat10.2', 'sles_sap15.2', 'sles_sap15.3', 'sles_sap15.4', 'sles_sap15.5', 'sles_sap15.6', 'sles_sap15.7']
 
 - name:                                "ANF Mount: Define this SID"
   ansible.builtin.set_fact:
@@ -210,7 +210,7 @@
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    opts:                              'nfsvers=4.1,sec=sys,hard'
     state:                             mounted
   loop:
     - { type: 'nfs4',  src: '{{ sap_mnt }}/sapmnt{{ sap_sid | upper }}',    path: '/sapmnt/{{ sap_sid | upper }}'      }
@@ -225,7 +225,7 @@
     src:                               "{{ item.src }}"
     path:                              "{{ item.path }}"
     fstype:                            "{{ item.type }}"
-    opts:                              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp'
+    opts:                              'nfsvers=4.1,sec=sys,hard'
     state:                             mounted
   loop:
     - { type: 'nfs4',  src: '{{ sap_mnt }}/usrsap{{ sap_sid | upper }}', path: '/usr/sap/{{ sap_sid | upper }}' }
@@ -296,4 +296,3 @@
     - usr_sap_install_mountpoint is defined
     - usr_sap_install_mountpoint != ''
 
-...

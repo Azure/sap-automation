@@ -190,7 +190,7 @@ output "hana_shared"                   {
                                                          ) : (
                                                          var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? data.azurerm_netapp_volume.hanashared[0].zone : azurerm_netapp_volume.hanashared[0].zone) == var.database.zones[0] ? (
                                                          compact([
-                                                           format("%s:/%s",
+                                                           try(format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
                                                                azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
@@ -199,8 +199,8 @@ output "hana_shared"                   {
                                                                data.azurerm_netapp_volume.hanashared[0].volume_path) : (
                                                                azurerm_netapp_volume.hanashared[0].volume_path
                                                              )
-                                                           ),
-                                                           local.db_zone_count > 1 ? format("%s:/%s",
+                                                           ), ""),
+                                                           local.db_zone_count > 1 ? try(format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
                                                                azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
@@ -209,11 +209,11 @@ output "hana_shared"                   {
                                                                data.azurerm_netapp_volume.hanashared[1].volume_path) : (
                                                                azurerm_netapp_volume.hanashared[1].volume_path
                                                              )
-                                                           ) : ""
+                                                           ), "") : ""
                                                          ])
                                                          ) : (
-                                                         [
-                                                           format("%s:/%s",
+                                                         compact([
+                                                           try(format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
                                                                azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
@@ -222,8 +222,8 @@ output "hana_shared"                   {
                                                                data.azurerm_netapp_volume.hanashared[1].volume_path) : (
                                                                azurerm_netapp_volume.hanashared[1].volume_path
                                                              )
-                                                           ),
-                                                           format("%s:/%s",
+                                                           ), ""),
+                                                           try(format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
                                                                azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
@@ -232,8 +232,8 @@ output "hana_shared"                   {
                                                                data.azurerm_netapp_volume.hanashared[0].volume_path) : (
                                                                azurerm_netapp_volume.hanashared[0].volume_path
                                                              )
-                                                           )
-                                                         ]
+                                                           ), "")
+                                                         ])
                                                        )
                                                      }
 
