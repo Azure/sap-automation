@@ -51,25 +51,26 @@ fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.17.0}"
-fi
-
-if [ "$USE_MSI" != "true" ]; then
-	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-	export ARM_TENANT_ID
-	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-	export ARM_SUBSCRIPTION_ID
 else
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
 
-LogonToAzure "${USE_MSI:-true}"
-return_code=$?
-if [ 0 != $return_code ]; then
-	echo -e "$bold_red--- Login failed ---$reset"
-	echo "##vso[task.logissue type=error]az login failed."
-	exit $return_code
+	if [ "$USE_MSI" != "true" ]; then
+		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
+		export ARM_TENANT_ID
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+		export ARM_SUBSCRIPTION_ID
+	else
+		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+	fi
+
+	LogonToAzure "${USE_MSI:-true}"
+	return_code=$?
+	if [ 0 != $return_code ]; then
+		echo -e "$bold_red--- Login failed ---$reset"
+		echo "##vso[task.logissue type=error]az login failed."
+		exit $return_code
+	fi
 fi
 
 if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
@@ -114,7 +115,7 @@ if [ "azure pipelines" == "$THIS_AGENT" ]; then
 	exit 2
 fi
 
-az account set --subscription "$ARM_SUBSCRIPTION_ID" --output none
+az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
 echo -e "$green--- Get key_vault name ---$reset"
 
