@@ -1,0 +1,7 @@
+{
+  "module": "deploy/terraform/terraform-units/modules/sap_library",
+  "shards": [
+    { "file": "storage_network_access.tftest.hcl", "runs": 9 }
+  ],
+  "total_runs": 9
+}
