@@ -5,15 +5,15 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.81.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.80.0 |
-| <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.80.0 |
-| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.80.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.81.0 |
+| <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.81.0 |
+| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.81.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | n/a |
 
 ## Modules
@@ -24,23 +24,23 @@ No modules.
 
 | Name | Type |
 | ---- | ---- |
-| [azurerm_private_dns_a_record.app_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_private_dns_a_record.db_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_private_dns_a_record.scs_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_private_dns_a_record.web_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_storage_blob.ansible_inventory_yaml](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_blob) | resource |
-| [azurerm_storage_blob.readme](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_blob) | resource |
-| [azurerm_storage_blob.sap_parameters_yaml](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_blob) | resource |
-| [azurerm_storage_blob.tfvars_state](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_blob) | resource |
-| [azurerm_storage_blob.tfvarsfile](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_blob) | resource |
+| [azurerm_private_dns_a_record.app_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_private_dns_a_record.db_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_private_dns_a_record.scs_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_private_dns_a_record.web_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_storage_blob.ansible_inventory_yaml](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_blob) | resource |
+| [azurerm_storage_blob.readme](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_blob) | resource |
+| [azurerm_storage_blob.sap_parameters_yaml](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_blob) | resource |
+| [azurerm_storage_blob.tfvars_state](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_blob) | resource |
+| [azurerm_storage_blob.tfvarsfile](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_blob) | resource |
 | [local_file.ansible_inventory_new_yml](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.naming](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.sap-parameters_yml](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.sap_inventory_for_wiki_md](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.sap_inventory_md](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.sap_vms_resource_id](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/client_config) | data source |
-| [azurerm_storage_container.tfvars](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/storage_container) | data source |
+| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/client_config) | data source |
+| [azurerm_storage_container.tfvars](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/storage_container) | data source |
 
 ## Inputs
 

@@ -84,7 +84,7 @@ accepting one as sufficient is itself a Blocking-level review error.
 | `resource_group_name`, `location` | Everything in the module moves |
 | Subnet `name` or `virtual_network_name` | Subnet replaced, dependent NICs replaced |
 
-Note that subnet `address_prefixes` is **not** `ForceNew` in the pinned AzureRM 4.80.0 schema —
+Note that subnet `address_prefixes` is **not** `ForceNew` in the pinned AzureRM 4.81.0 schema —
 the update path handles `HasChange("address_prefixes")`, so an in-place prefix change is not a
 replacement. Do not raise it as one.
 

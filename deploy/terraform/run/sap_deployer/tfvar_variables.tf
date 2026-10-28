@@ -509,7 +509,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.16.5"
+                                                        default     = "1.17.0"
                                                       }
 
 variable "tfstate_resource_id"                       {
