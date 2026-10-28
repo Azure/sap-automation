@@ -636,7 +636,7 @@
 - name:                                "5.5.4.1 HANA Cluster configuration - REDHAT ANGI - move SAPHanaController clone to run on Primary Node"
   when:
                                        - database_active_active | default(false)
-                                       - not (database_scale_out | default(false))
+                                       - not (db_scale_out | default(false))
                                        - is_pcmk_ver_gt_204
                                        - ansible_hostname == primary_instance_name
                                        - is_certified_for_hanasr_angi | default(false)

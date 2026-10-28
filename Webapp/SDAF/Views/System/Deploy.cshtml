@@ -1,4 +1,4 @@
-﻿@model SDAFWebApp.Models.FormViewModel<SystemModel>
+@model SDAFWebApp.Models.FormViewModel<SystemModel>
 
 @{
     ViewBag.Title = "Deploy system";
@@ -30,7 +30,8 @@
 </fluent-breadcrumb>
 
 <div class="text-center">
-    <h2>Deploy a system</h2>
+    <h2>Deploy the infrastructure for the SAP system</h2>
+    This will deploy the required infrastructure for the SAP system. 
 </div>
 
 <h4>Are you sure you want to deploy @Model.SapObject.Id?</h4>
@@ -43,8 +44,8 @@
 
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label required" })
-                <p>Please specify the workload environment to deploy to (DEV, QA, PRD, ...)</p>
+                @Html.Label("environment", "Workload zone", new { @class = $"ms-Label required" })
+                <p>Please specify the workload zone to deploy to.</p>
             </div>
 
             <div class="right-input">

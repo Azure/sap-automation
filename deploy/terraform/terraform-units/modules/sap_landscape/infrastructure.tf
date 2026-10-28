@@ -12,7 +12,7 @@
 resource "azurerm_resource_group" "resource_group" {
   provider                             = azurerm.main
   count                                = local.resource_group_exists ? 0 : 1
-  name                                 = local.resourcegroup_name
+  name                                 = local.resource_group_name
   location                             = local.region
   tags                                 = merge(var.infrastructure.tags, var.tags)
 
@@ -27,7 +27,7 @@ resource "azurerm_resource_group" "resource_group" {
 data "azurerm_resource_group" "resource_group" {
   provider                             = azurerm.main
   count                                = local.resource_group_exists ? 1 : 0
-  name                                 = local.resourcegroup_name
+  name                                 = local.resource_group_name
 }
 
 // Creates the SAP VNET

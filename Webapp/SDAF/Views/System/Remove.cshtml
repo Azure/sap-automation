@@ -1,0 +1,66 @@
+@model SDAFWebApp.Models.FormViewModel<SystemModel>
+
+@{
+    ViewBag.Title = "Remove system";
+    ViewData["environment"] = Model.SapObject.environment;
+    IEnumerable<SelectListItem> environments = ViewBag.Environments;
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript">
+
+    window.onload = function () {
+        $(".js-example-placeholder-single").select2({
+            placeholder: "Search...",
+            allowClear: true,
+            tags: true
+        });
+
+        toggleNullParameters();
+        
+    }
+
+</script>
+
+<fluent-breadcrumb>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "Home")">Home</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="@Url.Action("Index", "System")">Systems</fluent-breadcrumb-item>
+    <fluent-breadcrumb-item href="#">Remove</fluent-breadcrumb-item>
+</fluent-breadcrumb>
+
+<div class="text-center">
+    <h2>Remove a system</h2>
+    This will perform a removal of the system infrastructure and remove the deployed resources from Azure.
+</div>
+
+<h4>Are you sure you want to remove @Model.SapObject.Id?</h4>
+<div>
+    @await Html.PartialAsync("_DetailsPartial", Model)
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.Label("environment", "Workload Environment", new { @class = $"ms-Label" })
+                <p>The system will be removed from the specified workload environment</p>
+            </div>
+
+            <div class="right-input">
+                @Html.Label("environment", Model.SapObject.workload_zone, new { @class = "ms-Label" })
+            </div>
+        </div>
+
+        <fluent-checkbox id="confirm-remove-system-checkbox" onchange="toggleDisableViaCheckbox(this, 'remove-system-button')">I confirm that I wish to remove this system</fluent-checkbox><br />
+
+        <fluent-button id="remove-system-button" appearance="accent" value="Remove" type="submit" disabled>
+            <i class="ms-Icon ms-Icon--Send" aria-hidden="true"></i>Remove
+        </fluent-button>
+
+        <fluent-anchor href="@Url.Action("Index", "System")">
+            Cancel
+        </fluent-anchor>
+
+    }
+</div>

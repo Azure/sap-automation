@@ -62,7 +62,6 @@ stages:
           clean:                                  all
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
@@ -89,6 +88,7 @@ stages:
               TF_LOG:                             $(TF_LOG)
               USE_MSI:                            $(Use_MSI)
               key_vault:                          $(DEPLOYER_KEYVAULT)
+          - template:                             templates\cleanup-workspace.yaml
   - stage:                                        Remove_control_plane
     displayName:                                  "Finalize control plane removal"
     variables:
@@ -118,7 +118,6 @@ stages:
             displayName:                          Install Terraform
             inputs:
               terraformVersion:                   $(tf_version)
-          - task:                                 PostBuildCleanup@4
           - task:                                 AzureCLI@2
             continueOnError:                      false
             inputs:
@@ -145,3 +144,4 @@ stages:
               TF_LOG:                             $(TF_LOG)
               USE_MSI:                            $(Use_MSI)
               key_vault:                          $(DEPLOYER_KEYVAULT)
+          - template:                             templates\cleanup-workspace.yaml

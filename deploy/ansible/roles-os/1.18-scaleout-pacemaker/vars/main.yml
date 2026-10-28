@@ -102,7 +102,13 @@ package_versions:
   redhat9.6:
     - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
     - {name: "resource-agents-cloud",   version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
+  redhat9.8:
+    - {name: "pacemaker",               version: "2.0.5",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents-cloud",   version: "4.10.0",  compare_operator: ">=", version_type: "loose"}
   redhat10.0:
+    - {name: "pacemaker",               version: "3.0.0",   compare_operator: ">=", version_type: "loose"}
+    - {name: "resource-agents-cloud",   version: "4.16.0",  compare_operator: ">=", version_type: "loose"}
+  redhat10.2:
     - {name: "pacemaker",               version: "3.0.0",   compare_operator: ">=", version_type: "loose"}
     - {name: "resource-agents-cloud",   version: "4.16.0",  compare_operator: ">=", version_type: "loose"}
   sles_sap12.5:

@@ -7,49 +7,51 @@
 
 var model;
 var azureResourceIds = [
-    "location",
     "subscription",
     "workload_zone",
-    "resourcegroup_arm_id",
-    "network_arm_id",
+    "location",
     "admin_subnet_arm_id",
-    "db_subnet_arm_id",
-    "app_subnet_arm_id",
-    "web_subnet_arm_id",
-    "iscsi_subnet_arm_id",
-    "anf_subnet_arm_id",
     "admin_subnet_nsg_arm_id",
-    "db_subnet_nsg_arm_id",
-    "app_subnet_nsg_arm_id",
-    "web_subnet_nsg_arm_id",
-    "iscsi_subnet_nsg_arm_id",
+    "anf_subnet_arm_id",
     "anf_subnet_nsg_arm_id",
-    "diagnostics_storage_account_arm_id",
-    "witness_storage_account_arm_id",
-    "transport_storage_account_id",
-    "transport_private_endpoint_id",
-    "install_storage_account_id",
-    "azure_files_sapmnt_id",
-    "install_private_endpoint_id",
-    "user_keyvault_id",
-    "automation_keyvault_id",
-    "spn_keyvault_id",
-    "proximityplacementgroup_arm_ids",
-    "database_vm_avset_arm_ids",
+    "app_subnet_arm_id",
+    "app_subnet_nsg_arm_id",
     "application_server_vm_avset_arm_ids",
+    "automation_keyvault_id",
+    "azure_files_sapmnt_id",
+    "database_vm_avset_arm_ids",
+    "db_subnet_arm_id",
+    "db_subnet_nsg_arm_id",
+    "diagnostics_storage_account_arm_id",
+    "endpoint_subnet_arm_id",
+    "endpoint_subnet_nsg_arm_id",
+    "install_private_endpoint_id",
+    "install_storage_account_id",
+    "iscsi_subnet_arm_id",
+    "iscsi_subnet_nsg_arm_id",
+    "network_arm_id",
+    "proximityplacementgroup_arm_ids",
+    "resourcegroup_arm_id",
     "sapmnt_private_endpoint_id",
+    "spn_keyvault_id",
+    "spn_keyvault_id",
+    "transport_private_endpoint_id",
+    "transport_storage_account_id",
     "user_keyvault_id",
-    "spn_keyvault_id"
+    "user_keyvault_id",
+    "web_subnet_arm_id",
+    "web_subnet_nsg_arm_id",
+    "witness_storage_account_arm_id"
 ];
 var hanadb_sizes = [
     {
         "text": "Default",
         "value": "Default"
-  },
-  {
-    "text": "Custom",
-    "value": "Custom"
-  },
+    },
+    {
+        "text": "Custom",
+        "value": "Custom"
+    },
     {
         "text": "S4Demo",
         "value": "S4Demo"
@@ -63,6 +65,10 @@ var hanadb_sizes = [
         "value": "E20ds_v5"
     },
     {
+        "text": "Standard E20s v5",
+        "value": "E20s_v5"
+    },
+    {
         "text": "Standard E32ds v4",
         "value": "E32ds_v4"
     },
@@ -71,28 +77,100 @@ var hanadb_sizes = [
         "value": "E32ds_v5"
     },
     {
+        "text": "Standard E32s v5",
+        "value": "E32s_v5"
+    },
+    {
+        "text": "Standard E32s v6",
+        "value": "E32s_v6"
+    },
+    {
         "text": "Standard E48ds v4",
         "value": "E48ds_v4"
+    },
+    {
+        "text": "Standard E48s v5",
+        "value": "E48s_v5"
     },
     {
         "text": "Standard E48ds v5",
         "value": "E48ds_v5"
     },
     {
+        "text": "Standard E48s v6",
+        "value": "E48s_v6"
+    },
+    {
+        "text": "Standard E48ds v6",
+        "value": "E48ds_v6"
+    },
+    {
+        "text": "Standard D64s v6",
+        "value": "D64s_v6"
+    },
+    {
+        "text": "Standard D64ds v6",
+        "value": "D64ds_v6"
+    },
+    {
+        "text": "Standard D96s v6",
+        "value": "D96s_v6"
+    },
+    {
+        "text": "Standard D96ds v6",
+        "value": "D96ds_v6"
+    },
+    {
+        "text": "Standard D128s v6",
+        "value": "D128s_v6"
+    },
+    {
+        "text": "Standard D128ds v6",
+        "value": "D128ds_v6"
+    },
+    {
         "text": "Standard E64s v3",
         "value": "E64s_v3"
+    },
+    {
+        "text": "Standard E64ds v4",
+        "value": "E64ds_v4"
     },
     {
         "text": "Standard E64s v4",
         "value": "E64s_v4"
     },
     {
+        "text": "Standard E64ds v5",
+        "value": "E64ds_v5"
+    },
+    {
         "text": "Standard E64s v5",
         "value": "E64s_v5"
     },
     {
+        "text": "Standard E64ds v6",
+        "value": "E64ds_v6"
+    },
+    {
+        "text": "Standard E64s v6",
+        "value": "E64s_v6"
+    },
+    {
+        "text": "Standard E96ds v5",
+        "value": "E96ds_v5"
+    },
+    {
         "text": "Standard E96s v5",
         "value": "E96s_v5"
+    },
+    {
+        "text": "Standard E96ds v6",
+        "value": "E96ds_v6"
+    },
+    {
+        "text": "Standard E96s v6",
+        "value": "E96s_v6"
     },
     {
         "text": "Standard M32ts",
@@ -107,20 +185,116 @@ var hanadb_sizes = [
         "value": "M64ls"
     },
     {
+        "text": "Standard M32dms_v2",
+        "value": "M32dms_v2"
+    },
+    {
+        "text": "Standard M32ms_v2",
+        "value": "M32ms_v2"
+    },
+    {
+        "text": "Standard M48ds_1_v3",
+        "value": "M48ds_1_v3"
+    },
+    {
+        "text": "Standard M48s_1_v3",
+        "value": "M48s_1_v3"
+    },
+    {
         "text": "Standard M64s",
         "value": "M64s"
+    },
+    {
+        "text": "Standard M64ds_v2",
+        "value": "M64ds_v2"
+    },
+    {
+        "text": "Standard M64s_v2",
+        "value": "M64s_v2"
     },
     {
         "text": "Standard M64ms",
         "value": "M64ms"
     },
     {
+        "text": "Standard M64dms_v2",
+        "value": "M64dms_v2"
+    },
+    {
+        "text": "Standard M64ms_v2",
+        "value": "M64ms_v2"
+    },
+    {
+        "text": "Standard M96ds_1_v3",
+        "value": "M96ds_1_v3"
+    },
+    {
+        "text": "Standard M96s_1_v3",
+        "value": "M96s_1_v3"
+    },
+    {
+        "text": "Standard M96ds_2_v3",
+        "value": "M96ds_2_v3"
+    },
+    {
+        "text": "Standard M96s_2_v3",
+        "value": "M96s_2_v3"
+    },
+    {
         "text": "Standard M128s",
         "value": "M128s"
     },
     {
+        "text": "Standard M128ds_v2",
+        "value": "M128ds_v2"
+    },
+    {
+        "text": "Standard M128s_v2",
+        "value": "M128s_v2"
+    },
+    {
+        "text": "Standard M176ds_3_v3",
+        "value": "M176ds_3_v3"
+    },
+    {
+        "text": "Standard M176s_3_v3",
+        "value": "M176s_3_v3"
+    },
+    {
+        "text": "Standard M176ds_4_v3",
+        "value": "M176ds_4_v3"
+    },
+    {
+        "text": "Standard M176s_4_v3",
+        "value": "M176s_4_v3"
+    },
+    {
+        "text": "Standard M192ids_v2",
+        "value": "M192ids_v2"
+    },
+    {
+        "text": "Standard M192is_v2",
+        "value": "M192is_v2"
+    },
+    {
         "text": "Standard M128ms",
         "value": "M128ms"
+    },
+    {
+        "text": "Standard M128dms_v2",
+        "value": "M128dms_v2"
+    },
+    {
+        "text": "Standard M128ms_v2",
+        "value": "M128ms_v2"
+    },
+    {
+        "text": "Standard M192ims_v2",
+        "value": "M192ims_v2"
+    },
+    {
+        "text": "Standard M192idms_v2",
+        "value": "M192idms_v2"
     },
     {
         "text": "Standard M208s_v2",
@@ -137,6 +311,66 @@ var hanadb_sizes = [
     {
         "text": "Standard M416ms_v2",
         "value": "M416ms_v2"
+    },
+    {
+        "text": "Standard M416ds_6_v3",
+        "value": "M416ds_6_v3"
+    },
+    {
+        "text": "Standard M416s_6_v3",
+        "value": "M416s_6_v3"
+    },
+    {
+        "text": "Standard M416s_8_v2",
+        "value": "M416s_8_v2"
+    },
+    {
+        "text": "Standard M416ds_8_v3",
+        "value": "M416ds_8_v3"
+    },
+    {
+        "text": "Standard M416s_8_v3",
+        "value": "M416s_8_v3"
+    },
+    {
+        "text": "Standard M624ds_12_v3",
+        "value": "M624ds_12_v3"
+    },
+    {
+        "text": "Standard M624s_12_v3",
+        "value": "M624s_12_v3"
+    },
+    {
+        "text": "Standard M832ds_12_v3",
+        "value": "M832ds_12_v3"
+    },
+    {
+        "text": "Standard M832s_12_v3",
+        "value": "M832s_12_v3"
+    },
+    {
+        "text": "Standard M832ixs",
+        "value": "M832ixs"
+    },
+    {
+        "text": "Standard M832ids_16_v3",
+        "value": "M832ids_16_v3"
+    },
+    {
+        "text": "Standard M832is_16_v3",
+        "value": "M832is_16_v3"
+    },
+    {
+        "text": "Standard M832ixs_v2",
+        "value": "M832ixs_v2"
+    },
+    {
+        "text": "Standard M896ixds_32_v3",
+        "value": "M896ixds_32_v3"
+    },
+    {
+        "text": "Standard M1792ixds_32_v3",
+        "value": "M1792ixds_32_v3"
     }
 ];
 var anydb_sizes = [
@@ -578,6 +812,7 @@ $("#network_arm_id").on("change", function () {
                 "admin_subnet_arm_id",
                 "anf_subnet_arm_id",
                 "app_subnet_arm_id",
+                "endpoint_subnet_arm_id",
                 "db_subnet_arm_id",
                 "iscsi_subnet_arm_id",
                 "storage_subnet_arm_id",
@@ -595,6 +830,7 @@ $("#network_arm_id").on("change", function () {
                 "anf_subnet_nsg_arm_id",
                 "app_subnet_nsg_arm_id",
                 "db_subnet_nsg_arm_id",
+                "endpoint_subnet_nsg_arm_id",
                 "iscsi_subnet_nsg_arm_id",
                 "storage_subnet_nsg_arm_id",
                 "web_subnet_nsg_arm_id"

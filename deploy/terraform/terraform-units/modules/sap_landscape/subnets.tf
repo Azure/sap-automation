@@ -79,6 +79,32 @@ data "azurerm_subnet" "app" {
   virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_app.id)[8]
 }
 
+// Creates endpoint subnet of SAP VNET
+resource "azurerm_subnet" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? 1 : 0
+  name                                 = local.endpoint_subnet_name
+  resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
+  virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
+  address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_endpoint.prefix]
+
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
+
+  service_endpoints                    = var.use_service_endpoint ? (
+                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
+                                           ) : (
+                                           null
+                                         )
+}
+
+data "azurerm_subnet" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? 1 : 0
+  name                                 = split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[10]
+  resource_group_name                  = split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[4]
+  virtual_network_name                 = split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[8]
+}
+
 
 // Creates web subnet of SAP VNET
 resource "azurerm_subnet" "web" {
@@ -215,6 +241,17 @@ resource "azurerm_subnet_route_table_association" "app" {
                                            azurerm_subnet.db
                                          ]
   subnet_id                            = azurerm_subnet.app[0].id
+  route_table_id                       = azurerm_route_table.rt[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "endpoint" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined && !var.infrastructure.virtual_networks.sap.exists ? (local.create_nat_gateway ? 0 : 1) : 0
+  depends_on                           = [
+                                           azurerm_route_table.rt,
+                                           azurerm_subnet.endpoint
+                                         ]
+  subnet_id                            = azurerm_subnet.endpoint[0].id
   route_table_id                       = azurerm_route_table.rt[0].id
 }
 

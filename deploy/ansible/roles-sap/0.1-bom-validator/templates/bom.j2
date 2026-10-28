@@ -8,7 +8,9 @@ filename:             {% if new_bom_file_name is defined %}{{ new_bom_file_name 
 
 target:               {{ root_bom.target }}
 
-version:              {{ root_bom.version }}
+version:              {% if root_bom.version is defined %}{{ root_bom.version }}{% else %}1.0{% endif %}
+
+file_version:         {% if root_bom.file_version is defined %}{{ root_bom.file_version }}{% else %}001{% endif %}
 
 platform:             {% if root_bom.platform is defined %}{{ root_bom.platform }}{% else %}{{ platform }}{% endif %}
 {% set platform_code = '.HDB.' %}

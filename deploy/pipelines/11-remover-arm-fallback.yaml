@@ -106,11 +106,12 @@ stages:
 
       - job:                                      Remove_sap_deployment_artifacts_in_WORKSPACES
         displayName:                              Remove SAP System deployment artifacts from WORKSPACES
+        workspace:
+          clean:                                  all
         variables:
           - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 Bash@3
             inputs:
               targetType:                         'filePath'
@@ -155,11 +156,12 @@ stages:
 
       - job:                                      Remove_zone_deployment_artifacts_in_WORKSPACES
         displayName:                              Remove Workload Zone deployment artifacts
+        workspace:
+          clean:                                  all
         variables:
           - group:                                SDAF-${{ parameters.workload_environment }}
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 Bash@3
             inputs:
               targetType:                         'filePath'
@@ -189,11 +191,12 @@ stages:
     jobs:
       - job:                                      Remove_control_plane_deployment
         displayName:                              Remove Control Plane deployment
+        workspace:
+          clean:                                  all
         variables:
           - group:                                SDAF-${{ parameters.deployer_environment }}
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 AzureCLI@2
             continueOnError:                      false
             inputs:

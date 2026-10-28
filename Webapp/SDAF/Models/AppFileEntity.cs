@@ -3,6 +3,7 @@
 
 using Azure;
 using Azure.Data.Tables;
+using SDAFWebApp.Services;
 using System;
 
 namespace SDAFWebApp.Models
@@ -14,7 +15,7 @@ namespace SDAFWebApp.Models
         public AppFileEntity(string id, string uri)
         {
             RowKey = id;
-            PartitionKey = id[..id.IndexOf('-')];
+            PartitionKey = IdentifierParser.ParseAppFile(id).PartitionKey;
             BlobUri = uri;
         }
 
