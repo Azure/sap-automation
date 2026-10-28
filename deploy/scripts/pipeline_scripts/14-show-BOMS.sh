@@ -39,18 +39,18 @@ echo ""
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.17.0}"
+	configureNonDeployer "${tf_version:-1.16.5}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
-if [ "$ARM_USE_MSI" == "true" ]; then
+if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
 
 PLATFORM="devops"
-LogonToAzure "${ARM_USE_MSI:-false}"
+LogonToAzure "${USE_MSI:-false}"
 return_code=$?
 if [ 0 != "$return_code" ]; then
 	echo "##vso[task.logissue type=error]az login failed."

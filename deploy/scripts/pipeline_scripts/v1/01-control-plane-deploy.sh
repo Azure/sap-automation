@@ -113,11 +113,11 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-    configureNonDeployer "${tf_version:-1.17.0}"
+    configureNonDeployer "${tf_version:-1.16.5}"
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$ARM_USE_MSI" != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 
     if ! printenv ARM_SUBSCRIPTION_ID; then
         echo "##vso[task.logissue type=error]Variable ARM_SUBSCRIPTION_ID was not defined in the $VARIABLE_GROUP variable group."
@@ -146,7 +146,7 @@ fi
 
 echo -e "$green--- az login ---$reset"
 # Set logon variables
-if [ "$ARM_USE_MSI" != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 
     ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
     export ARM_TENANT_ID
@@ -171,7 +171,7 @@ if [ -v MSI_ID ]; then
 
 fi
 
-LogonToAzure $ARM_USE_MSI
+LogonToAzure $USE_MSI
 return_code=$?
 if [ 0 != $return_code ]; then
     echo -e "$bold_red--- Login failed ---$reset"
@@ -371,7 +371,7 @@ print_banner "$banner_title" "Starting the deployment" "info"
 # If there are issues with permissions, it should be fixed outside of this script as part of the repository management.
 # sudo chmod +x "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/deploy_controlplane.sh"
 
-if [ "$ARM_USE_MSI" != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 
     export TF_VAR_use_spn=true
 

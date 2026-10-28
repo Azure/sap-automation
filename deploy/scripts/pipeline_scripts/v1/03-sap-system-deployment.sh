@@ -46,12 +46,12 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.17.0}"
+	configureNonDeployer "${tf_version:-1.16.5}"
 fi
 configure_devops
 
 # Set logon variables
-if [ $ARM_USE_MSI == "true" ]; then
+if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
@@ -62,7 +62,7 @@ if az account show --query name; then
 else
 	# Check if running on deployer
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure $ARM_USE_MSI
+	LogonToAzure $USE_MSI
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"

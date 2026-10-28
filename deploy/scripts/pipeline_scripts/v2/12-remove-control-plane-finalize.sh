@@ -131,7 +131,7 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-    configureNonDeployer "${tf_version:-1.17.0}"
+    configureNonDeployer "${tf_version:-1.16.5}"
 
     if [ "$PLATFORM" == "devops" ]; then
         ARM_CLIENT_ID="${servicePrincipalId:-$ARM_CLIENT_ID}"
@@ -170,7 +170,7 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 else
     path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
     export PATH=$PATH:$path
-    if [ "$ARM_USE_MSI" == "true" ]; then
+    if [ "$USE_MSI" == "true" ]; then
         TF_VAR_use_spn=false
         export TF_VAR_use_spn
         ARM_USE_MSI=true
@@ -192,7 +192,7 @@ else
     fi
 fi
 
-if [ "${ARM_USE_MSI:-false}" != "true" ]; then
+if [ "${USE_MSI:-false}" != "true" ]; then
 
     # Get SPN ID differently per platform
     if [ "$PLATFORM" == "devops" ]; then

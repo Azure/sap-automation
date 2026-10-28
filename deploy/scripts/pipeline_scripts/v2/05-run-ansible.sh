@@ -52,6 +52,12 @@ if [ "$PLATFORM" == "devops" ]; then
 
 	platform_flag="--ado"
 
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
 elif [ "$PLATFORM" == "github" ]; then
 	# No specific variable group setup for GitHub Actions
 	# Values will be stored in GitHub Environment variables
@@ -68,12 +74,14 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.17.0}"
+	configureNonDeployer "${tf_version:-1.16.5}"
 fi
 if [ "$PLATFORM" == "devops" ]; then
 	# Set logon variables
-	if [ $ARM_USE_MSI == "true" ]; then
+	if [ $USE_MSI == "true" ]; then
 		unset ARM_CLIENT_SECRET
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
 	fi
 
 	if az account show --query name; then
@@ -81,7 +89,7 @@ if [ "$PLATFORM" == "devops" ]; then
 	else
 		# Check if running on deployer
 		echo -e "$green--- az login ---$reset"
-		LogonToAzure $ARM_USE_MSI
+		LogonToAzure $USE_MSI
 		return_code=$?
 		if [ 0 != $return_code ]; then
 			echo -e "$bold_red--- Login failed ---$reset"
@@ -89,16 +97,6 @@ if [ "$PLATFORM" == "devops" ]; then
 			exit $return_code
 		fi
 	fi
-fi
-
-if [ "$PLATFORM" == "devops" ]; then
-
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
 fi
 
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then

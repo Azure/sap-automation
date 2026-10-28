@@ -490,7 +490,7 @@ function parse_arguments() {
 		return 10
 	}
 
-  if [ "$ARM_USE_MSI" != "true" ]; then
+  if [ "$USE_MSI" != "true" ]; then
 
 		if [ -z "$client_id" ]; then
 			print_banner "$banner_title" "client_id is required" "error"
@@ -639,7 +639,7 @@ function set_all_secrets() {
 		return 20
 	fi
 
-  if [ "$ARM_USE_MSI" != "true" ]; then
+  if [ "$USE_MSI" != "true" ]; then
 		secret_name="${prefix}"-client-secret
 		if setSecretValue "${keyvault}" "${STATE_SUBSCRIPTION}" "${secret_name}" "$ARM_CLIENT_SECRET" "secret" >/dev/null; then
 			print_banner "$banner_title" "Secret ${secret_name} set in keyvault ${keyvault}" "success"

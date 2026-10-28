@@ -48,7 +48,7 @@ elif [ "$PLATFORM" == "github" ]; then
 fi
 
 echo -e "$green--- Validations ---$reset"
-if [ "$ARM_USE_MSI" != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 	print_banner "$banner_title" "Using Service Principals for deployment" "info"
 
 	if ! printenv ARM_SUBSCRIPTION_ID; then
@@ -79,25 +79,29 @@ print_header
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.17.0}"
+	configureNonDeployer "${tf_version:-1.16.5}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables
-if [ "$ARM_USE_MSI" == "true" ]; then
+if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
+	ARM_USE_MSI=true
+	export ARM_USE_MSI
 fi
 
 if [ "$PLATFORM" == "devops" ]; then
-	if [ "$ARM_USE_MSI" != "true" ]; then
+	if [ "$USE_MSI" != "true" ]; then
 
 		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
 		export ARM_TENANT_ID
+		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+		export ARM_SUBSCRIPTION_ID
 	else
 		unset ARM_CLIENT_SECRET
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
 	fi
-	LogonToAzure "${ARM_USE_MSI:-true}"
+	LogonToAzure "${USE_MSI:-false}"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
@@ -185,7 +189,7 @@ if [ "${USE_MSI:-false}" == "true" ]; then
 	allParameters+=(--msi)
 fi
 
-if [ "$ARM_USE_MSI" != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 	allParameters+=(--client_id "$ARM_CLIENT_ID")
 	allParameters+=(--client_secret "$ARM_CLIENT_SECRET")
 	allParameters+=(--client_tenant_id "$ARM_TENANT_ID")
@@ -193,7 +197,7 @@ fi
 
 source "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets_v2.sh"
 
-if [ "$ARM_USE_MSI" != "true" ]; then
+if [ "$USE_MSI" != "true" ]; then
 
 	if set_all_secrets "${allParameters[@]}"; then
 		return_code=$?

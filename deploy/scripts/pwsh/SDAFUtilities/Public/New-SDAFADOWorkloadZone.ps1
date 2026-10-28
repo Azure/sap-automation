@@ -500,8 +500,6 @@ function New-SDAFADOWorkloadZone {
 
         Add-Content -Path $WikiFileName -Value ("Workload zone Service Principal: " + $ServicePrincipalName)
         SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "USE_MSI" -VariableValue "false"
-        SetVariableGroupVariable -VariableGroupId $WorkloadZoneVariableGroupId -VariableName "ARM_USE_MSI" -VariableValue "false"
-
 
         $Scope = "/subscriptions/" + $WorkloadZoneSubscriptionId
 

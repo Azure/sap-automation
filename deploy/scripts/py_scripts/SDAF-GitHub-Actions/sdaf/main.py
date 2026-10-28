@@ -376,7 +376,7 @@ def main():
             "TF_IN_AUTOMATION": "true",
             "TF_LOG": "ERROR",
             "ANSIBLE_CORE_VERSION": "2.16",
-            "TF_VERSION": "1.17.0",
+            "TF_VERSION": "1.16.5",
             "ARM_ENVIRONMENT": user_data["terraform_environment"],
             "AZURE_ENVIRONMENT": user_data["azure_environment"],
             "AZURE_AUDIENCE": user_data["azure_audience"],
@@ -408,7 +408,6 @@ def main():
         "AZURE_AUDIENCE": user_data["azure_audience"],
         "AZURE_ENVIRONMENT": user_data["azure_environment"],
         "USE_MSI": "true" if use_managed_identity else "false",
-        "ARM_USE_MSI": "true" if use_managed_identity else "false",
         # Add S_USERNAME with a placeholder if not provided
         "S_USERNAME": (
             user_data["s_username"] if user_data["s_username"] else "Add SAP S Username here"

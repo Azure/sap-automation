@@ -54,14 +54,14 @@ print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 #If the deployer_file exists we run on a deployer configured by the framework instead of a azdo hosted one
 
 # Set logon variables
-if [ $ARM_USE_MSI == "true" ]; then
+if [ $USE_MSI == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
 fi
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.17.0}"
+	configureNonDeployer "${tf_version:-1.16.5}"
 fi
 
 if az account show --query name; then
@@ -69,7 +69,7 @@ if az account show --query name; then
 else
 	# Check if running on deployer
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure $ARM_USE_MSI
+	LogonToAzure $USE_MSI
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"

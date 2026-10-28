@@ -61,7 +61,7 @@ fi
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-if [ "$ARM_USE_MSI" == "true" ]; then
+if [ "$USE_MSI" == "true" ]; then
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
@@ -75,7 +75,7 @@ if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
 else
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$ARM_USE_MSI"
+	LogonToAzure "$USE_MSI"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		exit_error "az login failed." $return_code
