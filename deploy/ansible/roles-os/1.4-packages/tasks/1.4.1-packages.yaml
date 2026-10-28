@@ -57,7 +57,7 @@
 
 - name:                                "1.4 Packages - Import Red Hat RPM GPG key via rpm --import (RHEL 10 - post-quantum key)"
   when:                                distribution_id in ['redhat10']
-  ansible.builtin.command:             "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+  ansible.builtin.command:             "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"  # noqa: command-instead-of-module
   register:                            rpm_import_result
   changed_when:                        rpm_import_result.rc == 0
   failed_when:                         rpm_import_result.rc != 0
