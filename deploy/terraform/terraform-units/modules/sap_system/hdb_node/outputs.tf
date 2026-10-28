@@ -212,8 +212,8 @@ output "hana_shared"                   {
                                                            ), "") : ""
                                                          ])
                                                          ) : (
-                                                         compact([
-                                                           try(format("%s:/%s",
+                                                         [
+                                                           format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]) : (
                                                                azurerm_netapp_volume.hanashared[1].mount_ip_addresses[0]
@@ -222,8 +222,8 @@ output "hana_shared"                   {
                                                                data.azurerm_netapp_volume.hanashared[1].volume_path) : (
                                                                azurerm_netapp_volume.hanashared[1].volume_path
                                                              )
-                                                           ), ""),
-                                                           try(format("%s:/%s",
+                                                           ),
+                                                           format("%s:/%s",
                                                              var.hana_ANF_volumes.use_existing_shared_volume || local.use_avg ? (
                                                                data.azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]) : (
                                                                azurerm_netapp_volume.hanashared[0].mount_ip_addresses[0]
@@ -232,8 +232,8 @@ output "hana_shared"                   {
                                                                data.azurerm_netapp_volume.hanashared[0].volume_path) : (
                                                                azurerm_netapp_volume.hanashared[0].volume_path
                                                              )
-                                                           ), "")
-                                                         ])
+                                                           )
+                                                         ]
                                                        )
                                                      }
 
