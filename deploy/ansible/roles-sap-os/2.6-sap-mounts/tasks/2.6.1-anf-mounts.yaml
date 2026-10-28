@@ -15,19 +15,19 @@
                                       {% if ansible_distribution_version is version('8.4', '>=') or
                                           ansible_distribution_version is version('9.0', '>=')  or
                                           ansible_distribution_version is version('10.0', '>=') %}
-                                          'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8'
+                                          rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8
                                       {% else %}
-                                          'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
+                                          rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys
                                       {% endif %}
                                     {% elif ansible_os_family | upper == "SUSE" %}
                                       {% if ansible_distribution_version is version('15.2', '>=') or
                                           ansible_distribution_version is version('16.0', '>=') %}
-                                          'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8'
+                                          rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys,nconnect=8
                                       {% else %}
-                                          'rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys'
+                                          rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys
                                       {% endif %}
                                     {% else %}
-                                        ''
+
                                     {% endif %}
 
 - name:                                "2.6.1 ANF Mount - Define this SID"
