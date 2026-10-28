@@ -54,18 +54,18 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 if [ "$PLATFORM" == "devops" ]; then
 	# Set logon variables
-	if [ $USE_MSI == "true" ]; then
+	if [ "$ARM_USE_MSI" == "true" ]; then
 		unset ARM_CLIENT_SECRET
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
 	fi
 
 	if az account show --query name; then
-		echo -e "$green--- Already logged in to Azure ---$reset"
+		echo -e "$green--- Already logged in ---$reset"
 	else
 		# Check if running on deployer
 		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
+		LogonToAzure "${ARM_USE_MSI:-true}"
 		return_code=$?
 		if [ 0 != $return_code ]; then
 			echo -e "$bold_red--- Login failed ---$reset"
