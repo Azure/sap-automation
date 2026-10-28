@@ -100,8 +100,12 @@ if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	export APPLICATION_CONFIGURATION_ID
 fi
 
-tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+if [ -v CONTROL_PLANE_SUBSCRIPTION_ID ]; then
+	control_plane_subscription="$CONTROL_PLANE_SUBSCRIPTION_ID"
+else
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+fi
 
 export control_plane_subscription
 
@@ -133,14 +137,14 @@ else
 	fi
 fi
 
-az account set --subscription "$key_vault_subscription" --output none
-
 if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
 else
 	echo "##[error]Key Vault subscription not found for vault: $key_vault_name"
 	exit 1
 fi
+az account set --subscription "$key_vault_subscription" --output none
+
 
 set -eu
 
