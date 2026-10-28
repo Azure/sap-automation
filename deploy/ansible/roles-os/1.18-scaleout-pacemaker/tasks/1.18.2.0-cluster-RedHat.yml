@@ -131,7 +131,7 @@
 
     - name:                            "1.18.2.0 Generic Pacemaker - Create SBD stonith device"
       ansible.builtin.command:
-        cmd:                           "pcs stonith create sbd fence_sbd devices={{ sbd_device_comma_separated }} op monitor interval=600 timeout=15"
+        cmd:                           "pcs stonith create sbd fence_sbd devices={{ sbd_device_comma_separated }} op monitor interval=600 timeout=120"
       register:                        pcs_create_sbd_result
       changed_when:                    pcs_create_sbd_result.rc == 0
       failed_when:

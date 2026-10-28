@@ -31,7 +31,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
-  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled || var.storage_account_tfstate.enable_firewall_for_keyvaults_and_storage
+  public_network_access_enabled        = var.storage_account_tfstate.public_network_access_enabled
 
   https_traffic_only_enabled            = true
 
@@ -111,7 +111,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                            azurerm_resource_group.library[0].location
                                          )
 
-  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  subnet_id                            = coalesce(try(var.deployer_tfstate.endpoint_subnet_id, ""), var.deployer_tfstate.subnet_mgmt_id)
 
   custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
@@ -169,7 +169,7 @@ resource "azurerm_private_endpoint" "table_tfstate" {
                                            azurerm_resource_group.library[0].location
                                          )
 
-  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  subnet_id                            = coalesce(try(var.deployer_tfstate.endpoint_subnet_id, ""), var.deployer_tfstate.subnet_mgmt_id)
 
   custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%st%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
@@ -279,7 +279,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
   allow_nested_items_to_be_public      = false
 
   cross_tenant_replication_enabled     = false
-  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled
+  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled || var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
   default_to_oauth_authentication      = true
 
@@ -357,7 +357,7 @@ resource "azurerm_private_endpoint" "storage_sapbits" {
                                            data.azurerm_resource_group.library[0].location) : (
                                            azurerm_resource_group.library[0].location
                                          )
-  subnet_id                            = var.deployer_tfstate.subnet_mgmt_id
+  subnet_id                            = coalesce(try(var.deployer_tfstate.endpoint_subnet_id, ""), var.deployer_tfstate.subnet_mgmt_id)
   custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_sap,
                                            length(local.prefix) > 0 ? (

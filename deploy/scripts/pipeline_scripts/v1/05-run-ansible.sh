@@ -61,7 +61,7 @@ if [ $USE_MSI == "true" ]; then
 fi
 
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.15.7}"
+	configureNonDeployer "${tf_version:-1.17.0}"
 fi
 
 if az account show --query name; then
@@ -92,6 +92,7 @@ fi
 set -eu
 
 curdir=$(cd "$(dirname "$SAP_PARAMS")" && pwd)
+curdir=$(cd "$(dirname "$SAP_PARAMS")" && pwd)
 
 cd "$curdir" || exit
 
@@ -101,6 +102,14 @@ else
 	if [ -z "$SSH_KEY_NAME" ]; then
 		SSH_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-sshkey"
 	fi
+fi
+
+# Absolute path to the SSH private key. ansible-playbook is later invoked from a
+# different working directory, so every reference to the key must be absolute.
+if [[ "$SSH_KEY_NAME" == /* ]]; then
+	SSH_KEY_FILE="$SSH_KEY_NAME"
+else
+	SSH_KEY_FILE="${curdir}/${SSH_KEY_NAME}"
 fi
 
 if [ ! -v PASSWORD_KEY_NAME ]; then
@@ -119,11 +128,11 @@ else
 	fi
 fi
 
-if [ ! -f "$SSH_KEY_NAME" ]; then
+if [ ! -f "$SSH_KEY_FILE" ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$SSH_KEY_NAME"
-	if [ -f "$SSH_KEY_NAME" ]; then
-		sudo chmod 600 "$SSH_KEY_NAME"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$SSH_KEY_FILE"
+	if [ -f "$SSH_KEY_FILE" ]; then
+		sudo chmod 600 "$SSH_KEY_FILE"
 	fi
 else
 	echo "##[section]SSH key already exists, skipping retrieval."

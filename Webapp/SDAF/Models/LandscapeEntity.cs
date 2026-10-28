@@ -12,11 +12,22 @@ namespace SDAFWebApp.Models
     {
         public LandscapeEntity() { }
         public LandscapeEntity(LandscapeModel landscape)
+            : this(landscape, null)
+        {
+        }
+
+        public LandscapeEntity(LandscapeModel landscape, string backend)
         {
             RowKey = landscape.Id;
-            PartitionKey = landscape.environment;
+            PartitionKey = IsRepositoryBackend(backend) ? landscape.Id : landscape.environment;
             IsDefault = landscape.IsDefault;
             Landscape = JsonSerializer.Serialize(landscape, new JsonSerializerOptions() { });
+        }
+
+        private static bool IsRepositoryBackend(string backend)
+        {
+            return string.Equals(backend, "ado", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(backend, "github", StringComparison.OrdinalIgnoreCase);
         }
 
         public string RowKey { get; set; } = default!;

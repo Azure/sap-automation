@@ -50,11 +50,18 @@
 
 
 - name:                                "1.4 Packages - Import Red Hat RPM GPG key (Azure Marketplace RHEL)"
-  when:                                distribution_id in ['redhat8', 'redhat9', 'redhat10']
+  when:                                distribution_id in ['redhat8', 'redhat9']
   ansible.builtin.rpm_key:
     state:                             present
     key:                               /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
-  register:                            rpm_key_result
+
+- name:                                "1.4 Packages - Import Red Hat RPM GPG key via rpm --import (RHEL 10 - post-quantum key)"
+  when:                                distribution_id in ['redhat10']
+  ansible.builtin.command:             "rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"  # noqa: command-instead-of-module
+  register:                            rpm_import_result
+  changed_when:                        rpm_import_result.rc == 0
+  failed_when:                         rpm_import_result.rc != 0
+
 
 - name:                                "1.4 Packages - Update OS packages: {{ distribution_id }}"
   block:
@@ -67,6 +74,7 @@
                                            list }}"
         state:                         "{{ item.state }}"
         disablerepo:                   "epel*"
+        enablerepo:                    "{{ rpm_list | default(omit) }}"
         skip_broken:                   true
         nobest:                        true
       register:                        package_result
@@ -121,6 +129,7 @@
                                           list }}"
             state:                     "{{ item.state }}"
             disablerepo:              "epel*"
+            enablerepo:               "{{ rpm_list | default(omit) }}"
             skip_broken:              true
             nobest:                   true
             disable_gpg_check:        true
@@ -168,6 +177,7 @@
                                            list }}"
         state:                         "{{ item.state }}"
         disablerepo:                   "epel*"
+        enablerepo:                    "{{ rpm_list | default(omit) }}"
         skip_broken:                   true
         nobest:                        true
       register:                        package_result

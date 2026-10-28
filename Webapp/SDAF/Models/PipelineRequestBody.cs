@@ -7,7 +7,7 @@ namespace SDAFWebApp.Models
     public class PipelineRequestBody
     {
         public Resources resources { get; set; }
-        public Templateparameters templateParameters { get; set; }
+        public object templateParameters { get; set; }
     }
 
     public class Resources
@@ -50,6 +50,22 @@ namespace SDAFWebApp.Models
         public string acss_environment { get; set; }
         public string acss_sap_product { get; set; }
 
+    }
+
+    public class RemovalTemplateParameters : Templateparameters
+    {
+        public RemovalTemplateParameters()
+        {
+            cleanup_sap = true;
+            sap_system = "DEV-WEEU-SAP01-X00";
+            cleanup_zone = false;
+            workload_zone = "AFS-SECE-SAP05";
+            use_deployer = true;
+        }
+
+        public bool? cleanup_sap { get; set; }
+        public bool? cleanup_zone { get; set; }
+        public bool? use_deployer { get; set; }
     }
 
 }

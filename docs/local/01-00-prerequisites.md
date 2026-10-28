@@ -63,12 +63,12 @@ Treat the SDAF commit and tool versions as one reviewed release unit.
 2. Review each Terraform root module's `providers.tf` before installation.
 
    This baseline declares Terraform `>= 1.0` and pins root providers including
-   AzureRM `4.80.0`, AzAPI `2.7.0`, and AzureAD `3.8.0` where applicable. The
+   AzureRM `4.81.0`, AzAPI `2.7.0`, and AzureAD `3.8.0` where applicable. The
    root modules declare the Random provider without a version constraint.
 
 3. If you use `configure_deployer.sh`, review its pinned defaults.
 
-   At this baseline it defaults to Terraform `1.14.6`. It selects Ansible 2.16
+   At this baseline it defaults to Terraform `1.17.0`. It selects Ansible 2.16
    for Ubuntu 22.04, RHEL, and SLES 16, and Ansible 2.11 for other accepted
    SLES versions.
 
