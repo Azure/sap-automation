@@ -92,7 +92,7 @@ run "public_access_disabled_without_firewalls" {
   }
 }
 
-run "firewalls_enable_restricted_public_endpoints" {
+run "firewalls_preserve_tfstate_public_access_setting" {
   command = plan
 
   variables {
@@ -101,17 +101,17 @@ run "firewalls_enable_restricted_public_endpoints" {
   }
 
   assert {
-    condition     = azurerm_storage_account.storage_tfstate[0].public_network_access_enabled && azurerm_storage_account.storage_sapbits[0].public_network_access_enabled
-    error_message = "Each firewall must enable its account's public endpoint even when the explicit public-access flag is false."
+    condition     = !azurerm_storage_account.storage_tfstate[0].public_network_access_enabled && azurerm_storage_account.storage_sapbits[0].public_network_access_enabled
+    error_message = "Firewalls must preserve disabled tfstate public access while enabling the SAPBits public endpoint."
   }
 
   assert {
     condition     = azurerm_storage_account_network_rules.storage_tfstate[0].default_action == "Deny" && azurerm_storage_account_network_rules.storage_sapbits[0].default_action == "Deny"
-    error_message = "Firewall-enabled public endpoints must have deny-by-default network rules outside bootstrap."
+    error_message = "Both accounts must have deny-by-default network rules outside bootstrap, regardless of public access."
   }
 }
 
-run "tfstate_firewall_does_not_enable_sapbits_public_access" {
+run "tfstate_firewall_does_not_enable_public_access" {
   command = plan
 
   variables {
@@ -119,8 +119,8 @@ run "tfstate_firewall_does_not_enable_sapbits_public_access" {
   }
 
   assert {
-    condition     = azurerm_storage_account.storage_tfstate[0].public_network_access_enabled && !azurerm_storage_account.storage_sapbits[0].public_network_access_enabled
-    error_message = "The tfstate firewall must not enable an unprotected SAPBits public endpoint."
+    condition     = !azurerm_storage_account.storage_tfstate[0].public_network_access_enabled && !azurerm_storage_account.storage_sapbits[0].public_network_access_enabled
+    error_message = "The tfstate firewall must not enable public access for either storage account."
   }
 
   assert {
@@ -227,8 +227,8 @@ run "bootstrap_preserves_allow_rules" {
   }
 
   assert {
-    condition     = azurerm_storage_account.storage_tfstate[0].public_network_access_enabled && azurerm_storage_account.storage_sapbits[0].public_network_access_enabled
-    error_message = "Bootstrap must keep public endpoints enabled when firewall flags are true."
+    condition     = !azurerm_storage_account.storage_tfstate[0].public_network_access_enabled && azurerm_storage_account.storage_sapbits[0].public_network_access_enabled
+    error_message = "Bootstrap must preserve disabled tfstate public access while the SAPBits firewall enables its public endpoint."
   }
 
   assert {

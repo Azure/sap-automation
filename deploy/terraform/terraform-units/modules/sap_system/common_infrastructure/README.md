@@ -5,15 +5,15 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.81.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.80.0 |
-| <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.80.0 |
-| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.80.0 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | 4.81.0 |
+| <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.81.0 |
+| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.81.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
 | <a name="provider_template"></a> [template](#provider\_template) | n/a |
 | <a name="provider_time"></a> [time](#provider\_time) | n/a |
@@ -27,73 +27,73 @@ No modules.
 
 | Name | Type |
 | ---- | ---- |
-| [azurerm_application_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/application_security_group) | resource |
-| [azurerm_key_vault.sid_keyvault_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault) | resource |
-| [azurerm_key_vault_secret.auth_password](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.auth_username](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.sdu_private_key](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.sdu_public_key](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/key_vault_secret) | resource |
-| [azurerm_linux_virtual_machine.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_netapp_volume.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume) | resource |
-| [azurerm_netapp_volume.sapmnt_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume) | resource |
-| [azurerm_netapp_volume.usrsap](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume) | resource |
-| [azurerm_network_interface.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_security_group.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
-| [azurerm_network_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
-| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
-| [azurerm_network_security_perimeter_association.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_association) | resource |
-| [azurerm_network_security_rule.nsr_external_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
-| [azurerm_network_security_rule.nsr_internal_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
-| [azurerm_orchestrated_virtual_machine_scale_set.scale_set](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/orchestrated_virtual_machine_scale_set) | resource |
-| [azurerm_private_endpoint.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_endpoint) | resource |
-| [azurerm_proximity_placement_group.app_ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/proximity_placement_group) | resource |
-| [azurerm_proximity_placement_group.ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/proximity_placement_group) | resource |
-| [azurerm_resource_group.resource_group](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/resource_group) | resource |
-| [azurerm_resource_group_template_deployment.sap_system](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/resource_group_template_deployment) | resource |
-| [azurerm_storage_account.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_account) | resource |
-| [azurerm_storage_share.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_share) | resource |
-| [azurerm_storage_share.sapmnt_smb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_share) | resource |
-| [azurerm_subnet.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet_network_security_group_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
-| [azurerm_subnet_network_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
-| [azurerm_subnet_network_security_group_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
-| [azurerm_subnet_route_table_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
-| [azurerm_subnet_route_table_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
-| [azurerm_subnet_route_table_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
-| [azurerm_windows_virtual_machine.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_virtual_machine) | resource |
+| [azurerm_application_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/application_security_group) | resource |
+| [azurerm_key_vault.sid_keyvault_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/key_vault) | resource |
+| [azurerm_key_vault_secret.auth_password](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.auth_username](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.sdu_private_key](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.sdu_public_key](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/key_vault_secret) | resource |
+| [azurerm_linux_virtual_machine.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_netapp_volume.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume) | resource |
+| [azurerm_netapp_volume.sapmnt_secondary](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume) | resource |
+| [azurerm_netapp_volume.usrsap](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume) | resource |
+| [azurerm_network_interface.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_security_group.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_perimeter_association.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_perimeter_association) | resource |
+| [azurerm_network_security_rule.nsr_external_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_rule) | resource |
+| [azurerm_network_security_rule.nsr_internal_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_rule) | resource |
+| [azurerm_orchestrated_virtual_machine_scale_set.scale_set](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/orchestrated_virtual_machine_scale_set) | resource |
+| [azurerm_private_endpoint.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_endpoint) | resource |
+| [azurerm_proximity_placement_group.app_ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/proximity_placement_group) | resource |
+| [azurerm_proximity_placement_group.ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/proximity_placement_group) | resource |
+| [azurerm_resource_group.resource_group](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/resource_group) | resource |
+| [azurerm_resource_group_template_deployment.sap_system](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/resource_group_template_deployment) | resource |
+| [azurerm_storage_account.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_account) | resource |
+| [azurerm_storage_share.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_share) | resource |
+| [azurerm_storage_share.sapmnt_smb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_share) | resource |
+| [azurerm_subnet.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet) | resource |
+| [azurerm_subnet_network_security_group_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_network_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_network_security_group_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_route_table_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_subnet_route_table_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_subnet_route_table_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_windows_virtual_machine.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/windows_virtual_machine) | resource |
 | [random_id.random_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_id.sapsystem](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_password.password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [time_offset.secret_expiry_date](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/offset) | resource |
 | [time_sleep.wait_for_private_endpoints](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [tls_private_key.sdu](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/client_config) | data source |
-| [azurerm_key_vault.sid_keyvault_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/key_vault) | data source |
-| [azurerm_key_vault_secret.sid_password](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_key_vault_secret.sid_pk](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_key_vault_secret.sid_username](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_netapp_volume.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_volume) | data source |
-| [azurerm_netapp_volume.usrsap](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_volume) | data source |
-| [azurerm_network_security_group.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
-| [azurerm_network_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
-| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
-| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter) | data source |
-| [azurerm_network_security_perimeter_profile.profile](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter_profile) | data source |
-| [azurerm_orchestrated_virtual_machine_scale_set.scale_set](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/orchestrated_virtual_machine_scale_set) | data source |
-| [azurerm_private_endpoint_connection.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/private_endpoint_connection) | data source |
-| [azurerm_proximity_placement_group.app_ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/proximity_placement_group) | data source |
-| [azurerm_proximity_placement_group.ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/proximity_placement_group) | data source |
-| [azurerm_resource_group.resource_group](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/resource_group) | data source |
-| [azurerm_storage_account.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/storage_account) | data source |
-| [azurerm_storage_account.storage_bootdiag](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/storage_account) | data source |
-| [azurerm_subnet.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_virtual_network.vnet_sap](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/virtual_network) | data source |
+| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/client_config) | data source |
+| [azurerm_key_vault.sid_keyvault_user](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/key_vault) | data source |
+| [azurerm_key_vault_secret.sid_password](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.sid_pk](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.sid_username](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_netapp_volume.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/netapp_volume) | data source |
+| [azurerm_netapp_volume.usrsap](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/netapp_volume) | data source |
+| [azurerm_network_security_group.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_group) | data source |
+| [azurerm_network_security_group.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_group) | data source |
+| [azurerm_network_security_group.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_group) | data source |
+| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_perimeter) | data source |
+| [azurerm_network_security_perimeter_profile.profile](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_perimeter_profile) | data source |
+| [azurerm_orchestrated_virtual_machine_scale_set.scale_set](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/orchestrated_virtual_machine_scale_set) | data source |
+| [azurerm_private_endpoint_connection.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/private_endpoint_connection) | data source |
+| [azurerm_proximity_placement_group.app_ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/proximity_placement_group) | data source |
+| [azurerm_proximity_placement_group.ppg](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/proximity_placement_group) | data source |
+| [azurerm_resource_group.resource_group](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/resource_group) | data source |
+| [azurerm_storage_account.sapmnt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/storage_account) | data source |
+| [azurerm_storage_account.storage_bootdiag](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/storage_account) | data source |
+| [azurerm_subnet.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
+| [azurerm_virtual_network.vnet_sap](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/virtual_network) | data source |
 | [template_cloudinit_config.config_growpart](https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/cloudinit_config) | data source |
 
 ## Inputs
