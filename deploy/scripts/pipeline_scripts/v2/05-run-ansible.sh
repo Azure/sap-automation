@@ -33,40 +33,16 @@ banner_title="SAP Configuration and Installation - Ansible"
 # Print the execution environment details
 print_header
 echo ""
+DEBUG=false
 
-# Platform-specific configuration
-if [ "$PLATFORM" == "devops" ]; then
-	DEBUG=false
+export DEBUG
 
-	if [ "${SYSTEM_DEBUG:-False}" = True ]; then
-		set -x
-		DEBUG=True
-		echo "Environment variables:"
-		printenv | sort
+if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+	set -x
+	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
 
-	fi
-	export DEBUG
-	set -eu
-	# Configure DevOps
-	configure_devops
-
-	platform_flag="--ado"
-
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
-elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	# Values will be stored in GitHub Environment variables
-	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
-	git config --global --add safe.directory "$CONFIG_REPO_PATH"
-	platform_flag="--github"
-else
-	platform_flag=""
 fi
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
@@ -98,6 +74,32 @@ if [ "$PLATFORM" == "devops" ]; then
 		fi
 	fi
 fi
+
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	set -eu
+	# Configure DevOps
+	configure_devops
+
+	platform_flag="--ado"
+
+	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
+		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
+		exit 2
+	fi
+	export VARIABLE_GROUP_ID
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	platform_flag="--github"
+else
+	platform_flag=""
+fi
+
 
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
