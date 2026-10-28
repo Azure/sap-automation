@@ -35,6 +35,7 @@ repos:
   redhat9.6:
   redhat9.8:
   redhat10.0:
+  redhat10.2:
 
   # SLES
   sles12.3:
