@@ -106,7 +106,11 @@ fi
 
 # Absolute path to the SSH private key. ansible-playbook is later invoked from a
 # different working directory, so every reference to the key must be absolute.
-SSH_KEY_FILE="${curdir}/${SSH_KEY_NAME}"
+if [[ "$SSH_KEY_NAME" == /* ]]; then
+	SSH_KEY_FILE="$SSH_KEY_NAME"
+else
+	SSH_KEY_FILE="${curdir}/${SSH_KEY_NAME}"
+fi
 
 if [ ! -v PASSWORD_KEY_NAME ]; then
 	PASSWORD_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-password"
