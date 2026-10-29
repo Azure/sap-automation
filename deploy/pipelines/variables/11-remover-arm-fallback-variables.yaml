@@ -16,11 +16,8 @@ variables:
 
   - group: SDAF-${{ parameters.environment }}
 
-  - name: parent_variable_group
-    value: SDAF-${{ parameters.deployer_environment }}
-
   - name: variable_group
-    value: SDAF-${{ parameters.workload_environment }}
+    value: SDAF-${{ parameters.environment }}
 
   - name: deployer_foldername
     value: ${{ parameters.deployer }}
