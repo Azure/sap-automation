@@ -200,14 +200,13 @@ stages:
           - task:                                 AzureCLI@2
             continueOnError:                      false
             inputs:
-              azureSubscription:                  ${{ parameters.control_plane_connection }}
+              azureSubscription:                  ${{parameters.connection_name}}
               scriptType:                         bash
               scriptLocation:                     'scriptPath'
               scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-control-plane.sh"
-              failOnStderr:                       false
-              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
               addSpnToEnvironment:                true
-              visibleAzLogin:                     false
+              visibleAzLogin:                     true
+              failOnStandardError:                false
 
             displayName:                          Remove Control Plane deployment artifacts from WORKSPACES
             env:
