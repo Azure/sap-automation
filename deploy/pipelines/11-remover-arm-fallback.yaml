@@ -200,7 +200,7 @@ stages:
           - task:                                 AzureCLI@2
             continueOnError:                      false
             inputs:
-              azureSubscription:                  ${{parameters.connection_name}}
+              azureSubscription:                  ${{parameters.control_plane_connection}}
               scriptType:                         bash
               scriptLocation:                     'scriptPath'
               scriptPath:                         "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/11-remover-arm-fallback-control-plane.sh"
