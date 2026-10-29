@@ -211,5 +211,4 @@ stages:
               SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               USE_MSI:                            $(Use_MSI)
-              PAT:                                $(PAT)
               SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
