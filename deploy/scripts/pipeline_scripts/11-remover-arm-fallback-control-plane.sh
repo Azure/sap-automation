@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -8,24 +7,39 @@ reset="\e[0m"
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
 
-source "${script_directory}/helper.sh"
-
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+SCRIPT_NAME="$(basename "$0")"
 
 if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	debug=true
 	export debug
-	printenv | sort
 fi
+
+if [ "${#PAT}" -gt 0 ]; then
+	echo "Using PAT for authentication"
+	AZURE_DEVOPS_EXT_PAT=$PAT
+else
+	echo "Using SYSTEM_ACCESSTOKEN for authentication"
+	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
+fi
+
+export AZURE_DEVOPS_EXT_PAT
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${script_directory}/helper.sh"
 
 # Print the execution environment details
 print_header
 
 # Configure DevOps
 configure_devops
+
 
 if ! get_variable_group_id "SDAF-$CONTROL_PLANE_NAME" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
