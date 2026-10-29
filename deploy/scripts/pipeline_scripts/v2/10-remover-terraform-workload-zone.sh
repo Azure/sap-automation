@@ -285,7 +285,7 @@ else
 			git pull -q origin "$GITHUB_REF_NAME"
 		fi
 
-		output_file="$CONFIG_REPO_PATH/LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE/readme.md"
+		output_file="readme.md"
 		now=$(date +"%d of %b %Y at %H:%M:%S")
 		{
 				printf "**SAP Workload Zone Infrastructure Removal**\n\n\n" >"$output_file"
@@ -302,8 +302,8 @@ else
 			changed=1
 		fi
 
-		if [ -f "$CONFIG_REPO_PATH/LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE/readme.md" ]; then
-			git add "$CONFIG_REPO_PATH/LANDSCAPE/${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE/readme.md"
+		if [ -f "readme.md" ]; then
+			git add "readme.md"
 			changed=1
 		fi
 
@@ -364,10 +364,8 @@ else
 		if [ "$PLATFORM" == "github" ]; then
 				cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
 		else
-			cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
-			if [ -f "${output_file}" ]; then
-					echo "##vso[task.uploadsummary]${output_file}"
-			fi
+			sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/readme.md"
+			echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/readme.md"
 		fi
 
 		echo -e "$green--- Deleting variables ---$reset_formatting"
