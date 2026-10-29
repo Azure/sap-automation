@@ -365,7 +365,7 @@ else
 				cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
 		else
 			sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/readme.md"
-			echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${SID}.md;]$AGENT_TEMPDIRECTORY/readme.md"
+			echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=readme.md;]$AGENT_TEMPDIRECTORY/readme.md"
 		fi
 
 		echo -e "$green--- Deleting variables ---$reset_formatting"
