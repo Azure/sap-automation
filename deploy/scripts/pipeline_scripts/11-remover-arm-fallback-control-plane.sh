@@ -15,6 +15,8 @@ if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	debug=true
 	export debug
+	echo "Environment variables:"
+	printenv | sort
 fi
 
 if [ "${#PAT}" -gt 0 ]; then
