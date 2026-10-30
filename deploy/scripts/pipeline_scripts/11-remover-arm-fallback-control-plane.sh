@@ -48,6 +48,10 @@ export VARIABLE_GROUP_ID
 return_code=0
 
 library_return_code=0
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
+
 resourceGroupName=$(az group list --subscription "$ARM_SUBSCRIPTION_ID" --query "[?name=='$LIBRARY_FOLDERNAME'].name | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
 	print_banner "Removal using ARM" "Deleting resource group: $LIBRARY_FOLDERNAME" "info"
