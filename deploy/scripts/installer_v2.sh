@@ -247,7 +247,7 @@ function installer_parse_arguments() {
         deployer_configuration_file=$(get_configuration_file "$automation_config_directory" "$DEPLOYER_ENVIRONMENT" "$DEPLOYER_LOCATION" "$DEPLOYER_NETWORK")
         echo "Loading deployer configuration from ${deployer_configuration_file}"
         load_config_vars "${deployer_configuration_file}" \
-            tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault APP_CONFIG_DEPLOYMENT APPLICATION_CONFIGURATION_NAME APPLICATION_CONFIGURATION_ID
+            tfstate_resource_id DEPLOYER_KEYVAULT REMOTE_STATE_SA REMOTE_STATE_RG keyvault APP_CONFIG_DEPLOYMENT APPLICATION_CONFIGURATION_NAME APPLICATION_CONFIGURATION_ID APPLICATION_CONFIGURATION_DEPLOYMENT
 
         TF_VAR_spn_keyvault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$DEPLOYER_KEYVAULT' | project id, name, subscription" --query data[0].id --output tsv)
         export TF_VAR_spn_keyvault_id
@@ -289,16 +289,18 @@ function installer_parse_arguments() {
     fi
 
     if [ "${deployment_system}" != sap_deployer ]; then
-        if [ -n "$APPLICATION_CONFIGURATION_NAME" ] && [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
+        if [ "${APPLICATION_CONFIGURATION_DEPLOYMENT:-false}" == "true" ]; then
+            if [ -n "${APPLICATION_CONFIGURATION_NAME:-}" ] && [ -z "$APPLICATION_CONFIGURATION_ID" ]; then
 
-            APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-            if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-                TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
-                export TF_VAR_application_configuration_id
-            else
-                print_banner "$banner_title" "Unable to resolve application configuration id for ${APPLICATION_CONFIGURATION_NAME}" "error"
-                unset TF_DATA_DIR
-                return 2
+                APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+                if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+                    TF_VAR_application_configuration_id=$APPLICATION_CONFIGURATION_ID
+                    export TF_VAR_application_configuration_id
+                else
+                    print_banner "$banner_title" "Unable to resolve application configuration id for ${APPLICATION_CONFIGURATION_NAME}" "error"
+                    unset TF_DATA_DIR
+                    return 2
+                fi
             fi
         fi
         if [ -z "${TF_VAR_deployer_tfstate_key}" ]; then
@@ -377,43 +379,45 @@ function installer_retrieve_parameters() {
     TF_VAR_control_plane_name="${CONTROL_PLANE_NAME}"
     export TF_VAR_control_plane_name
     if [ "${deployment_system}" != sap_deployer ]; then
-        if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
-            if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
-                APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
-                export APPLICATION_CONFIGURATION_ID
-            fi
-        fi
-
-        if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
-            app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
-
-            if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
-                print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_NAME ($app_config_subscription)"
-                TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
-                keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
-
-                management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
-                TF_VAR_management_subscription_id=${management_subscription_id}
-                export TF_VAR_management_subscription_id
-                export TF_VAR_spn_keyvault_id
-                export keyvault
-
-                if [ -z "$tfstate_resource_id" ]; then
-                    tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
-                    terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
-                    terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-                    terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
-                else
-                    terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
-                    terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
-                    terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+        if [ "${APPLICATION_CONFIGURATION_DEPLOYMENT:-false}" == "true" ]; then
+            if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
+                if [ -n "${APPLICATION_CONFIGURATION_NAME:-}" ]; then
+                    APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
+                    export APPLICATION_CONFIGURATION_ID
                 fi
-                TF_VAR_tfstate_resource_id=$tfstate_resource_id
+            fi
 
-                export TF_VAR_tfstate_resource_id
-                export terraform_storage_account_name
-                export terraform_storage_account_resource_group_name
-                export terraform_storage_account_subscription_id
+            if [ -n "$APPLICATION_CONFIGURATION_ID" ]; then
+                app_config_subscription=$(echo "$APPLICATION_CONFIGURATION_ID" | cut -d'/' -f3)
+
+                if is_valid_id "$APPLICATION_CONFIGURATION_ID" "/providers/Microsoft.AppConfiguration/configurationStores/"; then
+                    print_banner "$banner_title" "Retrieving parameters from Azure App Configuration" "info" "$APPLICATION_CONFIGURATION_NAME ($app_config_subscription)"
+                    TF_VAR_spn_keyvault_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_KeyVaultResourceId" "$CONTROL_PLANE_NAME")
+                    keyvault=$(echo "$TF_VAR_spn_keyvault_id" | cut -d'/' -f9)
+
+                    management_subscription_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_SubscriptionId" "${CONTROL_PLANE_NAME}")
+                    TF_VAR_management_subscription_id=${management_subscription_id}
+                    export TF_VAR_management_subscription_id
+                    export TF_VAR_spn_keyvault_id
+                    export keyvault
+
+                    if [ -z "$tfstate_resource_id" ]; then
+                        tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "$CONTROL_PLANE_NAME")
+                        terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+                        terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+                        terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+                    else
+                        terraform_storage_account_name=$(echo "$tfstate_resource_id" | cut -d'/' -f9)
+                        terraform_storage_account_resource_group_name=$(echo "$tfstate_resource_id" | cut -d'/' -f5)
+                        terraform_storage_account_subscription_id=$(echo "$tfstate_resource_id" | cut -d'/' -f3)
+                    fi
+                    TF_VAR_tfstate_resource_id=$tfstate_resource_id
+
+                    export TF_VAR_tfstate_resource_id
+                    export terraform_storage_account_name
+                    export terraform_storage_account_resource_group_name
+                    export terraform_storage_account_subscription_id
+                fi
             fi
         fi
 
@@ -1033,7 +1037,7 @@ function sdaf_installer() {
 
     if [ 1 == $apply_needed ]; then
         print_banner "$banner_title" "Running Terraform apply" "info" "System name $(basename "$param_dirname")"
-        if [ "$PLATFORM" != "cli" ] || [ "$approve" == "--auto-approve" ]; then
+        if [ "$PLATFORM" != "cli" ] || [ "${approve:-}" == "--auto-approve" ]; then
             allParameters+=(-json)
             allParameters+=(-auto-approve)
             allParameters+=(-no-color)
