@@ -92,7 +92,6 @@ fi
 set -eu
 
 curdir=$(cd "$(dirname "$SAP_PARAMS")" && pwd)
-curdir=$(cd "$(dirname "$SAP_PARAMS")" && pwd)
 
 cd "$curdir" || exit
 
@@ -136,12 +135,12 @@ if [ ! -f "$SSH_KEY_FILE" ]; then
 	fi
 else
 	echo "##[section]SSH key already exists, skipping retrieval."
-	sudo chmod 600 "$SSH_KEY_NAME"
+	sudo chmod 600 "$SSH_KEY_FILE"
 fi
 
-ssh_key_path="$SSH_KEY_NAME"
-if [[ "$SSH_KEY_NAME" != /* ]]; then
-	ssh_key_path="$curdir/$SSH_KEY_NAME"
+ssh_key_path="$SSH_KEY_FILE"
+if [[ "$SSH_KEY_FILE" != /* ]]; then
+	ssh_key_path="$curdir/$SSH_KEY_FILE"
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)

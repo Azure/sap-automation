@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
@@ -8,27 +7,29 @@ reset="\e[0m"
 
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_directory="$(dirname "$script_directory")"
 
-source "${script_directory}/helper.sh"
-
-deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
-libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+SCRIPT_NAME="$(basename "$0")"
 
 if [ "${SYSTEM_DEBUG:-False}" == "True" ]; then
 	set -x
 	debug=true
 	export debug
+	echo "Environment variables:"
 	printenv | sort
 fi
 
-if [ "${#PAT}" -gt 0 ]; then
-	echo "Using PAT for authentication"
-	AZURE_DEVOPS_EXT_PAT=$PAT
-else
-	echo "Using SYSTEM_ACCESSTOKEN for authentication"
-	AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
-fi
+echo "Using SYSTEM_ACCESSTOKEN for authentication"
+AZURE_DEVOPS_EXT_PAT=$SYSTEM_ACCESSTOKEN
+
 export AZURE_DEVOPS_EXT_PAT
+
+#call stack has full script name when using source
+# shellcheck disable=SC1091
+source "${parent_directory}/deploy_utils.sh"
+
+#call stack has full script name when using source
+source "${script_directory}/helper.sh"
 
 # Print the execution environment details
 print_header
@@ -36,7 +37,8 @@ print_header
 # Configure DevOps
 configure_devops
 
-if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
+
+if ! get_variable_group_id "SDAF-$CONTROL_PLANE_NAME" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
@@ -45,26 +47,18 @@ export VARIABLE_GROUP_ID
 
 return_code=0
 
-ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
-echo "Environment:                         $ENVIRONMENT"
-
-LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
-echo "Location:                            $LOCATION"
-
-NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
-echo "Network:                             $NETWORK"
-
-subscription=$ARM_SUBSCRIPTION_ID
-echo "Subscription:                        $subscription"
-
 library_return_code=0
-resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$LIBRARY_FOLDERNAME'].name | [0]")
+ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
+LOCATION=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $2}' | xargs)
+NETWORK=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $3}' | xargs)
+
+resourceGroupName=$(az group list --subscription "$ARM_SUBSCRIPTION_ID" --query "[?name=='$LIBRARY_FOLDERNAME'].name | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
 	print_banner "Removal using ARM" "Deleting resource group: $LIBRARY_FOLDERNAME" "info"
 	echo "##vso[task.setprogress value=0;]Progress Indicator"
 
 	# shellcheck disable=SC2046
-	az group delete --subscription "$subscription" --name $LIBRARY_FOLDERNAME --yes --only-show-errors
+	az group delete --subscription "$ARM_SUBSCRIPTION_ID" --name $LIBRARY_FOLDERNAME --yes --only-show-errors
 	library_return_code=$?
 	echo "##vso[task.setprogress value=30;]Progress Indicator"
 else
@@ -125,11 +119,11 @@ if [  0 == $library_return_code ]; then
 fi
 
 deployer_return_code=0
-resourceGroupName=$(az group list --subscription "$subscription" --query "[?name=='$DEPLOYER_FOLDERNAME'].name  | [0]")
+resourceGroupName=$(az group list --subscription "$ARM_SUBSCRIPTION_ID" --query "[?name=='$DEPLOYER_FOLDERNAME'].name  | [0]")
 if [ ${#resourceGroupName} != 0 ]; then
 	print_banner "Removal using ARM" "Deleting resource group: $DEPLOYER_FOLDERNAME" "info"
 	echo "##vso[task.setprogress value=60;]Progress Indicator"
-	az group delete --subscription "$subscription" --name "$DEPLOYER_FOLDERNAME" --yes --only-show-errors
+	az group delete --subscription "$ARM_SUBSCRIPTION_ID" --name "$DEPLOYER_FOLDERNAME" --yes --only-show-errors
 	deployer_return_code=$?
 else
 	print_banner "Removal using ARM" "Resource group: $DEPLOYER_FOLDERNAME was not found" "warning"

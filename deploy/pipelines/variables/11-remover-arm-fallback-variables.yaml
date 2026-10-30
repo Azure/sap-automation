@@ -3,10 +3,9 @@
 
 parameters:
   deployer: ""
-  deployer_environment: ""
+  environment: ""
   library: ""
   sap_system: ""
-  workload_environment: ""
   workload_zone: ""
   cleanup_workload_zone: false
   cleanup_control_plane: false
@@ -15,15 +14,10 @@ parameters:
 variables:
   - group: "SDAF-General"
 
-  - group: SDAF-${{ parameters.deployer_environment }}
-
-  - group: SDAF-${{ parameters.workload_environment }}
-
-  - name: parent_variable_group
-    value: SDAF-${{ parameters.deployer_environment }}
+  - group: SDAF-${{ parameters.environment }}
 
   - name: variable_group
-    value: SDAF-${{ parameters.workload_environment }}
+    value: SDAF-${{ parameters.environment }}
 
   - name: deployer_foldername
     value: ${{ parameters.deployer }}

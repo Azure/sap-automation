@@ -33,40 +33,16 @@ banner_title="SAP Configuration and Installation - Ansible"
 # Print the execution environment details
 print_header
 echo ""
+DEBUG=false
 
-# Platform-specific configuration
-if [ "$PLATFORM" == "devops" ]; then
-	DEBUG=false
+export DEBUG
 
-	if [ "${SYSTEM_DEBUG:-False}" = True ]; then
-		set -x
-		DEBUG=True
-		echo "Environment variables:"
-		printenv | sort
+if [ "${SYSTEM_DEBUG:-False}" = True ]; then
+	set -x
+	DEBUG=True
+	echo "Environment variables:"
+	printenv | sort
 
-	fi
-	export DEBUG
-	set -eu
-	# Configure DevOps
-	configure_devops
-
-	platform_flag="--ado"
-
-	if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
-		echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
-		echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
-		exit 2
-	fi
-	export VARIABLE_GROUP_ID
-elif [ "$PLATFORM" == "github" ]; then
-	# No specific variable group setup for GitHub Actions
-	# Values will be stored in GitHub Environment variables
-	echo "Configuring for GitHub Actions"
-	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
-	git config --global --add safe.directory "$CONFIG_REPO_PATH"
-	platform_flag="--github"
-else
-	platform_flag=""
 fi
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
@@ -78,18 +54,18 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 if [ "$PLATFORM" == "devops" ]; then
 	# Set logon variables
-	if [ $USE_MSI == "true" ]; then
+	if [ "$ARM_USE_MSI" == "true" ]; then
 		unset ARM_CLIENT_SECRET
 		ARM_USE_MSI=true
 		export ARM_USE_MSI
 	fi
 
 	if az account show --query name; then
-		echo -e "$green--- Already logged in to Azure ---$reset"
+		echo -e "$green--- Already logged in ---$reset"
 	else
 		# Check if running on deployer
 		echo -e "$green--- az login ---$reset"
-		LogonToAzure $USE_MSI
+		LogonToAzure "${ARM_USE_MSI:-true}"
 		return_code=$?
 		if [ 0 != $return_code ]; then
 			echo -e "$bold_red--- Login failed ---$reset"
@@ -99,13 +75,37 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 fi
 
+# Platform-specific configuration
+if [ "$PLATFORM" == "devops" ]; then
+	set -eu
+	# Configure DevOps
+	configure_devops
+
+	platform_flag="--ado"
+
+elif [ "$PLATFORM" == "github" ]; then
+	# No specific variable group setup for GitHub Actions
+	# Values will be stored in GitHub Environment variables
+	echo "Configuring for GitHub Actions"
+	export VARIABLE_GROUP_ID="${WORKLOAD_ZONE_NAME}"
+	git config --global --add safe.directory "$CONFIG_REPO_PATH"
+	platform_flag="--github"
+else
+	platform_flag=""
+fi
+
+
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
 	export APPLICATION_CONFIGURATION_ID
 fi
 
-tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
-control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+if [ -v CONTROL_PLANE_SUBSCRIPTION_ID ]; then
+	control_plane_subscription="$CONTROL_PLANE_SUBSCRIPTION_ID"
+else
+	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
+	control_plane_subscription=$(echo "$tfstate_resource_id" | cut -d '/' -f 3)
+fi
 
 export control_plane_subscription
 
@@ -137,14 +137,14 @@ else
 	fi
 fi
 
-az account set --subscription "$key_vault_subscription" --output none
-
 if [ -n "$key_vault_subscription" ]; then
 	echo "##[section]Using Key Vault subscription: $key_vault_subscription"
 else
 	echo "##[error]Key Vault subscription not found for vault: $key_vault_name"
 	exit 1
 fi
+az account set --subscription "$key_vault_subscription" --output none
+
 
 set -eu
 

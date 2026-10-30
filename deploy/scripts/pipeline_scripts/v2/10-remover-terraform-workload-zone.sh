@@ -292,8 +292,6 @@ else
 				printf "The Workload Zone infrastructure defined in %s has been removed on %s. "  "${WORKLOAD_ZONE_NAME}-INFRASTRUCTURE.tfvars" "$now" >>"$output_file"
 		}
 
-		git clean -d -f -X
-
 		if [ -f ".terraform/terraform.tfstate" ]; then
 			git rm --ignore-unmatch -q --ignore-unmatch ".terraform/terraform.tfstate"
 			changed=1
@@ -366,7 +364,8 @@ else
 		if [ "$PLATFORM" == "github" ]; then
 				cat "${output_file}" >>"${GITHUB_STEP_SUMMARY}"
 		else
-				echo "##vso[task.uploadsummary]${output_file}"
+			sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/readme.md"
+			echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=readme.md;]$AGENT_TEMPDIRECTORY/readme.md"
 		fi
 
 		echo -e "$green--- Deleting variables ---$reset_formatting"
