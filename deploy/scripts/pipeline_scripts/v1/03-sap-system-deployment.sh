@@ -51,14 +51,13 @@ fi
 configure_devops
 
 # Set logon variables
-if [ "${ARM_USE_MSI:-USE_MSI}" == "true" ]; then
+if [ "${ARM_USE_MSI:-${USE_MSI:-true}}" == "true" ]; then
 	unset ARM_CLIENT_SECRET
-	TF_use_spn=false
-	export TF_use_spn
+
 fi
 
 echo -e "$green--- az login ---$reset"
-LogonToAzure "${ARM_USE_MSI:-USE_MSI}"
+LogonToAzure "${ARM_USE_MSI:-${USE_MSI:-true}}"
 return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
