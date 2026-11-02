@@ -406,6 +406,7 @@ function configure_devops() {
     TF_VAR_devops_platform="ADO"
     export TF_VAR_devops_platform
 
+		git remote set-url origin "https://$SYSTEM_ACCESSTOKEN@dev.azure.com/$SYSTEM_COLLECTIONURI/$SYSTEM_TEAMPROJECT/_git/$BUILD_REPOSITORY_NAME"
 
 
     if [ -n "${TF_BUILD+x}" ]; then
