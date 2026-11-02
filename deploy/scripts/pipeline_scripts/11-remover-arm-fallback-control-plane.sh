@@ -44,7 +44,8 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	exit 2
 fi
 export VARIABLE_GROUP_ID
-
+deployerTFvarsFile="${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
+libraryTFvarsFile="${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
 return_code=0
 
 library_return_code=0
