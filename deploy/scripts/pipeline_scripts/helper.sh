@@ -422,7 +422,7 @@ function configure_devops() {
             echo "Azure DevOps extension installed."
         fi
 
-        az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECTID" --output none --
+        az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECTID" --output none
     fi
 
     extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
@@ -441,6 +441,6 @@ function remove_variable() {
     local variable_group="$1"
     variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
     if [ ${#variable_value} != 0 ]; then
-        az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
+        az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors --detect false
     fi
 }
