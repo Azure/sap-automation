@@ -284,7 +284,7 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 echo -e "$green--- Read Variables from Variable group ---$reset"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ "$sourced_from_file" == 1 ]; then
-    az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors
+    az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors --detect false
 fi
 echo "Deployer TFvars:                      $deployer_tfvars_file_name"
 

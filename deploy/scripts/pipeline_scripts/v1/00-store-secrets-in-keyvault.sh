@@ -144,42 +144,44 @@ if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 fi
 if [ -v PARENT_VARIABLE_GROUP ]; then
 	if get_variable_group_id "$PARENT_VARIABLE_GROUP" "PARENT_VARIABLE_GROUP_ID"; then
-		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+		DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv --detect false)
 
-		WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv)
+		WZ_DEPLOYER_KEYVAULT=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_KEYVAULT.value" --output tsv --detect false)
 		if [ -z "$WZ_DEPLOYER_KEYVAULT" ]; then
-			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
+			az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none --detect false
 		else
-			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none
+			az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "DEPLOYER_KEYVAULT" --value "$DEPLOYER_KEYVAULT" --output none --detect false
 		fi
 
-		APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
+		APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv --detect false)
 
-		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv)
+		WZ_APPLICATION_CONFIGURATION_NAME=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_NAME.value" --output tsv --detect false)
 		if [ -n "$APPLICATION_CONFIGURATION_NAME" ]; then
 			echo "Application Configuration Name:      $APPLICATION_CONFIGURATION_NAME"
 			if [ -z "$WZ_APPLICATION_CONFIGURATION_NAME" ]; then
 
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none --detect false
 			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "APPLICATION_CONFIGURATION_NAME" --value "$APPLICATION_CONFIGURATION_NAME" --output none --detect false
 			fi
 		fi
 
 		if [ "$USE_MSI" = "true" ]; then
-			ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv)
-			WZ_ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv)
+			ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv --detect false)
+			WZ_ARM_CLIENT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv --detect false)
 			if [ -z "$WZ_ARM_CLIENT_ID" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "ARM_CLIENT_ID" --value "$ARM_CLIENT_ID" --output none
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "ARM_CLIENT_ID" --value "$ARM_CLIENT_ID" --output none --detect false
 			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "ARM_CLIENT_ID" --value "$ARM_CLIENT_ID" --output none
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "ARM_CLIENT_ID" --value "$ARM_CLIENT_ID" --output none --detect false
 			fi
-			ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv)
-			WZ_ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv)
+			ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv --detect false)
+			WZ_ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv --detect false)
 			if [ -z "$WZ_ARM_OBJECT_ID" ]; then
-				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none
+			WZ_ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv --detect false)
+			if [ -z "$WZ_ARM_OBJECT_ID" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none --detect false
 			else
-				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none --detect false
 			fi
 		fi
 

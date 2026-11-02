@@ -118,7 +118,7 @@ if [ "your S user password" == "$SPASSWORD" ]; then
 fi
 
 echo -e "$green--- Get key_vault name ---$reset"
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]" --detect false)
 export VARIABLE_GROUP_ID
 printf -v val '%-15s' "$VARIABLE_GROUP_ID id:"
 echo "$val                      $VARIABLE_GROUP_ID"
