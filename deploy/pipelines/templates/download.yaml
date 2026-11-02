@@ -30,7 +30,7 @@ steps:
           export currentFolder=$(pwd)
 
           cd $(Build.SourcesDirectory)/config
-          git remote set-url origin "https://$SYSTEM_ACCESSTOKEN@dev.azure.com/$SYSTEM_COLLECTIONURI/$SYSTEM_TEAMPROJECT/_git/$BUILD_REPOSITORY_NAME"
+          git remote set-url origin $(Build.Repository.Uri)
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)"
 
