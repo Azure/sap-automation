@@ -89,7 +89,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 echo -e "$green--- az login ---$reset"
-LogonToAzure $USE_MSI
+LogonToAzure "${ARM_USE_MSI:-${USE_MSI:-true}}"
+
 return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"

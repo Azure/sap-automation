@@ -1592,6 +1592,9 @@ function LogonToAzure() {
 			az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
 		fi
 
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
+
 		az account show --query user --output table
 
 		TF_VAR_use_spn=false

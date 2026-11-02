@@ -50,11 +50,6 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 configure_devops
 
-# Set logon variables
-if [ "${ARM_USE_MSI:-${USE_MSI:-true}}" == "true" ]; then
-	unset ARM_CLIENT_SECRET
-
-fi
 
 echo -e "$green--- az login ---$reset"
 LogonToAzure "${ARM_USE_MSI:-${USE_MSI:-true}}"
