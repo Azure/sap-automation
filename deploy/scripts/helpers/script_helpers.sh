@@ -1565,7 +1565,7 @@ function validate_key_vault {
 #########################################################################################
 
 function LogonToAzure() {
-	local useMSI=$1
+	local useMSI=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 	local subscriptionId=$ARM_SUBSCRIPTION_ID
 
 	if [ "$useMSI" != "true" ]; then
