@@ -340,7 +340,7 @@ function get_variable_group_id() {
 	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
 	unset GROUP_ID
-	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
+	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv --detect false)
 	popd > /dev/null
 	if [ -z "$variable_group_id" ]; then
 		return 1
@@ -422,7 +422,7 @@ function configure_devops() {
             echo "Azure DevOps extension installed."
         fi
 
-        az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECTID" --output none
+        az devops configure --defaults organization="$SYSTEM_COLLECTIONURI" project="$SYSTEM_TEAMPROJECTID" --output none --
     fi
 
     extension_installed=$(az extension list --query "[?contains(name, 'resource-graph')].name | [0]" --output tsv)
