@@ -53,18 +53,12 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 fi
 
 echo -e "$green--- az login ---$reset"
-if [ "${ARM_USE_MSI:-${USE_MSI:-true}}" == "true" ]; then
- case "${ARM_USE_MSI:-}" in
- 	true|false) ;;
- 	*) ARM_USE_MSI="${USE_MSI:-true}" ;;
- esac
- export ARM_USE_MSI
-fi
-if [ "$ARM_USE_MSI" == "true" ]; then
- 	unset ARM_CLIENT_SECRET
-fi
 
-LogonToAzure  "$ARM_USE_MSI"
+use_msi="$(is_msi_enabled)"
+export use_msi
+
+LogonToAzure  "$use_msi"
+
 return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
