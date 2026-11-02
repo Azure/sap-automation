@@ -31,6 +31,7 @@ steps:
 
           cd $(Build.SourcesDirectory)/config
           git remote set-url origin $(Build.Repository.Uri)
+          echo "Set remote URL to $(Build.Repository.Uri)"
           git config --global user.email "$(Build.RequestedForEmail)"
           git config --global user.name "$(Build.RequestedFor)"
 
