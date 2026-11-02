@@ -98,26 +98,25 @@ if [ "$PLATFORM" == "devops" ]; then
 	fi
 	configure_devops
 
-
 	echo -e "$green--- az login ---$reset"
-	LogonToAzure "${ARM_USE_MSI:-${USE_MSI:-true}}"
+	if [ "${ARM_USE_MSI:-${USE_MSI:-true}}" == "true" ]; then
+	case "${ARM_USE_MSI:-}" in
+		true|false) ;;
+		*) ARM_USE_MSI="${USE_MSI:-true}" ;;
+	esac
+	export ARM_USE_MSI
+	fi
+	if [ "$ARM_USE_MSI" == "true" ]; then
+		unset ARM_CLIENT_SECRET
+	fi
+
+	LogonToAzure  "$ARM_USE_MSI"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
 		echo "##vso[task.logissue type=error]az login failed."
 		exit $return_code
 	fi
-
-else
-    if [ "$USE_MSI" == "true" ]; then
-        unset ARM_CLIENT_SECRET
-        ARM_USE_MSI=true
-        export ARM_USE_MSI
-        echo "Deployment credentials:              Managed Service Identity"
-    else
-        echo "Deployment credentials:              Service Principal"
-    fi
-
 fi
 if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
     APPLICATION_CONFIGURATION_ID=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$APPLICATION_CONFIGURATION_NAME' | project id, name, subscription" --query data[0].id --output tsv)
