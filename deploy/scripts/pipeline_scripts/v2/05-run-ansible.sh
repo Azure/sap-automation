@@ -106,7 +106,7 @@ if [ ! -v APPLICATION_CONFIGURATION_ID ]; then
 	export APPLICATION_CONFIGURATION_ID
 fi
 
-if [ -v CONTROL_PLANE_SUBSCRIPTION_ID ]; then
+if [ -n "${CONTROL_PLANE_SUBSCRIPTION_ID:-}" ]; then
 	control_plane_subscription="$CONTROL_PLANE_SUBSCRIPTION_ID"
 else
 	tfstate_resource_id=$(getVariableFromApplicationConfiguration "$APPLICATION_CONFIGURATION_ID" "${CONTROL_PLANE_NAME}_TerraformRemoteStateStorageAccountId" "${CONTROL_PLANE_NAME}")
