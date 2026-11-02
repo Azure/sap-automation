@@ -177,8 +177,6 @@ if [ -v PARENT_VARIABLE_GROUP ]; then
 			ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${PARENT_VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv --detect false)
 			WZ_ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv --detect false)
 			if [ -z "$WZ_ARM_OBJECT_ID" ]; then
-			WZ_ARM_OBJECT_ID=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv --detect false)
-			if [ -z "$WZ_ARM_OBJECT_ID" ]; then
 				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none --detect false
 			else
 				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name "ARM_OBJECT_ID" --value "$ARM_OBJECT_ID" --output none --detect false
