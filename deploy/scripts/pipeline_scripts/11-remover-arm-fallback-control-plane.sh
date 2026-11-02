@@ -38,7 +38,7 @@ print_header
 configure_devops
 
 
-if ! get_variable_group_id "SDAF-$CONTROL_PLANE_NAME" "VARIABLE_GROUP_ID"; then
+if ! get_variable_group_id "$VARIABLE_GROUP" "VARIABLE_GROUP_ID"; then
 	echo -e "$bold_red--- Variable group $VARIABLE_GROUP not found ---$reset"
 	echo "##vso[task.logissue type=error]Variable group $VARIABLE_GROUP not found."
 	exit 2
