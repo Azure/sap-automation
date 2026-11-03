@@ -433,8 +433,10 @@ output "ANF_pool_settings"                      {
                                                                      )
 
                                                                      subnet_id = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
-                                                                       var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.id : try(azurerm_subnet.anf[0].id, "")) : (
-                                                                       ""
+                                                                                   var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
+                                                                                     var.infrastructure.virtual_networks.sap.subnet_anf.id) : (
+                                                                                     azurerm_subnet.anf[0].id)) : (
+                                                                                   ""
                                                                      )
 
                                                                      resource_group_name = var.ANF_settings.use_existing_pool ? (
