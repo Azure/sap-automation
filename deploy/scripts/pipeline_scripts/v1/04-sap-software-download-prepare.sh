@@ -78,20 +78,10 @@ if [ "$USE_MSI" != "true" ]; then
 fi
 
 echo -e "$green--- az login ---$reset"
-# Set logon variables
-if [ "$USE_MSI" != "true" ]; then
+use_msi="$(is_msi_enabled)"
+export use_msi
 
-	ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-	export ARM_TENANT_ID
-	ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-	export ARM_SUBSCRIPTION_ID
-else
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
-
-LogonToAzure $USE_MSI
+LogonToAzure  "$use_msi"
 return_code=$?
 if [ 0 != $return_code ]; then
 	echo -e "$bold_red--- Login failed ---$reset"
@@ -128,7 +118,7 @@ if [ "your S user password" == "$SPASSWORD" ]; then
 fi
 
 echo -e "$green--- Get key_vault name ---$reset"
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]" --detect false)
 export VARIABLE_GROUP_ID
 printf -v val '%-15s' "$VARIABLE_GROUP_ID id:"
 echo "$val                      $VARIABLE_GROUP_ID"

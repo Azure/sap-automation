@@ -136,8 +136,10 @@ if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
 	az account show --query user --output yaml
 else
+	use_msi="$(is_msi_enabled)"
+	export use_msi
 
-	LogonToAzure $USE_MSI
+	LogonToAzure  "$use_msi"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"

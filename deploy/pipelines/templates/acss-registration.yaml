@@ -19,6 +19,7 @@ parameters:
     userNameSecretName: ''
     acssEnvironment: ''
     acssSapProduct: ''
+    USE_MSI: ''
 
 steps:
 - script: |

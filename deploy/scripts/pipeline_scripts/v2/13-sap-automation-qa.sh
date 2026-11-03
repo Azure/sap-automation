@@ -61,26 +61,22 @@ fi
 
 print_banner "$banner_title" "Starting $SCRIPT_NAME" "info"
 
-if [ "$USE_MSI" == "true" ]; then
-	unset ARM_CLIENT_SECRET
-	ARM_USE_MSI=true
-	export ARM_USE_MSI
-fi
-
+# Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.12.2}"
+	configureNonDeployer "${tf_version:-1.17.0}"
+fi
+configure_devops
+
+
+echo -e "$green--- az login ---$reset"
+LogonToAzure "${ARM_USE_MSI:-${USE_MSI:-true}}"
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure "$USE_MSI"
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		exit_error "az login failed." $return_code
-	fi
-fi
 
 cd "$CONFIG_REPO_PATH" || exit
 

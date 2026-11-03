@@ -606,7 +606,7 @@ function remove_control_plane() {
         az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled --output none
     fi
     if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
-        az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
+        az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --public-network-access Enabled --output none
     fi
 
     sleep 30
