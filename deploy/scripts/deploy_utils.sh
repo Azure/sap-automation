@@ -794,3 +794,21 @@ function get_name_components
 	return $return_value
 
 }
+
+#########################################################################################
+# Function to check if Managed Service Identity (MSI) is enabled.                       #
+# Returns:                                                                              #
+#   true if MSI is enabled, false otherwise.                                            #
+#########################################################################################
+
+
+is_msi_enabled() {
+    local use_msi_value="${USE_MSI:-}"
+    local arm_use_msi_value="${ARM_USE_MSI:-}"
+
+    if [[ "${use_msi_value,,}" == "true" || "${arm_use_msi_value,,}" == "true" ]]; then
+        printf '%s\n' true
+    else
+        printf '%s\n' false
+    fi
+}

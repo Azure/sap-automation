@@ -87,16 +87,19 @@ fi
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
 	configureNonDeployer "${tf_version:-1.17.0}"
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
-else
-	LogonToAzure $USE_MSI
+fi
+configure_devops
+
+echo -e "$green--- az login ---$reset"
+use_msi="$(is_msi_enabled)"
+export use_msi
+
+LogonToAzure  "$use_msi"
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 TF_VAR_subscription_id=$ARM_SUBSCRIPTION_ID
