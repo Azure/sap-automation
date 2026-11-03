@@ -506,7 +506,7 @@
         - { mode: '0755', path: '/hana/shared' }
 
 # Import custom NFS mounts.
-- name:                                "2.6 Custom Mounts"
+- name:                                "2.6 SAP Mounts - Custom Mounts"
   ansible.builtin.include_tasks:       "2.6.9-custom-mounts.yaml"
   loop:                                "{{ custom_mounts }}"
   loop_control:
@@ -515,10 +515,28 @@
     - custom_mounts is defined
 
 # Call SAP Note 3119751 to ensure create symlink after the mounts.
-- name:                                "Calling SAP Note 3119751"
+- name:                                "2.6 SAP Mounts - Calling SAP Note 3119751"
   ansible.builtin.include_tasks:       roles-sap-os/2.10-sap-notes/tasks/2.10.3119751.yaml
   when:
     - platform == 'HANA'
     - distribution_id in ['redhat8', 'redhat9', 'redhat10']
+
+
+- name:                                "2.6 SAP Mounts - Ensure that the aznfswatchdogv4 service is running"
+  when:
+                                       - use_eit_for_afs | default(false) | bool
+  ansible.builtin.systemd:
+    name:                              aznfswatchdogv4
+    state:                             started
+    enabled:                           true
+
+- name:                                "2.6 SAP Mounts - Ensure that the aznfswatchdogv service is running"
+  when:
+                                       - use_eit_for_afs | default(false) | bool
+  ansible.builtin.systemd:
+    name:                              aznfswatchdog
+    state:                             started
+    enabled:                           true
+
 
 ...
