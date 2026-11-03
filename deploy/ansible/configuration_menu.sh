@@ -4,8 +4,6 @@
 # Licensed under the MIT License.
 
 
-export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
-
 cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 source "${cmd_dir}/script_helper.sh"
 
@@ -87,7 +85,7 @@ export           ANSIBLE_CONFIG="${cmd_dir}/ansible.cfg"
 export           ANSIBLE_LOOKUP_PLUGINS="${cmd_dir}/lookup_plugins":${ANSIBLE_LOOKUP_PLUGINS:+${ANSIBLE_LOOKUP_PLUGINS}}
 
 # if [[ ! -f "${ANSIBLE_INVENTORY}" ]]; then
-#         print_banner "Configuration" "Ansible inventory file '${ANSIBLE_INVENTORY}' not found!" "error" 
+#         print_banner "Configuration" "Ansible inventory file '${ANSIBLE_INVENTORY}' not found!" "error"
 #         exit 1
 # fi
 
@@ -235,7 +233,7 @@ do
                 basename_item_pre=$(basename "$item" .yaml)_pre.yaml
                 basename_item_post=$(basename "$item" .yaml)_post.yaml
 
-                
+
                 if [[ -f "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_pre}" ]]; then
                         print_banner "SAP Configuration and Installation" "Executing pre-playbook '${basename_item_pre}'" info
                         ${DEBUG:+echo} \

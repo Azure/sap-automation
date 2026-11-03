@@ -6,7 +6,8 @@
     { "file": "output_cross_sub.tftest.hcl", "runs": 6 },
     { "file": "plan_shape_core.tftest.hcl", "runs": 27 },
     { "file": "plan_shape_advanced.tftest.hcl", "runs": 22 },
-    { "file": "validation.tftest.hcl", "runs": 35 }
+    { "file": "plan_shape_endpoint.tftest.hcl", "runs": 5 },
+    { "file": "validation.tftest.hcl", "runs": 38 }
   ],
-  "total_runs": 132
+  "total_runs": 140
 }

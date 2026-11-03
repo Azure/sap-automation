@@ -87,7 +87,7 @@ provider "azapi"                       {
                                        }
 
 terraform                              {
-                                         required_version = ">= 1.0"
+                                         required_version = ">= 1.8"
                                          required_providers {
                                                               external = {
                                                                            source = "hashicorp/external"
@@ -107,7 +107,7 @@ terraform                              {
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = "4.80.0"
+                                                                           version = "4.81.0"
                                                                          }
                                                               azapi =   {
                                                                            source  = "Azure/azapi"

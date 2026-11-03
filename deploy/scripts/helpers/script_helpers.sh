@@ -1545,6 +1545,8 @@ function validate_key_vault {
 	return $return_value
 
 }
+
+
 #########################################################################################
 #                                                                                       #
 # Function to log on to Azure using either a service principal or managed service       #
@@ -1565,7 +1567,7 @@ function validate_key_vault {
 #########################################################################################
 
 function LogonToAzure() {
-	local useMSI=$1
+	local useMSI=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 	local subscriptionId=$ARM_SUBSCRIPTION_ID
 
 	if [ "$useMSI" != "true" ]; then
@@ -1591,6 +1593,9 @@ function LogonToAzure() {
 			echo "Running az login --identity"
 			az login --identity --allow-no-subscriptions --client-id "$ARM_CLIENT_ID" --output none
 		fi
+
+		ARM_USE_MSI=true
+		export ARM_USE_MSI
 
 		az account show --query user --output table
 

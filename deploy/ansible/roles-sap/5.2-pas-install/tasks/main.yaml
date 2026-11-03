@@ -98,9 +98,9 @@
 - name:                                "5.2 Primary Application Server Installation - Check if the DB load balancer port is available and listening"
   ansible.builtin.wait_for:
     host:                              "{{ db_lb_virtual_host }}"
-    port:                              "625{{ db_instance_number }}"
+    port:                              "3{{ db_instance_number }}13"
     state:                             started
-    timeout:                           30
+    timeout:                           300
     msg:                               'INSTALL:0026:PAS Install failed, database is unreachable.'
   register:                            db_port_open
   failed_when:                         false

@@ -109,18 +109,17 @@ if [ "$PLATFORM" == "devops" ]; then
 		echo "Variable TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME was not added to the $VARIABLE_GROUP variable group."
 	fi
 
-	if [ "$USE_MSI" != "true" ]; then
-
-		ARM_TENANT_ID=$(az account show --query tenantId --output tsv)
-		export ARM_TENANT_ID
-		ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
-		export ARM_SUBSCRIPTION_ID
-	else
-		unset ARM_CLIENT_SECRET
-		ARM_USE_MSI=true
-		export ARM_USE_MSI
+	# Check if running on deployer
+	if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
+		configureNonDeployer "${tf_version:-1.17.0}"
 	fi
-	LogonToAzure "${USE_MSI:-false}"
+	configure_devops
+
+	echo -e "$green--- az login ---$reset"
+  use_msi="$(is_msi_enabled)"
+  export use_msi
+
+  LogonToAzure  "$use_msi"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"
@@ -172,7 +171,7 @@ fi
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.15.7}"
+	configureNonDeployer "${tf_version:-1.17.0}"
 fi
 echo -e "$green--- az login ---$reset"
 # Set logon variables

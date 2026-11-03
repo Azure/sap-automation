@@ -1,0 +1,7 @@
+{
+  "module": "deploy/terraform/terraform-units/modules/sap_system/output_files",
+  "shards": [
+    { "file": "inventory_storage_container.tftest.hcl", "runs": 1 }
+  ],
+  "total_runs": 1
+}

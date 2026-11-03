@@ -73,7 +73,6 @@ stages:
           clean:                                  all
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
@@ -102,6 +101,7 @@ stages:
               TF_VAR_workload_zone_name:          ${{ parameters.workload_environment }}
               USE_MSI:                            $(Use_MSI)
               WORKLOAD_ZONE_NAME:                 ${{ parameters.workload_zone }}
+          - template:                             templates\cleanup-workspace.yaml
 
   - stage:                                        Remove_SAP_workload_zone
     displayName:                                  "Removing the SAP workload zone"
@@ -123,7 +123,6 @@ stages:
           clean:                                  all
         steps:
           - template:                             templates\download.yaml
-          - task:                                 PostBuildCleanup@4
           - task:                                 ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@1
             displayName:                          Install Terraform
             inputs:
@@ -151,3 +150,4 @@ stages:
               TF_VAR_workload_zone_name:          ${{ parameters.workload_environment }}
               USE_MSI:                            $(Use_MSI)
               WORKLOAD_ZONE_NAME:                 ${{ parameters.workload_environment }}
+          - template:                             templates\cleanup-workspace.yaml

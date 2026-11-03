@@ -86,6 +86,16 @@ output "app_subnet_id"                          {
                                                                 )
                                                 }
 
+output "endpoint_subnet_id"                     {
+                                                  description = "Azure resource identifier for the endpoint subnet"
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                                                    azurerm_subnet.endpoint[0].id)) : (
+                                                                  ""
+                                                                )
+                                                }
+
 output "db_subnet_id"                           {
                                                   description = "Azure resource identifier for the db subnet"
                                                   value       = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
@@ -122,6 +132,7 @@ output "private_endpoint_network_policies"       {
                                                     admin   = try(azurerm_subnet.admin[0].private_endpoint_network_policies, null)
                                                     app     = try(azurerm_subnet.app[0].private_endpoint_network_policies, null)
                                                     db      = try(azurerm_subnet.db[0].private_endpoint_network_policies, null)
+                                                    endpoint = try(azurerm_subnet.endpoint[0].private_endpoint_network_policies, null)
                                                     storage = try(azurerm_subnet.storage[0].private_endpoint_network_policies, null)
                                                     web     = try(azurerm_subnet.web[0].private_endpoint_network_policies, null)
                                                   }
@@ -163,6 +174,16 @@ output "app_nsg_id"                             {
                                                                   var.infrastructure.virtual_networks.sap.subnet_app.nsg.exists ? (
                                                                     var.infrastructure.virtual_networks.sap.subnet_app.nsg.id) : (
                                                                     azurerm_network_security_group.app[0].id)) : (
+                                                                  ""
+                                                                )
+                                                }
+
+output "endpoint_nsg_id"                        {
+                                                  description = "Azure resource identifier for the endpoint subnet network security group"
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists ? (
+                                                                    var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id) : (
+                                                                    azurerm_network_security_group.endpoint[0].id)) : (
                                                                   ""
                                                                 )
                                                 }
@@ -714,12 +735,17 @@ resource "local_file" "resource_group_md" {
   directory_permission = "0770"
 }
 
+data "azurerm_storage_container" "tfvars" {
+  provider               = azurerm.deployer
+  name                  = "tfvars"
+  storage_account_id    = var.infrastructure.terraform_storage_account_id
+}
+
 resource "azurerm_storage_blob" "readme" {
   provider               = azurerm.deployer
-  depends_on            = [local_file.resource_group_md]
+  depends_on             = [local_file.resource_group_md]
   name                   = format("LANDSCAPE/%s/readme.md", trimspace(var.naming.prefix.WORKLOAD_ZONE))
-  storage_account_name   = var.infrastructure.terraform_storage_account_name
-  storage_container_name = "tfvars"
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = local_file.resource_group_md.filename
 }
@@ -729,8 +755,7 @@ resource "azurerm_storage_blob" "tfvars" {
   provider               = azurerm.deployer
   depends_on            = [local_file.resource_group_md]
   name                   = format("LANDSCAPE/%s-INFRASTRUCTURE/%s-INFRASTRUCTURE.tfvars", trimspace(var.naming.prefix.WORKLOAD_ZONE), trimspace(var.naming.prefix.WORKLOAD_ZONE))
-  storage_account_name   = var.infrastructure.terraform_storage_account_name
-  storage_container_name = "tfvars"   
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = format("%s/%s-INFRASTRUCTURE.tfvars", path.cwd,trimspace(var.naming.prefix.WORKLOAD_ZONE))
 }
@@ -740,8 +765,7 @@ resource "azurerm_storage_blob" "tfvars_state" {
   count                  = fileexists(format("%s/.terraform/terraform.tfstate", path.cwd)) ? 1 : 0
   depends_on             = [local_file.resource_group_md]
   name                   = format("LANDSCAPE/%s-INFRASTRUCTURE/.terraform/terraform.tfstate", trimspace(var.naming.prefix.WORKLOAD_ZONE))
-  storage_account_name   = var.infrastructure.terraform_storage_account_name
-  storage_container_name = "tfvars"
+  storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = format("%s/.terraform/terraform.tfstate", path.cwd)
 }
@@ -782,6 +806,8 @@ output "network_resource_counts"                    {
                                                        db_nsg                  = length(azurerm_network_security_group.db)
                                                        app_subnet              = length(azurerm_subnet.app)
                                                        app_nsg                 = length(azurerm_network_security_group.app)
+                                                       endpoint_subnet         = length(azurerm_subnet.endpoint)
+                                                       endpoint_nsg            = length(azurerm_network_security_group.endpoint)
                                                        web_subnet              = length(azurerm_subnet.web)
                                                        web_nsg                 = length(azurerm_network_security_group.web)
                                                        storage_subnet          = length(azurerm_subnet.storage)
@@ -798,6 +824,14 @@ output "network_resource_counts"                    {
                                                        keyvault_private_endpoint = length(azurerm_private_endpoint.kv_user)
                                                      }
                                                     }
+
+output "utility_private_endpoint_subnet_ids"      {
+                                                   description = "Utility file and blob private endpoint subnet IDs for terraform test diagnostics"
+                                                   value = {
+                                                     file = azurerm_private_endpoint.utility_file[*].subnet_id
+                                                     blob = azurerm_private_endpoint.utility_blob[*].subnet_id
+                                                   }
+                                                 }
 
 output "utility_container_immutability_policy_settings" {
                                                      description = "Resolved utility container immutability policy settings for terraform test diagnostics"

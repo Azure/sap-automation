@@ -65,7 +65,7 @@ export local_user=$USER
 #
 
 if [ -z "${TF_VERSION}" ]; then
-	TF_VERSION="1.14.6"
+	TF_VERSION="1.17.0"
 fi
 
 # Fail if attempting to access and unset variable or parameter
@@ -87,7 +87,7 @@ distro_name=""
 distro_version=""
 distro_name_version=""
 error() {
-	echo 1>&2 "ERROR: ${@}"
+	printf '%s\n' "ERROR: $*" >&2
 }
 
 get_distro_name() {
@@ -353,14 +353,26 @@ sles)
 	)
 	;;
 rhel)
+	major_version=$(echo "$(get_distro_version)" | cut -d'.' -f1)
+
 	cli_pkgs+=(
 		azure-cli
 	)
+	if [ "$major_version" -eq 9 ]; then
+		required_pkgs+=(
+			python3.11
+			python3.11-pip
+		)
+	fi
+	if [ "$major_version" -eq 8 ]; then
+	required_pkgs+=(
+		python36
+		python3-virtualenv
+	)
+	fi
 	required_pkgs+=(
 		sshpass
-		python36
 		python3-pip
-		python3-virtualenv
 	)
 	;;
 esac
@@ -412,11 +424,19 @@ sles)
 	ansible_venv_bin="${ansible_venv}/bin"
 	ansible_collections="${ansible_base}/collections"
 	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv==20.26.6
+	sudo python3 -m pip install virtualenv
 	;;
 rhel)
 	echo "we are inside RHEL"
-	ansible_version="2.16"
+	ansible_python="python3"
+	if [[ "$(get_distro_version)" == "8."* ]]; then
+		ansible_version="2.11"
+	elif [[ "$(get_distro_version)" == "9."* ]]; then
+		ansible_version="2.16"
+		ansible_python="python3.11"
+	else
+		ansible_version="2.16"
+	fi
 	ansible_major="${ansible_version%%.*}"
 	ansible_minor=$(echo "${ansible_version}." | cut -d . -f 2)
 	# Ansible installation directories
@@ -426,7 +446,6 @@ rhel)
 	ansible_venv_bin="${ansible_venv}/bin"
 	ansible_collections="${ansible_base}/collections"
 	ansible_pip3="${ansible_venv_bin}/pip3"
-	sudo python3 -m pip install virtualenv==20.26.6
 	;;
 *)
 	echo "we are in the default case statement"
@@ -536,36 +555,13 @@ sles)
 	;;
 rhel*)
 	sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
-	sudo dnf install -y https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm
+	major_version=$(echo "$(get_distro_version)" | cut -d'.' -f1)
+	sudo dnf install -y https://packages.microsoft.com/config/rhel/"${major_version}"/packages-microsoft-prod.rpm
 	sudo dnf install -y azure-cli
 	;;
 esac
 
 # sudo az upgrade --all --yes --only-show-errors --output none
-
-export DOTNET_INSTALL_DIR=/opt/dotnet
-
-sudo mkdir -p ${DOTNET_INSTALL_DIR}
-export DOTNET_ROOT=${DOTNET_INSTALL_DIR}
-
-# Install dotNet
-case "$(get_distro_name)" in
-ubuntu)
-	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
-	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
-	;;
-sles)
-	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
-	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
-	;;
-rhel*)
-	sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
-	sudo chmod +x "/home/${local_user}/dotnet-install.sh"
-	sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 9.0
-	;;
-esac
 
 az config set extension.use_dynamic_install=yes_without_prompt
 
@@ -594,7 +590,7 @@ ubuntu | sles)
 rhel*)
 	if [[ ! -e "${ansible_venv_bin}/activate" ]]; then
 		sudo rm -rf "${ansible_venv}"
-		sudo python3 -m venv "${ansible_venv}"
+		sudo "${ansible_python}" -m venv "${ansible_venv}"
 		source "${ansible_venv_bin}/activate"
 	fi
 	;;
@@ -609,6 +605,7 @@ fi
 # Ensure that standard tools are up to date
 sudo "${ansible_venv_bin}"/pip3 install --upgrade pip         \
                                                   wheel       \
+												                          passlib     \
 	                                                setuptools
 
 # Install requirements
@@ -675,27 +672,50 @@ sudo "${ansible_bin}"/activate-global-python-argcomplete
 sudo mkdir -p "${ansible_collections}"
 set +o xtrace
 
-echo "Installing ansible.windows..."    ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.windows     --force --collections-path "${ansible_collections}"
-echo "Installing ansible.posix..."      ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix       --force --collections-path "${ansible_collections}"
-echo "Installing ansible.utils..."      ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils       --force --collections-path "${ansible_collections}"
-echo "Installing community.windows..."  ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.windows   --force --collections-path "${ansible_collections}"
-echo "Installing microsoft.ad..."       ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad        --force --collections-path "${ansible_collections}"
-echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection  --force --collections-path "${ansible_collections}"
+if [ -f "${ANSIBLE_OFFLINE_REQUIREMENTS_FILE:-}" ] ; then
+	echo "Running in offline mode. Skipping online collection installations."
+	echo "Installing offline collections..."
+	pushd "$(dirname "${ANSIBLE_OFFLINE_REQUIREMENTS_FILE}")"
+	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install -r requirements.yml  --offline --force --collections-path "${ansible_collections}"
+	popd
 
-echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements.txt"
-
-if [[ "${ansible_version}" == "2.11" ]]; then
-	# ansible galaxy upstream has changed. Some collections are only available for install via old-galaxy.ansible.com
-	# https://github.com/ansible/ansible/issues/81830
-	# https://stackoverflow.com/questions/77225047/gitlab-pipeline-to-install-ansible-galaxy-role-fails/77238083#77238083
-	echo "Installing some ansible collections from old-galaxy.ansible.com"
-	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
-	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
 else
-	echo "Installing community.general"
-	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general==11.4.1 --force --collections-path "${ansible_collections}"
-	echo "Installing ansible.netcommon:5.1.2"
-	sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon:5.1.2 --force --collections-path "${ansible_collections}"
+
+	echo "Installing ansible.windows..."    ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.windows     --force --collections-path "${ansible_collections}"
+	echo "Installing ansible.posix..."      ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.posix       --force --collections-path "${ansible_collections}"
+	echo "Installing ansible.utils..."      ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.utils       --force --collections-path "${ansible_collections}"
+	echo "Installing community.windows..."  ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.windows   --force --collections-path "${ansible_collections}"
+	echo "Installing microsoft.ad..."       ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install microsoft.ad        --force --collections-path "${ansible_collections}"
+
+	if [[ "${ansible_version}" == "2.11" ]]; then
+		# ansible galaxy upstream has changed. Some collections are only available for install via old-galaxy.ansible.com
+		# https://github.com/ansible/ansible/issues/81830
+		# https://stackoverflow.com/questions/77225047/gitlab-pipeline-to-install-ansible-galaxy-role-fails/77238083#77238083
+		echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection:1.19.0  --force --collections-path "${ansible_collections}"
+
+		echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements-azure.txt"
+
+		echo "Installing some ansible collections from old-galaxy.ansible.com"
+		sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
+		sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon --force --collections-path "${ansible_collections}" --server="https://old-galaxy.ansible.com" --ignore-certs
+	elif [[ "${ansible_version}" == "2.15" ]]; then
+		echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection:1.19.0  --force --collections-path "${ansible_collections}"
+
+		echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements-azure.txt"
+		echo "Installing community.general"
+		sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general==11.4.1 --force --collections-path "${ansible_collections}"
+		echo "Installing ansible.netcommon:5.1.2"
+		sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon:5.1.2 --force --collections-path "${ansible_collections}"
+	else
+		echo "Installing azure.azcollection..." ; sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection  --force --collections-path "${ansible_collections}"
+
+		echo "Installing azure.azcollection requirements..." ; sudo -H "${ansible_pip3}" install -r "${ansible_collections}/ansible_collections/azure/azcollection/requirements.txt"
+
+		echo "Installing community.general"
+		sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install community.general==11.4.1 --force --collections-path "${ansible_collections}"
+		echo "Installing ansible.netcommon:5.1.2"
+		sudo -H "${ansible_venv_bin}/ansible-galaxy" collection install ansible.netcommon:5.1.2 --force --collections-path "${ansible_collections}"
+	fi
 fi
 set -o xtrace
 #
@@ -703,8 +723,46 @@ set -o xtrace
 #
 echo '# Configure environment settings for deployer interactive sessions' | sudo tee /etc/profile.d/deploy_server.sh
 
-export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${DOTNET_ROOT}"
+export PATH="${PATH}":"${ansible_bin}":"${tf_bin}"
 
+if [ -v USEDOTNET ] ; then
+
+	export DOTNET_INSTALL_DIR=/opt/dotnet
+
+	sudo mkdir -p ${DOTNET_INSTALL_DIR}
+	export DOTNET_ROOT=${DOTNET_INSTALL_DIR}
+
+	# Install dotNet
+	case "$(get_distro_name)" in
+	ubuntu)
+		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
+		;;
+	sles)
+		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
+		;;
+	rhel*)
+		sudo wget https://dot.net/v1/dotnet-install.sh -O "/home/${local_user}/dotnet-install.sh"
+		sudo chmod +x "/home/${local_user}/dotnet-install.sh"
+		sudo /home/"${local_user}"/dotnet-install.sh --install-dir "${DOTNET_ROOT}" --channel 10.0
+		;;
+	esac
+	# export DOTNET_ROOT
+	export PATH="${PATH}":"${ansible_bin}":"${tf_bin}":"${DOTNET_ROOT}"
+	case "$(get_distro_name)" in
+	ubuntu)
+		echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
+		;;
+	sles)
+		echo "export DOTNET_ROOT=${DOTNET_ROOT}" | tee -a /tmp/deploy_server.sh
+		;;
+	rhel*) ;;
+	esac
+
+fi
 
 
 #
@@ -779,7 +837,7 @@ else
 	fi
 
 	ARM_TENANT_ID=$(/usr/bin/az account show --query tenantId --output tsv)
-	
+
 	echo "export ARM_TENANT_ID=${ARM_TENANT_ID}" | tee -a /tmp/deploy_server.sh
 
 fi
@@ -787,18 +845,7 @@ fi
 # Set env for ansible
 echo "export ANSIBLE_HOST_KEY_CHECKING=False" | tee -a /tmp/deploy_server.sh
 echo "export ANSIBLE_COLLECTIONS_PATH=${ansible_collections}" | tee -a /tmp/deploy_server.sh
-echo "export BOM_CATALOG=${asad_sample_dir}/SAP" | tee -a /tmp/deploy_server.sh
-
-# export DOTNET_ROOT
-case "$(get_distro_name)" in
-ubuntu)
-	echo "export DOTNET_ROOT=/snap/dotnet-sdk/current" | tee -a /tmp/deploy_server.sh
-	;;
-sles)
-	echo "export DOTNET_ROOT=${DOTNET_ROOT}" | tee -a /tmp/deploy_server.sh
-	;;
-rhel*) ;;
-esac
+echo "export BOM_CATALOG=${asad_sample_dir}" | tee -a /tmp/deploy_server.sh
 
 chown -R "${USER}" "${asad_home}"
 
@@ -807,7 +854,7 @@ chown -R "${USER}" "${asad_home}"
 # Ensure that the user's account is logged in to Azure with specified creds
 if [ -n "${isMSI}" ]; then
 	# shellcheck disable=SC2016
-	echo 'az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none' | tee -a /tmp/deploy_server.sh
+	echo 'az login --identity --client-id $ARM_CLIENT_ID --output none' | tee -a /tmp/deploy_server.sh
 	# shellcheck disable=SC2016
 	echo 'echo ${USER} account ready for use with Azure SAP Automated Deployment' | tee -a /tmp/deploy_server.sh
 fi
@@ -815,7 +862,7 @@ fi
 sudo cp /tmp/deploy_server.sh /etc/profile.d/deploy_server.sh
 sudo rm /tmp/deploy_server.sh
 if [ -n "${isMSI}" ]; then
-	/usr/bin/az login --identity --client-id $ARM_CLIENT_ID --tenant $ARM_TENANT_ID --output none
+	/usr/bin/az login --identity --client-id $ARM_CLIENT_ID --output none
 else
 	/usr/bin/az login --identity --output none
 fi

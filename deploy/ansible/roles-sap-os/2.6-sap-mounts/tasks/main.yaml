@@ -416,8 +416,7 @@
     - NFS_provider == 'AFS'
 
 # Import this task only if the sap_mnt is defined, i.e. ANF is used
-# When use_simple_mount is true, SCS/ERS mounts use 2.6.8 instead,
-# but DB/HANA ANF mounts still need 2.6.1
+# Also runs for HANA nodes when use_simple_mount is true, since simplemount only applies to SCS/ERS
 - name:                                "2.6 SAP Mounts - Import ANF tasks"
   ansible.builtin.import_tasks:        2.6.1-anf-mounts.yaml
   when:

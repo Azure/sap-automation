@@ -20,7 +20,7 @@
 - name:                                "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Cluster Configuration before Install"
   throttle:                            1
   block:
-    - name:                            Set pcs command mode based on RHEL version
+    - name:                            "5.6.4.0 SCS/ERS Pacemaker - REDHAT - SimpleMount - Set pcs command mode based on RHEL version"
       ansible.builtin.set_fact:
         pcs_update_cmd:                "{{ 'update' if ansible_distribution_major_version | int >= 10 else '' }}"
 

@@ -194,7 +194,7 @@
       ansible.builtin.debug:
         msg: |-
                                         {{ root_media_list }}
-        verbosity:                      1
+        verbosity:                      2
   # Step: 06-01 - END
   # -----------------------------------+-----------------------------------------8
 

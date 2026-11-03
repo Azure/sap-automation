@@ -18,6 +18,11 @@ mock_provider "azurerm" {
 }
 mock_provider "azurerm" {
   alias           = "system"
+  mock_data "azurerm_resource_group" {
+    defaults = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-mock-sap-system"
+    }
+  }
 }
 mock_provider "azurerm" {
   alias           = "dnsmanagement"
@@ -212,6 +217,33 @@ override_data {
   }
 }
 
+
+run "accepts_endpoint_subnet_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "10.1.5.0/24"
+  }
+  assert {
+    condition     = module.common_infrastructure.database_tier_resource_creation_counts.endpoint_subnet == 1
+    error_message = "A valid endpoint CIDR must be accepted."
+  }
+}
+
+run "rejects_endpoint_subnet_non_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "not-a-cidr"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
+
+run "rejects_endpoint_subnet_invalid_mask" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "10.1.5.0/33"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
 
 run "baseline_variables_are_accepted" {
   command = plan

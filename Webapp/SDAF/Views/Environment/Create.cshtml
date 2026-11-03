@@ -44,13 +44,17 @@
     @Html.AntiForgeryToken()
 
     <div class="parameters">
+        <p></p>
+        <h5><b>Workload zone information</b></h5>
+        <p></p>
+
         <div class="ms-TextField">
             <div class="left-input">
                 @Html.Label("newName", "Environment name", new { @class = $"ms-Label required" })
                 <p>Name of the variable group. "SDAF-" will be prepended.</p>
             </div>
             <div class="right-input">
-                @Html.TextBox("newName", "", new { @class = "ms-TextField-field" })
+                @Html.TextBox("newName", Model.name, new { @class = "ms-TextField-field" })
             </div>
         </div>
         <div class="ms-TextField">
@@ -64,6 +68,69 @@
         </div>
         <div class="ms-TextField">
             <div class="left-input">
+                @Html.LabelFor(m => m.variables.DNS_NAME, new { @class = $"ms-Label" })
+                <p>SAP Fully Qualified Domain Name, for example 'sap.contoso.net'</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.DNS_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.DNS_NAME)
+            </div>
+        </div>
+        <p></p>
+        <h5><b>Controlplane Information</b></h5>
+        <p></p>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.CONTROL_PLANE_NAME, new { @class = $"ms-Label" })
+                <p>Enter the name of the Control Plane.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.CONTROL_PLANE_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.CONTROL_PLANE_NAME)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.APPLICATION_CONFIGURATION_NAME, new { @class = $"ms-Label" })
+                <p>Enter the name of the Application Configuration.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.APPLICATION_CONFIGURATION_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.APPLICATION_CONFIGURATION_NAME)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.DEPLOYER_KEYVAULT, new { @class = $"ms-Label" })
+                <p>Enter the name of the Control Plane keyvault.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.DEPLOYER_KEYVAULT.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.DEPLOYER_KEYVAULT)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME, new { @class = $"ms-Label" })
+                <p>Enter the name of the storage account containing the Terraform state files.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_ACCOUNT_NAME)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION, new { @class = $"ms-Label" })
+                <p>Enter the Id of the subscription containing the storage account containing the Terraform state files.</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION)
+            </div>
+        </div>
+        <div class="ms-TextField">
+            <div class="left-input">
                 @Html.LabelFor(m => m.variables.Agent, new { @class = $"ms-Label" })
                 <p>'Azure Pipelines' or the name of the agent pool</p>
             </div>
@@ -72,6 +139,19 @@
                 @Html.ValidationMessageFor(m => m.variables.Agent)
             </div>
         </div>
+        <div class="ms-TextField">
+            <div class="left-input">
+                @Html.LabelFor(m => m.variables.POOL, new { @class = $"ms-Label" })
+                <p>The Agent pool to use for this environment</p>
+            </div>
+            <div class="right-input">
+                @Html.TextBoxFor(m => m.variables.POOL.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.POOL)
+            </div>
+        </div>
+        <p></p>
+        <h5><b>Deployment Credentials</b></h5>
+        <p></p>
         <div class="ms-TextField">
             <div class="left-input">
                 @Html.LabelFor(m => m.variables.ARM_CLIENT_ID, new { @class = $"ms-Label" })
@@ -98,7 +178,7 @@
                 <p>Enter the Service principal password</p>
             </div>
             <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.ARM_CLIENT_SECRET.value, new { @class = "ms-TextField-field" })
+                @Html.PasswordFor(m => m.variables.ARM_CLIENT_SECRET.value, new { @class = "ms-TextField-field" })
                 @Html.ValidationMessageFor(m => m.variables.ARM_CLIENT_SECRET)
             </div>
         </div>
@@ -124,62 +204,12 @@
         </div>
         <div class="ms-TextField">
             <div class="left-input">
-                @Html.LabelFor(m => m.variables.sap_fqdn, new { @class = $"ms-Label" })
-                <p>SAP Fully Qualified Domain Name, for example 'sap.contoso.net'</p>
+                @Html.LabelFor(m => m.variables.ARM_USE_MSI, new { @class = $"ms-Label" })
+                <p>Enter whether to use Managed Service Identity (MSI)</p>
             </div>
             <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.sap_fqdn.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.sap_fqdn)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.POOL, new { @class = $"ms-Label" })
-                <p>The Agent pool to use for this environment</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.POOL.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.POOL)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Deployer_Key_Vault, new { @class = $"ms-Label" })
-                <p>Enter the name of the Control Plane keyvault.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Deployer_Key_Vault.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Deployer_Key_Vault)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Deployer_State_FileName, new { @class = $"ms-Label" })
-                <p>Enter the name of the state file for the Deployer.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Deployer_State_FileName.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Deployer_State_FileName)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Account_Name, new { @class = $"ms-Label" })
-                <p>Enter the name of the storage account containing the Terraform state files.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Account_Name.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Account_Name)
-            </div>
-        </div>
-        <div class="ms-TextField">
-            <div class="left-input">
-                @Html.LabelFor(m => m.variables.Terraform_Remote_Storage_Subscription, new { @class = $"ms-Label" })
-                <p>Enter the Id of the subscription containing the storage account containing the Terraform state files.</p>
-            </div>
-            <div class="right-input">
-                @Html.TextBoxFor(m => m.variables.Terraform_Remote_Storage_Subscription.value, new { @class = "ms-TextField-field" })
-                @Html.ValidationMessageFor(m => m.variables.Terraform_Remote_Storage_Subscription)
+                @Html.TextBoxFor(m => m.variables.ARM_USE_MSI.value, new { @class = "ms-TextField-field" })
+                @Html.ValidationMessageFor(m => m.variables.ARM_USE_MSI)
             </div>
         </div>
 

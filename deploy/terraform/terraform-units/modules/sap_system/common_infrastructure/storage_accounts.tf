@@ -91,13 +91,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
                                            azurerm_storage_account.sapmnt
                                          ]
 
-  count                                = var.application_tier.use_AFS_for_sapmnt && var.use_private_endpoint && var.application_tier.enable_deployment ? (
-                                          length(var.sapmnt_private_endpoint_id) > 0 ? (
-                                            0) : (
-                                            1
-                                          )) : (
-                                          0
-                                        )
+  count                                = local.create_sapmnt_private_endpoint ? 1 : 0
   name                                 = format("%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_sapmnt,
                                            local.prefix,
@@ -109,10 +103,7 @@ resource "azurerm_private_endpoint" "sapmnt" {
                                            data.azurerm_resource_group.resource_group[0].location) : (
                                            azurerm_resource_group.resource_group[0].location
                                          )
-  subnet_id                            = try(var.landscape_tfstate.use_separate_storage_subnet, false) ? (
-                                         var.landscape_tfstate.storage_subnet_id ) : (
-                                         var.landscape_tfstate.app_subnet_id
-                                       )
+  subnet_id                            = local.sapmnt_private_endpoint_subnet_id
   tags                                 = var.tags
 
   custom_network_interface_name        = format("%s%s%s%s",

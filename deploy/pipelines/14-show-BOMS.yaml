@@ -1,0 +1,54 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |      This pipeline shows the Bill of Materials files.                     |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+parameters:
+  - name:                                         control_plane_name
+    displayName:                                  "Control Plane Name"
+    type:                                         string
+    default:                                      MGMT-WEEU-DEP01-INFRASTRUCTURE
+
+  - name:                                         sap_automation_repo_path
+    displayName:                                  The local path on the agent where the sap_automation repo can be found
+    type:                                         string
+
+
+stages:
+  - stage:                                        Show_BOMS
+    displayName:                                  "Show Bill of Materials files (on agent)"
+    pool:
+      name:                                       $(POOL)
+    jobs:
+      - job:                                      Show_BOMS
+        displayName:                              "Show Bill of Materials files"
+        variables:
+          - group:                                SDAF-${{ parameters.control_plane_name }}
+        workspace:
+          clean:                                  all
+        steps:
+          - template:                             templates\download.yaml
+          - task:                                 Bash@3
+            inputs:
+              targetType:                         'filePath'
+              filePath:                           "$(System.DefaultWorkingDirectory)/sap-automation/deploy/scripts/pipeline_scripts/14-show-BOMS.sh"
+              failOnStderr:                       false
+              workingDirectory:                   "$(System.DefaultWorkingDirectory)"
+            displayName:                          Show BOMS
+            env:
+              ARM_CLIENT_ID:                      $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
+              ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
+              ARM_TENANT_ID:                      $(ARM_TENANT_ID)
+              ARM_USE_MSI:                        $(Use_MSI)
+              AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
+              SAP_AUTOMATION_REPO_PATH:           ${{ parameters.sap_automation_repo_path }}
+              SYSTEM_ACCESSTOKEN:                 $(System.AccessToken)
+              USE_MSI:                            $(Use_MSI)
+              KEY_VAULT:                          $(DEPLOYER_KEYVAULT)
+          - template:                             templates\cleanup-workspace.yaml

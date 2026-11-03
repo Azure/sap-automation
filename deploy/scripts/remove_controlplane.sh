@@ -375,7 +375,7 @@ if valid_kv_name "${DEPLOYER_KEYVAULT}" ; then
 fi
 APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
 if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
-	az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
+	az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --public-network-access Enabled --output none
 fi
 
 
