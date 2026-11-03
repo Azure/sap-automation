@@ -332,7 +332,7 @@ fi
 print_banner "$banner_title" "Exiting $SCRIPT_NAME" "info"
 if [ -f readme.md ]; then
 		cat "readme.md"
-		sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_FOLDERNAME}.md"
-		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${WORKLOAD_ZONE_FOLDERNAME}.md;]$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_FOLDERNAME}.md"
+		sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/readme.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=readme.md;]$AGENT_TEMPDIRECTORY/readme.md"
 fi
 exit $return_code

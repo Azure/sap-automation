@@ -391,8 +391,8 @@ fi
 if [ -f readme.md ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		cat "readme.md"
-		sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
-		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${WORKLOAD_ZONE_NAME}.md;]$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
+		sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/readme.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=readme.md;]$AGENT_TEMPDIRECTORY/readme.md"
 	elif [ "$PLATFORM" == "github" ]; then
 		cat readme.md >>$GITHUB_STEP_SUMMARY
 	fi
