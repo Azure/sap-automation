@@ -327,7 +327,7 @@ output "witness_storage_account_key"            {
 
 output "transport_storage_account_id" {
                                                   description = "Transport storage account ID"
-                                                  value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+                                                  value       = var.create_transport_storage && ( var.NFS_provider == "AFS" || local.use_AFS_for_shared ) ? (
                                                                   length(var.transport_storage_account_id) > 0 ? (
                                                                     var.transport_storage_account_id) : (
                                                                     try(azurerm_storage_account.transport[0].id, "")
@@ -467,7 +467,7 @@ output "ANF_pool_settings"                      {
 
 output "saptransport_path"                     {
                                                  description = "Path to the SAP transport volume"
-                                                 value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+                                                 value       = var.create_transport_storage && (var.NFS_provider == "AFS" || local.use_AFS_for_shared) ? (
                                                               length(var.transport_private_endpoint_id) == 0 ? (
                                                                 var.use_private_endpoint ?
                                                                 (
