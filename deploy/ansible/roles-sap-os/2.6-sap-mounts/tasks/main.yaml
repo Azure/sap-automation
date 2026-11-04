@@ -90,6 +90,24 @@
       map(attribute='type') | sort | unique |
       list | length }}"
 
+- name:                                "2.6 SAP Mounts - Ensure that the aznfswatchdogv4 service is running"
+  when:
+                                       - use_eit_for_afs | default(false) | bool
+  ansible.builtin.systemd:
+    name:                              aznfswatchdogv4
+    state:                             started
+    enabled:                           true
+
+- name:                                "2.6 SAP Mounts - Ensure that the aznfswatchdogv service is running"
+  when:
+                                       - use_eit_for_afs | default(false) | bool
+  ansible.builtin.systemd:
+    name:                              aznfswatchdog
+    state:                             started
+    enabled:                           true
+
+
+
 - name:                                "2.6 SAP Mounts - Mount local sap file systems"
   ansible.posix.mount:
     src:                               /dev/vg_sap/lv_usrsap
@@ -520,23 +538,5 @@
   when:
     - platform == 'HANA'
     - distribution_id in ['redhat8', 'redhat9', 'redhat10']
-
-
-- name:                                "2.6 SAP Mounts - Ensure that the aznfswatchdogv4 service is running"
-  when:
-                                       - use_eit_for_afs | default(false) | bool
-  ansible.builtin.systemd:
-    name:                              aznfswatchdogv4
-    state:                             started
-    enabled:                           true
-
-- name:                                "2.6 SAP Mounts - Ensure that the aznfswatchdogv service is running"
-  when:
-                                       - use_eit_for_afs | default(false) | bool
-  ansible.builtin.systemd:
-    name:                              aznfswatchdog
-    state:                             started
-    enabled:                           true
-
 
 ...
