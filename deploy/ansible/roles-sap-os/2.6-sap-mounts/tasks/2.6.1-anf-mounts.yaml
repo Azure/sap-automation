@@ -27,7 +27,6 @@
                                           rw,nfsvers=4.1,hard,timeo=600,rsize=262144,wsize=262144,noatime,lock,_netdev,sec=sys
                                       {% endif %}
                                     {% else %}
-
                                     {% endif %}
 
 - name:                                "2.6.1 ANF Mount - Define this SID"
@@ -493,7 +492,7 @@
         'temppath':          'hanadata',
         'folder':            'hanadata',
         'mount':             '{{ hana_data_mountpoint[0] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ mnt_options | trim }}',
         'path':              '/hana/data',
         'permissions':       '0755',
         'set_chattr_on_dir': false,
@@ -515,7 +514,7 @@
         'temppath':            'hanalog',
         'folder':              'hanalog',
         'mount' :              '{{ hana_log_mountpoint[0] }}',
-        'opts':                '{{ mnt_options }}',
+        'opts':                '{{ mnt_options | trim }}',
         'path' :               '/hana/log',
         'permissions':         '0755',
         'set_chattr_on_dir':   false,
@@ -537,7 +536,7 @@
         'temppath':          'hanashared',
         'folder':            'hanashared',
         'mount':             '{{ hana_shared_mountpoint[0] }}',
-        'opts':              '{{ mnt_options }}',
+        'opts':              '{{ mnt_options | trim }}',
         'path':              '/hana/shared',
         'permissions':       '0775',
         'set_chattr_on_dir': false,
