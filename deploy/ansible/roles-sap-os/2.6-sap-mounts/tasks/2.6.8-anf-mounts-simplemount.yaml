@@ -11,7 +11,7 @@
 - name:                                "2.6.1 ANF Mount - Set the NFSmount options"
   ansible.builtin.set_fact:
       mnt_options: >-
-                                    {%- if ansible_os_family | upper == "REDHAT" -§%}
+                                    {%- if ansible_os_family | upper == "REDHAT" -%}
                                       {%- if ansible_distribution_version is version('8.4', '>=') or
                                           ansible_distribution_version is version('9.0', '>=')  or
                                           ansible_distribution_version is version('10.0', '>=') -%}
