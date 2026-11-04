@@ -503,7 +503,7 @@ namespace SDAFWebApp.Controllers
                 return file ?? LoadFallbackFile(filename, type);
             }
 
-            catch (AggregateException ex)
+catch (Exception ex) when (ex is AggregateException || (ex is RepositoryOperationException repositoryException && repositoryException.ErrorCategory == RepositoryErrorCategory.NotFound))
             {
                 _logger.LogInformation(ex, "Images configuration was not found; using packaged fallback for type {FileType}", type);
                 return LoadFallbackFile(filename, type);
