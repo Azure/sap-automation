@@ -502,7 +502,8 @@ namespace SDAFWebApp.Controllers
                 AppFile file = await _appFileService.GetByIdAsync(filename, partitionKey);
                 return file ?? LoadFallbackFile(filename, type);
             }
-            catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
+
+            catch (AggregateException ex)
             {
                 _logger.LogInformation(ex, "Images configuration was not found; using packaged fallback for type {FileType}", type);
                 return LoadFallbackFile(filename, type);
