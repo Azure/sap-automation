@@ -93,7 +93,7 @@ if [ "$PLATFORM" == "devops" ]; then
 		exit 2
 	fi
 	export PARENT_VARIABLE_GROUP_ID
-	TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "${deployer_environment_file_name}" "REMOTE_STATE_SA")
+	TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION=$(getVariableFromVariableGroup "${PARENT_VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "${deployer_environment_file_name}" "STATE_SUBSCRIPTION")
 	if saveVariableInVariableGroup "${VARIABLE_GROUP_ID}" "TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION" "$TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION"; then
 		echo "Variable TERRAFORM_REMOTE_STORAGE_SUBSCRIPTION was added to the $VARIABLE_GROUP variable group."
 	else
@@ -391,8 +391,8 @@ fi
 if [ -f readme.md ]; then
 	if [ "$PLATFORM" == "devops" ]; then
 		cat "readme.md"
-		sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
-		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=${WORKLOAD_ZONE_NAME}.md;]$AGENT_TEMPDIRECTORY/${WORKLOAD_ZONE_NAME}.md"
+		sudo cp "readme.md" "$AGENT_TEMPDIRECTORY/readme.md"
+		echo "##vso[task.addattachment type=Distributedtask.Core.Summary;name=readme.md;]$AGENT_TEMPDIRECTORY/readme.md"
 	elif [ "$PLATFORM" == "github" ]; then
 		cat readme.md >>$GITHUB_STEP_SUMMARY
 	fi

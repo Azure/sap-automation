@@ -1,8 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
-# Focused unit test for the sap_landscape module's tfvars storage container
-# lookup and the blob resources that depend on it (outputs.tf).
+# Unit tests for landscape storage-container, subnet, and shared-storage outputs.
 #
 # Zero real Azure API calls: every azurerm/azapi interaction is satisfied by
 # mock_provider.
@@ -253,6 +252,26 @@ variables {
   witness_storage_account                      = { arm_id = "", id = "" }
   diagnostics_storage_account                  = { arm_id = "", id = "" }
   NFS_provider                                 = "NONE"
+  ANF_settings = {
+    use                               = false
+    id                                = ""
+    pool_name                         = ""
+    use_existing_pool                 = false
+    service_level                     = "Standard"
+    size_in_tb                        = 4
+    qos_type                          = "Manual"
+    use_existing_transport_volume     = true
+    transport_volume_name             = "transport-existing"
+    transport_volume_size             = 32
+    transport_volume_throughput       = 32
+    transport_volume_zone             = ""
+    export_policy_client_access_list  = []
+    use_existing_install_volume       = true
+    install_volume_name               = "install-existing"
+    install_volume_size               = 128
+    install_volume_throughput         = 32
+    install_volume_zone               = ""
+  }
   peer_with_control_plane_vnet                 = false
   enable_firewall_for_keyvaults_and_storage    = false
   public_network_access_enabled                = true
@@ -419,5 +438,282 @@ run "tfvars_container_lookup_uses_terraform_storage_account_id" {
   assert {
     condition     = azurerm_storage_blob.tfvars.storage_container_id == data.azurerm_storage_container.tfvars.id
     error_message = "The tfvars blob must be attached to the tfvars container data source id."
+  }
+}
+
+run "existing_subnet_outputs_preserve_supplied_ids" {
+  command = plan
+
+  variables {
+    NFS_provider = "ANF"
+    ANF_settings = merge(var.ANF_settings, { use = true })
+    infrastructure = merge(var.infrastructure, {
+      ams_instance = merge(var.infrastructure.ams_instance, { create_ams_instance = true })
+      virtual_networks = {
+        sap = merge(var.infrastructure.virtual_networks.sap, {
+          for name, subnet in var.infrastructure.virtual_networks.sap : name => merge(subnet, {
+            exists  = true
+            defined = false
+            prefix  = ""
+            id      = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-existing/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/${name}"
+            nsg = {
+              name   = "nsg-existing"
+              id     = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-existing/providers/Microsoft.Network/networkSecurityGroups/nsg-existing"
+              exists = true
+            }
+          }) if startswith(name, "subnet_")
+        })
+      }
+    })
+  }
+
+  assert {
+    condition = alltrue([
+      output.admin_subnet_id == var.infrastructure.virtual_networks.sap.subnet_admin.id,
+      output.app_subnet_id == var.infrastructure.virtual_networks.sap.subnet_app.id,
+      output.db_subnet_id == var.infrastructure.virtual_networks.sap.subnet_db.id,
+      output.web_subnet_id == var.infrastructure.virtual_networks.sap.subnet_web.id,
+      output.endpoint_subnet_id == var.infrastructure.virtual_networks.sap.subnet_endpoint.id,
+      output.storage_subnet_id == var.infrastructure.virtual_networks.sap.subnet_storage.id,
+    ])
+    error_message = "Existing subnet IDs must be returned even when defined=false."
+  }
+
+  assert {
+    condition     = output.anf_subnet_id == var.infrastructure.virtual_networks.sap.subnet_anf.id
+    error_message = "The legacy ANF subnet output must preserve the supplied existing subnet ID."
+  }
+
+  assert {
+    condition     = output.ams_subnet_id == var.infrastructure.virtual_networks.sap.subnet_ams.id
+    error_message = "The legacy AMS subnet output must preserve the supplied existing subnet ID when AMS is enabled."
+  }
+
+  assert {
+    condition     = output.ANF_pool_settings.subnet_id == var.infrastructure.virtual_networks.sap.subnet_anf.id
+    error_message = "The ANF pool must expose the existing subnet ID without indexing a module-created subnet."
+  }
+}
+
+run "greenfield_subnet_outputs_return_created_ids" {
+  command = plan
+
+  variables {
+    NFS_provider = "ANF"
+    ANF_settings = merge(var.ANF_settings, { use = true })
+    infrastructure = merge(var.infrastructure, {
+      ams_instance = merge(var.infrastructure.ams_instance, { create_ams_instance = true })
+      virtual_networks = {
+        sap = merge(var.infrastructure.virtual_networks.sap, {
+          for index, name in ["admin", "app", "db", "web", "endpoint", "storage", "anf", "ams"] :
+          "subnet_${name}" => merge(var.infrastructure.virtual_networks.sap["subnet_${name}"], {
+            exists  = false
+            defined = true
+            id      = ""
+            prefix  = "10.9.${index}.0/26"
+          })
+        })
+      }
+    })
+  }
+
+  override_resource {
+    target = azurerm_subnet.admin
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/admin" }
+  }
+  override_resource {
+    target = azurerm_subnet.app
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/app" }
+  }
+  override_resource {
+    target = azurerm_subnet.db
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/db" }
+  }
+  override_resource {
+    target = azurerm_subnet.web
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/web" }
+  }
+  override_resource {
+    target = azurerm_subnet.endpoint
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/endpoint" }
+  }
+  override_resource {
+    target = azurerm_subnet.storage
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/storage" }
+  }
+  override_resource {
+    target = azurerm_subnet.anf
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/anf" }
+  }
+  override_resource {
+    target = azurerm_subnet.ams
+    override_during = plan
+    values = { id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Network/virtualNetworks/vnet-created/subnets/ams" }
+  }
+
+  assert {
+    condition = alltrue([
+      output.admin_subnet_id == azurerm_subnet.admin[0].id,
+      output.app_subnet_id == azurerm_subnet.app[0].id,
+      output.db_subnet_id == azurerm_subnet.db[0].id,
+      output.web_subnet_id == azurerm_subnet.web[0].id,
+      output.endpoint_subnet_id == azurerm_subnet.endpoint[0].id,
+      output.storage_subnet_id == azurerm_subnet.storage[0].id,
+      output.anf_subnet_id == azurerm_subnet.anf[0].id,
+      output.ams_subnet_id == azurerm_subnet.ams[0].id,
+      output.ANF_pool_settings.subnet_id == azurerm_subnet.anf[0].id,
+    ])
+    error_message = "Greenfield subnet outputs must return their corresponding module-created subnet IDs."
+  }
+}
+
+run "existing_anf_volumes_without_subnets_return_empty_subnet_ids" {
+  command = plan
+
+  variables {
+    NFS_provider             = "ANF"
+    create_transport_storage = true
+    ANF_settings = merge(var.ANF_settings, {
+      use               = true
+      id                = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-existing/providers/Microsoft.NetApp/netAppAccounts/anf-existing"
+      pool_name         = "pool-existing"
+      use_existing_pool = true
+    })
+    infrastructure = merge(var.infrastructure, {
+      virtual_networks = {
+        sap = merge(var.infrastructure.virtual_networks.sap, {
+          for name, subnet in var.infrastructure.virtual_networks.sap : name => merge(subnet, {
+            exists  = false
+            defined = false
+            id      = ""
+            prefix  = ""
+            nsg = {
+              name   = "nsg-existing"
+              id     = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-existing/providers/Microsoft.Network/networkSecurityGroups/nsg-existing"
+              exists = true
+            }
+          }) if startswith(name, "subnet_")
+        })
+      }
+    })
+  }
+
+  override_data {
+    target = data.azurerm_netapp_volume.transport
+    values = {
+      mount_ip_addresses = ["10.9.20.4"]
+      volume_path        = "transport-existing"
+    }
+  }
+  override_data {
+    target = data.azurerm_netapp_volume.install
+    values = {
+      mount_ip_addresses = ["10.9.20.5"]
+      volume_path        = "install-existing"
+    }
+  }
+
+  assert {
+    condition = alltrue([
+      output.admin_subnet_id == "",
+      output.app_subnet_id == "",
+      output.db_subnet_id == "",
+      output.web_subnet_id == "",
+      output.endpoint_subnet_id == "",
+      output.storage_subnet_id == "",
+      output.anf_subnet_id == "",
+      output.ams_subnet_id == "",
+      output.ANF_pool_settings.subnet_id == "",
+    ])
+    error_message = "Absent subnets must return empty IDs without indexing zero-count subnet resources, including the active ANF pool."
+  }
+
+  assert {
+    condition     = output.saptransport_path == "10.9.20.4:/transport-existing" && output.install_path == "10.9.20.5:/install-existing"
+    error_message = "Existing ANF volumes must remain usable without a workload-zone subnet definition."
+  }
+}
+
+run "anf_shared_afs_returns_created_transport_account_and_path" {
+  command = plan
+
+  variables {
+    NFS_provider               = "ANF"
+    use_AFS_for_shared_storage = true
+    create_transport_storage   = true
+    ANF_settings               = merge(var.ANF_settings, { use = true })
+  }
+
+  override_resource {
+    target = azurerm_storage_account.transport
+    override_during = plan
+    values = {
+      id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-created/providers/Microsoft.Storage/storageAccounts/devweeusap01transport"
+    }
+  }
+
+  assert {
+    condition     = output.transport_storage_account_id == azurerm_storage_account.transport[0].id
+    error_message = "ANF with shared AFS must expose the created transport storage account ID."
+  }
+
+  assert {
+    condition     = output.saptransport_path == "devweeusap01transport.file.core.windows.net:/devweeusap01transport/transport"
+    error_message = "ANF with shared AFS must expose the Azure Files transport path, not an ANF volume path."
+  }
+
+  assert {
+    condition     = length(azurerm_storage_share.transport) == 1 && length(azurerm_netapp_volume.transport) == 0
+    error_message = "ANF with shared AFS must create an Azure Files transport share instead of a NetApp transport volume."
+  }
+}
+
+run "anf_shared_afs_returns_existing_transport_account_and_path" {
+  command = plan
+
+  variables {
+    NFS_provider                 = "ANF"
+    use_AFS_for_shared_storage   = true
+    create_transport_storage     = true
+    ANF_settings                 = merge(var.ANF_settings, { use = true })
+    transport_storage_account_id = "/subscriptions/33333333-3333-3333-3333-333333333333/resourceGroups/rg-existing/providers/Microsoft.Storage/storageAccounts/devweeusap01transport"
+  }
+
+  assert {
+    condition     = output.transport_storage_account_id == var.transport_storage_account_id
+    error_message = "ANF with shared AFS must preserve an existing transport storage account ID."
+  }
+
+  assert {
+    condition     = output.saptransport_path == "devweeusap01transport.file.core.windows.net:/devweeusap01transport/transport"
+    error_message = "The shared-AFS transport path must use the existing storage account name in its export path."
+  }
+
+  assert {
+    condition     = length(azurerm_storage_account.transport) == 0 && length(azurerm_netapp_volume.transport) == 0
+    error_message = "Reusing shared AFS must not create another transport storage account or an ANF transport volume."
+  }
+}
+
+run "anf_shared_afs_without_transport_returns_empty_outputs" {
+  command = plan
+
+  variables {
+    NFS_provider               = "ANF"
+    use_AFS_for_shared_storage = true
+    create_transport_storage   = false
+    ANF_settings               = merge(var.ANF_settings, { use = true })
+  }
+
+  assert {
+    condition     = output.transport_storage_account_id == "" && output.saptransport_path == ""
+    error_message = "Shared AFS must not expose a transport account or path when transport storage is disabled."
   }
 }

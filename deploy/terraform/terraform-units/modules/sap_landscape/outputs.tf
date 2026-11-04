@@ -68,61 +68,61 @@ output "route_table_id"                         {
 
 output "admin_subnet_id"                        {
                                                   description = "Azure resource identifier for the admin subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_admin.id) : (
-                                                                    azurerm_subnet.admin[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_admin.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_admin.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_admin.defined ? (
+                                                                    azurerm_subnet.admin[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
 output "app_subnet_id"                          {
                                                   description = "Azure resource identifier for the app subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_app.id) : (
-                                                                    azurerm_subnet.app[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_app.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_app.defined ? (
+                                                                    azurerm_subnet.app[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
 output "endpoint_subnet_id"                     {
                                                   description = "Azure resource identifier for the endpoint subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
-                                                                    azurerm_subnet.endpoint[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_endpoint.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                                                    azurerm_subnet.endpoint[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
 output "db_subnet_id"                           {
                                                   description = "Azure resource identifier for the db subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_db.id) : (
-                                                                    azurerm_subnet.db[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_db.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_db.defined ? (
+                                                                    azurerm_subnet.db[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
 output "web_subnet_id"                          {
                                                   description = "Azure resource identifier for the web subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_web.id) : (
-                                                                    azurerm_subnet.web[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_web.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
+                                                                    azurerm_subnet.web[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
 output "storage_subnet_id"                      {
                                                   description = "Azure resource identifier for the storage subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_storage.id) : (
-                                                                    azurerm_subnet.storage[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_storage.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_storage.defined ? (
+                                                                    azurerm_subnet.storage[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
@@ -140,21 +140,21 @@ output "private_endpoint_network_policies"       {
 
 output "anf_subnet_id"                          {
                                                   description = "Azure resource identifier for the anf subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_anf.id) : (
-                                                                    azurerm_subnet.anf[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_anf.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
+                                                                    azurerm_subnet.anf[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
 output "ams_subnet_id"                          {
                                                   description = "Azure resource identifier for the ams subnet"
-                                                  value       = local.create_ams_instance ? var.infrastructure.virtual_networks.sap.subnet_ams.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_ams.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_ams.id) : (
-                                                                    azurerm_subnet.ams[0].id)) : (
-                                                                  ""
+                                                  value       = local.create_ams_instance ? var.infrastructure.virtual_networks.sap.subnet_ams.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_ams.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_ams.defined ? (
+                                                                    azurerm_subnet.ams[0].id) : (
+                                                                    ""  )
                                                                 ) : ""
                                                 }
 
@@ -327,7 +327,7 @@ output "witness_storage_account_key"            {
 
 output "transport_storage_account_id" {
                                                   description = "Transport storage account ID"
-                                                  value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+                                                  value       = var.create_transport_storage && ( var.NFS_provider == "AFS" || local.use_AFS_for_shared ) ? (
                                                                   length(var.transport_storage_account_id) > 0 ? (
                                                                     var.transport_storage_account_id) : (
                                                                     try(azurerm_storage_account.transport[0].id, "")
@@ -432,10 +432,7 @@ output "ANF_pool_settings"                      {
                                                                        try(azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb, 0)
                                                                      )
 
-                                                                     subnet_id = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
-                                                                       var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.id : try(azurerm_subnet.anf[0].id, "")) : (
-                                                                       ""
-                                                                     )
+                                                                     subnet_id = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.id : (var.infrastructure.virtual_networks.sap.subnet_anf.defined ? try(azurerm_subnet.anf[0].id, "") : "")
 
                                                                      resource_group_name = var.ANF_settings.use_existing_pool ? (
                                                                        split("/", var.ANF_settings.id)[4]) : (
@@ -470,7 +467,7 @@ output "ANF_pool_settings"                      {
 
 output "saptransport_path"                     {
                                                  description = "Path to the SAP transport volume"
-                                                 value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
+                                                 value       = var.create_transport_storage && (var.NFS_provider == "AFS" || local.use_AFS_for_shared) ? (
                                                               length(var.transport_private_endpoint_id) == 0 ? (
                                                                 var.use_private_endpoint ?
                                                                 (
