@@ -432,7 +432,7 @@ output "ANF_pool_settings"                      {
                                                                        try(azurerm_netapp_pool.workload_netapp_pool[0].size_in_tb, 0)
                                                                      )
 
-                                                                     subnet_id = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.id : azurerm_subnet.anf[0].id
+                                                                     subnet_id = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? var.infrastructure.virtual_networks.sap.subnet_anf.id : (var.infrastructure.virtual_networks.sap.subnet_anf.defined ? try(azurerm_subnet.anf[0].id, "") : "")
 
                                                                      resource_group_name = var.ANF_settings.use_existing_pool ? (
                                                                        split("/", var.ANF_settings.id)[4]) : (
