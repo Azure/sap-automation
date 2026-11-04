@@ -140,21 +140,21 @@ output "private_endpoint_network_policies"       {
 
 output "anf_subnet_id"                          {
                                                   description = "Azure resource identifier for the anf subnet"
-                                                  value       = var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_anf.id) : (
-                                                                    azurerm_subnet.anf[0].id)) : (
-                                                                  ""
+                                                  value       = var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_anf.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_anf.defined ? (
+                                                                    azurerm_subnet.anf[0].id) : (
+                                                                    ""  )
                                                                 )
                                                 }
 
 output "ams_subnet_id"                          {
                                                   description = "Azure resource identifier for the ams subnet"
-                                                  value       = local.create_ams_instance ? var.infrastructure.virtual_networks.sap.subnet_ams.defined ? (
-                                                                  var.infrastructure.virtual_networks.sap.subnet_ams.exists ? (
-                                                                    var.infrastructure.virtual_networks.sap.subnet_ams.id) : (
-                                                                    azurerm_subnet.ams[0].id)) : (
-                                                                  ""
+                                                  value       = local.create_ams_instance ? var.infrastructure.virtual_networks.sap.subnet_ams.exists ? (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_ams.id) : (
+                                                                  var.infrastructure.virtual_networks.sap.subnet_ams.defined ? (
+                                                                    azurerm_subnet.ams[0].id) : (
+                                                                    ""  )
                                                                 ) : ""
                                                 }
 
