@@ -42,7 +42,10 @@ namespace SDAFWebApp.Controllers
 
         private void LogDebug(string message)
         {
-            _logger.LogDebug("{Message}", message);
+            var sanitizedMessage = (message ?? string.Empty)
+                 .Replace("\r", "\\r")
+                 .Replace("\n", "\\n");
+            _logger.LogDebug("{Message}", sanitizedMessage);
         }
 
 
@@ -53,7 +56,7 @@ namespace SDAFWebApp.Controllers
             IConfiguration configuration,
             RestHelper restHelper,
             ILogger<LandscapeController> logger,
-            IOptions<RepositoryPersistenceSettings> persistenceSettings   )
+            IOptions<RepositoryPersistenceSettings> persistenceSettings)
         {
             _landscapeService = landscapeService;
             _appFileService = appFileService;
@@ -339,31 +342,31 @@ namespace SDAFWebApp.Controllers
                     case "ado":
                         {
 
-                        parameters.workload_zone = id;
-                        parameters.environment = null;
-                        PipelineRequestBody requestBody = new()
-                        {
-                            resources = new Resources
+                            parameters.workload_zone = id;
+                            parameters.environment = null;
+                            PipelineRequestBody requestBody = new()
                             {
-                                repositories = new Repositories
+                                resources = new Resources
                                 {
-                                    self = new Self
+                                    repositories = new Repositories
                                     {
-                                        refName = $"refs/heads/{branch}"
+                                        self = new Self
+                                        {
+                                            refName = $"refs/heads/{branch}"
+                                        }
                                     }
-                                }
-                            },
-                            templateParameters = parameters
-                        };
+                                },
+                                templateParameters = parameters
+                            };
 
-                        LogDebug($"Calling pipeline {pipelineId} for {id}");
-                        await restHelper.TriggerPipeline(pipelineId, requestBody);
+                            LogDebug($"Calling pipeline {pipelineId} for {id}");
+                            await restHelper.TriggerPipeline(pipelineId, requestBody);
 
-                        TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
-                        break;
+                            TempData["success"] = "Successfully triggered workload zone deployment pipeline for " + id;
+                            break;
                         }
                     case "github":
-                    {
+                        {
                             // Trigger with inputs
                             var inputs = new Dictionary<string, object>
                             {
@@ -441,29 +444,29 @@ namespace SDAFWebApp.Controllers
                 {
                     case "ado":
                         {
-                        string pipelineId = _configuration["REMOVAL_PIPELINE_ID"];
-                        string branch = _configuration["SourceBranch"];
+                            string pipelineId = _configuration["REMOVAL_PIPELINE_ID"];
+                            string branch = _configuration["SourceBranch"];
 
-                        parameters.workload_zone = id.Replace("-INFRASTRUCTURE", "");
-                        parameters.sap_system = "";
-                        parameters.cleanup_sap = false;
-                        parameters.cleanup_zone = true;
+                            parameters.workload_zone = id.Replace("-INFRASTRUCTURE", "");
+                            parameters.sap_system = "";
+                            parameters.cleanup_sap = false;
+                            parameters.cleanup_zone = true;
 
-                        PipelineRequestBody requestBody = new()
-                        {
-                            resources = new Resources
+                            PipelineRequestBody requestBody = new()
                             {
-                                repositories = new Repositories
+                                resources = new Resources
                                 {
-                                    self = new Self
+                                    repositories = new Repositories
                                     {
-                                        refName = $"refs/heads/{branch}"
+                                        self = new Self
+                                        {
+                                            refName = $"refs/heads/{branch}"
+                                        }
                                     }
-                                }
-                            },
+                                },
 
 
-                            templateParameters = new Dictionary<string, object>
+                                templateParameters = new Dictionary<string, object>
                             {
 { "workload_zone", id },
 { "workload_environment", landscape.environment },
@@ -471,17 +474,17 @@ namespace SDAFWebApp.Controllers
 { "cleanup_zone", true },
 { "sap_system", "N/A" }
                             }
-                        };
+                            };
 
-                        LogDebug($"Calling pipeline {pipelineId} for {id}");
+                            LogDebug($"Calling pipeline {pipelineId} for {id}");
 
-                        await restHelper.TriggerPipeline(pipelineId, requestBody);
+                            await restHelper.TriggerPipeline(pipelineId, requestBody);
 
-                        TempData["success"] = "Successfully triggered workload zone removal pipeline for " + id;
-                        break;
+                            TempData["success"] = "Successfully triggered workload zone removal pipeline for " + id;
+                            break;
                         }
                     case "github":
-                    {
+                        {
                             // Trigger with inputs
                             var inputs = new Dictionary<string, object>
                             {
@@ -624,10 +627,10 @@ namespace SDAFWebApp.Controllers
 
                         await _landscapeService.CreateTFVarsAsync(file);
 
-                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = persistenceMode == RepositoryPersistenceMode.StorageOnly ? landscape.environment : landscape.Id   });  //RedirectToAction("Index");
+                        return RedirectToAction("Edit", "Landscape", new { @id = landscape.Id, @partitionKey = persistenceMode == RepositoryPersistenceMode.StorageOnly ? landscape.environment : landscape.Id });  //RedirectToAction("Index");
                     }
                 }
-                catch (Exception e) 
+                catch (Exception e)
                 {
                     _logger.LogError(e, "Failed to update workload zone");
                     ModelState.AddModelError("LandscapeId", "The workload zone could not be updated.");

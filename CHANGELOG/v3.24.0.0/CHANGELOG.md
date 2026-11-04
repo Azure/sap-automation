@@ -12,6 +12,10 @@
 - Change the App Service to use .DotNet 10
 - Miscellaneous improvements and fixes    
 - Improved authentication mechanisms
+
+### 2. Ansible and Deployment Changes 
+- Updated Ansible collections to support offline deployments, download_collections.sh script added
+
     
 ## Notes
 

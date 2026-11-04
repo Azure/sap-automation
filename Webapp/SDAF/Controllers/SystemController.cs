@@ -40,7 +40,10 @@ namespace SDAFWebApp.Controllers
 
         private void LogDebug(string message)
         {
-            _logger.LogDebug("{Message}", message);
+            var sanitizedMessage = message?
+                 .Replace("\r", " ")
+                 .Replace("\n", " ");
+            _logger.LogDebug("{Message}", sanitizedMessage);
         }
 
 
@@ -49,7 +52,7 @@ namespace SDAFWebApp.Controllers
             ITableStorageService<AppFile> appFileService,
             IConfiguration configuration,
             RestHelper restHelper,
-            ILogger<SystemController> logger, 
+            ILogger<SystemController> logger,
             IOptions<RepositoryPersistenceSettings> persistenceSettings)
         {
             _systemService = systemService;
@@ -137,7 +140,7 @@ namespace SDAFWebApp.Controllers
 
             s.locationCode = Helper.MapRegion(s.location).ToUpper();
 
-            s.workload_zone = String.Format("{0}-{1}-{2}", s.environment , s.locationCode,  s.network_logical_name);
+            s.workload_zone = String.Format("{0}-{1}-{2}", s.environment, s.locationCode, s.network_logical_name);
             try
             {
                 AppFile file = await _appFileService.GetByIdAsync(id + "_custom_naming.json", partitionKey);
@@ -342,7 +345,7 @@ namespace SDAFWebApp.Controllers
                 {
                     _logger?.LogInformation("No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     _logger?.LogInformation(ex, "No custom sizes file found for system {Id}; using default sizing", Helper.SanitizeForLog(id));
                 }
@@ -419,7 +422,7 @@ namespace SDAFWebApp.Controllers
             // Intentional top-level catch: surfaces the error to the user/caller rather than crashing the request.
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to deploy system {Id}", Helper.SanitizeForLog(id));
+                _logger?.LogError(e, "Failed to deploy system {Id}", Helper.SanitizeForLog(id));
                 TempData["error"] = "The system could not be deployed.";
             }
             return RedirectToAction("Index");
@@ -574,7 +577,7 @@ namespace SDAFWebApp.Controllers
                         {
                             string pipelineId = _configuration["REMOVAL_PIPELINE_ID"];
                             string branch = _configuration["SourceBranch"];
-                            
+
 
                             parameters.workload_zone = id.Replace(sidPart, "");
                             parameters.sap_system = id;

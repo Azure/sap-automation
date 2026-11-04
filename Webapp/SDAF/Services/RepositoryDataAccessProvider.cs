@@ -51,7 +51,16 @@ namespace SDAFWebApp.Services
                     _platform, PersistenceMode);
             }
         }
-
+        private static string SanitizeForLog(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            return value
+                .Replace("\r", string.Empty)
+                .Replace("\n", string.Empty);
+        }
         public async Task<RepositoryFileResponse> GetFileAsync(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -59,13 +68,15 @@ namespace SDAFWebApp.Services
                 throw new ArgumentException("Path cannot be null or empty.", nameof(path));
             }
 
+            string sanitizedPath = SanitizeForLog(path);
+
             try
             {
                 if (_settings.EnableRepositoryLogging)
                 {
                     _logger?.LogInformation(
                         "Reading repository file: Path={Path}, Platform={Platform}",
-                        path, _platform);
+                        sanitizedPath, _platform);
                 }
 
                 var response = await _restHelper.GetRepositoryFileAsync(path);
@@ -74,7 +85,7 @@ namespace SDAFWebApp.Services
                 {
                     _logger?.LogInformation(
                         "Successfully read repository file: Path={Path}, Size={Size}",
-                        path, response.ContentBytes?.Length ?? response.Content?.Length ?? 0);
+                        sanitizedPath, response.ContentBytes?.Length ?? response.Content?.Length ?? 0);
                 }
 
                 return response;
@@ -84,7 +95,7 @@ namespace SDAFWebApp.Services
                 _logger?.LogWarning(
                     ex,
                     "Repository operation failed: Path={Path}, Category={Category}, Transient={Transient}",
-                    path, ex.ErrorCategory, ex.IsTransient);
+                    sanitizedPath, ex.ErrorCategory, ex.IsTransient);
                 throw;
             }
         }
@@ -144,7 +155,7 @@ namespace SDAFWebApp.Services
                 {
                     _logger?.LogInformation(
                         "Deleting repository file: Path={Path}, Message={Message}, Platform={Platform}",
-                        request.Path, request.CommitMessage, _platform);
+                        request.Path, SanitizeForLog(request.CommitMessage), _platform);
                 }
 
                 await _restHelper.DeleteRepositoryFileAsync(request);

@@ -11,7 +11,6 @@ mkdir -p "$ZIP_DIR"
 echo "Downloading Ansible collections..."
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 ansible-galaxy collection download -r "${script_dir}/requirements.yml" -p "$PACKAGE_DIR/"
-cp "${script_dir}/requirements.yml" "$PACKAGE_DIR/requirements.yml"
 
 # Create a manifest
 echo "Package contents:" > "$PACKAGE_DIR/MANIFEST.txt"
@@ -23,8 +22,9 @@ echo "" >> "$PACKAGE_DIR/MANIFEST.txt"
 
 echo ""
 echo "Package ready: ${PACKAGE_DIR}/"
-echo "Transfer this directory."
 
 tar czf "$ZIP_DIR/ansible-offline-packages.tar.gz" "$PACKAGE_DIR/"
 echo "Tarball package ready: ${ZIP_DIR}/ansible-offline-packages.tar.gz"
-cat "$PACKAGE_DIR/MANIFEST.txt"
+echo "Transfer this file to deployer and extract the tarball there."
+echo "Export the path to the extracted requirements file as ANSIBLE_OFFLINE_REQUIREMENTS_FILE before running configure_deployer.sh."
+echo "For example: export ANSIBLE_OFFLINE_REQUIREMENTS_FILE=/path/to/requirements.yml"
