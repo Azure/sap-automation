@@ -23,7 +23,7 @@ echo "" >> "$PACKAGE_DIR/MANIFEST.txt"
 echo ""
 echo "Package ready: ${PACKAGE_DIR}/"
 
-tar czf "$ZIP_DIR/ansible-offline-packages.tar.gz" "$PACKAGE_DIR/"
+tar czf "$ZIP_DIR/ansible-offline-packages.tar.gz" -C "$PACKAGE_DIR/" .
 echo "Tarball package ready: ${ZIP_DIR}/ansible-offline-packages.tar.gz"
 echo "Transfer this file to deployer and extract the tarball there."
 echo "Export the path to the extracted requirements file as ANSIBLE_OFFLINE_REQUIREMENTS_FILE before running configure_deployer.sh."

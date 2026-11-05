@@ -211,8 +211,10 @@ if [ -z "${operation}" ]; then
 	echo "#                                                                                       #"
 	echo "#     Valid options are:                                                                #"
 	echo "#       import                                                                          #"
-	echo "#       list                                                                          #"
+	echo "#       list                                                                            #"
 	echo "#       remove                                                                          #"
+	echo "#       show                                                                            #"
+	echo "#       break_lease                                                                     #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
@@ -363,6 +365,27 @@ module_dir=$SAP_AUTOMATION_REPO_PATH/deploy/terraform/run/${type}
 
 export TF_DATA_DIR="${directory}"
 
+if [ "${operation}" == "break_lease" ]; then
+
+	az storage blob lease break --account-name "${storage_account_name}" --container-name tfstate --name "${key}" --subscription "${subscription_id}"
+	return_value=$?
+	if [ 0 != $return_value ]; then
+		echo "Failed to break lease on blob: ${key}"
+		unset TF_DATA_DIR
+		exit $return_value
+	fi
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                       ${green}Lease broken successfully$reset_formatting                                       #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	exit 0
+
+fi
+
+
 terraform -chdir="${module_dir}" init -migrate-state -upgrade \
 	-backend-config "subscription_id=${subscription_id}" \
 	-backend-config "resource_group_name=${resource_group_name}" \
@@ -394,7 +417,17 @@ if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	fi
 fi
 
-echo "Looking for resource:" "${moduleID}"
+if [ "${operation}" == "show" ]; then
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                                    $cyan  Outputs: $reset_formatting                                      #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+	terraform -chdir="${module_dir}" output -json
+	unset TF_DATA_DIR
+	exit 0
+fi
 
 terraform -chdir="${module_dir}" state list >resources.lst
 
@@ -407,9 +440,7 @@ if [ "${operation}" == "list" ]; then
 	echo ""
 	cat resources.lst
 	unset TF_DATA_DIR
-
 	exit 0
-
 fi
 
 shorter_name=$(echo "${moduleID}" | cut -d[ -f1)
