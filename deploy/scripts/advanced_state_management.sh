@@ -425,8 +425,9 @@ if [ "${operation}" == "show" ]; then
 	echo "#########################################################################################"
 	echo ""
 	terraform -chdir="${module_dir}" output -json
+	return_value=$?
 	unset TF_DATA_DIR
-	exit 0
+	exit "$return_value"
 fi
 
 terraform -chdir="${module_dir}" state list >resources.lst
