@@ -287,7 +287,7 @@
       'create_temp_folders': true
     }
   vars:
-    primary_host:                     "{{ first_server_temp | first }}"
+    primary_host:                     "{{ first_server_temp }}"
 
 
 - name:                                "2.6.8 ANF Mount: sap_trans"
@@ -309,5 +309,5 @@
       'create_temp_folders': false
     }
   vars:
-    primary_host:                     "{{ first_server_temp | first }}"
+    primary_host:                     "{{ first_server_temp }}"
 
