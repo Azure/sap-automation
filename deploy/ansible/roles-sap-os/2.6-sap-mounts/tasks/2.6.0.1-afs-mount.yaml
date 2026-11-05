@@ -19,7 +19,7 @@
   ansible.builtin.debug:
     msg:                               "Primary host: {{ primary_host }}"
 
-- name:                                "2.6.0.1 AFS Mount - HANA {{ item.type }}"
+- name:                                "2.6.0.1 AFS Mount block {{ item.type }}"
   when:
                                        - item.mount is defined
                                        - ansible_hostname == primary_host
@@ -34,7 +34,7 @@
 
     - name:                            "2.6.0.1 AFS Mount - ({{ item.type }})"
       block:
-        - name:                        "2.6.0.1 AFS Mount - Filesystems on AFS ({{ item.temppath }})"
+        - name:                        "2.6.0.1 AFS Mount - Filesystem on AFS ({{ item.temppath }})"
           ansible.posix.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
@@ -45,11 +45,11 @@
         - name:                        "2.6.0.1 AFS Mount - Pause for 15 seconds"
           ansible.builtin.pause:
             seconds:                   15
-        - name:                        "2.6.0.1 AFS Mount - Filesystems on AFS ({{ item.temppath }})"
+        - name:                        "2.6.0.1 AFS Mount - Filesystem on AFS ({{ item.temppath }})"
           ansible.builtin.debug:
-            msg:                       "Rescue - 2.6.0.1 AFS Mount - Filesystems on AFS ({{ item.temppath }})"
+            msg:                       "Rescue - 2.6.0.1 AFS Mount - Filesystem on AFS ({{ item.temppath }})"
 
-        - name:                        "2.6.0.1 AFS Mount - Filesystems on AFS ({{ item.temppath }})"
+        - name:                        "2.6.0.1 AFS Mount - Filesystem on AFS ({{ item.temppath }})"
           ansible.posix.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
@@ -57,20 +57,20 @@
             opts:                      "{{ item.opts }}"
             state:                      mounted
 
-    - name:                            "2.6.0.1 AFS Mount - Create Directories ({{ item.temppath }})"
+    - name:                            "2.6.0.1 AFS Mount - Create Directory ({{ item.folder }})"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}/{{ item.folder }}"
         owner:                         "{{ item.owner }}"
         state:                         directory
         mode:                          "{{ item.permissions }}"
 
-    - name:                            "2.6.0.1 AFS Mount - Unmount file systems ({{ item.temppath }})"
+    - name:                            "2.6.0.1 AFS Mount - Unmount file system ({{ item.temppath }})"
       ansible.posix.mount:
         src:                           "{{ item.mount }}"
         path:                          "/{{ item.temppath }}"
         state:                         unmounted
 
-    - name:                            "2.6.0.1 AFS Mount - Delete locally created SAP Directories ({{ item.temppath }})"
+    - name:                            "2.6.0.1 AFS Mount - Delete locally created directory ({{ item.temppath }})"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}"
         state:                         absent
