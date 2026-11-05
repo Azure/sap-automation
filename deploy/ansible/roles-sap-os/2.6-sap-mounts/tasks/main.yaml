@@ -265,7 +265,9 @@
 
 - name:                                "2.6 SAP Mounts - Debug"
   ansible.builtin.debug:
-    msg:                               "Installation mount point: {{ usr_sap_install_mountpoint | default('Undefined') }}"
+    msg:
+     - "Installation mount point: {{ usr_sap_install_mountpoint | default('Undefined') }}"
+     - "SAP Trans mount point: {{ sap_trans | default('Undefined') }}"
 
 - name:                                "2.6 SAP Mounts - Mount local install file system on SCS (when not using AFS)"
   ansible.posix.mount:

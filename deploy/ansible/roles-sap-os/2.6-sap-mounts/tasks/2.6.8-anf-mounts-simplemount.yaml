@@ -289,7 +289,6 @@
   vars:
     primary_host:                     "{{ first_server_temp }}"
 
-
 - name:                                "2.6.8 ANF Mount: sap_trans"
   when:
     - tier == 'sapos'
