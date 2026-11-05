@@ -47,7 +47,10 @@ fi
 configure_devops
 
 echo -e "$green--- az login ---$reset"
-ARM_USE_MSI="$(is_msi_enabled)"
+case "${ARM_USE_MSI:-}" in
+	true|false) ;;
+	*) ARM_USE_MSI="$(is_msi_enabled)" ;;
+esac
 export ARM_USE_MSI
 if [ "$ARM_USE_MSI" == "true" ]; then
  	unset ARM_CLIENT_SECRET

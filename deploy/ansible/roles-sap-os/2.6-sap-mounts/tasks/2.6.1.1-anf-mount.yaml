@@ -13,14 +13,14 @@
 - name:                                "2.6.1 1 ANF Mount - Show loop variable"
   ansible.builtin.debug:
     var:                               item
-    verbosity:                         0
+    verbosity:                         2
 
 - name:                                "2.6.1 1 ANF Mount - Show control variables"
   ansible.builtin.debug:
     msg:
       - "Primary host: {{ primary_host }}"
       - "Ansible hostname: {{ ansible_hostname }}"
-    verbosity:                         0
+    verbosity:                         2
 
 - name:                                "2.6.1 1 ANF Mount - Block {{ item.type }}"
   when:

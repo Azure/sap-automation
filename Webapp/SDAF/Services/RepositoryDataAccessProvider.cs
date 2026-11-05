@@ -155,7 +155,7 @@ namespace SDAFWebApp.Services
                 {
                     _logger?.LogInformation(
                         "Deleting repository file: Path={Path}, Message={Message}, Platform={Platform}",
-                        request.Path, SanitizeForLog(request.CommitMessage), _platform);
+                        SanitizeForLog(request.Path), SanitizeForLog(request.CommitMessage), _platform);
                 }
 
                 await _restHelper.DeleteRepositoryFileAsync(request);
