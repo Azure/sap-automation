@@ -267,28 +267,6 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-
-- name:                                "2.6.8 ANF Mount: sap_trans"
-  when:
-    - tier == 'sapos'
-    - sap_trans is defined
-    - sap_trans != ''
-  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
-  loop:
-    - {
-      'type':              'trans',
-      'temppath':          'saptrans',
-      'mount':             '{{ sap_trans }}',
-      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
-      'path':              '/usr/sap/trans',
-      'permissions':       '0775',
-      'set_chattr_on_dir': false,
-      'target_nodes':      ['app','pas', 'ers', 'scs'],
-      'create_temp_folders': false
-    }
-  vars:
-    primary_host:                     "{{ first_server_temp | first }}"
-
 - name:                                "2.6.8 ANF Mount: install"
   when:
     - tier == 'sapos'
@@ -307,6 +285,28 @@
       'set_chattr_on_dir': false,
       'target_nodes':      ['all'],
       'create_temp_folders': true
+    }
+  vars:
+    primary_host:                     "{{ first_server_temp | first }}"
+
+
+- name:                                "2.6.8 ANF Mount: sap_trans"
+  when:
+    - tier == 'sapos'
+    - sap_trans is defined
+    - sap_trans != ''
+  ansible.builtin.include_tasks:       2.6.1.1-anf-mount.yaml
+  loop:
+    - {
+      'type':              'trans',
+      'temppath':          'saptrans',
+      'mount':             '{{ sap_trans }}',
+      'opts':              'rw,hard,rsize=65536,wsize=65536,sec=sys,vers=4.1,tcp',
+      'path':              '/usr/sap/trans',
+      'permissions':       '0775',
+      'set_chattr_on_dir': false,
+      'target_nodes':      ['app','pas', 'ers', 'scs'],
+      'create_temp_folders': false
     }
   vars:
     primary_host:                     "{{ first_server_temp | first }}"
