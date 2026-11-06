@@ -435,7 +435,7 @@
   when:
     - NFS_provider == 'ANF'
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
-    - not use_simple_mount
+    - not use_simple_mount  or node_tier == "hana"
 
 # Import this task only if the tier is ora.
 - name:                                "2.6 SAP Mounts - Import Oracle tasks"
@@ -477,7 +477,7 @@
 - name:                                "2.6 SAP Mounts - Import ANF tasks"
   ansible.builtin.import_tasks:        "2.6.8-anf-mounts-simplemount.yaml"
   when:
-    - use_simple_mount | default(false)
+    - use_simple_mount | default(false) or node_tier == "hana"
     - sap_mnt is defined or sap_trans is defined or usr_sap_install_mountpoint is defined
     - NFS_provider == 'ANF'
 
