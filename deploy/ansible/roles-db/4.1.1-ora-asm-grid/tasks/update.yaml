@@ -125,29 +125,17 @@
     path:                              "{{ target_media_location }}/SBP/GIMERGEOCW19P"
   register:                            ocwru_stat_path
 
-- name:                                "4.1.1 ORACLE Grid Update - Find Patch ID for SBP_OCWRU - pre 2608"
-  when:                                not ocwru_stat_path.stat.exists
+- name:                                "4.1.1 ORACLE Grid Update - Find Patch ID for SBP_OCWRU"
   become:                              true
   become_user:                         root
   ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/SBP/GIRU19P"
+    paths:                            "{{ target_media_location }}/SBP/{{ 'GIMERGEOCW19P' if ocwru_stat_path.stat.exists else 'GIRU19P' }}"
     patterns:                          ["{{ bom.patch_information.SBP_OCWRU }}"]
     file_type:                         directory
     recurse:                           true
   register:                            ocwru_directory
 
-- name:                                "4.1.1 ORACLE Grid Update - Find Patch ID for SBP_OCWRU - post 2608"
-  when:                                ocwru_stat_path.stat.exists
-  become:                              true
-  become_user:                         root
-  ansible.builtin.find:
-    paths:                             "{{ target_media_location }}/SBP/GIMERGEOCW19P"
-    patterns:                          ["{{ bom.patch_information.SBP_OCWRU }}"]
-    file_type:                         directory
-    recurse:                           true
-  register:                            ocwru_directory
-
-- name:                                "4.1.1 ORACLE Grid Update - Save OCWRU Release Update"
+- name:                                "4.1.1 ORACLE Grid Update - Save OCWRU Release Update Post 2608"
   ansible.builtin.set_fact:
     ocwru_patch_grid_path:             "{{ ocwru_directory.files[1].path }}"
   when:                                ocwru_directory.matched > 1

@@ -242,7 +242,7 @@ namespace SDAFWebApp.Models
         {
             get
             {
-                string scaleoutDescription= string.Format("# HANA Scale-out:        {0}", (bool)database_HANA_use_scaleout_scenario ? "Yes" : "No").PadRight(88);
+                string scaleoutDescription= string.Format("# HANA Scale-out:        {0}", database_HANA_use_scaleout_scenario == true ? "Yes" : "No").PadRight(88);
 
                 scaleoutDescription += "#";
                 return scaleoutDescription;

@@ -15,7 +15,18 @@
     var:                               item
     verbosity:                         2
 
-- name:                                "2.6.1 1 ANF Mount - HANA {{ item.type }}"
+- name:                                "2.6.1 1 ANF Mount - Show control variables"
+  ansible.builtin.debug:
+    msg:
+      - "Primary host: {{ primary_host }}"
+      - "Ansible hostname: {{ ansible_hostname }}"
+    verbosity:                         2
+
+- name:                                "2.6.1 1 ANF Mount - Block {{ item.type }}"
+  when:
+    - item.mount is defined
+    - ansible_hostname == primary_host
+    - item.create_temp_folders
   block:
     - name:                            "2.6.1 1 ANF Mount - Create temporary directory /{{ item.temppath }}"
       ansible.builtin.file:
@@ -43,7 +54,7 @@
             name:                      rpcbind
             state:                     restarted
 
-        - name:                        "2.6.1 1 ANF Mount - Filesystems on ANF ({{ item.temppath }}) (temporary)"
+        - name:                        "2.6.1 1 ANF Mount - Filesystem on ANF ({{ item.temppath }}) (temporary)"
           ansible.posix.mount:
             src:                       "{{ item.mount }}"
             path:                      "/{{ item.temppath }}"
@@ -51,19 +62,19 @@
             opts:                      "{{ item.opts }}"
             state:                      mounted
 
-    - name:                            "2.6.1 1 ANF Mount - Create Directories ({{ item.temppath }}) on temporary mount"
+    - name:                            "2.6.1 1 ANF Mount - Create Directory ({{ item.temppath }}) on the temporary mount"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}/{{ item.folder }}"
         state:                         directory
         mode:                          0755
 
-    - name:                            "2.6.1 1 ANF Mount - Unmount file systems ({{ item.temppath }}) from temporary mount"
+    - name:                            "2.6.1 1 ANF Mount - Unmount file system ({{ item.temppath }}) from temporary mount"
       ansible.posix.mount:
         src:                           "{{ item.mount }}"
         path:                          "/{{ item.temppath }}"
         state:                         unmounted
 
-    - name:                            "2.6.1 1 ANF Mount - Delete locally created SAP Directories ({{ item.temppath }})"
+    - name:                            "2.6.1 1 ANF Mount - Delete locally created directory ({{ item.temppath }})"
       ansible.builtin.file:
         path:                          "/{{ item.temppath }}"
         state:                         absent
@@ -75,12 +86,6 @@
         fstype:                        "nfs4"
         opts:                          "{{ item.opts }}"
         state:                         absent
-
-  when:
-    - item.mount is defined
-    - ansible_hostname == primary_host
-    - item.create_temp_folders
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
