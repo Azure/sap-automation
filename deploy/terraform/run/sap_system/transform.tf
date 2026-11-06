@@ -473,12 +473,12 @@ locals {
 
   subnet_endpoint                     = {
                                             name                   = var.endpoint_subnet_name
-                                            id                     = var.endpoint_subnet_arm_id
+                                            id                     = length(var.endpoint_subnet_arm_id) > 0 ? var.endpoint_subnet_arm_id : null
                                             exists                 = length(var.endpoint_subnet_arm_id) > 0
                                             prefix                 = var.endpoint_subnet_address_prefix
                                             defined                = length(var.endpoint_subnet_address_prefix) > 0 && length(var.endpoint_subnet_arm_id) == 0 && length(try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")) == 0
                                             exists_in_workload     = length(try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")) > 0
-                                            id_in_workload         = try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, "")
+                                            id_in_workload         = try(data.terraform_remote_state.landscape.outputs.endpoint_subnet_id, null)
                                             nsg                    = {
                                                                        name               = var.endpoint_subnet_nsg_name
                                                                        id                 = var.endpoint_subnet_nsg_arm_id
