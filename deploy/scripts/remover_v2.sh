@@ -764,10 +764,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         printenv | sort
     fi
 
-    if [[ -f /etc/profile.d/deploy_server.sh ]]; then
-        path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-        export PATH=$PATH:$path
-    fi
     if sdaf_remover "$@"; then
 		    return_value=$?
         echo "Script executed successfully."

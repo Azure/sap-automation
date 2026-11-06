@@ -117,7 +117,7 @@ stages:
               ARM_CLIENT_SECRET:                  $(ARM_CLIENT_SECRET)
               ARM_SUBSCRIPTION_ID:                $(ARM_SUBSCRIPTION_ID)
               ARM_TENANT_ID:                      $(ARM_TENANT_ID)
-              ARM_USE_MSI:                        $(USE_MSI)
+              ARM_USE_MSI:                        $(ARM_USE_MSI)
               AZURE_DEVOPS_EXT_PAT:               $(System.AccessToken)
               CONFIG_REPO_PATH:                   ${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)
               EXTRA_PARAMETERS:                   $(EXTRA_PARAMETERS)
