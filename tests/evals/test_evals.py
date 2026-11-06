@@ -77,7 +77,7 @@ def evaluator_fixture(tmp_path: Path):
         case=case,
         content_root=content_root,
         output_dir=tmp_path / "output",
-        model="gpt-5-mini",
+        model="gpt-5.4-mini",
         limits=EVALS.RunLimits(30, 1024, 120),
     )
     return EVALS.SdafSkillEvals(request)

@@ -634,7 +634,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=int(os.environ.get("SDAF_EVAL_DEADLINE_MINUTES", DEFAULT_DEADLINE_MINUTES)),
     )
-    parser.add_argument("--model", default="gpt-5-mini")
+    parser.add_argument("--model", default="gpt-5.4-mini")
     parser.add_argument(
         "--max-ai-credits",
         type=int,
