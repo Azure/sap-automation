@@ -947,7 +947,7 @@ set -o xtrace
 
 # Add new /opt bin directories to start of PATH to ensure the versions we installed
 # are preferred over any installed standard system versions.
-echo export "PATH=$${ansible_bin}:$${tf_bin}:$${PATH}":"$${DOTNET_ROOT}":"$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts" | sudo tee -a /etc/profile.d/deploy_server.sh
+echo export "PATH=$${ansible_bin}:$${tf_bin}:$${PATH}":"$${DOTNET_ROOT}":"$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts":"$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation/deploy/ansible" | sudo tee -a /etc/profile.d/deploy_server.sh
 
 # Ensure that the user's account is logged in to Azure with specified creds
 (echo az login --identity --allow-no-subscriptions --client-id "$${ARM_CLIENT_ID}" --output none | sudo tee -a /etc/profile.d/deploy_server.sh) >/dev/null 2>&1
@@ -1049,6 +1049,10 @@ if [ "$${platform}" != "github" ]; then
       sudo touch "$${agent_home}/agent_configured"
 
       echo export "PATH=$${ansible_bin}:$${tf_bin}:"'$${PATH}'::"$${DOTNET_ROOT}" | sudo tee -a /etc/profile.d/deploy_server.sh
+      echo "export SAP_AUTOMATION_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+      echo "export DEPLOYMENT_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/sap-automation'" | sudo tee -a /etc/profile.d/deploy_server.sh
+      echo "export CONFIG_REPO_PATH='$${AZADHOME}/Azure_SAP_Automated_Deployment/WORKSPACES'" | sudo tee -a /etc/profile.d/deploy_server.sh
+
       sudo chmod 775 /etc/profile.d/deploy_server.sh
     else
       echo "NO PAT specified"

@@ -54,6 +54,19 @@ sap_sid="$(awk '$1 == "sap_sid:" {print $2}' ${sap_params_file})"
 #         exit 1
 # fi
 
+# Extract the bom_base_name the sap_params_file, so that we can determine
+# the SAP application to install.
+bom_base_name="$(awk '$1 == "bom_base_name:" {print $2}' ${sap_params_file})"
+if [[ -z "${bom_base_name}" ]]; then
+         print_banner "Configuration" "BOM base name variable 'bom_base_name' not found in parameters file!" "error" "Please ensure that the 'bom_base_name' variable is defined in '${sap_params_file}'"
+         exit 1
+fi
+sap_sid="$(awk '$1 == "sap_sid:" {print $2}' ${sap_params_file})"
+# if [[ ! -e "${sap_sid}" ]]; then
+#         print_banner "Configuration" "SAP SID variable 'sap_sid' not found in parameters file!" "error" "Please ensure that the 'sap_sid' variable is defined in '${sap_params_file}'"
+#         exit 1
+# fi
+
 
 workload_vault_name="$(awk '$1 == "kv_name:" {print $2}' ${sap_params_file})"
 # if [[ -z "${workload_vault_name}" ]]; then
