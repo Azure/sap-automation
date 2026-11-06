@@ -233,7 +233,7 @@ namespace SDAFWebApp.Controllers
         {
             LogDebug($"TriggerPipeline called. PipelineId={pipelineId}, Branch={branch}");
 
-            if(string.IsNullOrEmpty(pipelineId))
+            if (string.IsNullOrEmpty(pipelineId))
             {
                 throw new ArgumentException("PipelineId cannot be null or empty.", nameof(pipelineId));
             }
@@ -391,7 +391,7 @@ namespace SDAFWebApp.Controllers
         public async Task<List<SelectListItem>> GetEnvironmentsList()
         {
             LogDebug("GetEnvironmentsList called");
-            List<SelectListItem> variableGroups = [ new SelectListItem { Text = "", Value = "" } ];
+            List<SelectListItem> variableGroups = [new SelectListItem { Text = "", Value = "" }];
             switch (repoType.ToLower())
             {
                 case "github":
@@ -1186,14 +1186,14 @@ namespace SDAFWebApp.Controllers
 
         static private void HandleResponse(HttpResponseMessage response, string responseBody)
         {
-            
+
             LogDebug($"HandleResponse: StatusCode={response.StatusCode}");
             if (!response.IsSuccessStatusCode)
             {
                 string errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();
                 switch (response.StatusCode)
                 {
-                    
+
                     case System.Net.HttpStatusCode.Unauthorized:
                         errorMessage = "Unauthorized, please ensure that the MSI/Personal Access Token has sufficient permissions and that it has not expired.";
                         break;
