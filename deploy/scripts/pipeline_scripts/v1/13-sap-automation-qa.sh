@@ -49,7 +49,7 @@ configure_devops
 echo -e "$green--- az login ---$reset"
 case "${ARM_USE_MSI:-}" in
 	true|false) ;;
-	*) ARM_USE_MSI="$(is_msi_enabled)" ;;
+*) ARM_USE_MSI="${USE_MSI:-true}" ;;
 esac
 export ARM_USE_MSI
 if [ "$ARM_USE_MSI" == "true" ]; then
