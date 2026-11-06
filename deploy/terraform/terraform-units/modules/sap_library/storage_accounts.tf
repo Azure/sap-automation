@@ -111,7 +111,7 @@ resource "azurerm_private_endpoint" "storage_tfstate" {
                                            azurerm_resource_group.library[0].location
                                          )
 
-  subnet_id                            = coalesce(try(var.deployer_tfstate.endpoint_subnet_id, null), var.deployer_tfstate.subnet_mgmt_id)
+  subnet_id                            = coalesce(try(length(var.deployer_tfstate.endpoint_subnet_id) > 0 ? var.deployer_tfstate.endpoint_subnet_id : null, null), var.deployer_tfstate.subnet_mgmt_id)
 
   custom_network_interface_name        = var.short_named_endpoints_nics ? format("%s%s%s%s",
                                            var.naming.resource_prefixes.storage_private_link_tf,
