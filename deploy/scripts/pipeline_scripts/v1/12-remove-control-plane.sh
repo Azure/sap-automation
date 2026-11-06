@@ -51,8 +51,6 @@ else
 	unset ARM_CLIENT_SECRET
 	ARM_USE_MSI=true
 	export ARM_USE_MSI
-	TF_VAR_user_assigned_identity_id="$ARM_CLIENT_ID"
-	export TF_VAR_user_assigned_identity_id
 fi
 
 if [ -v SYSTEM_ACCESSTOKEN ]; then
