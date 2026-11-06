@@ -114,7 +114,7 @@
         - ansible_facts.packages['resource-agents-sap-hana'] is defined
 
     - name:                            "1.18.2 Generic Pacemaker - Ensure resource-agents-sap-hana-scaleout  is installed (REDHAT)"
-        ansible.builtin.package:5.5.4.1-cluster-RedHat.yml
+      ansible.builtin.package:
         name:                          resource-agents-sap-hana-scaleout
         state:                         present
       when:
