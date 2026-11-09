@@ -49,12 +49,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name,
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                         ))
-  private_dns_zone_name                = var.dns_settings.dns_label
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.dns[0].id : data.azurerm_private_dns_zone.dns[0].id
   virtual_network_id                   = local.management_network_id
   registration_enabled                 = true
   tags                                 = var.infrastructure.tags
@@ -74,13 +69,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                         ))
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.blob[0].id
   virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
@@ -100,13 +89,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_blob-agent" 
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                         ))
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.blob[0].id
   virtual_network_id                   = var.deployer_tfstate.additional_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
@@ -127,14 +110,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            var.naming.separator,
                                            "vault"
                                          )
-  resource_group_name                  = local.use_local_privatelink_dns ? (
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.dns_settings.privatelink_dns_resourcegroup_name
-                                         )
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.vault[0].id
   virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
@@ -153,14 +129,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_agent" {
                                            var.naming.separator,
                                            "vault-agent"
                                          )
-  resource_group_name                  = local.use_local_privatelink_dns ? (
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.dns_settings.privatelink_dns_resourcegroup_name
-                                         )
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.vault[0].id
   virtual_network_id                   = var.deployer_tfstate.additional_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
@@ -179,14 +148,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault_additional" {
                                            var.naming.separator,
                                            "vault-additional"
                                          )
-  resource_group_name                  = local.use_local_privatelink_dns ? (
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.dns_settings.privatelink_dns_resourcegroup_name
-                                         )
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.vault[0].id : data.azurerm_private_dns_zone.vault[0].id
   virtual_network_id                   = var.dns_settings.additional_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
@@ -205,14 +167,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob_agent" {
                                            var.naming.separator,
                                            "blob-agent"
                                          )
-  resource_group_name                  = local.use_local_privatelink_dns ? (
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                           )) : (
-                                           var.dns_settings.privatelink_dns_resourcegroup_name
-                                         )
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.blob[0].id : data.azurerm_private_dns_zone.blob[0].id
   virtual_network_id                   = var.dns_settings.additional_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
