@@ -68,7 +68,7 @@ resource "azurerm_subnet" "subnet_mgmt" {
   dynamic "service_endpoint" {
                                          for_each = local.app_service_endpoints
                                            content {
-                                             service            = service_endpoint.value.service
+                                             service            = service_endpoint.value
                                            }
   }
 }
