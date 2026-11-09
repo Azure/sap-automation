@@ -97,8 +97,7 @@ resource "azurerm_storage_account" "deployer" {
   allow_nested_items_to_be_public      = false
   shared_access_key_enabled            = var.deployer.shared_access_key_enabled
   default_to_oauth_authentication      = true
-  public_network_access_enabled        = var.public_network_access_enabled
-
+  public_network_access                = var.public_network_access_enabled
 
   cross_tenant_replication_enabled     = false
 

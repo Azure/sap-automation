@@ -31,7 +31,7 @@ resource "azurerm_storage_account" "storage_tfstate" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
-  public_network_access_enabled        = var.storage_account_tfstate.public_network_access_enabled
+  public_network_access                = var.storage_account_tfstate.public_network_access_enabled
 
   https_traffic_only_enabled            = true
 
@@ -231,9 +231,9 @@ data "azurerm_storage_container" "storagecontainer_tfstate" {
   provider                             = azurerm.main
   count                                = var.storage_account_tfstate.tfstate_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_tfstate.tfstate_blob_container.name
-                                           storage_account_name = var.storage_account_tfstate.exists ? (
-                                             data.azurerm_storage_account.storage_tfstate[0].name) : (
-                                             azurerm_storage_account.storage_tfstate[0].name
+  storage_account_id                   = var.storage_account_tfstate.exists ? (
+                                             data.azurerm_storage_account.storage_tfstate[0].id) : (
+                                             azurerm_storage_account.storage_tfstate[0].id
                                            )
 }
 
@@ -279,7 +279,7 @@ resource "azurerm_storage_account" "storage_sapbits" {
   allow_nested_items_to_be_public      = false
 
   cross_tenant_replication_enabled     = false
-  public_network_access_enabled        = var.storage_account_sapbits.public_network_access_enabled || var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage
+  public_network_access                = var.storage_account_sapbits.public_network_access_enabled || var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
   default_to_oauth_authentication      = true
 
@@ -421,18 +421,18 @@ data "azurerm_storage_container" "storagecontainer_sapbits" {
   provider                             = azurerm.main
   count                                = var.storage_account_sapbits.sapbits_blob_container.is_existing ? 1 : 0
   name                                 = var.storage_account_sapbits.sapbits_blob_container.name
-                                           storage_account_name = var.storage_account_sapbits.exists ? (
-                                             data.azurerm_storage_account.storage_sapbits[0].name) : (
-                                             azurerm_storage_account.storage_sapbits[0].name
+  storage_account_id                   = var.storage_account_sapbits.exists ? (
+                                             data.azurerm_storage_account.storage_sapbits[0].id) : (
+                                             azurerm_storage_account.storage_sapbits[0].id
                                            )
 }
 
 // Creates file share inside the storage account for SAP bits
 resource "azurerm_storage_share" "fileshare_sapbits" {
   provider                             = azurerm.main
-  count                                = !var.storage_account_sapbits.file_share.is_existing ? 0 : 0
+  count                                = !var.storage_account_sapbits.file_share.is_existing ? 1 : 0
   name                                 = var.storage_account_sapbits.file_share.name
-  storage_account_id                   = !var.storage_account_sapbits.exists ? (
+  storage_account_id                   = var.storage_account_sapbits.exists ? (
                                              data.azurerm_storage_account.storage_sapbits[0].id) : (
                                              azurerm_storage_account.storage_sapbits[0].id
                                            )
