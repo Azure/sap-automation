@@ -25,7 +25,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
                                          )
 
 
-  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns[0].id
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns.id
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = true
   tags                                 = var.tags
@@ -67,7 +67,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  private_dns_zone_id                  = data.azurerm_private_dns_zone.blob[0].id
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.storage[0].id
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   tags                                 = var.tags
 }
@@ -85,7 +85,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            var.naming.separator,
                                            "vault"
                                          )
-  private_dns_zone_id                  = data.azurerm_private_dns_zone.vault[0].id
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.keyvault[0].id
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
   tags                                 = var.tags
