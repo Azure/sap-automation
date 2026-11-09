@@ -28,13 +28,12 @@ resource "azurerm_subnet" "webapp" {
 
   private_endpoint_network_policies             = var.use_private_endpoint ? "Enabled" : "Disabled"
 
-  service_endpoints                             = var.use_service_endpoint ? (
-                                                    var.app_service.use ? (
-                                                      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
-                                                      ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                                    )) : (
-                                                    null
-                                                  )
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value.service
+                                           }
+  }
 
   dynamic "delegation" {
                         for_each = range(var.app_service.use ? 1 : 0)

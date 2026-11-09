@@ -5,7 +5,7 @@ terraform {
   required_providers {
     azurerm = {
       source                = "hashicorp/azurerm"
-      version               = "4.81.0"
+      version               = "5.13.0"
       configuration_aliases = [azurerm.privatelinkdnsmanagement, azurerm.dnsmanagement, azurerm.main]
     }
 
@@ -17,7 +17,7 @@ terraform {
 
     azuread = {
       source                = "hashicorp/azuread"
-      version               = "3.8.0"
+      version               = "3.10.0"
       configuration_aliases = [azuread.main]
     }
   }

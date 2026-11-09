@@ -23,10 +23,13 @@ resource "azurerm_subnet" "bastion" {
 
   private_endpoint_network_policies    = var.use_private_endpoint ? "Enabled" : "Disabled"
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]) : (
-                                           null
-                                         )
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value.service
+                                           }
+  }
+
                                   }
 
 data "azurerm_subnet" "bastion" {
