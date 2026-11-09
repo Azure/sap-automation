@@ -146,8 +146,7 @@ resource "azurerm_private_dns_a_record" "db" {
                                            try(var.infrastructure.configuration_settings.custom_db_virtual_hostname,null),
                                            format("%s%sdb%scl", var.sap_sid, local.database_sid, local.database_instance))
                                          )
-  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
-  zone_name                            = local.dns_label
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns.id
   ttl                                  = 300
   records                              = [try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")]
   tags                                 = var.tags
@@ -201,9 +200,16 @@ resource "azurerm_private_dns_a_record" "db_active_active" {
   provider                             = azurerm.dnsmanagement
   count                                = local.enable_db_lb_deployment && var.database_active_active && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(format("%s%sdb%sclr", var.sap_sid, local.database_sid, local.database_instance))
-  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
-  zone_name                            = local.dns_label
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns.id
   ttl                                  = 300
   records                              = [try(azurerm_lb.hdb[0].frontend_ip_configuration[1].private_ip_address, "")]
   tags                                 = var.tags
+}
+
+
+data "azurerm_private_dns_zone" "dns" {
+  provider                             = azurerm.dnsmanagement
+  name                                 = var.dns_settings.dns_label
+  resource_group_name                  = var.dns_settings.management_dns_resourcegroup_name
+
 }
