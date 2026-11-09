@@ -5,8 +5,8 @@
 locals {
 
   resource_group                       = {
-                                            name   = try(var.infrastructure.resource_group.name, var.resourcegroup_name)
-                                            id     = try(var.infrastructure.resource_group.arm_id, var.resourcegroup_arm_id)
+                                            name   = try(coalesce(var.resourcegroup_name, try(var.infrastructure.resource_group.name, "")), "")
+                                            id     = try(coalesce(var.resourcegroup_arm_id, try(var.infrastructure.resource_group.arm_id, ""), try(var.infrastructure.resource_group.id, "")), "")
                                          }
   resource_group_defined               = (
                                            length(local.resource_group.name) +
@@ -183,6 +183,19 @@ locals {
                                                                       }
                                          }
 
+  subnet_endpoint                      = {
+                                             name                   = var.endpoint_subnet_name
+                                             id                     = var.endpoint_subnet_arm_id
+                                             prefix                 = var.endpoint_subnet_address_prefix
+                                             defined                = length(var.endpoint_subnet_arm_id) > 0 ? false : length(var.endpoint_subnet_address_prefix) > 0
+                                             exists                 = length(var.endpoint_subnet_arm_id) > 0
+                                             nsg                    = {
+                                                                        name   = var.endpoint_subnet_nsg_name
+                                                                        id     = var.endpoint_subnet_nsg_arm_id
+                                                                        exists = length(var.endpoint_subnet_nsg_arm_id) > 0
+                                                                      }
+                                         }
+
   subnet_web                           = {
                                              name                   = var.web_subnet_name
                                              id                     = var.web_subnet_arm_id
@@ -251,6 +264,7 @@ locals {
                                              subnet_admin           = local.subnet_admin,
                                              subnet_db              = local.subnet_db,
                                              subnet_app             = local.subnet_app,
+                                             subnet_endpoint        = local.subnet_endpoint,
                                              subnet_web             = local.subnet_web,
                                              subnet_storage         = local.subnet_storage,
                                              subnet_anf             = local.subnet_anf,
