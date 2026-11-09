@@ -98,7 +98,7 @@ resource "azurerm_storage_account" "utility" {
   cross_tenant_replication_enabled     = false
   public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
                                          "SecuredByPerimeter") : (
-                                          var.storage_account_sapbits.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          var.public_network_access_enabled ? "Enabled" : "Disabled"
                                           )
 
   shared_access_key_enabled            = var.utility_storage_settings[count.index].account_kind == "FileStorage" ? (
