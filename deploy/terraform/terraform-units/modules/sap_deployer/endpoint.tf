@@ -8,11 +8,12 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name                 = var.infrastructure.virtual_network.management.exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes                     = [var.infrastructure.virtual_network.management.subnet_endpoint.prefix]
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value.service
+                                           }
+  }
 }
 
 data "azurerm_subnet" "endpoint" {

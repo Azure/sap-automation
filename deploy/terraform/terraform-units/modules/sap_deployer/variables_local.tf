@@ -267,5 +267,8 @@ locals {
   app_config_name                      = var.app_config_service.exists ? local.parsed_id["resource_name"] : var.app_config_service.name
   app_config_resource_group_name       = var.app_config_service.exists ? local.parsed_id["resource_group_name"] : ""
 
+  service_endpoints                    = var.use_service_endpoint ? ["Microsoft.Storage", "Microsoft.KeyVault"] : []
+
+  app_service_endpoints                = var.use_service_endpoint ? var.app_service.use ? ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"] : ["Microsoft.Storage", "Microsoft.KeyVault"] : []
 
 }
