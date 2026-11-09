@@ -31,7 +31,10 @@ resource "azurerm_storage_account" "storage_tfstate" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
-  public_network_access                = var.storage_account_tfstate.public_network_access_enabled
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          var.storage_account_tfstate.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          )
 
   https_traffic_only_enabled            = true
 
@@ -279,7 +282,10 @@ resource "azurerm_storage_account" "storage_sapbits" {
   allow_nested_items_to_be_public      = false
 
   cross_tenant_replication_enabled     = false
-  public_network_access                = var.storage_account_sapbits.public_network_access_enabled || var.storage_account_sapbits.enable_firewall_for_keyvaults_and_storage
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          var.storage_account_sapbits.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          )
   shared_access_key_enabled            = var.storage_account_sapbits.shared_access_key_enabled
   default_to_oauth_authentication      = true
 
