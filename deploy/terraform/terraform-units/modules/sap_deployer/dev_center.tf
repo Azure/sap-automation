@@ -166,7 +166,7 @@ resource "azurerm_subnet" "subnet_agent" {
   dynamic "service_endpoint" {
                                          for_each = local.service_endpoints
                                            content {
-                                             service            = service_endpoint.value.service
+                                             service            = service_endpoint.value
                                            }
   }
 
