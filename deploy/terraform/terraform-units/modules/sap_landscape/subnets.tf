@@ -12,11 +12,12 @@ resource "azurerm_subnet" "admin" {
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                          ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                          ) : (
-                                          null
-                                         )
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 }
 
 data "azurerm_subnet" "admin" {
@@ -38,11 +39,13 @@ resource "azurerm_subnet" "db" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_db.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 }
 
 data "azurerm_subnet" "db" {
@@ -64,11 +67,13 @@ resource "azurerm_subnet" "app" {
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 }
 
 data "azurerm_subnet" "app" {
@@ -90,11 +95,13 @@ resource "azurerm_subnet" "endpoint" {
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 }
 
 data "azurerm_subnet" "endpoint" {
@@ -117,11 +124,13 @@ resource "azurerm_subnet" "web" {
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 }
 
 data "azurerm_subnet" "web" {

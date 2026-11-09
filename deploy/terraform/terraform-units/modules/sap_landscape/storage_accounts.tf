@@ -39,7 +39,11 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
   default_to_oauth_authentication      = true
-  public_network_access_enabled        = var.public_network_access_enabled
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          var.storage_account_sapbits.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          )
+  
   network_rules {
                 default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
                 virtual_network_subnet_ids  = var.public_network_access_enabled ? compact([
@@ -178,7 +182,11 @@ resource "azurerm_storage_account" "witness_storage" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
-  public_network_access_enabled        = var.public_network_access_enabled
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          var.storage_account_sapbits.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          )
+
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
   default_to_oauth_authentication      = true
 
@@ -332,7 +340,11 @@ resource "azurerm_storage_account" "transport" {
   default_to_oauth_authentication      = true
 
   cross_tenant_replication_enabled     = false
-  public_network_access_enabled        = var.public_network_access_enabled
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          var.storage_account_sapbits.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          )
+
 
   network_rules {
                   default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
@@ -535,7 +547,11 @@ resource "azurerm_storage_account" "install" {
   https_traffic_only_enabled           = var.AFS_enable_encryption_in_transit
   min_tls_version                      = "TLS1_2"
   cross_tenant_replication_enabled     = false
-  public_network_access_enabled        = var.public_network_access_enabled
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          var.storage_account_sapbits.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          )
+
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
   default_to_oauth_authentication      = true

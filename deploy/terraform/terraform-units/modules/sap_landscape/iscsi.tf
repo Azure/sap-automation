@@ -27,11 +27,13 @@ resource "azurerm_subnet" "iscsi" {
                                          )
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_iscsi.prefix]
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+
+  dynamic "service_endpoint" {
+                                         for_each = local.app_service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 
 }
 
