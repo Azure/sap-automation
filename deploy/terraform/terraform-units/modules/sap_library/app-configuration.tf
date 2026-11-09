@@ -166,13 +166,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_mgmt_appconfig" {
                                            try(var.naming.resource_suffixes.appconfig_link, "appconfig-link")
                                          )
 
-  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                         ))
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.appconfig[0].id : data.azurerm_private_dns_zone.appconfig[0].id
   virtual_network_id                   = local.management_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
@@ -193,13 +187,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_additional" 
                                            try(var.naming.resource_suffixes.appconfig_link, "appconfig-link")
                                          )
 
-  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                         ))
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.appconfig[0].id : data.azurerm_private_dns_zone.appconfig[0].id
   virtual_network_id                   = var.dns_settings.additional_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
@@ -222,13 +210,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "appconfig_agent" {
                                            try(var.naming.resource_suffixes.appconfig_link, "appconfig-link")
                                          )
 
-  resource_group_name                  = coalesce(var.dns_settings.privatelink_dns_resourcegroup_name,
-                                           var.dns_settings.management_dns_resourcegroup_name,
-                                           var.infrastructure.resource_group.exists ? (
-                                             split("/", var.infrastructure.resource_group.id)[4]) : (
-                                             azurerm_resource_group.library[0].name
-                                         ))
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.appconfig_dns_zone_name
+  private_dns_zone_id                  = local.use_local_private_dns ? azurerm_private_dns_zone.appconfig[0].id : data.azurerm_private_dns_zone.appconfig[0].id
   virtual_network_id                   = var.deployer_tfstate.additional_network_id
   registration_enabled                 = false
   tags                                 = var.infrastructure.tags
