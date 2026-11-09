@@ -154,11 +154,12 @@ resource "azurerm_subnet" "storage" {
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
 
-  service_endpoints                    = var.use_service_endpoint ? (
-                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
-                                           ) : (
-                                           null
-                                         )
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 }
 
 data "azurerm_subnet" "storage" {
