@@ -24,9 +24,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.dns_settings.management_dns_resourcegroup_name
 
-  private_dns_zone_name                = var.dns_settings.dns_label
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns[0].id
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = true
   tags                                 = var.tags
@@ -47,9 +46,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.file_dns_zone_name
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns[0].id
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
   tags                                 = var.tags
@@ -70,8 +67,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
                                            var.naming.resource_suffixes.dns_link
                                          )
 
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns[0].id
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   tags                                 = var.tags
 }
@@ -89,8 +85,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
                                            var.naming.separator,
                                            "vault"
                                          )
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns[0].id
   virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   registration_enabled                 = false
   tags                                 = var.tags
@@ -250,3 +245,11 @@ data "azurerm_private_dns_zone" "keyvault" {
   name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
+
+data "azurerm_private_dns_zone" "dns" {
+  provider                             = azurerm.dnsmanagement
+  name                                 = var.dns_settings.dns_label
+  resource_group_name                  = var.dns_settings.management_dns_resourcegroup_name
+
+}
+

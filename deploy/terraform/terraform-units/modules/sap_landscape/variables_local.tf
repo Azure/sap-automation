@@ -715,4 +715,6 @@ locals {
 
   use_local_credentials                          = length(var.authentication) > 0
 
+  service_endpoints                              = var.use_service_endpoint ? ["Microsoft.Storage", "Microsoft.KeyVault"] : []
+
 }
