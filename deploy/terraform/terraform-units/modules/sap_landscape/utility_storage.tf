@@ -96,7 +96,10 @@ resource "azurerm_storage_account" "utility" {
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
   cross_tenant_replication_enabled     = false
-  public_network_access_enabled        = var.public_network_access_enabled
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          var.storage_account_sapbits.public_network_access_enabled ? "Enabled" : "Disabled"
+                                          )
 
   shared_access_key_enabled            = var.utility_storage_settings[count.index].account_kind == "FileStorage" ? (
                                            var.infrastructure.shared_access_key_enabled_nfs) : (

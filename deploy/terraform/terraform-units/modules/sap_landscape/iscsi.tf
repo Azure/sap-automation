@@ -29,7 +29,7 @@ resource "azurerm_subnet" "iscsi" {
 
 
   dynamic "service_endpoint" {
-                                         for_each = local.app_service_endpoints
+                                         for_each = local.service_endpoints
                                            content {
                                              service            = service_endpoint.value
                                            }
