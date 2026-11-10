@@ -54,6 +54,7 @@ resource "azurerm_key_vault" "sid_keyvault_user" {
   purge_protection_enabled             = var.enable_purge_control_for_keyvaults
   sku_name                             = "standard"
   tags                                 = var.tags
+  rbac_authorization_enabled           = true
 
   access_policy {
                   tenant_id = data.azurerm_client_config.current.tenant_id

@@ -43,6 +43,7 @@ variable "sid_username"                                 { description = "SDU use
 variable "storage_bootdiag_endpoint"                    { description = "Details of the boot diagnostic storage device" }
 variable "terraform_template_version"                   { description = "The version of Terraform templates that were identified in the state file" }
 variable "use_admin_nic_for_asg"                        { description = "If true, the admin nic will be assigned to the ASG instead of the second nic" }
+variable "use_private_endpoint"                         { description = "If true, private endpoints will be used for the SAP System" }
 variable "use_loadbalancers_for_standalone_deployments" {
                                                           description = "Defines if load balancers are used even for standalone deployments"
                                                           default     = true

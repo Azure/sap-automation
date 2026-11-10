@@ -106,7 +106,12 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_endpoint.prefix]
 
-  service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
+  dynamic "service_endpoint" {
+                                         for_each = local.service_endpoints
+                                           content {
+                                             service            = service_endpoint.value
+                                           }
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "endpoint" {

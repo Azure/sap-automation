@@ -161,8 +161,7 @@ resource "azurerm_private_dns_a_record" "db" {
                                            try(var.infrastructure.configuration_settings.custom_db_virtual_hostname,""),
                                            format("%s%sdb%scl", var.sap_sid, local.anydb_sid, "00")
                                         ))
-  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
-  zone_name                            = local.dns_label
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns.id
   ttl                                  = 300
   records                              = [azurerm_lb.anydb[0].frontend_ip_configuration[0].private_ip_address]
   tags                                 = var.tags
@@ -174,5 +173,10 @@ resource "azurerm_private_dns_a_record" "db" {
 resource "time_sleep" "wait_30_secs" {
   create_duration                      = "30s"
   depends_on                           = [ azurerm_windows_virtual_machine.dbserver ]
+}
 
+data "azurerm_private_dns_zone" "dns" {
+  provider                             = azurerm.dnsmanagement
+  name                                 = var.dns_settings.dns_label
+  resource_group_name                  = var.dns_settings.management_dns_resourcegroup_name
 }

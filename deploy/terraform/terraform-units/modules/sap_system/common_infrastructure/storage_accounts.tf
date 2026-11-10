@@ -51,8 +51,10 @@ resource "azurerm_storage_account" "sapmnt" {
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
   default_to_oauth_authentication      = true
 
-
-  public_network_access_enabled        = try(var.landscape_tfstate.public_network_access_enabled, true)
+  public_network_access                = try(var.deployer_tfstate.network_security_perimeter_deployment, false)  ? (
+                                         "SecuredByPerimeter") : (
+                                          try(var.landscape_tfstate.public_network_access_enabled, true) ? "Enabled" : "Disabled"
+                                          )
   tags                                 = var.tags
 
   network_rules {

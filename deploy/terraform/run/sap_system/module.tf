@@ -230,6 +230,7 @@ module "app_tier" {
   use_admin_nic_for_asg                         = var.use_admin_nic_for_asg
   use_loadbalancers_for_standalone_deployments  = var.use_loadbalancers_for_standalone_deployments
   use_msi_for_clusters                          = var.use_msi_for_clusters
+  use_private_endpoint                          = var.use_private_endpoint
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings

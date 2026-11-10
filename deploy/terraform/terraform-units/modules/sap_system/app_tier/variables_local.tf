@@ -581,5 +581,5 @@ locals {
 
   deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.application_tier.user_assigned_identity_id) > 0
 
-
+  service_endpoints                    = var.use_private_endpoint ? ["Microsoft.Storage", "Microsoft.KeyVault"] : []
 }

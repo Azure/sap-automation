@@ -21,6 +21,13 @@ resource "azurerm_subnet" "subnet_sap_app" {
   resource_group_name                  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name                 = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_app.prefix]
+  dynamic "service_endpoint" {
+                                        for_each = local.service_endpoints
+                                          content {
+                                            service            = service_endpoint.value
+                                          }
+  }
+
 }
 
 data "azurerm_subnet" "subnet_sap_app" {
@@ -448,8 +455,7 @@ resource "azurerm_private_dns_a_record" "scs" {
                                              local.sid,
                                              var.application_tier.scs_instance_number)
                                          ))
-  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
-  zone_name                            = var.landscape_tfstate.dns_label
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns.id
   ttl                                  = 300
   records                              = [azurerm_lb.scs[0].frontend_ip_configuration[0].private_ip_address]
 }
@@ -463,8 +469,7 @@ resource "azurerm_private_dns_a_record" "ers" {
                                             local.sid,
                                             local.ers_instance_number)
                                           ))
-  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
-  zone_name                            = local.dns_label
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns.id
   ttl                                  = 300
   records                              = [azurerm_lb.scs[0].frontend_ip_configuration[1].private_ip_address]
 }
@@ -475,8 +480,13 @@ resource "azurerm_private_dns_a_record" "web" {
   name                                 = lower(format("%sweb%s",
                                            local.sid, var.application_tier.web_instance_number
                                          ))
-  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
-  zone_name                            = local.dns_label
+  private_dns_zone_id                  = data.azurerm_private_dns_zone.dns.id
   ttl                                  = 300
   records                              = [azurerm_lb.web[0].frontend_ip_configuration[0].private_ip_address]
+}
+
+data "azurerm_private_dns_zone" "dns" {
+  provider                             = azurerm.dnsmanagement
+  name                                 = var.dns_settings.dns_label
+  resource_group_name                  = var.dns_settings.management_dns_resourcegroup_name
 }

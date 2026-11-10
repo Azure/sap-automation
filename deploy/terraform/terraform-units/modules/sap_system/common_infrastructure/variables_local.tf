@@ -506,4 +506,8 @@ locals {
                                            )
                                          )
 
+
+  service_endpoints                    = local.create_sapmnt_private_endpoint ? ["Microsoft.Storage", "Microsoft.KeyVault"] : []
+
+
 }
