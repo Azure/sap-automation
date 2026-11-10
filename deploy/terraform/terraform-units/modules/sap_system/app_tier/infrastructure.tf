@@ -487,6 +487,6 @@ resource "azurerm_private_dns_a_record" "web" {
 
 data "azurerm_private_dns_zone" "dns" {
   provider                             = azurerm.dnsmanagement
-  name                                 = var.dns_settings.dns_label
-  resource_group_name                  = var.dns_settings.management_dns_resourcegroup_name
+  name                                 = var.landscape_tfstate.dns_label
+  resource_group_name                  = var.landscape_tfstate.management_dns_resourcegroup_name
 }
