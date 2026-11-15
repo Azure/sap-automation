@@ -531,7 +531,9 @@ run "greenfield_webapp_subnet_creates_resource" {
   command = plan
 
   variables {
-    app_service_deployment = true
+    app_service_deployment       = true
+    app_registration_app_id      = "11111111-1111-1111-1111-111111111111"
+    app_service_allowed_groups   = ["22222222-2222-2222-2222-222222222222"]
   }
 
   assert {
@@ -545,6 +547,8 @@ run "brownfield_webapp_subnet_reuses_existing" {
 
   variables {
     app_service_deployment    = true
+    app_registration_app_id   = "11111111-1111-1111-1111-111111111111"
+    app_service_allowed_identities = ["33333333-3333-3333-3333-333333333333"]
     management_network_arm_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing"
     webapp_subnet_arm_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-existing/subnets/AzureWebappSubnet"
   }

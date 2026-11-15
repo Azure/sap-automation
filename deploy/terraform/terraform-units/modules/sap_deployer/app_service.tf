@@ -219,6 +219,11 @@ resource "azurerm_windows_web_app" "webapp" {
                                              }
 
   lifecycle                                  {
+    precondition {
+      condition     = length(trimspace(var.app_service.app_registration_id)) > 0 && length(compact(concat(var.app_service.app_service_allowed_groups, var.app_service.app_service_allowed_identities))) > 0
+      error_message = "The web app requires an app registration and at least one operator group or identity in app_service_allowed_groups or app_service_allowed_identities."
+    }
+
     ignore_changes                              = [
                                                     zip_deploy_file
                                                   ]
