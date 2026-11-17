@@ -5,14 +5,14 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.81.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.80.0 |
-| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.80.0 |
+| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.81.0 |
+| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.81.0 |
 
 ## Modules
 
@@ -22,85 +22,85 @@ No modules.
 
 | Name | Type |
 | ---- | ---- |
-| [azurerm_application_security_group.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/application_security_group) | resource |
-| [azurerm_application_security_group.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/application_security_group) | resource |
-| [azurerm_availability_set.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/availability_set) | resource |
-| [azurerm_availability_set.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/availability_set) | resource |
-| [azurerm_availability_set.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/availability_set) | resource |
-| [azurerm_lb.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb) | resource |
-| [azurerm_lb.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb) | resource |
-| [azurerm_lb_backend_address_pool.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_backend_address_pool) | resource |
-| [azurerm_lb_backend_address_pool.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_backend_address_pool) | resource |
-| [azurerm_lb_probe.clst](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_probe) | resource |
-| [azurerm_lb_probe.fs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_probe) | resource |
-| [azurerm_lb_probe.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_probe) | resource |
-| [azurerm_lb_probe.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_probe) | resource |
-| [azurerm_lb_rule.clst](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_lb_rule.ers](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_lb_rule.fs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_lb_rule.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_lb_rule.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_linux_virtual_machine.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_linux_virtual_machine.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_linux_virtual_machine.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_managed_disk.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_network_interface.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.app_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.scs_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.web_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface_application_security_group_association.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_application_security_group_association) | resource |
-| [azurerm_network_interface_application_security_group_association.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_application_security_group_association) | resource |
-| [azurerm_network_interface_application_security_group_association.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_application_security_group_association) | resource |
-| [azurerm_network_interface_backend_address_pool_association.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_backend_address_pool_association) | resource |
-| [azurerm_network_interface_backend_address_pool_association.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_backend_address_pool_association) | resource |
-| [azurerm_network_security_group.nsg_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
-| [azurerm_network_security_group.nsg_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_group) | resource |
-| [azurerm_network_security_rule.webRule_internet](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_rule) | resource |
-| [azurerm_private_dns_a_record.ers](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_private_dns_a_record.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_private_dns_a_record.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_role_assignment.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.scs_ha](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_subnet.subnet_sap_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet.subnet_sap_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet) | resource |
-| [azurerm_subnet_network_security_group_association.Associate_nsg_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
-| [azurerm_subnet_network_security_group_association.Associate_nsg_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_network_security_group_association) | resource |
-| [azurerm_subnet_route_table_association.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
-| [azurerm_subnet_route_table_association.subnet_sap_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
-| [azurerm_subnet_route_table_association.subnet_sap_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/subnet_route_table_association) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_extension.configure_ansible_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.configure_ansible_scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.configure_ansible_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_app_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_app_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_scs_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_scs_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_web_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_web_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_app_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_app_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_scs_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_scs_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_web_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_web_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_windows_virtual_machine.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_virtual_machine) | resource |
-| [azurerm_windows_virtual_machine.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_virtual_machine) | resource |
-| [azurerm_windows_virtual_machine.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_virtual_machine) | resource |
-| [azurerm_network_security_group.nsg_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
-| [azurerm_network_security_group.nsg_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_group) | data source |
-| [azurerm_subnet.subnet_sap_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.subnet_sap_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
+| [azurerm_application_security_group.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/application_security_group) | resource |
+| [azurerm_application_security_group.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/application_security_group) | resource |
+| [azurerm_availability_set.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/availability_set) | resource |
+| [azurerm_availability_set.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/availability_set) | resource |
+| [azurerm_availability_set.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/availability_set) | resource |
+| [azurerm_lb.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb) | resource |
+| [azurerm_lb.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb) | resource |
+| [azurerm_lb_backend_address_pool.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_backend_address_pool) | resource |
+| [azurerm_lb_backend_address_pool.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_backend_address_pool) | resource |
+| [azurerm_lb_probe.clst](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_probe) | resource |
+| [azurerm_lb_probe.fs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_probe) | resource |
+| [azurerm_lb_probe.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_probe) | resource |
+| [azurerm_lb_probe.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_probe) | resource |
+| [azurerm_lb_rule.clst](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_lb_rule.ers](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_lb_rule.fs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_lb_rule.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_lb_rule.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_linux_virtual_machine.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_linux_virtual_machine.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_linux_virtual_machine.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_managed_disk.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_network_interface.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.app_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.scs_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.web_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface_application_security_group_association.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_application_security_group_association) | resource |
+| [azurerm_network_interface_application_security_group_association.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_application_security_group_association) | resource |
+| [azurerm_network_interface_application_security_group_association.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_application_security_group_association) | resource |
+| [azurerm_network_interface_backend_address_pool_association.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_backend_address_pool_association) | resource |
+| [azurerm_network_interface_backend_address_pool_association.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_backend_address_pool_association) | resource |
+| [azurerm_network_security_group.nsg_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_group.nsg_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_group) | resource |
+| [azurerm_network_security_rule.webRule_internet](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_rule) | resource |
+| [azurerm_private_dns_a_record.ers](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_private_dns_a_record.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_private_dns_a_record.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_role_assignment.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.scs_ha](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/role_assignment) | resource |
+| [azurerm_subnet.subnet_sap_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet) | resource |
+| [azurerm_subnet.subnet_sap_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet) | resource |
+| [azurerm_subnet_network_security_group_association.Associate_nsg_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_network_security_group_association.Associate_nsg_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_network_security_group_association) | resource |
+| [azurerm_subnet_route_table_association.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_subnet_route_table_association.subnet_sap_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_subnet_route_table_association.subnet_sap_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_extension.configure_ansible_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.configure_ansible_scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.configure_ansible_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_app_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_app_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_scs_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_scs_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_web_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_web_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_app_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_app_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_scs_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_scs_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_web_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_web_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_windows_virtual_machine.app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/windows_virtual_machine) | resource |
+| [azurerm_windows_virtual_machine.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/windows_virtual_machine) | resource |
+| [azurerm_windows_virtual_machine.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/windows_virtual_machine) | resource |
+| [azurerm_network_security_group.nsg_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_group) | data source |
+| [azurerm_network_security_group.nsg_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_group) | data source |
+| [azurerm_subnet.subnet_sap_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.subnet_sap_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
 
 ## Inputs
 

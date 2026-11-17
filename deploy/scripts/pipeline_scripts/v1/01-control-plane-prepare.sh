@@ -86,7 +86,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.15.7}"
+	configureNonDeployer "${tf_version:-1.17.0}"
 else
 	path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
 	export PATH=$PATH:$path
@@ -136,8 +136,10 @@ if az account show --query name; then
 	echo -e "$green--- Already logged in to Azure ---$reset"
 	az account show --query user --output yaml
 else
+	use_msi="$(is_msi_enabled)"
+	export use_msi
 
-	LogonToAzure $USE_MSI
+	LogonToAzure  "$use_msi"
 	return_code=$?
 	if [ 0 != $return_code ]; then
 		echo -e "$bold_red--- Login failed ---$reset"

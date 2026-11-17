@@ -4,8 +4,6 @@
 # Licensed under the MIT License.
 
 
-export PATH=/opt/terraform/bin:/opt/ansible/bin:${PATH}
-
 cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 source "${cmd_dir}/script_helper.sh"
 
@@ -56,6 +54,19 @@ sap_sid="$(awk '$1 == "sap_sid:" {print $2}' ${sap_params_file})"
 #         exit 1
 # fi
 
+# Extract the bom_base_name the sap_params_file, so that we can determine
+# the SAP application to install.
+bom_base_name="$(awk '$1 == "bom_base_name:" {print $2}' ${sap_params_file})"
+if [[ -z "${bom_base_name}" ]]; then
+         print_banner "Configuration" "BOM base name variable 'bom_base_name' not found in parameters file!" "error" "Please ensure that the 'bom_base_name' variable is defined in '${sap_params_file}'"
+         exit 1
+fi
+sap_sid="$(awk '$1 == "sap_sid:" {print $2}' ${sap_params_file})"
+# if [[ ! -e "${sap_sid}" ]]; then
+#         print_banner "Configuration" "SAP SID variable 'sap_sid' not found in parameters file!" "error" "Please ensure that the 'sap_sid' variable is defined in '${sap_params_file}'"
+#         exit 1
+# fi
+
 
 workload_vault_name="$(awk '$1 == "kv_name:" {print $2}' ${sap_params_file})"
 # if [[ -z "${workload_vault_name}" ]]; then
@@ -87,7 +98,7 @@ export           ANSIBLE_CONFIG="${cmd_dir}/ansible.cfg"
 export           ANSIBLE_LOOKUP_PLUGINS="${cmd_dir}/lookup_plugins":${ANSIBLE_LOOKUP_PLUGINS:+${ANSIBLE_LOOKUP_PLUGINS}}
 
 # if [[ ! -f "${ANSIBLE_INVENTORY}" ]]; then
-#         print_banner "Configuration" "Ansible inventory file '${ANSIBLE_INVENTORY}' not found!" "error" 
+#         print_banner "Configuration" "Ansible inventory file '${ANSIBLE_INVENTORY}' not found!" "error"
 #         exit 1
 # fi
 
@@ -235,7 +246,7 @@ do
                 basename_item_pre=$(basename "$item" .yaml)_pre.yaml
                 basename_item_post=$(basename "$item" .yaml)_post.yaml
 
-                
+
                 if [[ -f "${CUSTOM_PLAYBOOKS_PATH}/${basename_item_pre}" ]]; then
                         print_banner "SAP Configuration and Installation" "Executing pre-playbook '${basename_item_pre}'" info
                         ${DEBUG:+echo} \

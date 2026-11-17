@@ -47,7 +47,7 @@ SCRIPT_NAME="$(basename "$0")"
 
 if [[ -f /etc/profile.d/deploy_server.sh ]]; then
     path=$(grep -m 1 "export PATH=" /etc/profile.d/deploy_server.sh | awk -F'=' '{print $2}' | xargs)
-    export PATH=$path
+    export PATH=$PATH:$path
 fi
 
 banner_title="Remove Control Plane"
@@ -606,7 +606,7 @@ function remove_control_plane() {
         az keyvault update --name "$DEPLOYER_KEYVAULT" --public-network-access Enabled --output none
     fi
     if valid_kv_name "${APPLICATION_CONFIGURATION_NAME}" ; then
-        az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --enable-public-network --output none
+        az appconfig update --name "$APPLICATION_CONFIGURATION_NAME" --public-network-access Enabled --output none
     fi
 
     sleep 30

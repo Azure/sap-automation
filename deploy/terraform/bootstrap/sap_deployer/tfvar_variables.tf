@@ -495,7 +495,7 @@ variable "deployer_diagnostics_account_arm_id"        {
 
 variable "tf_version"                                 {
                                                         description = "Terraform version to install on deployer"
-                                                        default     = "1.15.7"
+                                                        default     = "1.17.0"
                                                       }
 
 variable "name_override_file"                         {
@@ -714,6 +714,51 @@ variable "agent_subnet_address_prefix"          {
                                                 }
 
 
+#######################################4#######################################8
+#                                                                              #
+#               Endpoint Subnet variables                                      #
+#                                                                              #
+#######################################4#######################################8
+
+variable "endpoint_subnet_name"                 {
+                                                  description = "The name of the endpoint subnet"
+                                                  default     = ""
+                                                }
+
+variable "endpoint_subnet_arm_id"               {
+                                                  description = "If provided, Azure resource id for the endpoint subnet"
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.endpoint_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.endpoint_subnet_arm_id))
+                                                                  error_message = "If specified the 'endpoint_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
+                                                }
+
+variable "endpoint_subnet_address_prefix"       {
+                                                  description = "The address prefix for the endpoint subnet"
+                                                  type        = string
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = var.endpoint_subnet_address_prefix == "" || can(cidrhost(var.endpoint_subnet_address_prefix, 0))
+                                                                  error_message = "If specified the 'endpoint_subnet_address_prefix' variable must be a valid CIDR prefix."
+                                                                }
+                                                }
+
+variable "endpoint_subnet_nsg_name"             {
+                                                  description = "The name of the endpoint subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "endpoint_subnet_nsg_arm_id"           {
+                                                  description = "If provided, Azure resource id for the endpoint subnet NSG"
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.endpoint_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.endpoint_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'endpoint_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
+                                                }
+
+
 #########################################################################################
 #                                                                                       #
 #  Web Application settings                                                             #
@@ -778,6 +823,17 @@ variable "add_Agent_IP"                              {
                                                         default     = true
                                                         type        = bool
                                                       }
+
+variable "app_service_allowed_groups"                {
+                                                        description = "List of object IDs to add to the app service access restrictions"
+                                                        default     = [""]
+                                                     }
+
+variable "app_service_allowed_identities"            {
+                                                        description = "List of identities to add to the app service access restrictions"
+                                                        default     = [""]
+                                                     }
+
 
 ###############################################################################
 #                                                                             #

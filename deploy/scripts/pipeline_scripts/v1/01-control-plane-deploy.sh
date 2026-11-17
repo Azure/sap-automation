@@ -113,7 +113,7 @@ configure_devops
 
 # Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-    configureNonDeployer "${tf_version:-1.15.7}"
+    configureNonDeployer "${tf_version:-1.17.0}"
 fi
 
 echo -e "$green--- Validations ---$reset"
@@ -171,12 +171,16 @@ if [ -v MSI_ID ]; then
 
 fi
 
-LogonToAzure $USE_MSI
+echo -e "$green--- az login ---$reset"
+use_msi="$(is_msi_enabled)"
+export use_msi
+
+LogonToAzure  "$use_msi"
 return_code=$?
 if [ 0 != $return_code ]; then
-    echo -e "$bold_red--- Login failed ---$reset"
-    echo "##vso[task.logissue type=error]az login failed."
-    exit $return_code
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 variableGroupName="$VARIABLE_GROUP_CONTROL_PLANE"
@@ -280,7 +284,7 @@ echo "Deployer subscription:               $ARM_SUBSCRIPTION_ID"
 echo -e "$green--- Read Variables from Variable group ---$reset"
 key_vault=$(getVariableFromVariableGroup "${VARIABLE_GROUP_ID}" "DEPLOYER_KEYVAULT" "${deployer_environment_file_name}" "keyvault")
 if [ "$sourced_from_file" == 1 ]; then
-    az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors
+    az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_KEYVAULT --value "${key_vault}" --output none --only-show-errors --detect false
 fi
 echo "Deployer TFvars:                      $deployer_tfvars_file_name"
 

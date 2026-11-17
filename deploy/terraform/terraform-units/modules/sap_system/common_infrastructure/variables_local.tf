@@ -29,7 +29,7 @@ locals {
                                              format("%s%s%s",
                                                var.naming.resource_prefixes.sdu_rg,
                                                local.prefix,
-                                               local.resource_suffixes.sdu_rg
+                                               var.naming.resource_suffixes.sdu_rg
                                              )
                                            )
                                          )
@@ -181,7 +181,7 @@ locals {
                                            format("%s%s%s",
                                              var.naming.resource_prefixes.ppg,
                                              local.prefix,
-                                             local.resource_suffixes.ppg
+                                             var.naming.resource_suffixes.ppg
                                            )
                                          ])
 
@@ -211,7 +211,7 @@ locals {
                                                         var.infrastructure.environment
                                                       ),
                                                       var.naming.separator,
-                                                      local.resource_suffixes.admin_subnet))): (
+                                                      var.naming.resource_suffixes.admin_subnet))): (
                                            can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)) ? (
                                                     try(split("/", var.infrastructure.virtual_networks.sap.subnet_admin.id_in_workload)[10], "")) :
                                                     ""
@@ -233,7 +233,7 @@ locals {
                                                       var.infrastructure.environment
                                                      ),
                                                     var.naming.separator,
-                                                    local.resource_suffixes.admin_subnet_nsg)
+                                                    var.naming.resource_suffixes.admin_subnet_nsg)
                                          )
                                        )
 
@@ -254,7 +254,7 @@ locals {
                                                      var.infrastructure.environment
                                                    ),
                                                    var.naming.separator,
-                                                   local.resource_suffixes.db_subnet))): (
+                                                   var.naming.resource_suffixes.db_subnet))): (
                                         can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)) ? (
                                                  try(split("/", var.infrastructure.virtual_networks.sap.subnet_db.id_in_workload)[10], "")) :
                                                  ""
@@ -276,7 +276,7 @@ locals {
                                                       var.infrastructure.environment
                                                      ),
                                                     var.naming.separator,
-                                                    local.resource_suffixes.db_subnet_nsg)
+                                                    var.naming.resource_suffixes.db_subnet_nsg)
                                          )
                                        )
 
@@ -304,7 +304,7 @@ locals {
   #       format("%s%s%s",
   #         local.prefix,
   #         var.naming.separator,
-  #         local.resource_suffixes.app_subnet
+  #         var.naming.resource_suffixes.app_subnet
   #       )
   #   ))) : (
   #   ""
@@ -319,7 +319,7 @@ locals {
   #     format("%s%s%s",
   #       local.prefix,
   #       var.naming.separator,
-  #       local.resource_suffixes.app_subnet_nsg
+  #       var.naming.resource_suffixes.app_subnet_nsg
   #     )
   #   )
   # )
@@ -336,7 +336,7 @@ locals {
                                                       var.infrastructure.environment
                                                     ),
                                                     var.naming.separator,
-                                                    local.resource_suffixes.storage_subnet))): (
+                                                    var.naming.resource_suffixes.storage_subnet))): (
                                          contains(keys(var.infrastructure.virtual_networks.sap), "subnet_storage") ?
                                             can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)) ?
                                               try(split("/", var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)[10], "") :
@@ -354,7 +354,63 @@ locals {
                                                        var.infrastructure.environment
                                                       ),
                                                      var.naming.separator,
-                                                     local.resource_suffixes.storage_subnet_nsg)
+                                                     var.naming.resource_suffixes.storage_subnet_nsg)
+                                          )
+                                        )
+
+  ##############################################################################################
+  #
+  #  Endpoint subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_name                 = var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                          coalesce(try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id)[10], ""),
+                                                    var.infrastructure.virtual_networks.sap.subnet_endpoint.name,
+                                                    format("%s%s%s%s",
+                                                      try(var.naming.resource_prefixes.endpoint_subnet, ""),
+                                                      length(local.prefix) > 0 ? (
+                                                        local.prefix) : (
+                                                        var.infrastructure.environment
+                                                      ),
+                                                      var.naming.separator,
+                                                      try(var.naming.resource_suffixes.endpoint_subnet, "")))): (
+                                          contains(keys(var.infrastructure.virtual_networks.sap), "subnet_endpoint") ?
+                                              can(provider::azurerm::parse_resource_id(var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload)) ?
+                                                try(split("/", var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload)[10], "") :
+                                                "":
+                                              "")
+
+  create_sapmnt_private_endpoint       = var.application_tier.use_AFS_for_sapmnt && var.use_private_endpoint && var.application_tier.enable_deployment && length(var.sapmnt_private_endpoint_id) == 0
+
+  sapmnt_private_endpoint_subnet_id    = local.create_sapmnt_private_endpoint ? (
+                                          var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? (
+                                            azurerm_subnet.endpoint[0].id) : (
+                                            try(var.landscape_tfstate.use_separate_storage_subnet, false) ? (
+                                              coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.id, var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload, var.infrastructure.virtual_networks.sap.subnet_storage.id, var.infrastructure.virtual_networks.sap.subnet_storage.id_in_workload)) : (
+                                              coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.id, var.infrastructure.virtual_networks.sap.subnet_endpoint.id_in_workload, var.infrastructure.virtual_networks.sap.subnet_app.id, var.infrastructure.virtual_networks.sap.subnet_app.id_in_workload)
+                                            )
+                                          )) : (
+                                          null
+                                        )
+
+  ##############################################################################################
+  #
+  #  Endpoint subnet NSG - Check if locally provided
+  #
+  ##############################################################################################
+
+  endpoint_subnet_nsg_name              = var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists || var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.exists_in_workload ? (
+                                          split("/",coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id, var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.id_in_workload)))[8] : (
+                                          coalesce(var.infrastructure.virtual_networks.sap.subnet_endpoint.nsg.name,
+                                                   format("%s%s%s%s",
+                                                     try(var.naming.resource_prefixes.endpoint_subnet_nsg,""),
+                                                     length(local.prefix) > 0 ? (
+                                                       local.prefix) : (
+                                                       var.infrastructure.environment
+                                                      ),
+                                                     var.naming.separator,
+                                                     try(var.naming.resource_suffixes.endpoint_subnet_nsg,""))
                                           )
                                         )
 

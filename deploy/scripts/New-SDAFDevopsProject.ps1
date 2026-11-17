@@ -379,36 +379,6 @@ Add-Content -Path $wikiFileName -Value "Azure DevOps organization: $ADO_Organiza
 
 <#-----------------------------------------------------------------------------|
  |                                                                             |
- | Install DevOps extension                                                    |
- |                                                                             |
- |-----------------------------------------------------------------------------|
-  Install the Azure DevOps extensions required for the pipelines. The main one is
-  the Post Build Cleanup extension, which is used to clean up the Terraform state
-  after the deployment, but there are also some others that are needed for
-  specific tasks in the pipelines.
- |-------------------------------------+---------------------------------------#>
-#region
-Write-Host  "Section: Installing the DevOps extensions ..." `
-            -ForegroundColor DarkCyan
-
-$extension_name = (az devops extension list --organization $ADO_Organization --query "[?extensionName=='Post Build Cleanup'].extensionName | [0]")
-
-if ($extension_name.Length -eq 0) {
-  Write-Host  "  Installing the Post Build Cleanup extension from the marketplace" `
-              -ForegroundColor Green
-  az devops extension install --organization $ADO_Organization --extension PostBuildCleanup --publisher-id mspremier --output none
-}
-else {
-  Write-Host  "  Post Build Cleanup extension is already installed" `
-              -ForegroundColor Yellow
-}
-<#-------------------------------------+---------------------------------------#>
-#endregion
-
-
-
-<#-----------------------------------------------------------------------------|
- |                                                                             |
  | Create DevOps project                                                       |
  |                                                                             |
  |-----------------------------------------------------------------------------|
@@ -729,7 +699,7 @@ if ($general_group_id.Length -eq 0) {
                                       --variables ANSIBLE_HOST_KEY_CHECKING=false          `
                                                   Deployment_Configuration_Path=WORKSPACES `
                                                   Branch=main                              `
-                                                  tf_version="1.15.7"                      `
+                                                  tf_version="1.17.0"                      `
                                                   ansible_core_version="2.16.18"           `
                                                   S-Username=$SUserName                    `
                                                   S-Password=$SPassword                    `

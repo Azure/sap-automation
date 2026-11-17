@@ -189,6 +189,33 @@ variables {
   }
 }
 
+run "accepts_endpoint_subnet_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "10.50.5.0/24"
+  }
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.endpoint_subnet == 1
+    error_message = "A valid endpoint CIDR must be accepted."
+  }
+}
+
+run "rejects_endpoint_subnet_non_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "not-a-cidr"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
+
+run "rejects_endpoint_subnet_invalid_mask" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "10.50.5.0/33"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
+
 run "rejects_management_firewall_subnet_arm_id" {
   command = plan
 

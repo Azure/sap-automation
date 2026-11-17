@@ -32,7 +32,7 @@ resource "azurerm_network_security_perimeter_association" "witness_storage" {
 
 resource "azurerm_network_security_perimeter_association" "transport" {
   provider                               = azurerm.deployer
-  count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? 1 : 0
+  count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) && local.use_AFS_for_shared && (var.create_transport_storage || length(var.transport_storage_account_id) > 0) ? 1 : 0
   name                                   = var.create_transport_storage && local.use_AFS_for_shared && length(var.transport_storage_account_id) == 0 ? (
                                                      azurerm_storage_account.transport[0].name) : (
                                                      try(data.azurerm_storage_account.transport[0].name, "")
@@ -48,7 +48,7 @@ resource "azurerm_network_security_perimeter_association" "transport" {
 
 resource "azurerm_network_security_perimeter_association" "install" {
   provider                               = azurerm.deployer
-  count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) ? 1 : 0
+  count                                  = try(var.deployer_tfstate.network_security_perimeter_deployment, false) && local.use_AFS_for_shared ? 1 : 0
   name                                   = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? (
                                                      azurerm_storage_account.install[0].name) : (
                                                      try(data.azurerm_storage_account.install[0].name, "")

@@ -9,7 +9,7 @@ function getVariableFromVariableGroup() {
 	local environment_variable_name="$4"
 	local variable_value
 
-	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv)
+	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv --detect false)
 	if [ -z "${variable_value}" ]; then
 		if [ -f "${environment_file_name}" ]; then
 			variable_value=$(grep "^$environment_variable_name" "${environment_file_name}" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
@@ -26,15 +26,15 @@ function saveVariableInVariableGroup() {
 	local variable_name="$2"
 	local variable_value="$3"
 
-	az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv --detect false)
 	if [ "$DEBUG" = True ]; then
 		echo "Variable value: $az_var"
 		echo "Variable length: ${#az_var}"
 	fi
 	if [ ${#az_var} -gt 0 ]; then
-		az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+		az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors --detect false
 	else
-		az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+		az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors --detect false
 	fi
 
 }
