@@ -79,7 +79,7 @@ they are not a substitute for the remote state blob.
 
 Use
 [`advanced_state_management.sh`](../../deploy/scripts/advanced_state_management.sh)
-only for a reviewed state operation. It supports `list`, `import`, and
+only for a reviewed state operation. It supports `list`, `import`, `show`, `break_lease` and
 `remove` for `sap_deployer`, `sap_library`, `sap_landscape`, and `sap_system`.
 
 > [!WARNING]

@@ -47,12 +47,12 @@ VARIABLE_GROUP="SDAF-$ZONE"
 
 az devops configure --defaults organization=$SYSTEM_COLLECTIONURI project=$SYSTEM_TEAMPROJECTID
 
-VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]")
+VARIABLE_GROUP_ID=$(az pipelines variable-group list --query "[?name=='$VARIABLE_GROUP'].id | [0]" --detect false)
 if [ -n "${VARIABLE_GROUP_ID}" ]; then
 
 	print_banner "$banner_title" "VARIABLE_GROUP name: $VARIABLE_GROUP" "info" "VARIABLE_GROUP id: $VARIABLE_GROUP_ID"
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "APPLICATION_CONFIGURATION_ID.value" --output tsv --detect false)
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=APPLICATION_CONFIGURATION_ID;isOutput=true]$az_var"
 	else
@@ -61,7 +61,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		fi
 	fi
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --output tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "CONTROL_PLANE_NAME.value" --output tsv --detect false)
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=CONTROL_PLANE_NAME;isOutput=true]$az_var"
 	else
@@ -70,7 +70,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		fi
 	fi
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_SUBSCRIPTION_ID.value" --output tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_SUBSCRIPTION_ID.value" --output tsv --detect false)
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID;isOutput=true]$az_var"
 	else
@@ -79,7 +79,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		fi
 	fi
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_ID.value" --output tsv --detect false)
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=ARM_CLIENT_ID;isOutput=true]$az_var"
 	else
@@ -96,18 +96,18 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 
 	fi
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_SECRET.value" --output tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_CLIENT_SECRET.value" --output tsv --detect false)
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true;issecret=true]$az_var"
 	else
 		if printenv ARM_CLIENT_SECRET; then
-			echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]$ARM_CLIENT_SECRET"
+			echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true;issecret=true]$ARM_CLIENT_SECRET"
 		else
 			echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;isOutput=true]"
 		fi
 	fi
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_TENANT_ID.value" --output tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_TENANT_ID.value" --output tsv --detect false)
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=ARM_TENANT_ID;isOutput=true]$az_var"
 	else
@@ -123,7 +123,7 @@ if [ -n "${VARIABLE_GROUP_ID}" ]; then
 		fi
 	fi
 
-	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv)
+	az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "ARM_OBJECT_ID.value" --output tsv --detect false)
 	if [ -n "${az_var}" ]; then
 		echo "##vso[task.setvariable variable=ARM_OBJECT_ID;isOutput=true]$az_var"
 	else

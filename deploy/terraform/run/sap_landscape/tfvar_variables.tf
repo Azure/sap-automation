@@ -27,7 +27,10 @@ variable "codename"                             {
 variable "location"                             {
                                                  description = "The Azure region for the resources"
                                                  type        = string
-                                                 default     = ""
+                                                  validation {
+                                                     condition     = length(var.location) != 0
+                                                     error_message = "The 'location' variable must be specified."
+                                                   }
                                                 }
 
 variable "name_override_file"                   {
@@ -80,6 +83,14 @@ variable "use_deployer"                          {
                                                    description = "Use deployer to deploy the resources"
                                                    default     = true
                                                  }
+
+variable "workload_zone"                          {
+                                                   description = "The workload zone for the deployment"
+                                                   type        = string
+                                                   default     = ""
+                                                 }
+
+
 #######################################4#######################################8
 #                                                                              #
 #                          Resource group definitions                          #
@@ -121,6 +132,10 @@ variable "network_name"                         {
 variable "network_logical_name"                 {
                                                   description = "The logical name of the virtual network, used for resource naming"
                                                   default     = ""
+                                                  validation {
+                                                     condition     = length(var.network_logical_name) <= 7 && length(var.network_logical_name) > 0
+                                                     error_message = "The 'network_logical_name' variable must be specified and at most 7 characters long."
+                                                   }
                                                 }
 
 variable "network_address_space"                {
@@ -315,6 +330,51 @@ variable "app_subnet_nsg_arm_id"                {
                                                   validation    {
                                                                   condition     = length(var.app_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.app_subnet_nsg_arm_id))
                                                                   error_message = "If specified the 'app_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
+                                                }
+
+
+#######################################4#######################################8
+#                                                                              #
+#               Endpoint Subnet variables                                      #
+#                                                                              #
+#######################################4#######################################8
+
+variable "endpoint_subnet_name"                 {
+                                                  description = "The name of the endpoint subnet"
+                                                  default     = ""
+                                                }
+
+variable "endpoint_subnet_arm_id"               {
+                                                  description = "If provided, Azure resource id for the endpoint subnet"
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.endpoint_subnet_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.endpoint_subnet_arm_id))
+                                                                  error_message = "If specified the 'endpoint_subnet_arm_id' variable must be a correct Azure resource identifier."
+                                                                }
+                                                }
+
+variable "endpoint_subnet_address_prefix"       {
+                                                  description = "The address prefix for the endpoint subnet"
+                                                  type        = string
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = var.endpoint_subnet_address_prefix == "" || can(cidrhost(var.endpoint_subnet_address_prefix, 0))
+                                                                  error_message = "If specified the 'endpoint_subnet_address_prefix' variable must be a valid CIDR prefix."
+                                                                }
+                                                }
+
+variable "endpoint_subnet_nsg_name"             {
+                                                  description = "The name of the endpoint subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "endpoint_subnet_nsg_arm_id"           {
+                                                  description = "If provided, Azure resource id for the endpoint subnet NSG"
+                                                  default     = ""
+                                                  validation    {
+                                                                  condition     = length(var.endpoint_subnet_nsg_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.endpoint_subnet_nsg_arm_id))
+                                                                  error_message = "If specified the 'endpoint_subnet_nsg_arm_id' variable must be a correct Azure resource identifier."
                                                                 }
                                                 }
 

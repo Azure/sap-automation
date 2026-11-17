@@ -5,15 +5,15 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.81.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.80.0 |
-| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.80.0 |
-| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.80.0 |
+| <a name="provider_azurerm.deployer"></a> [azurerm.deployer](#provider\_azurerm.deployer) | 4.81.0 |
+| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.81.0 |
+| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.81.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | n/a |
 
 ## Modules
@@ -24,57 +24,57 @@ No modules.
 
 | Name | Type |
 | ---- | ---- |
-| [azurerm_availability_set.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/availability_set) | resource |
-| [azurerm_lb.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb) | resource |
-| [azurerm_lb_backend_address_pool.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_backend_address_pool) | resource |
-| [azurerm_lb_probe.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_probe) | resource |
-| [azurerm_lb_probe.hdb_active_active](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_probe) | resource |
-| [azurerm_lb_rule.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_lb_rule.hdb_active_active](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_linux_virtual_machine.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_linux_virtual_machine.vm_dbnode](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_managed_disk.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.data_disk](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_netapp_volume.hanadata](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume) | resource |
-| [azurerm_netapp_volume.hanalog](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume) | resource |
-| [azurerm_netapp_volume.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume) | resource |
-| [azurerm_netapp_volume_group_sap_hana.avg_HANA_data2](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume_group_sap_hana) | resource |
-| [azurerm_netapp_volume_group_sap_hana.avg_HANA_data3](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume_group_sap_hana) | resource |
-| [azurerm_netapp_volume_group_sap_hana.avg_HANA_data4](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume_group_sap_hana) | resource |
-| [azurerm_netapp_volume_group_sap_hana.avg_HANA_full](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/netapp_volume_group_sap_hana) | resource |
-| [azurerm_network_interface.nics_dbnodes_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.nics_dbnodes_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.nics_dbnodes_storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface_application_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_application_security_group_association) | resource |
-| [azurerm_network_interface_backend_address_pool_association.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_backend_address_pool_association) | resource |
-| [azurerm_network_security_perimeter_association.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_security_perimeter_association) | resource |
-| [azurerm_private_dns_a_record.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_private_dns_a_record.db_active_active](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_private_endpoint.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_endpoint) | resource |
-| [azurerm_role_assignment.role_assignment_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_msi_ha](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_storage_account.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_account) | resource |
-| [azurerm_storage_share.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/storage_share) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.cluster_observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.vm_dbnode_data_disk](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_availability_set.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/availability_set) | resource |
+| [azurerm_lb.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb) | resource |
+| [azurerm_lb_backend_address_pool.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_backend_address_pool) | resource |
+| [azurerm_lb_probe.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_probe) | resource |
+| [azurerm_lb_probe.hdb_active_active](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_probe) | resource |
+| [azurerm_lb_rule.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_lb_rule.hdb_active_active](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_linux_virtual_machine.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_linux_virtual_machine.vm_dbnode](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_managed_disk.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.data_disk](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_netapp_volume.hanadata](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume) | resource |
+| [azurerm_netapp_volume.hanalog](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume) | resource |
+| [azurerm_netapp_volume.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume) | resource |
+| [azurerm_netapp_volume_group_sap_hana.avg_HANA_data2](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume_group_sap_hana) | resource |
+| [azurerm_netapp_volume_group_sap_hana.avg_HANA_data3](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume_group_sap_hana) | resource |
+| [azurerm_netapp_volume_group_sap_hana.avg_HANA_data4](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume_group_sap_hana) | resource |
+| [azurerm_netapp_volume_group_sap_hana.avg_HANA_full](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/netapp_volume_group_sap_hana) | resource |
+| [azurerm_network_interface.nics_dbnodes_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.nics_dbnodes_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.nics_dbnodes_storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface_application_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_application_security_group_association) | resource |
+| [azurerm_network_interface_backend_address_pool_association.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_backend_address_pool_association) | resource |
+| [azurerm_network_security_perimeter_association.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_security_perimeter_association) | resource |
+| [azurerm_private_dns_a_record.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_private_dns_a_record.db_active_active](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_private_endpoint.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_endpoint) | resource |
+| [azurerm_role_assignment.role_assignment_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_msi_ha](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/role_assignment) | resource |
+| [azurerm_storage_account.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_account) | resource |
+| [azurerm_storage_share.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/storage_share) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.cluster_observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.vm_dbnode_data_disk](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [time_sleep.wait_for_private_endpoints](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
-| [azurerm_availability_set.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/availability_set) | data source |
-| [azurerm_netapp_account.workload_netapp_account](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_account) | data source |
-| [azurerm_netapp_pool.workload_netapp_pool](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_pool) | data source |
-| [azurerm_netapp_volume.hanadata](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_volume) | data source |
-| [azurerm_netapp_volume.hanalog](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_volume) | data source |
-| [azurerm_netapp_volume.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/netapp_volume) | data source |
-| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter) | data source |
-| [azurerm_network_security_perimeter_profile.profile](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/network_security_perimeter_profile) | data source |
-| [azurerm_private_endpoint_connection.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/private_endpoint_connection) | data source |
-| [azurerm_subnet.ANF](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
-| [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/subnet) | data source |
+| [azurerm_availability_set.hdb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/availability_set) | data source |
+| [azurerm_netapp_account.workload_netapp_account](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/netapp_account) | data source |
+| [azurerm_netapp_pool.workload_netapp_pool](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/netapp_pool) | data source |
+| [azurerm_netapp_volume.hanadata](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/netapp_volume) | data source |
+| [azurerm_netapp_volume.hanalog](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/netapp_volume) | data source |
+| [azurerm_netapp_volume.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/netapp_volume) | data source |
+| [azurerm_network_security_perimeter.perimeter](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_perimeter) | data source |
+| [azurerm_network_security_perimeter_profile.profile](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/network_security_perimeter_profile) | data source |
+| [azurerm_private_endpoint_connection.hanashared](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/private_endpoint_connection) | data source |
+| [azurerm_subnet.ANF](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
+| [azurerm_subnet.storage](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/subnet) | data source |
 
 ## Inputs
 

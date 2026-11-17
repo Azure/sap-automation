@@ -157,6 +157,10 @@ output "additional_network_id"                     {
                                                        value       = length(var.additional_network_id) > 0 ? provider::azurerm::normalise_resource_id(split("/subnets/",var.additional_network_id)[0]) : ""
                                                      }
 
+output "endpoint_subnet_id"                     {
+                                                  description = "Azure resource identifier for the endpoint subnet"
+                                                  value       = module.sap_deployer.endpoint_subnet_id
+                                                }
 
 ###############################################################################
 #                                                                             #

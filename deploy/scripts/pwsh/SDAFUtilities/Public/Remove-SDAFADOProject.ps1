@@ -121,22 +121,8 @@ function Remove-SDAFADOProject {
       }
       #endregion
 
-      #region Install DevOps extensions
-      Write-Host "Installing the DevOps extensions" -ForegroundColor Green
-      Write-Verbose "Checking for Post Build Cleanup extension"
+      #region Configure Azure CLI extension installation
       az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
-
-      $ExtensionName = (az devops extension list --organization $AdoOrganization --query "[?extensionName=='Post Build Cleanup'].extensionName | [0]")
-
-      if ($ExtensionName.Length -eq 0) {
-        Write-Verbose "Installing Post Build Cleanup extension"
-        if ($PSCmdlet.ShouldProcess("DevOps Organization", "Install Post Build Cleanup Extension")) {
-          az devops extension install --organization $AdoOrganization --extension PostBuildCleanup --publisher-id mspremier --output none
-        }
-      }
-      else {
-        Write-Verbose "Post Build Cleanup extension already installed"
-      }
       #endregion
 
       #region Authentication and PAT handling

@@ -359,6 +359,60 @@ variables {
   }
 }
 
+run "greenfield_endpoint_subnet_creates_nsg_and_association" {
+  command = plan
+
+  variables {
+    endpoint_subnet_address_prefix = "10.0.5.0/24"
+    endpoint_subnet_nsg_name       = "endpoint-nsg"
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.endpoint_subnet == 1 && module.sap_deployer.infrastructure_resource_cardinality.endpoint_nsg == 1 && module.sap_deployer.infrastructure_resource_cardinality.endpoint_nsg_association == 1
+    error_message = "A new endpoint subnet must have a new NSG and an association."
+  }
+}
+
+run "greenfield_endpoint_subnet_associates_existing_nsg" {
+  command = plan
+
+  override_data {
+    target = module.sap_deployer.data.azurerm_network_security_group.endpoint
+    values = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-deployer/providers/Microsoft.Network/networkSecurityGroups/endpoint-nsg"
+    }
+  }
+
+  variables {
+    endpoint_subnet_address_prefix = "10.0.5.0/24"
+    endpoint_subnet_nsg_arm_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-deployer/providers/Microsoft.Network/networkSecurityGroups/endpoint-nsg"
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.endpoint_subnet == 1 && module.sap_deployer.infrastructure_resource_cardinality.endpoint_nsg == 0 && module.sap_deployer.infrastructure_resource_cardinality.endpoint_nsg_association == 1
+    error_message = "A supplied NSG must be associated with the new endpoint subnet without creating another NSG."
+  }
+}
+
+run "brownfield_endpoint_id_overrides_prefix" {
+  command = plan
+
+  variables {
+    endpoint_subnet_address_prefix = "10.0.5.0/24"
+    endpoint_subnet_arm_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-deployer/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/endpoint"
+  }
+
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.endpoint_subnet == 0 && module.sap_deployer.infrastructure_resource_cardinality.endpoint_nsg == 0 && module.sap_deployer.infrastructure_resource_cardinality.endpoint_nsg_association == 0
+    error_message = "An existing endpoint subnet must not create another subnet or change its NSG."
+  }
+
+  assert {
+    condition     = module.sap_deployer.endpoint_subnet_id == var.endpoint_subnet_arm_id
+    error_message = "The existing endpoint subnet ID must be exported even when a prefix is present."
+  }
+}
+
 run "firewall_deployment_creates_network_rule_collection" {
   command = plan
 

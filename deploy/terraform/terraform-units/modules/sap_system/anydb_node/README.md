@@ -5,14 +5,14 @@
 
 | Name | Version |
 | ---- | ------- |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.80.0 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | 4.81.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.80.0 |
-| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.80.0 |
+| <a name="provider_azurerm.dnsmanagement"></a> [azurerm.dnsmanagement](#provider\_azurerm.dnsmanagement) | 4.81.0 |
+| <a name="provider_azurerm.main"></a> [azurerm.main](#provider\_azurerm.main) | 4.81.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | n/a |
 
 ## Modules
@@ -23,36 +23,36 @@ No modules.
 
 | Name | Type |
 | ---- | ---- |
-| [azurerm_availability_set.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/availability_set) | resource |
-| [azurerm_lb.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb) | resource |
-| [azurerm_lb_backend_address_pool.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_backend_address_pool) | resource |
-| [azurerm_lb_probe.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_probe) | resource |
-| [azurerm_lb_rule.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/lb_rule) | resource |
-| [azurerm_linux_virtual_machine.dbserver](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_linux_virtual_machine.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_managed_disk.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.disks](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_managed_disk.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/managed_disk) | resource |
-| [azurerm_network_interface.anydb_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.anydb_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface) | resource |
-| [azurerm_network_interface_application_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_application_security_group_association) | resource |
-| [azurerm_network_interface_backend_address_pool_association.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/network_interface_backend_address_pool_association) | resource |
-| [azurerm_private_dns_a_record.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/private_dns_a_record) | resource |
-| [azurerm_role_assignment.role_assignment_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_role_assignment.role_assignment_msi_ha](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/role_assignment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_data_disk_attachment.vm_disks](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
-| [azurerm_virtual_machine_extension.configure_ansible](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_defender_db_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_virtual_machine_extension.monitoring_extension_db_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/virtual_machine_extension) | resource |
-| [azurerm_windows_virtual_machine.dbserver](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_virtual_machine) | resource |
-| [azurerm_windows_virtual_machine.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/resources/windows_virtual_machine) | resource |
+| [azurerm_availability_set.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/availability_set) | resource |
+| [azurerm_lb.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb) | resource |
+| [azurerm_lb_backend_address_pool.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_backend_address_pool) | resource |
+| [azurerm_lb_probe.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_probe) | resource |
+| [azurerm_lb_rule.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/lb_rule) | resource |
+| [azurerm_linux_virtual_machine.dbserver](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_linux_virtual_machine.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/linux_virtual_machine) | resource |
+| [azurerm_managed_disk.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.disks](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_managed_disk.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/managed_disk) | resource |
+| [azurerm_network_interface.anydb_admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.anydb_db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface) | resource |
+| [azurerm_network_interface_application_security_group_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_application_security_group_association) | resource |
+| [azurerm_network_interface_backend_address_pool_association.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/network_interface_backend_address_pool_association) | resource |
+| [azurerm_private_dns_a_record.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/private_dns_a_record) | resource |
+| [azurerm_role_assignment.role_assignment_msi](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.role_assignment_msi_ha](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/role_assignment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_data_disk_attachment.vm_disks](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_extension.configure_ansible](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_defender_db_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.monitoring_extension_db_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_windows_virtual_machine.dbserver](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/windows_virtual_machine) | resource |
+| [azurerm_windows_virtual_machine.observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/windows_virtual_machine) | resource |
 | [time_sleep.wait_30_secs](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
-| [azurerm_availability_set.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.80.0/docs/data-sources/availability_set) | data source |
+| [azurerm_availability_set.anydb](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/data-sources/availability_set) | data source |
 
 ## Inputs
 

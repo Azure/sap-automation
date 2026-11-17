@@ -359,29 +359,32 @@
         mnt_free_diskspace:            "{{ ansible_mounts | json_query('[?mount == `/mnt`].size_available') }}"
       tags:
                                        - always
-
     - name:                            "Validation Playbook - Show Free diskspace on /mnt"
-      ansible.builtin.debug:
-        msg:                           "mnt_free_diskspace: {{ mnt_free_diskspace }}"
-      tags:
-                                       - always
-
-    - name:                            "Validation Playbook - Deployer disk space requirements"
-      ansible.builtin.set_fact:
-        deployer_free_temp_disk_space: 40
       when:
-        - deployer_free_temp_disk_space is not defined
-      tags:
-                                       - always
+        - NFS_provider not in ('ANF', 'AFS')
+      block:
+        - name:                            "Validation Playbook - Show Free diskspace on /mnt"
+          ansible.builtin.debug:
+            msg:                           "mnt_free_diskspace: {{ mnt_free_diskspace }}"
+          tags:
+                                          - always
 
-    - name:                            "Validation Playbook - Check for free disk space on deployer"
-      ansible.builtin.assert:
-        that:                          (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > ( deployer_free_temp_disk_space )
-        fail_msg:                      "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
-      when:
-        - mnt_free_diskspace | length > 0
-      tags:
-                                       - 0.0-agent-diskspace
+        - name:                            "Validation Playbook - Deployer disk space requirements"
+          ansible.builtin.set_fact:
+            deployer_free_temp_disk_space: 40
+          when:
+            - deployer_free_temp_disk_space is not defined
+          tags:
+                                          - always
+
+        - name:                            "Validation Playbook - Check for free disk space on deployer"
+          ansible.builtin.assert:
+            that:                          (mnt_free_diskspace | first | int / (1024 * 1024 * 1024) | int) > ( deployer_free_temp_disk_space )
+            fail_msg:                      "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
+          when:
+            - mnt_free_diskspace | length > 0
+          tags:
+                                          - 0.0-agent-diskspace
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
