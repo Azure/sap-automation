@@ -13,7 +13,31 @@ variable "bastion_deployment"              { description = "Value indicating if 
 variable "bastion_sku"                     { description = "The SKU of the Bastion Host. Accepted values are Basic or Standard" }
 variable "bootstrap"                       { description = "Defines the phase of deployment" }
 variable "configure"                       { description = "Value indicating if deployer should be configured" }
-variable "infrastructure"                  { description = "Dictionary of information about the common infrastructure" }
+variable "infrastructure"                  {
+                                             description = "Dictionary of information about the deployer infrastructure"
+                                             default     = {}
+                                             validation {
+                                               condition = (
+                                                 length(trimspace(try(var.infrastructure.region, ""))) != 0
+                                               )
+                                               error_message = "The region must be specified in the infrastructure.region field."
+                                             }
+
+                                             validation {
+                                               condition = (
+                                                 length(trimspace(try(var.infrastructure.environment, ""))) != 0
+                                               )
+                                               error_message = "The environment must be specified in the infrastructure.environment field."
+                                             }
+
+                                             validation {
+                                               condition = (
+                                                 length(trimspace(try(var.infrastructure.virtual_network.management.logical_name, ""))) != 0
+                                               )
+                                               error_message = "Please specify the logical VNet identifier in the var.management_network_logical_name variable"
+                                             }
+}
+
 variable "naming"                          { description = "Defines the names for the resources" }
 variable "naming_new"                      { description = "Defines the additional names for the resources" }
 variable "options"                         { description = "Dictionary of miscallaneous parameters" }
@@ -115,7 +139,18 @@ variable "spn_id"                      { description = "SPN ID to be used for th
 #                                                                              #
 #######################################4#######################################8
 
-variable "app_service"                 { description = "Details of the Application Service" }
+
+
+variable "app_service"                 {
+                                         description = "Details of the Application Service"
+
+                                         validation {
+                                                             condition = (
+                                                               length(trimspace(var.app_service.app_registration_id)) > 0 && length(compact(concat(var.app_service.app_service_allowed_groups, var.app_service.app_service_allowed_identities))) > 0
+                                                             )
+                                                             error_message = "The web app requires an app registration and at least one operator group or identity in app_service_allowed_groups or app_service_allowed_identities."
+                                                    }
+                                       }
 
 variable "app_config_service"          { description = "Details of the Application Configuration Service" }
 
