@@ -32,7 +32,7 @@ variable "infrastructure"                  {
 
                                              validation {
                                                condition = (
-                                                 length(trimspace(try(var.infrastructure.virtual_network.management.logical_name, ""))) != 0
+                                                 length(trimspace(try(var.infrastructure.virtual_network.logical_name, ""))) != 0
                                                )
                                                error_message = "Please specify the logical VNet identifier in the var.management_network_logical_name variable"
                                              }
@@ -146,7 +146,7 @@ variable "app_service"                 {
 
                                          validation {
                                                              condition = (
-                                                               length(trimspace(var.app_service.app_registration_id)) > 0 && length(compact(concat(var.app_service.app_service_allowed_groups, var.app_service.app_service_allowed_identities))) > 0
+                                                               !var.app_service.use || (length(trimspace(var.app_service.app_registration_id)) > 0 && length(compact(concat(var.app_service.app_service_allowed_groups, var.app_service.app_service_allowed_identities))) > 0)
                                                              )
                                                              error_message = "The web app requires an app registration and at least one operator group or identity in app_service_allowed_groups or app_service_allowed_identities."
                                                     }
