@@ -146,7 +146,7 @@ variable "app_service"                 {
 
                                          validation {
                                                              condition = (
-                                                               !var.app_service.use || (length(trimspace(var.app_service.app_registration_id)) > 0 && length(compact(concat(var.app_service.app_service_allowed_groups, var.app_service.app_service_allowed_identities))) > 0)
+                                                               !var.app_service.use || (length(trimspace(var.app_service.app_registration_id)) > 0 && length(compact([for value in concat(var.app_service.app_service_allowed_groups, var.app_service.app_service_allowed_identities) : trimspace(value)])) > 0)
                                                              )
                                                              error_message = "The web app requires an app registration and at least one operator group or identity in app_service_allowed_groups or app_service_allowed_identities."
                                                     }
