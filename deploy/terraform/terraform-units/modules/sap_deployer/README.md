@@ -179,7 +179,6 @@ No modules.
 | <a name="input_deployer"></a> [deployer](#input\_deployer) | Dictionary of information about the deployer | `any` | n/a | yes |
 | <a name="input_enable_purge_control_for_keyvaults"></a> [enable\_purge\_control\_for\_keyvaults](#input\_enable\_purge\_control\_for\_keyvaults) | Disables the purge protection for Azure keyvaults. | `any` | n/a | yes |
 | <a name="input_firewall"></a> [firewall](#input\_firewall) | Dictionary of Firewall settings | `any` | n/a | yes |
-| <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary of information about the deployer infrastructure | `any` | n/a | yes |
 | <a name="input_key_vault"></a> [key\_vault](#input\_key\_vault) | The user brings existing Azure Key Vaults | `any` | n/a | yes |
 | <a name="input_naming"></a> [naming](#input\_naming) | Defines the names for the resources | `any` | n/a | yes |
 | <a name="input_naming_new"></a> [naming\_new](#input\_naming\_new) | Defines the additional names for the resources | `any` | n/a | yes |
@@ -198,6 +197,7 @@ No modules.
 | <a name="input_deployer_vm_count"></a> [deployer\_vm\_count](#input\_deployer\_vm\_count) | Number of deployer VMs to create | `number` | `1` | no |
 | <a name="input_dns_settings"></a> [dns\_settings](#input\_dns\_settings) | DNS details for the deployment | `map` | `{}` | no |
 | <a name="input_enable_firewall_for_keyvaults_and_storage"></a> [enable\_firewall\_for\_keyvaults\_and\_storage](#input\_enable\_firewall\_for\_keyvaults\_and\_storage) | Boolean value indicating if firewall should be enabled for key vaults and storage | `bool` | `false` | no |
+| <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary of information about the deployer infrastructure | `map` | `{}` | no |
 | <a name="input_platform"></a> [platform](#input\_platform) | Type of agent to be used | `string` | `"devops"` | no |
 | <a name="input_subnets_to_add"></a> [subnets\_to\_add](#input\_subnets\_to\_add) | List of subnets to add to storage account and keyvaults firewall | `list` | `[]` | no |
 
