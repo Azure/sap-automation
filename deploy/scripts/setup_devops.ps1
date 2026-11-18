@@ -128,17 +128,6 @@ Add-Content -Path $fname -Value "## Deployment details"
 Add-Content -Path $fname -Value ""
 Add-Content -Path $fname -Value "Azure DevOps organization: $ADO_Organization"
 
-#region Install extension
-
-Write-Host "Installing the DevOps extensions" -ForegroundColor Green
-$extension_name = (az devops extension list --organization $ADO_Organization --query "[?extensionName=='Post Build Cleanup'].extensionName | [0]")
-
-if ($extension_name.Length -eq 0) {
-  az devops extension install --organization $ADO_Organization --extension PostBuildCleanup --publisher-id mspremier --output none
-}
-
-#endregion
-
 #region Create DevOps project
 $Project_ID = (az devops project list --organization $ADO_ORGANIZATION --query "[value[]] | [0] | [? name=='$ADO_PROJECT'].id | [0]")
 
@@ -485,7 +474,7 @@ Write-Host "Creating the variable group SDAF-General" -ForegroundColor Green
 
 $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
 if ($general_group_id.Length -eq 0) {
-  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.15.7" ansible_core_version="2.16" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
+  az pipelines variable-group create --name SDAF-General --variables ANSIBLE_HOST_KEY_CHECKING=false Deployment_Configuration_Path=WORKSPACES Branch=main tf_version="1.17.0" ansible_core_version="2.16" S-Username=$SUserName S-Password=$SPassword --output yaml --authorize true --output none
   $general_group_id = (az pipelines variable-group list --query "[?name=='SDAF-General'].id | [0]" --only-show-errors)
   az pipelines variable-group variable update --group-id $general_group_id --name "S-Password" --value $SPassword --secret true --output none --only-show-errors
 

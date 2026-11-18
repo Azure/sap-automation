@@ -66,6 +66,18 @@ locals {
                                                                   exists = length(var.agent_subnet_arm_id) > 0
                                                                   prefix = var.agent_subnet_address_prefix
                                                                 }
+                                              subnet_endpoint =    {
+                                                                  name   = var.endpoint_subnet_name,
+                                                                  id     = var.endpoint_subnet_arm_id
+                                                                  exists = length(var.endpoint_subnet_arm_id) > 0
+                                                                  prefix = var.endpoint_subnet_address_prefix
+                                                                  defined = length(var.endpoint_subnet_address_prefix) > 0 && length(var.endpoint_subnet_arm_id)==0
+                                                                  nsg = {
+                                                                    name        = var.endpoint_subnet_nsg_name
+                                                                    exists      = length(var.endpoint_subnet_nsg_arm_id) > 0
+                                                                    id          = var.endpoint_subnet_nsg_arm_id
+                                                                  }
+                                                                }
                                             }
                                           }
 
@@ -200,6 +212,8 @@ locals {
                                            use                 = var.app_service_deployment
                                            app_registration_id = var.app_registration_app_id
                                            client_secret       = var.webapp_client_secret
+                                           app_service_allowed_groups     = var.app_service_allowed_groups
+                                           app_service_allowed_identities = var.app_service_allowed_identities
                                          }
 
   dns_settings                         = {

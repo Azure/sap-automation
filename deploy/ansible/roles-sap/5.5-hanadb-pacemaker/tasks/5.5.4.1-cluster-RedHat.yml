@@ -167,13 +167,17 @@
       register:                        constraint
       failed_when:                     constraint.rc > 1
 
+    - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Set pcs command mode based on RHEL version"
+      ansible.builtin.set_fact:
+        pcs_update_cmd:                "{{ 'update' if ansible_distribution_major_version | int >= 10 else '' }}"
+
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add resource defaults resource-stickiness=1000"
-      ansible.builtin.shell:           pcs resource defaults resource-stickiness=1000
+      ansible.builtin.shell:           pcs resource defaults{% if pcs_update_cmd %} {{ pcs_update_cmd }}{% endif %} resource-stickiness=1000
       register:                        resource_defaults
       failed_when:                     resource_defaults.rc > 1
 
     - name:                            "5.5.4.1 HANA Cluster configuration - REDHAT - Add resource defaults migration-threshold=5000"
-      ansible.builtin.shell:           pcs resource defaults migration-threshold=5000
+      ansible.builtin.shell:           pcs resource defaults{% if pcs_update_cmd %} {{ pcs_update_cmd }}{% endif %} migration-threshold=5000
       register:                        resource_defaults
       failed_when:                     resource_defaults.rc > 1
 

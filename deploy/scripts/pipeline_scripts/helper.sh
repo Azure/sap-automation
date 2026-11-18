@@ -110,7 +110,7 @@ function getVariableFromVariableGroup() {
 	#		so change to the repository root for this command and then change back to the original directory when done.
 	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
-	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv)
+	variable_value=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --output tsv --detect false)
 	if [ -z "${variable_value}" ]; then
 		if [ -f "${environment_file_name}" ]; then
 			variable_value=$(grep "^$environment_variable_name" "${environment_file_name}" | awk -F'=' '{print $2}' | tr -d ' \t\n\r\f"' || true)
@@ -137,26 +137,26 @@ function saveVariableInVariableGroup() {
             print_banner "Saving variable" "Variable name: $variable_name" "info" "Variable value: $variable_value"
         fi
 
-		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
+		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv --detect false)
 		if [[ ${DEBUG:-False} = True ]]; then
 			echo "Variable value:  $az_var"
 			echo "Variable length: ${#az_var}"
 		fi
 		if [ ${#az_var} -gt 0 ]; then
-			az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+			az pipelines variable-group variable update --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors --detect false
 			local_return_code=$?
 		else
-			az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors
+			az pipelines variable-group variable create --group-id "${variable_group_id}" --name "${variable_name}" --value "${variable_value}" --output none --only-show-errors --detect false
 			local_return_code=$?
 		fi
 	else
-		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv)
+		az_var=$(az pipelines variable-group variable list --group-id "${variable_group_id}" --query "${variable_name}.value" --out tsv --detect false)
 		if [[ ${DEBUG:-False} = True ]]; then
 			echo "Variable value:  $az_var"
 			echo "Variable length: ${#az_var}"
 		fi
 		if [ ${#az_var} -gt 0 ]; then
-			az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --yes --output none --only-show-errors
+			az pipelines variable-group variable delete --group-id "${variable_group_id}" --name "${variable_name}" --yes --output none --only-show-errors --detect false
 			local_return_code=$?
 		fi
 	fi
@@ -340,7 +340,7 @@ function get_variable_group_id() {
 	pushd "$BUILD_SOURCESDIRECTORY" > /dev/null
 
 	unset GROUP_ID
-	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv)
+	variable_group_id=$(az pipelines variable-group list --query "[?name=='$variable_group_name'].id | [0]" --output tsv --detect false)
 	popd > /dev/null
 	if [ -z "$variable_group_id" ]; then
 		return 1
@@ -406,8 +406,6 @@ function configure_devops() {
     TF_VAR_devops_platform="ADO"
     export TF_VAR_devops_platform
 
-
-
     if [ -n "${TF_BUILD+x}" ]; then
 
         echo -e "$green--- Configure devops CLI extension ---$reset"
@@ -443,6 +441,6 @@ function remove_variable() {
     local variable_group="$1"
     variable_value=$(az pipelines variable-group variable list --group-id "${variable_group}" --query "$variable_name.value" --out tsv)
     if [ ${#variable_value} != 0 ]; then
-        az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors
+        az pipelines variable-group variable delete --group-id "${variable_group}" --name "$variable_name" --yes --only-show-errors --detect false
     fi
 }

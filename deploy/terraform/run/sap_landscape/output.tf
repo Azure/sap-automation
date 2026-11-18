@@ -64,6 +64,16 @@ output "app_nsg_id"                              {
                                                    value       = length(var.app_subnet_nsg_arm_id) > 0 ? var.app_subnet_nsg_arm_id : module.sap_landscape.app_nsg_id
                                                  }
 
+output "endpoint_subnet_id"                     {
+                                                   description = "Azure resource identifier for the endpoint subnet"
+                                                   value       = length(var.endpoint_subnet_arm_id) > 0 ? var.endpoint_subnet_arm_id : module.sap_landscape.endpoint_subnet_id
+                                                 }
+
+output "endpoint_nsg_id"                        {
+                                                   description = "Azure resource identifier for the endpoint subnet network security group"
+                                                   value       = length(var.endpoint_subnet_nsg_arm_id) > 0 ? var.endpoint_subnet_nsg_arm_id : module.sap_landscape.endpoint_nsg_id
+                                                 }
+
 output "db_subnet_id"                            {
                                                    description = "Azure resource identifier for the db subnet"
                                                    value       = length(var.db_subnet_arm_id) > 0 ? var.db_subnet_arm_id : module.sap_landscape.db_subnet_id

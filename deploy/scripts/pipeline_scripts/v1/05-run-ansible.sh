@@ -60,22 +60,22 @@ if [ $USE_MSI == "true" ]; then
 	export ARM_USE_MSI
 fi
 
+# Check if running on deployer
 if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
-	configureNonDeployer "${tf_version:-1.15.7}"
+	configureNonDeployer "${tf_version:-1.17.0}"
 fi
+configure_devops
 
-if az account show --query name; then
-	echo -e "$green--- Already logged in to Azure ---$reset"
-else
-	# Check if running on deployer
-	echo -e "$green--- az login ---$reset"
-	LogonToAzure $USE_MSI
-	return_code=$?
-	if [ 0 != $return_code ]; then
-		echo -e "$bold_red--- Login failed ---$reset"
-		echo "##vso[task.logissue type=error]az login failed."
-		exit $return_code
-	fi
+echo -e "$green--- az login ---$reset"
+use_msi="$(is_msi_enabled)"
+export use_msi
+
+LogonToAzure  "$use_msi"
+return_code=$?
+if [ 0 != $return_code ]; then
+	echo -e "$bold_red--- Login failed ---$reset"
+	echo "##vso[task.logissue type=error]az login failed."
+	exit $return_code
 fi
 
 key_vault_id=$(az graph query -q "Resources | join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subscription=name, subscriptionId) on subscriptionId | where name == '$VAULT_NAME' | project id, name, subscription" --query data[0].id --output tsv)
@@ -103,6 +103,14 @@ else
 	fi
 fi
 
+# Absolute path to the SSH private key. ansible-playbook is later invoked from a
+# different working directory, so every reference to the key must be absolute.
+if [[ "$SSH_KEY_NAME" == /* ]]; then
+	SSH_KEY_FILE="$SSH_KEY_NAME"
+else
+	SSH_KEY_FILE="${curdir}/${SSH_KEY_NAME}"
+fi
+
 if [ ! -v PASSWORD_KEY_NAME ]; then
 	PASSWORD_KEY_NAME="${WORKLOAD_ZONE_NAME}-sid-password"
 else
@@ -119,20 +127,20 @@ else
 	fi
 fi
 
-if [ ! -f "$SSH_KEY_NAME" ]; then
+if [ ! -f "$SSH_KEY_FILE" ]; then
 	echo "##[section]Retrieving sshkey..."
-	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$SSH_KEY_NAME"
-	if [ -f "$SSH_KEY_NAME" ]; then
-		sudo chmod 600 "$SSH_KEY_NAME"
+	az keyvault secret show --name "$SSH_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv >"$SSH_KEY_FILE"
+	if [ -f "$SSH_KEY_FILE" ]; then
+		sudo chmod 600 "$SSH_KEY_FILE"
 	fi
 else
 	echo "##[section]SSH key already exists, skipping retrieval."
-	sudo chmod 600 "$SSH_KEY_NAME"
+	sudo chmod 600 "$SSH_KEY_FILE"
 fi
 
-ssh_key_path="$SSH_KEY_NAME"
-if [[ "$SSH_KEY_NAME" != /* ]]; then
-	ssh_key_path="$curdir/$SSH_KEY_NAME"
+ssh_key_path="$SSH_KEY_FILE"
+if [[ "$SSH_KEY_FILE" != /* ]]; then
+	ssh_key_path="$curdir/$SSH_KEY_FILE"
 fi
 
 password_secret=$(az keyvault secret show --name "$PASSWORD_KEY_NAME" --vault-name "$key_vault_name" --subscription "$key_vault_subscription" --query value --output tsv)

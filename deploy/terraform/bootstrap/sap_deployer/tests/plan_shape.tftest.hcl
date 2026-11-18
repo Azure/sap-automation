@@ -208,6 +208,7 @@ run "greenfield_optional_subnets_and_services_create_resources" {
     app_service_deployment                    = true
     webapp_subnet_address_prefix              = "10.20.3.0/26"
     app_registration_app_id                   = "11111111-1111-1111-1111-111111111111"
+    app_service_allowed_groups                = ["22222222-2222-2222-2222-222222222222"]
     webapp_client_secret                      = "diagnostic-only-secret"
     application_configuration_deployment      = true
     network_security_perimeter_deployment     = true
@@ -250,6 +251,7 @@ run "brownfield_optional_subnets_and_services_reuse_existing_ids" {
     app_service_deployment                = true
     webapp_subnet_arm_id                  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet-mgmt/subnets/snet-webapp"
     app_registration_app_id               = "11111111-1111-1111-1111-111111111111"
+    app_service_allowed_identities        = ["33333333-3333-3333-3333-333333333333"]
     webapp_client_secret                  = "diagnostic-only-secret"
     application_configuration_deployment  = true
     application_configuration_id          = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-app/providers/Microsoft.AppConfiguration/configurationStores/appcfgbootstrap"
@@ -437,6 +439,7 @@ run "webapp_deployment_creates_webapp_subnet" {
     app_service_deployment       = true
     webapp_subnet_address_prefix = "10.20.3.0/26"
     app_registration_app_id      = "11111111-1111-1111-1111-111111111111"
+    app_service_allowed_groups   = ["22222222-2222-2222-2222-222222222222"]
     webapp_client_secret         = "diagnostic-only-secret"
   }
 

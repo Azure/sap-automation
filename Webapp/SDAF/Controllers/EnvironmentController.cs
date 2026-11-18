@@ -6,31 +6,38 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace SDAFWebApp.Controllers
 {
     public class EnvironmentController : Controller
     {
         private readonly IConfiguration _configuration;
-        private RestHelper restHelper;
+        private readonly RestHelper restHelper;
+        private readonly ILogger<EnvironmentController> _logger;
 
-        public EnvironmentController(IConfiguration configuration)
+        public EnvironmentController(
+            IConfiguration configuration,
+            RestHelper restHelper,
+            ILogger<EnvironmentController> logger)
         {
             _configuration = configuration;
-            restHelper = new RestHelper(configuration);
+            this.restHelper = restHelper;
+            _logger = logger;
         }
 
         [ActionName("Index")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             EnvironmentModel[] variableGroups = Array.Empty<EnvironmentModel>();
             try
             {
-                variableGroups = restHelper.GetVariableGroups().Result;
+                variableGroups = await restHelper.GetVariableGroups();
             }
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to retrieve environments");
+                TempData["error"] = "Environments could not be retrieved.";
             }
             return View(variableGroups);
         }
@@ -42,9 +49,10 @@ namespace SDAFWebApp.Controllers
             {
                 return Json(await restHelper.GetEnvironmentsList());
             }
-            catch
+            catch (Exception e)
             {
-                return null;
+                _logger.LogError(e, "Failed to retrieve environments");
+                return StatusCode(503, new { error = "Environments are temporarily unavailable." });
             }
         }
 
@@ -67,7 +75,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("EnvironmentId", "Error creating environment: " + e.Message);
+                _logger.LogError(e, "Failed to create environment");
+                ModelState.AddModelError("EnvironmentId", "The environment could not be created.");
             }
             return View(environment);
         }
@@ -82,7 +91,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                TempData["error"] = e.Message;
+                _logger.LogError(e, "Failed to load environment");
+                TempData["error"] = "The environment could not be loaded.";
                 return RedirectToAction("Index");
             }
         }
@@ -100,7 +110,8 @@ namespace SDAFWebApp.Controllers
             }
             catch (Exception e)
             {
-                ModelState.AddModelError("EnvironmentId", "Error editing environment: " + e.Message);
+                _logger.LogError(e, "Failed to edit environment");
+                ModelState.AddModelError("EnvironmentId", "The environment could not be updated.");
             }
             return View(environment);
         }

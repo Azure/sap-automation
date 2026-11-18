@@ -8,6 +8,7 @@ using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SDAFWebApp.Controllers
@@ -15,15 +16,18 @@ namespace SDAFWebApp.Controllers
     public class GitHubEnvironmentController : Controller
     {
         private readonly IConfiguration _configuration;
-        private GitHubEnvironmentHelper _helper;
+        private readonly GitHubEnvironmentHelper _helper;
         private readonly string _ghOrganization;
         private readonly string _ghRepository;
         private readonly string _ghToken;
         private readonly string _sdafControlPlaneName;
 
-        public GitHubEnvironmentController(IConfiguration configuration)
+        public GitHubEnvironmentController(
+            IConfiguration configuration,
+            GitHubEnvironmentHelper helper)
         {
             _configuration = configuration;
+            _helper = helper;
             var repoFullName = configuration["GITHUB_REPOSITORY"];
             if (string.IsNullOrWhiteSpace(repoFullName) || !repoFullName.Contains('/'))
             {
@@ -41,16 +45,15 @@ namespace SDAFWebApp.Controllers
             _ghToken = configuration["GITHUB_PAT"];
             _sdafControlPlaneName = configuration["CONTROL_PLANE_NAME"];
 
-            _helper = new GitHubEnvironmentHelper(_ghToken, _ghOrganization, _ghRepository);
         }
 
         [ActionName("Index")]
-        public async Task<IActionResult> IndexAsync()
+        public async Task<IActionResult> IndexAsync(CancellationToken cancellationToken)
         {
             GHEnvironmentModel[] ghEnvironments = Array.Empty<GHEnvironmentModel>();
             try
             {
-                var environments = await _helper.ListEnvironmentsAsync();
+                var environments = await _helper.ListEnvironmentsAsync(cancellationToken);
                 ghEnvironments = environments.ConvertAll(e => new GHEnvironmentModel
                 {
                     Id = e.Id,
@@ -67,11 +70,11 @@ namespace SDAFWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetEnvironments()
+        public async Task<ActionResult> GetEnvironments(CancellationToken cancellationToken)
         {
             try
             {
-                return Json(await _helper.ListEnvironmentsAsync());
+                return Json(await _helper.ListEnvironmentsAsync(cancellationToken));
             }
             catch (Exception e)
             {
@@ -124,11 +127,11 @@ namespace SDAFWebApp.Controllers
         }
 
         [ActionName("Edit")]
-        public async Task<ActionResult> EditAsync(string name)
+        public async Task<ActionResult> EditAsync(string name, CancellationToken cancellationToken)
         {
             try
             {
-                var ghEnvironment = await _helper.GetEnvironmentAsync(name);
+                var ghEnvironment = await _helper.GetEnvironmentAsync(name, cancellationToken);
                 GHEnvironmentModel environment = new GHEnvironmentModel
                 {
                     Id = ghEnvironment.Id,

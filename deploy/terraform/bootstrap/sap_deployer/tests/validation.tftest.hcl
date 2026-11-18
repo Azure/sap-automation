@@ -48,6 +48,71 @@ variables {
   use_service_endpoint             = false
 }
 
+run "rejects_webapp_without_operator_allowlist" {
+  command = plan
+
+  variables {
+    app_service_deployment  = true
+    app_registration_app_id = "11111111-1111-1111-1111-111111111111"
+    webapp_subnet_address_prefix = "10.20.3.0/26"
+  }
+
+  expect_failures = [var.app_service_deployment]
+}
+
+run "rejects_webapp_with_empty_operator_allowlists" {
+  command = plan
+
+  variables {
+    app_service_deployment         = true
+    app_registration_app_id        = "11111111-1111-1111-1111-111111111111"
+    app_service_allowed_groups     = []
+    app_service_allowed_identities = []
+    webapp_subnet_address_prefix   = "10.20.3.0/26"
+  }
+
+  expect_failures = [var.app_service_deployment]
+}
+
+run "rejects_webapp_without_app_registration" {
+  command = plan
+
+  variables {
+    app_service_deployment      = true
+    app_service_allowed_groups  = ["22222222-2222-2222-2222-222222222222"]
+    webapp_subnet_address_prefix = "10.20.3.0/26"
+  }
+
+  expect_failures = [var.app_service_deployment]
+}
+
+run "accepts_endpoint_subnet_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "10.20.5.0/24"
+  }
+  assert {
+    condition     = module.sap_deployer.infrastructure_resource_cardinality.endpoint_subnet == 1
+    error_message = "A valid endpoint CIDR must be accepted."
+  }
+}
+
+run "rejects_endpoint_subnet_non_cidr" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "not-a-cidr"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
+
+run "rejects_endpoint_subnet_invalid_mask" {
+  command = plan
+  variables {
+    endpoint_subnet_address_prefix = "10.20.5.0/33"
+  }
+  expect_failures = [var.endpoint_subnet_address_prefix]
+}
+
 run "baseline_variables_are_accepted" {
   command = plan
 

@@ -184,7 +184,15 @@ output "database_tier_resource_creation_counts"  {
                                                      database_subnet = length(azurerm_subnet.db)
                                                      database_nsg    = length(azurerm_network_security_group.db)
                                                      storage_subnet  = length(azurerm_subnet.storage)
+                                                     endpoint_subnet = length(azurerm_subnet.endpoint)
+                                                     endpoint_nsg    = length(azurerm_network_security_group.endpoint)
+                                                     endpoint_nsg_association = length(azurerm_subnet_network_security_group_association.endpoint)
                                                    }
+                                                 }
+
+output "sapmnt_private_endpoint_subnet_ids"      {
+                                                   description = "SAP mount private endpoint subnet IDs for terraform test diagnostics"
+                                                   value       = azurerm_private_endpoint.sapmnt[*].subnet_id
                                                  }
 
 output "route_table_id"                          {

@@ -20,7 +20,7 @@ jobs:
       security-events: write
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+      uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
       with:
         egress-policy: audit
 
@@ -28,7 +28,7 @@ jobs:
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
     - name: Run Trivy vulnerability scanner (file system)
-      uses: aquasecurity/trivy-action@d2a0b60797ff03db6132bd4e2b293f9b37081297 # 0.34.2
+      uses: aquasecurity/trivy-action@38b337fff0a2f984d5be173c99e3f633438167ec # 0.34.2
       with:
         scan-type: 'fs'
         ignore-unfixed: true
@@ -38,7 +38,7 @@ jobs:
         output: report-fs.sarif
 
     - name: Upload Trivy report (fs) GitHub Security
-      uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+      uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
       with:
         sarif_file: report-fs.sarif
         category: 'fs'
