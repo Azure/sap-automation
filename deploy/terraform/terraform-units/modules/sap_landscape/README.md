@@ -304,6 +304,7 @@ No modules.
 | <a name="output_dns_link_counts"></a> [dns\_link\_counts](#output\_dns\_link\_counts) | Cardinality of Private Link DNS virtual-network links for terraform test diagnostics |
 | <a name="output_endpoint_nsg_id"></a> [endpoint\_nsg\_id](#output\_endpoint\_nsg\_id) | Azure resource identifier for the endpoint subnet network security group |
 | <a name="output_endpoint_subnet_id"></a> [endpoint\_subnet\_id](#output\_endpoint\_subnet\_id) | Azure resource identifier for the endpoint subnet |
+| <a name="output_iSCSI_server_ids"></a> [iSCSI\_server\_ids](#output\_iSCSI\_server\_ids) | Ids for iSCSI devices |
 | <a name="output_iSCSI_server_ips"></a> [iSCSI\_server\_ips](#output\_iSCSI\_server\_ips) | IPs for iSCSI devices |
 | <a name="output_iSCSI_server_names"></a> [iSCSI\_server\_names](#output\_iSCSI\_server\_names) | Names for iSCSI devices |
 | <a name="output_iSCSI_servers"></a> [iSCSI\_servers](#output\_iSCSI\_servers) | iSCSI devices |
@@ -313,6 +314,7 @@ No modules.
 | <a name="output_iscsi_vm_count"></a> [iscsi\_vm\_count](#output\_iscsi\_vm\_count) | Number of iSCSI VMs created by this module |
 | <a name="output_kv_user"></a> [kv\_user](#output\_kv\_user) | Azure resource identifier for the user credential keyvault |
 | <a name="output_netapp_resource_counts"></a> [netapp\_resource\_counts](#output\_netapp\_resource\_counts) | Cardinality of NetApp account/pool resources for terraform test diagnostics |
+| <a name="output_network_info"></a> [network\_info](#output\_network\_info) | Information about the virtual network |
 | <a name="output_network_resource_counts"></a> [network\_resource\_counts](#output\_network\_resource\_counts) | Cardinality (creation count) of workload-zone network resources for terraform test diagnostics. 1 = created (greenfield), 0 = looked up (brownfield). |
 | <a name="output_ng_resource_id"></a> [ng\_resource\_id](#output\_ng\_resource\_id) | Azure resource identifier for the NAT Gateway |
 | <a name="output_nics_iscsi"></a> [nics\_iscsi](#output\_nics\_iscsi) | NICs for iSCSI devices |
@@ -344,6 +346,7 @@ No modules.
 | <a name="output_utility_storage_account_names"></a> [utility\_storage\_account\_names](#output\_utility\_storage\_account\_names) | List of utility storage account names |
 | <a name="output_utility_vm_computer_names"></a> [utility\_vm\_computer\_names](#output\_utility\_vm\_computer\_names) | Planned utility VM computer names |
 | <a name="output_utility_vm_count"></a> [utility\_vm\_count](#output\_utility\_vm\_count) | Number of utility VMs created by this module |
+| <a name="output_utility_vm_ids"></a> [utility\_vm\_ids](#output\_utility\_vm\_ids) | IDs of utility VMs |
 | <a name="output_utility_vm_zones"></a> [utility\_vm\_zones](#output\_utility\_vm\_zones) | Planned availability zones for utility VMs |
 | <a name="output_vnet_sap_id"></a> [vnet\_sap\_id](#output\_vnet\_sap\_id) | Azure resource identifier for the Virtual Network |
 | <a name="output_vnet_tags"></a> [vnet\_tags](#output\_vnet\_tags) | Tags applied to the created workload VNet, if any |
