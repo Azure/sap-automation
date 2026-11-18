@@ -179,7 +179,7 @@ No modules.
 | <a name="input_deployer"></a> [deployer](#input\_deployer) | Dictionary of information about the deployer | `any` | n/a | yes |
 | <a name="input_enable_purge_control_for_keyvaults"></a> [enable\_purge\_control\_for\_keyvaults](#input\_enable\_purge\_control\_for\_keyvaults) | Disables the purge protection for Azure keyvaults. | `any` | n/a | yes |
 | <a name="input_firewall"></a> [firewall](#input\_firewall) | Dictionary of Firewall settings | `any` | n/a | yes |
-| <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary of information about the common infrastructure | `any` | n/a | yes |
+| <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary of information about the deployer infrastructure | `any` | n/a | yes |
 | <a name="input_key_vault"></a> [key\_vault](#input\_key\_vault) | The user brings existing Azure Key Vaults | `any` | n/a | yes |
 | <a name="input_naming"></a> [naming](#input\_naming) | Defines the names for the resources | `any` | n/a | yes |
 | <a name="input_naming_new"></a> [naming\_new](#input\_naming\_new) | Defines the additional names for the resources | `any` | n/a | yes |
