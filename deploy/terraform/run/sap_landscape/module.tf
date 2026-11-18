@@ -104,5 +104,8 @@ module "custom_sap_landscape" {
   resource_group_id                            = module.sap_landscape.created_resource_group_id
   network_info                                 = module.sap_landscape.network_info
   authentication_settings                      = local.authentication
+  ANF_pool_settings                            = module.sap_landscape.ANF_pool_settings
+  iSCSI_server_ids                             = module.sap_landscape.iSCSI_server_ids
+  utility_vm_ids                               = module.sap_landscape.utility_vm_ids
   
 }

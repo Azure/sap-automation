@@ -474,3 +474,7 @@ output "custom_module_output" {
     depends_on = [module.custom_sap_landscape]
     value =  local.has_custom_module ? jsonencode(module.custom_sap_landscape[0].custom_module_output)  : null 
 }
+
+output "infrastructure" { 
+    value = local.infrastructure
+}

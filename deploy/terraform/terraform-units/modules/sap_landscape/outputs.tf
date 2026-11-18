@@ -606,6 +606,15 @@ output "iSCSI_server_ips"                       {
                                                   )
                                                 }
 
+output "iSCSI_server_ids"                       {
+                                                  description = "Ids for iSCSI devices"
+                                                  value = local.iscsi_count > 0 ? (
+                                                    azurerm_linux_virtual_machine.iscsi[*].id) : (
+                                                    []
+                                                  )
+                                                }
+
+
 output "iSCSI_server_names"                     {
                                                   description = "Names for iSCSI devices"
                                                   value = var.naming.virtualmachine_names.ISCSI_COMPUTERNAME
@@ -916,6 +925,11 @@ output "utility_vm_computer_names"                  {
 output "utility_vm_zones"                           {
                                                      description = "Planned availability zones for utility VMs"
                                                      value       = concat(azurerm_windows_virtual_machine.utility_vm[*].zone, azurerm_linux_virtual_machine.utility_vm[*].zone)
+                                                    }
+
+output "utility_vm_ids"                              {
+                                                     description = "IDs of utility VMs"
+                                                     value       = concat(azurerm_windows_virtual_machine.utility_vm[*].id, azurerm_linux_virtual_machine.utility_vm[*].id)
                                                     }
 
 
