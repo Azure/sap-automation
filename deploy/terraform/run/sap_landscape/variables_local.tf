@@ -76,4 +76,10 @@ locals {
                                            var.management_dns_resourcegroup_name != (local.tfstate_storage_account_resource_group_name)
                                          )
   workload_zone_name                   = upper(format("%s-%s-%s", var.environment, module.sap_namegenerator.naming_new.location_short, var.network_logical_name))
+
+  has_custom_module                    = length(try(fileset("../../../../../terraform/sap_landscape/", "*"), [])) > 0
+
 }
+
+
+

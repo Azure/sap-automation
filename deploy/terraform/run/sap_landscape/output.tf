@@ -457,3 +457,20 @@ output "resolved_privatelink_dns_subscription_id"  {
                                                      description = "Private Link DNS subscription ID resolved from coalesce(var → management_dns → tfstate fallback)"
                                                      value       = coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id, local.tfstate_storage_account_subscription_id)
                                                    }
+
+
+###############################################################################
+#                                                                             #
+#                         Custom module outputs                               #
+#                                                                             #
+###############################################################################
+
+output "has_custom_module" {
+    value =  local.has_custom_module
+}
+
+#      
+output "custom_module_output" {
+    depends_on = [module.custom_sap_landscape]
+    value =  local.has_custom_module ? jsonencode(module.custom_sap_landscape[0].custom_module_output)  : null 
+}

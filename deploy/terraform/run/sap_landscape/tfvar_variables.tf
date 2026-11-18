@@ -1543,3 +1543,11 @@ variable "control_plane_name"                   {
                                                   description = "The name of the control plane"
                                                   default     = ""
                                                 }
+
+
+
+variable "custom_input"                         {
+                                                  description = "Custom sap landscape input"
+                                                  type        = map(any)
+                                                  default     = {}
+                                                }

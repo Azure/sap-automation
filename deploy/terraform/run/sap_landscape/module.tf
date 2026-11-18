@@ -75,3 +75,34 @@ module "sap_namegenerator" {
   utility_vm_count                             = var.utility_vm_count
   utility_storage_count                        = length(local.utility_storage_settings)
 }
+
+
+module "custom_sap_landscape" {
+  source                                       = "../../../../../terraform/sap_landscape"
+
+  count                                        = local.has_custom_module ? 1 : 0
+
+  providers                                    = {
+                                                   azurerm.main          = azurerm.workload
+                                                   azurerm.deployer      = azurerm
+                                                   azurerm.dnsmanagement = azurerm.dnsmanagement
+                                                   azurerm.privatelinkdnsmanagement = azurerm.privatelinkdnsmanagement
+                                                   azurerm.peering       = azurerm.peering
+                                                 }
+
+  deployer_tfstate                             = try(data.terraform_remote_state.deployer[0].outputs, [])
+  infrastructure                               = local.infrastructure
+  key_vault_id                                 = module.sap_landscape.user_credential_vault_id
+  key_vault_info                               = local.key_vault
+  sap_namegenerator                            = module.sap_namegenerator
+  NFS_provider                                 = var.NFS_provider
+  dns_settings                                 = local.dns_settings
+  options                                      = local.options
+  tags                                         = var.tags
+  terraform_template_version                   = local.version_label
+  custom_input                                 = var.custom_input
+  resource_group_id                            = module.sap_landscape.created_resource_group_id
+  network_info                                 = module.sap_landscape.network_info
+  authentication_settings                      = local.authentication
+  
+}

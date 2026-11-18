@@ -917,3 +917,43 @@ output "utility_vm_zones"                           {
                                                      description = "Planned availability zones for utility VMs"
                                                      value       = concat(azurerm_windows_virtual_machine.utility_vm[*].zone, azurerm_linux_virtual_machine.utility_vm[*].zone)
                                                     }
+
+
+output "network_info"                              {
+                                                     description = "Information about the virtual network"
+                                                     value       = {
+                                                                     vnet_id              = var.infrastructure.virtual_networks.sap.exists ? (
+                                                                                              data.azurerm_virtual_network.vnet_sap[0].id) : (
+                                                                                              azurerm_virtual_network.vnet_sap[0].id
+                                                                                            )
+                                                                     admin_subnet_id      = var.infrastructure.virtual_networks.sap.subnet_admin.exists ?  (
+                                                                                              data.azurerm_subnet.admin[0].id) : (
+                                                                                              var.infrastructure.virtual_networks.sap.subnet_admin.defined ? azurerm_subnet.admin[0].id : null
+                                                                                            )
+                                                                     app_subnet_id        = var.infrastructure.virtual_networks.sap.subnet_app.exists ? (
+                                                                                              data.azurerm_subnet.app[0].id) : (
+                                                                                              var.infrastructure.virtual_networks.sap.subnet_app.defined ? azurerm_subnet.app[0].id : null
+                                                                                            )  
+                                                                     db_subnet_id         = var.infrastructure.virtual_networks.sap.subnet_db.exists ? (
+                                                                                               data.azurerm_subnet.db[0].id) : (
+                                                                                               var.infrastructure.virtual_networks.sap.subnet_db.defined ? azurerm_subnet.db[0].id : null
+                                                                                             )
+                                                                     endpoint_subnet_id   = var.infrastructure.virtual_networks.sap.subnet_endpoint.exists ? (
+                                                                                               data.azurerm_subnet.endpoint[0].id) : (
+                                                                                               var.infrastructure.virtual_networks.sap.subnet_endpoint.defined ? azurerm_subnet.endpoint[0].id : null
+                                                                                             )
+                                                                     web_subnet_id        = var.infrastructure.virtual_networks.sap.subnet_web.exists ? (
+                                                                                              data.azurerm_subnet.web[0].id) : (
+                                                                                              var.infrastructure.virtual_networks.sap.subnet_web.defined ? azurerm_subnet.web[0].id : null
+                                                                                            )
+                                                                     storage_subnet_id    = var.infrastructure.virtual_networks.sap.subnet_storage.exists ? (
+                                                                                                data.azurerm_subnet.storage[0].id) : (
+                                                                                                var.infrastructure.virtual_networks.sap.subnet_storage.defined ? azurerm_subnet.storage[0].id : null
+                                                                                              )
+                                                                     anf_subnet_id        = var.ANF_settings.use ? var.infrastructure.virtual_networks.sap.subnet_anf.exists ? (
+                                                                                              data.azurerm_subnet.anf[0].id) : (
+                                                                                              var.infrastructure.virtual_networks.sap.subnet_anf.defined ? azurerm_subnet.anf[0].id : null
+                                                                                           ) : null
+
+                                                                   }
+                                                    }
