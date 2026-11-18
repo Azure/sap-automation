@@ -461,7 +461,9 @@ run "app_service_deployment_creates_service_plan_and_webapp" {
   command = plan
 
   variables {
-    app_service_deployment = true
+    app_service_deployment       = true
+    app_registration_app_id      = "11111111-1111-1111-1111-111111111111"
+    app_service_allowed_groups   = ["22222222-2222-2222-2222-222222222222"]
   }
 
   assert {
