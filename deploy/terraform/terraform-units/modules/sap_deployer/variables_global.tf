@@ -34,7 +34,7 @@ variable "infrastructure"                  {
                                                condition = (
                                                  length(trimspace(try(var.infrastructure.virtual_network.logical_name, ""))) != 0
                                                )
-                                               error_message = "Please specify the logical VNet identifier in the var.management_network_logical_name variable"
+                                               error_message = "Please specify the logical VNet identifier in the management_network_logical_name variable"
                                              }
 }
 
