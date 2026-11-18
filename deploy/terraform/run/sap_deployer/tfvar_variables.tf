@@ -794,7 +794,7 @@ variable "app_service_deployment"                     {
                                                         description = "Boolean value indicating if a webapp should be deployed"
                                                         default     = false
                                                         validation {
-                                                          condition     = !var.app_service_deployment || (length(trimspace(var.app_registration_app_id)) > 0 && length(compact(concat(var.app_service_allowed_groups, var.app_service_allowed_identities))) > 0)
+                                                          condition     = !var.app_service_deployment || (length(trimspace(var.app_registration_app_id)) > 0 && length(compact([for value in concat(var.app_service_allowed_groups, var.app_service_allowed_identities) : trimspace(value)])) > 0)
                                                           error_message = "When app_service_deployment is true, specify app_registration_app_id and at least one operator group or identity in app_service_allowed_groups or app_service_allowed_identities."
                                                         }
                                                       }
