@@ -822,11 +822,29 @@ def create_app_registration(application_name, service_management_reference=None)
         }
     ]
 
+    role_manifest = [
+        {
+            "allowedMemberTypes": ["User"],
+            "description": "Manage SDAF configuration",
+            "displayName": "SDAF Administrator",
+            "id": "b1e9099d-97dc-4eb7-a25e-7a33c87c93f2",
+            "isEnabled": 'true',
+            "value": "SDAF.Administrator"
+        }
+    ]
+
     # Write the manifest to a temp file so it can be passed to az ad app create
     manifest_fd, manifest_path = tempfile.mkstemp(suffix=".json", prefix="sdaf_manifest_")
+
+    # Write the role manifest to a temp file so it can be passed to az ad app create
+    role_manifest_fd, role_manifest_path = tempfile.mkstemp(suffix=".json", prefix="sdaf_role_manifest_")
+
     try:
         with os.fdopen(manifest_fd, "w") as f:
             json.dump(manifest, f)
+
+        with os.fdopen(role_manifest_fd, "w") as f:
+            json.dump(role_manifest, f)
 
         create_args = [
             "ad",
@@ -840,6 +858,8 @@ def create_app_registration(application_name, service_management_reference=None)
             "AzureADMyOrg",
             "--required-resource-access",
             f"@{manifest_path}",
+            "--app-roles",
+            f"@{role_manifest_path}",
             "--query",
             "appId",
             "--output",
@@ -858,12 +878,31 @@ def create_app_registration(application_name, service_management_reference=None)
         app_id = create_result.stdout.strip()
         print(f"[OK] App Registration created with App ID: {app_id}")
 
+        create_spn_args = [
+            "ad",
+            "sp",
+            "create",
+            "--id",
+            f"{app_id}",
+            "--query",
+            "appId",
+            "--output",
+            "tsv",
+        ]
+        create_spn_result = run_az_command(create_spn_args, capture_output=True, text=True)
+
+        if create_spn_result.returncode != 0:
+            print(f"Failed to create Service Principal: {create_spn_result.stderr}")
+            return None
+
+        spn_id = create_result.stdout.strip()
+
         user_assignment_args = [
             "rest",
             "--method",
             "PATCH",
             "--uri",
-            f"https://graph.microsoft.com/v1.0/servicePrincipals/{app_id}",
+            f"https://graph.microsoft.com/v1.0/servicePrincipals/{spn_id}",
             "--headers",
             "Content-Type=application/json",
             "--body",
