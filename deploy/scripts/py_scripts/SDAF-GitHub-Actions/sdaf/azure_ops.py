@@ -828,7 +828,7 @@ def create_app_registration(application_name, service_management_reference=None)
             "description": "Manage SDAF configuration",
             "displayName": "SDAF Administrator",
             "id": "b1e9099d-97dc-4eb7-a25e-7a33c87c93f2",
-            "isEnabled": 'true',
+            "isEnabled": True,
             "value": "SDAF.Administrator"
         }
     ]
