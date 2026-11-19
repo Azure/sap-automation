@@ -425,7 +425,9 @@ resources:
         --http-method POST --in-file $JsonInputFile `
         --api-version "6.0" --output none
 
-      Remove-Item $TemplateFileName
+      if (Test-Path $TemplateFileName) {
+        Remove-Item $TemplateFileName
+      }
 
       # Create resources_including_samples.yml
       $TemplateFileName = "resources_including_samples.yml"

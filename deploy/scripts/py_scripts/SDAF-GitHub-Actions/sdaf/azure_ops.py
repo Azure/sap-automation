@@ -867,7 +867,7 @@ def create_app_registration(application_name, service_management_reference=None)
             "--headers",
             "Content-Type=application/json",
             "--body",
-            '{"appRoleAssignmentRequired": true'
+            '{"appRoleAssignmentRequired": true}',
         ]
 
         update_result = run_az_command(user_assignment_args, capture_output=True, text=True)
