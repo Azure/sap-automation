@@ -1162,6 +1162,8 @@ class TestAzureOps:
             side_effect=[
                 _completed(returncode=0, stdout="not-json"),
                 _completed(returncode=0, stdout="new-app-id\n"),
+                _completed(returncode=0, stdout="new-spn-id\n"),
+                _completed(returncode=0, stdout="not-json"),
                 _completed(
                     returncode=0,
                     stdout=json.dumps({"appId": "new-app-id", "id": "new-object-id"}),
