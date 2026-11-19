@@ -1389,7 +1389,7 @@ Write-Host  "App registration section..." `
 if ($WebApp) {
   Write-Host  "Creating the App registration in Azure Active Directory" `
               -ForegroundColor Green
-
+  $ApplicationRoleId = 'b1e9099d-97dc-4eb7-a25e-7a33c87c93f2'
   $found_appRegistration = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName'].displayName | [0]" --only-show-errors)
 
   if ($found_appRegistration.Length -ne 0) {
@@ -1412,9 +1412,16 @@ if ($WebApp) {
     Write-Host  "Creating an App Registration for" $ApplicationName `
                 -ForegroundColor Green
     if ($IsWindows) { $manifestPath = ".\manifest.json" } else { $manifestPath = "./manifest.json" }
-    Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
+    Add-Content -Path $manifestPath -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
 
-    $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --query "appId" --output tsv)
+
+    if ($IsWindows) { $appRolePath = ".\app-role.json" } else { $appRolePath = "./app-role.json" }
+    Set-Content -Path $appRolePath -Value "[{`"allowedMemberTypes`":[`"User`"],`"description`":`"Manage SDAF configuration`",`"displayName`":`"SDAF Administrator`",`"id`":`"$ApplicationRoleId`",`"isEnabled`":true,`"value`":`"SDAF.Administrator`"}]"
+
+    $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --app-roles $appRolePath --query "appId" --output tsv)
+    az rest --method PATCH --uri "https://graph.microsoft.com/v1.0/servicePrincipals/${APP_REGISTRATION_ID}" --headers "Content-Type=application/json"  --body '{"appRoleAssignmentRequired": true}'
+
+
     $ExistingData = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query  "[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
     $APP_REGISTRATION_OBJECTID = $ExistingData.id
 
@@ -1423,6 +1430,7 @@ if ($WebApp) {
     az role assignment create --assignee $APP_REGISTRATION_OBJECTID --role "Storage Table Data Contributor" --subscription $Control_plane_subscriptionID --scope $my_scope --output none
 
     if (Test-Path $manifestPath) { Write-Host "Removing manifest.json" ; Remove-Item $manifestPath }
+    if (Test-Path $appRolePath) { Write-Host "Removing app-role.json" ; Remove-Item $appRolePath }
 
     # $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors --display-name "SDAF")
   }

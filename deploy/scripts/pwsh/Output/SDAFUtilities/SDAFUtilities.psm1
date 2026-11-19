@@ -1043,6 +1043,7 @@ resources:
 			$ControlPlaneSubscriptionIdInternal = $ControlPlaneSubscriptionId
 			$VersionLabel = "v3.24.1.0"
 			Write-Verbose "Version label set to: $VersionLabel"
+      $ApplicationRoleId = 'b1e9099d-97dc-4eb7-a25e-7a33c87c93f2'
 
 			# Set path separator based on OS
 			if ($IsWindows) {
@@ -1407,13 +1408,18 @@ resources:
 				else {
 					Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
 					if ($IsWindows) { $manifestPath = ".\manifest.json" } else { $manifestPath = "./manifest.json" }
-					Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
+					Add-Content -Path $manifestPath -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
 
-					$AppRegistrationId = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --query "appId" --output tsv --service-management-reference $ServiceManagementReference )
+          if ($IsWindows) { $appRolePath = ".\app-role.json" } else { $appRolePath = "./app-role.json" }
+					Set-Content -Path $appRolePath -Value "[{`"allowedMemberTypes`":[`"User`"],`"description`":`"Manage SDAF configuration`",`"displayName`":`"SDAF Administrator`",`"id`":`"$ApplicationRoleId`",`"isEnabled`":true,`"value`":`"SDAF.Administrator`"}]"
+
+          $AppRegistrationId = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --query "appId" --output tsv --service-management-reference $ServiceManagementReference )
+          az rest --method PATCH --uri "https://graph.microsoft.com/v1.0/servicePrincipals/${AppRegistrationId}" --headers "Content-Type=application/json"  --body '{"appRoleAssignmentRequired": true}   '
 					$ServicePrincipalInformation = (az ad app list --all --filter "startswith(displayName, '$ApplicationName')" --query	"[?displayName=='$ApplicationName']| [0]" --only-show-errors) | ConvertFrom-Json
 					$AppRegistrationObjectId = $ServicePrincipalInformation.id
 
 					if (Test-Path $manifestPath) { Write-Host "Removing manifest.json" ; Remove-Item $manifestPath }
+					if (Test-Path $appRolePath) { Write-Host "Removing app-role.json" ; Remove-Item $appRolePath }
 				}
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "APP_REGISTRATION_APP_ID" -VariableValue $AppRegistrationId
 				SetVariableGroupVariable -VariableGroupId $ControlPlaneVariableGroupId -VariableName "APP_REGISTRATION_OBJECTID" -VariableValue $AppRegistrationObjectId
