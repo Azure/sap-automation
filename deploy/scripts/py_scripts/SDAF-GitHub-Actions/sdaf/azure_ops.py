@@ -885,7 +885,7 @@ def create_app_registration(application_name, service_management_reference=None)
             "--id",
             f"{app_id}",
             "--query",
-            "appId",
+            "id",
             "--output",
             "tsv",
         ]
@@ -895,7 +895,7 @@ def create_app_registration(application_name, service_management_reference=None)
             print(f"Failed to create Service Principal: {create_spn_result.stderr}")
             return None
 
-        spn_id = create_result.stdout.strip()
+        spn_id = create_spn_result.stdout.strip()
 
         user_assignment_args = [
             "rest",
