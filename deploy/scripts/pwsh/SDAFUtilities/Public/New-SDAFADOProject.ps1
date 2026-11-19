@@ -270,7 +270,7 @@ function New-SDAFADOProject {
       $LogEntry = ("[" + $PipelineName + "](" + $ThisPipelineUrl + ")")
       Add-Content -Path $LogFile -Value $LogEntry
       if ($Stage -ne "") {
-        Add-Content -Path $LogFile -Value [Environment]::NewLine
+        Add-Content -Path $LogFile -Value ""
       }
       Write-Verbose "Pipeline: $PipelineName ($PipelineId)"
 

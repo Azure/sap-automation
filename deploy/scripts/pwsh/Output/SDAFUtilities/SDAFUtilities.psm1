@@ -652,7 +652,7 @@ function New-SDAFADOProject {
       $LogEntry = ("[" + $PipelineName + "](" + $ThisPipelineUrl + ")")
       Add-Content -Path $LogFile -Value $LogEntry
       if ($Stage -ne "") {
-        Add-Content -Path $LogFile -Value [Environment]::NewLine
+        Add-Content -Path $LogFile -Value ""
       }
       Write-Verbose "Pipeline: $PipelineName ($PipelineId)"
 
@@ -807,7 +807,9 @@ resources:
         --http-method POST --in-file $JsonInputFile `
         --api-version "6.0" --output none
 
-      Remove-Item $TemplateFileName
+      if (Test-Path $TemplateFileName) {
+        Remove-Item $TemplateFileName
+      }
 
       # Create resources_including_samples.yml
       $TemplateFileName = "resources_including_samples.yml"
@@ -1802,7 +1804,7 @@ resources:
 
 # Export the function
 Export-ModuleMember -Function New-SDAFADOProject
-#EndRegion '.\Public\New-SDAFADOProject.ps1' 1423
+#EndRegion '.\Public\New-SDAFADOProject.ps1' 1425
 #Region '.\Public\New-SDAFADOWorkloadZone.ps1' -1
 
 #Requires -Version 5.1
