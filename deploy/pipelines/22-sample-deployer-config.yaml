@@ -194,7 +194,7 @@ stages:
                         if (Test-Path $(deployer_file)) {
                         }
                         else {
-                            $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]: :NewLine)
+                            $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
                             Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
                             Add-Content $(deployer_file) "location = ""$region"""
                             Add-Content $(deployer_file) ""
@@ -224,7 +224,7 @@ stages:
                         cd $(Build.Repository.LocalPath)
                         $Folder = New-Item $Full -ItemType Directory
                         cd $Folder.FullName
-                        $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]: :NewLine)
+                        $DeployerFile = New-Item -Path . -Name $(deployer_file) -ItemType "file" -Value ("# Deployer Configuration File" + [Environment]::NewLine)
                         Add-Content $(deployer_file) "environment = ""$(deployer_environment)"""
                         Add-Content $(deployer_file) "location = ""$region"""
                         Add-Content $(deployer_file) ""
@@ -258,7 +258,7 @@ stages:
                         if (Test-Path $(library_file)) {
                         }
                         else {
-                            $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]: :NewLine)
+                            $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
                             Add-Content $(library_file) "environment = ""$(deployer_environment)"""
                             Add-Content $(library_file) "location = ""$region"""
                             Add-Content $(library_file) ""
@@ -279,7 +279,7 @@ stages:
                         $Folder = New-Item $Full -ItemType Directory
                         cd $Full
                         Write-Host "Creating Library file"
-                        $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]: :NewLine)
+                        $LibraryFile = New-Item -Path . -Name $(library_file) -ItemType "file" -Value ("# Library Configuration File" + [Environment]::NewLine)
                         Add-Content $(library_file) "environment = ""$(deployer_environment)"""
                         Add-Content $(library_file) "location = ""$region"""
                         Add-Content $(library_file) ""

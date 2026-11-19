@@ -858,6 +858,24 @@ def create_app_registration(application_name, service_management_reference=None)
         app_id = create_result.stdout.strip()
         print(f"[OK] App Registration created with App ID: {app_id}")
 
+        user_assignment_args = [
+            "rest",
+            "--method",
+            "PATCH",
+            "--uri",
+            f"https://graph.microsoft.com/v1.0/servicePrincipals/{app_id}",
+            "--headers",
+            "Content-Type=application/json",
+            "--body",
+            '{"appRoleAssignmentRequired": true'
+        ]
+
+        update_result = run_az_command(user_assignment_args, capture_output=True, text=True)
+
+        if update_result.returncode != 0:
+            print(f"Failed to update App Registration: {update_result.stderr}")
+            return None
+
         # Retrieve the object ID by querying the newly created registration
         list_result2 = run_az_command(
             [

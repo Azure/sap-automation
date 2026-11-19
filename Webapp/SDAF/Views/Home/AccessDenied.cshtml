@@ -1,0 +1,20 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<h1>Access denied</h1>
+
+<p>This application requires the <strong>SDAF.Administrator</strong> role.</p>
+
+<p>
+    Ask your application administrator to verify your role assignment.
+    If your assignment was recently changed, sign out and sign in again.
+</p>
+
+<p>
+    When contacting support, include this request ID:
+    <code>@Model.RequestId</code>
+</p>
+
+<a href="@Url.Content("~/.auth/logout")">Sign out</a>
