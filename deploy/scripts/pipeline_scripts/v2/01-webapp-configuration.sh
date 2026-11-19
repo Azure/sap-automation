@@ -93,6 +93,8 @@ printf "\n" >>"$output_file"
 printf "az role assignment create --assignee %s --role reader --subscription %s --scope /subscriptions/%s\n" "$APP_REGISTRATION_APP_ID" "$ARM_SUBSCRIPTION_ID" "$ARM_SUBSCRIPTION_ID" >>"$output_file"
 
 printf "\n" >>"$output_file"
+
+printf "[Configure authentication](https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/$APP_REGISTRATION_APP_ID/isMSAApp~/false)	\n" >>"$output_file"
 printf "\n" >>"$output_file"
 printf "**Assign permissions**\n" >>"$output_file"
 

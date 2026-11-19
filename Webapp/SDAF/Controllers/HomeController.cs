@@ -5,6 +5,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SDAFWebApp.Controllers
 {
@@ -22,6 +23,21 @@ namespace SDAFWebApp.Controllers
         public IActionResult Privacy()
         {
             return View();
+        }
+
+        [AllowAnonymous]
+        [Route("/errors/{statusCode:int:range(400,599)}")]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult HttpError(int statusCode)
+        {
+            Response.StatusCode = statusCode;
+
+            return View(
+                statusCode == 403 ? "AccessDenied" : "Error",
+                new ErrorViewModel
+                {
+                    RequestId = HttpContext.TraceIdentifier
+                });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

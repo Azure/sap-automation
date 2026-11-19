@@ -720,11 +720,19 @@ if ($found_appRegistration.Length -ne 0) {
 }
 else {
   Write-Host "Creating an App Registration for" $ApplicationName -ForegroundColor Green
-  Add-Content -Path manifest.json -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
+  $ApplicationRoleId = 'b1e9099d-97dc-4eb7-a25e-7a33c87c93f2'
+  if ($IsWindows) { $manifestPath = ".\manifest.json" } else { $manifestPath = "./manifest.json" }
+  Add-Content -Path $manifestPath -Value '[{"resourceAppId":"00000003-0000-0000-c000-000000000000","resourceAccess":[{"id":"e1fe6dd8-ba31-4d61-89e7-88639da4683d","type":"Scope"}]}]'
 
-  $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access .\manifest.json --query "appId").Replace('"', "")
+  if ($IsWindows) { $appRolePath = ".\app-role.json" } else { $appRolePath = "./app-role.json" }
+  Set-Content -Path $appRolePath -Value "[{`"allowedMemberTypes`":[`"User`"],`"description`":`"Manage SDAF configuration`",`"displayName`":`"SDAF Administrator`",`"id`":`"$ApplicationRoleId`",`"isEnabled`":true,`"value`":`"SDAF.Administrator`"}]"
 
-  Remove-Item manifest.json
+  $APP_REGISTRATION_ID = (az ad app create --display-name $ApplicationName --enable-id-token-issuance true --sign-in-audience AzureADMyOrg --required-resource-access $manifestPath --app-roles $appRolePath --query "appId").Replace('"', "")
+
+  az rest --method PATCH --uri "https://graph.microsoft.com/v1.0/servicePrincipals/${APP_REGISTRATION_ID}" --headers "Content-Type=application/json"  --body '{"appRoleAssignmentRequired": true}'
+
+  Remove-Item $manifestPath
+  Remove-Item $appRolePath
 
   $WEB_APP_CLIENT_SECRET = (az ad app credential reset --id $APP_REGISTRATION_ID --append --query "password" --out tsv --only-show-errors)
 }

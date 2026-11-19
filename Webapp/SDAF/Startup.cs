@@ -19,6 +19,7 @@ using SDAFWebApp.Services;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 
 namespace SDAFWebApp
 {
@@ -48,9 +49,13 @@ namespace SDAFWebApp
             {
                 if (applicationAuthenticationEnabled)
                 {
-                    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                    var administratorPolicy = new AuthorizationPolicyBuilder()
                         .RequireAuthenticatedUser()
+                        .RequireRole("SDAF.Administrator")
                         .Build();
+
+                    options.DefaultPolicy = administratorPolicy;
+                    options.FallbackPolicy = administratorPolicy;
                 }
             });
 
@@ -187,8 +192,27 @@ namespace SDAFWebApp
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
+            var applicationAuthenticationEnabled = Configuration.GetValue<bool>(
+                $"{ApplicationAuthenticationSettings.SectionName}:Enabled");
+            logger.LogInformation(
+                "Easy Auth authentication configured with scheme {AuthenticationScheme}; ApplicationAuthentication:Enabled={AuthenticationEnabled}.",
+                EasyAuthAuthenticationHandler.SchemeName,
+                applicationAuthenticationEnabled);
+
+            if (applicationAuthenticationEnabled)
+            {
+                logger.LogInformation(
+                    "Application authorization requires authenticated users with role {Role}. The default and fallback policies enforce role-based access.",
+                    "SDAF.Administrator");
+            }
+            else
+            {
+                logger.LogWarning(
+                    "Application authentication and its fallback authorization policy are disabled. Easy Auth role claims will not be loaded by the application.");
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -200,11 +224,32 @@ namespace SDAFWebApp
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
+            app.UseStatusCodePagesWithReExecute("/errors/{0}");
             app.UseStaticFiles();
 
             app.UseRouting();
 
             app.UseAuthentication();
+            app.Use(async (context, next) =>
+            {
+                var isAuthenticated = context.User.Identity?.IsAuthenticated == true;
+                var hasAdministratorRole = context.User.IsInRole("SDAF.Administrator");
+                var userId = context.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value
+                    ?? context.User.FindFirst("oid")?.Value
+                    ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? "(unknown)";
+
+                await next();
+
+                logger.LogInformation(
+                    "Application access diagnostic for request {TraceIdentifier}: UserId={UserId}; IsAuthenticated={IsAuthenticated}; Role={Role}; HasAdministratorRole={HasAdministratorRole}; StatusCode={StatusCode}.",
+                    context.TraceIdentifier,
+                    userId,
+                    isAuthenticated,
+                    "SDAF.Administrator",
+                    hasAdministratorRole,
+                    context.Response.StatusCode);
+            });
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
