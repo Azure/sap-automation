@@ -548,8 +548,12 @@ if [ -f "${deployer_environment_file_name}" ]; then
 
 	# if DEPLOYER_KEYVAULT is still not set, exit with an error
 	if [ -z "${DEPLOYER_KEYVAULT}" ]; then
-		echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
-		exit 1
+		if [ "$PLATFORM" == "devops" ]; then
+			echo "##vso[task.logissue type=error]Deployer Key Vault is not defined in the environment file."
+		fi
+		if [ "$PLATFORM" == "github" ]; then
+			echo "Deployer Key Vault is not defined in the environment file."
+		fi
 	fi
 
 fi
