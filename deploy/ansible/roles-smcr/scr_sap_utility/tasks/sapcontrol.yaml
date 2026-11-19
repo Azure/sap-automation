@@ -1,0 +1,284 @@
+# /*---------------------------------------------------------------------------------------------------------0
+# | NAME                                                                                                     |
+# |     sapcontrol (Version: 789, patch 201, changelist 2238450)                                             |
+# |                                                                                                          |
+# | SYNOPSIS                                                                                                 |
+# |     sapcontrol [-prot <protocol>]                                                                        |
+# |                [-trace <filename>]                                                                       |
+# |                [-debug]                                                                                  |
+# |                [-user <user> <password>]                                                                 |
+# |                [-queryuser]                                                                              |
+# |                [-repeat <N> <D>]                                                                         |
+# |                [-format <format>]                                                                        |
+# |                [-host <hostname>]                                                                        |
+# |                [-systempki <profile>]                                                                    |
+# |                [-tio <timeout>]                                                                          |
+# |                [-tmax <timeout>]                                                                         |
+# |                -nr <instance number>                                                                     |
+# |                -function <webmethod> [parameter list]                                                    |
+# |                                                                                                          |
+# | DESCRIPTION                                                                                              |
+# |     Control and monitor SAP instances via WebService interface of SAP Start Service.                     |
+# |                                                                                                          |
+# | OPTIONS                                                                                                  |
+# |     -prot <protocol>                                                                                     |
+# |         Specify the protocol for the communication with the SAP instance.                                |
+# |         Available protocols are:                                                                         |
+# |           NI_HTTP     HTTP  using SAP NI sockets (default, prefer Unix domain sockets)                   |
+# |           NI_HTTPS    HTTPS using SAP NI sockets (prefer Unix domain sockets)                            |
+# |           GSOAP_HTTP  HTTP  using gsoap built-in sockets                                                 |
+# |           WINHTTP     HTTP  using Windows winhttp                                                        |
+# |           WINHTTPS    HTTPS using Windows winhttp                                                        |
+# |           PIPE        Windows named pipes (on Unix same as NI_HTTP)                                      |
+# |     -trace <filename>                                                                                    |
+# |         Trace SOAP request/response                                                                      |
+# |     -debug                                                                                               |
+# |         Write local trace to stderr                                                                      |
+# |     -user <user> <password>                                                                              |
+# |         OS user and password for Webservice authentication                                               |
+# |     -queryuser                                                                                           |
+# |         Query interactively for user and password                                                        |
+# |     -repeat <N> <D>                                                                                      |
+# |         Repeat webmethod call <N> times (-1=forever) with <D> sec delay                                  |
+# |     -format <format>                                                                                     |
+# |         Specify the format for the output of the webmethod.                                              |
+# |         Available formats are:                                                                           |
+# |           list    List output format (default)                                                           |
+# |           script  Script output format                                                                   |
+# |           custom  Webmethod specific human readable format (only available for some webmethods)          |
+# |     -host <hostname>                                                                                     |
+# |         Host to connect to (default: localhost)                                                          |
+# |     -systempki <profile>                                                                                 |
+# |         Use system pki from profile configuration to connect using HTTPS                                 |
+# |         and authenticate with instance PSE certificate defined by profile                                |
+# |     -tio <timeout>                                                                                       |
+# |         Specify network I/O timeout in sec (default: 0 (blocking/infinite))                              |
+# |     -tmax <timeout>                                                                                      |
+# |         Specify max processing timeout in sec (default: 0 (infinite))                                    |
+# | WEBMETHODS                                                                                               |
+# |  -  Start [runlevel]                                                                                     |
+# |     InstanceStart <hostname> <instance number> [<runlevel>]                                              |
+# | (x) Bootstrap [<hostname> <instance number>]                                                             |
+# |  -  Stop [softtimeout sec]                                                                               |
+# |     InstanceStop <hostname> <instance number> [<softtimeout sec>]                                        |
+# |     Shutdown                                                                                             |
+# |     RestartInstance [<softtimeout sec> [<runlevel>]]                                                     |
+# | (x) StopService                                                                                          |
+# | (x) StartService <SID>                                                                                   |
+# |     RestartService                                                                                       |
+# |     ParameterValue [<parameter>]                                                                         |
+# |     GetStartProfile                                                                                      |
+# |     GetTraceFile                                                                                         |
+# | (x) ListConfigFiles                                                                                      |
+# |     ReadConfigFile <filename>                                                                            |
+# |     GetAlertTree                                                                                         |
+# |     GetAlerts                                                                                            |
+# |     GetEnvironment                                                                                       |
+# |     GetVersionInfo                                                                                       |
+# |     GetQueueStatistic                                                                                    |
+# | (x) GetProcessList                                                                                       |
+# |     GetInstanceProperties                                                                                |
+# |     ListDeveloperTraces                                                                                  |
+# |     ReadDeveloperTrace <filename> <filesize>                                                             |
+# |     ListLogFiles                                                                                         |
+# |     ReadLogFile <filename> [<filter> [<language> [<maxentries> [<cookie>]]]]                             |
+# |     AnalyseLogFiles [<severity 0..2> [<maxentries>                                                       |
+# |         [<starttime YYYY MM DD HH:MM:SS> <endtime YYYY MM DD HH:MM:SS>]]]                                |
+# |     ConfigureLogFileList set|add|remove [<filename1> <filename2>... <filenameN>]                         |
+# |     GetLogFileList                                                                                       |
+# |     CreateSnapshot [<description> [<datcol_param> [<analyse_severity -1..2>                              |
+# |         [<analyse_maxentries> [<analyse_starttime YYYY MM DD HH:MM:SS>                                   |
+# |         <analyse_endtime YYYY MM DD HH:MM:SS> [<maxentries>                                              |
+# |         [<filename1> ... <filenameN>]]]]]]]                                                              |
+# |     ReadSnapshot <filename> [<local filename>]                                                           |
+# |     ListSnapshots                                                                                        |
+# |     DeleteSnapshots <filename1> [<filename2>... <filenameN>]                                             |
+# |     GetAccessPointList                                                                                   |
+# |     GetProcessParameter <processtype> [pid]                                                              |
+# |     SetProcessParameter <processtype> <pid> <parameter> <value1>                                         |
+# |         [<value2> ... <valueN>]                                                                          |
+# |     SetProcessParameter2 <processtype> <pid> [DYNAMIC|PERSIST|DYNAMIC_PERSIST] <parameter> <value1>      |
+# |         [<value2> ... <valueN>]                                                                          |
+# |     ActivateSystemDBSuspendMode [<graceperiod sec> [<downtime sec>]]                                     |
+# |     DeactivateSystemDBSuspendMode                                                                        |
+# |     CheckParameter [<profile> [<default profile>]]                                                       |
+# |     OSExecute <command> <async> <timeout> <protocolfile>                                                 |
+# |     SendSignal <pid> <signal>                                                                            |
+# |     GetCallstack <pid>                                                                                   |
+# | (x) GetSystemInstanceList [<timeout sec>]                                                                |
+# |     StartSystem [ALL|SCS|DIALOG|ABAP|J2EE|TREX|ENQREP|HDB|ALLNOHDB|LEVEL <level>                         |
+# |         [<waittimeout sec> [<runlevel>]]]                                                                |
+# |     StopSystem [ALL|SCS|DIALOG|ABAP|J2EE|TREX|ENQREP|HDB|ALLNOHDB|LEVEL <level>                          |
+# |         [<waittimeout sec> [<softtimeout sec>]]]                                                         |
+# |     RestartSystem [ALL|SCS|DIALOG|ABAP|J2EE|TREX|ENQREP|HDB|ALLNOHDB|LEVEL <level>                       |
+# |         [<waittimeout sec> [<softtimeout sec> [<runlevel>]]]]                                            |
+# |     GetSystemUpdateList                                                                                  |
+# |     UpdateSystem [<waittimeout sec> [<softtimeout sec> [<force>]]]                                       |
+# |     UpdateSCSInstance                                                                                    |
+# |     CheckUpdateSystem                                                                                    |
+# |     AccessCheck <function>                                                                               |
+# |     GetSecNetworkId <service_ip> <service_port> [<version> [<challenge>]]                                |
+# |     GetNetworkId <service_ip> <service_port> [<version>]                                                 |
+# |     RequestLogonFile <user>                                                                              |
+# |     UpdateSystemPKI [<force>]                                                                            |
+# |     UpdateInstancePSE [<force>]                                                                          |
+# |     StorePSE <server filename> <local filename> [<psemode> [<overwrite>]]                                |
+# |     DeletePSE <filename>                                                                                 |
+# |     CheckPSE <server filename> <local filename>                                                          |
+# |     CreatePSECredential <server filename> <pin>                                                          |
+# |     HACheckConfig                                                                                        |
+# |     HACheckFailoverConfig                                                                                |
+# |     HAGetFailoverConfig                                                                                  |
+# |     HAFailoverToNode <node>                                                                              |
+# |     HASetMaintenanceMode [<mode> [<instance_only>]]                                                      |
+# |     HACheckMaintenanceMode [<instance_only>]                                                             |
+# |     ABAPReadSyslog                                                                                       |
+# |     ABAPReadRawSyslog                                                                                    |
+# |     ABAPGetWPTable                                                                                       |
+# |     ABAPGetComponentList                                                                                 |
+# |     ABAPCheckRFCDestinations                                                                             |
+# |     ABAPGetSystemWPTable [<activeonly>]                                                                  |
+# |     ABAPSetServerInactive [<inactive>]                                                                   |
+# |     J2EEControlProcess <processname> <function>                                                          |
+# |     J2EEControlCluster <processname> <function> [<hostname> <instance number>]                           |
+# |     J2EEEnableDbgSession <client> [<processname> <debugflags>]                                           |
+# |     J2EEDisableDbgSession <debugkey>                                                                     |
+# |     J2EEGetProcessList                                                                                   |
+# |     J2EEGetProcessList2                                                                                  |
+# |     J2EEGetThreadList                                                                                    |
+# |     J2EEGetThreadList2                                                                                   |
+# |     J2EEGetThreadCallStack [<threadindex>]                                                               |
+# |     J2EEGetThreadTaskStack [<threadindex>]                                                               |
+# |     J2EEGetSessionList                                                                                   |
+# |     J2EEGetCacheStatistic                                                                                |
+# |     J2EEGetCacheStatistic2                                                                               |
+# |     J2EEGetApplicationAliasList                                                                          |
+# |     J2EEGetComponentList                                                                                 |
+# |     J2EEControlComponents <process name> <operation> <componenttype>                                     |
+# |         <componentname1>,...,<componentnameN>                                                            |
+# |     J2EEGetWebSessionList                                                                                |
+# |     J2EEGetWebSessionList2                                                                               |
+# |     J2EEGetEJBSessionList                                                                                |
+# |     J2EEGetRemoteObjectList                                                                              |
+# |     J2EEGetVMGCHistory                                                                                   |
+# |     J2EEGetVMGCHistory2                                                                                  |
+# |     J2EEGetVMHeapInfo                                                                                    |
+# |     J2EEGetClusterMsgList                                                                                |
+# |     J2EEGetSharedTableInfo                                                                               |
+# |     ICMGetThreadList                                                                                     |
+# |     ICMGetConnectionList                                                                                 |
+# |     ICMGetProxyConnectionList                                                                            |
+# |     ICMGetCacheEntries                                                                                   |
+# |     WebDispGetServerList                                                                                 |
+# |     WebDispGetGroupList                                                                                  |
+# |     WebDispGetVirtHostList                                                                               |
+# |     WebDispGetUrlPrefixList                                                                              |
+# |     EnqGetStatistic                                                                                      |
+# |     EnqGetLockTable                                                                                      |
+# |     EnqRemoveUserLocks <user>                                                                            |
+# |     GWGetConnectionList                                                                                  |
+# |     GWGetClientList                                                                                      |
+# |     GWCancelConnections <connection1> ... <connectionN>                                                  |
+# |     GWDeleteConnections <connection1> ... <connectionN>                                                  |
+# |     GWDeleteClients <client1> ... <clientN>                                                              |
+# | (x) StartWait <timeout sec> <delay sec> [<runlevel>]                                                     |
+# | (x) StopWait <timeout sec> <delay sec>                                                                   |
+# |     WaitforStarted <timeout sec> <delay sec>                                                             |
+# |     WaitforStopped <timeout sec> <delay sec>                                                             |
+# |     RestartServiceWait <timeout sec> <delay sec>                                                         |
+# |     WaitforServiceStarted <timeout sec> <delay sec>                                                      |
+# |     CheckHostAgent                                                                                       |
+# |     CheckSystemCertificates <verifcation pse>                                                            |
+# |                                                                                                          |
+# | EXITCODES                                                                                                |
+# |     0  Last webmethod call successful                                                                    |
+# |     1  Last webmethod call failed, invalid parameter                                                     |
+# |     2  StartWait, StopWait, WaitforStarted, WaitforStopped, RestartServiceWait                           |
+# |        timed out                                                                                         |
+# |        CheckSystemCertificates detected warnings                                                         |
+# |     3  GetProcessList succeeded, all processes running correctly                                         |
+# |        CheckSystemCertificates detected errors                                                           |
+# |     4  GetProcessList succeeded, all processes stopped                                                   |
+# |                                                                                                          |
+# | SECURITY                                                                                                 |
+# |     Trusted connects without user and password check are possible through                                |
+# |     Unix domain socket or Windows named pipes. Protected webmethods like                                 |
+# |     Start or Stop require a trusted connection or OS user and password                                   |
+# |     authentication.                                                                                      |
+# |                                                                                                          |
+# | EXAMPLES                                                                                                 |
+# |     sapcontrol -nr 0 -function GetProcessList                                                            |
+# |       Gets the list of processes on instance 00 on localhost                                             |
+# |                                                                                                          |
+# | NOTES                                                                                                    |
+# |     A detailed description of the SAPControl webservice interface is available on                        |
+# |     https://www.sap.com/documents/2016/09/0a40e60d-8b7c-0010-82c7-eda71af511fa.html.                     |
+# |     The actual interface definition can be queried from the SAP Start Service via                        |
+# |     http://<host>:5XX13/?wsdl or https://<host>:5xx14/?wsdl. The WSDL contains a short                   |
+# |     documentation of each webmethod (XML tags "<documentation>").                                        |
+# |     SAP MMC (http://scn.sap.com/docs/DOC-8294) provides a graphical user interface as                    |
+# |     Snap-In for the Microsoft Management Console and SAP MC provides a graphical user                    |
+# |     interface as Java Swing UI launched from a browser (http://<host>:5XX13                              |
+# |     or https://<host>:5XX14).                                                                            |
+# |                                                                                                          |
+# +------------------------------------4---------------------------------------8-----------------------------0
+
+# sapcontrol -nr 00 -function StopSystem [ALL|SCS|DIALOG|ABAP|J2EE|TREX|ENQREP|HDB|ALLNOHDB|LEVEL <level> [<waittimeout sec> [<softtimeout sec>]]]                             
+# sapcontrol -nr 00 -function StartSystem
+
+# delay = how often sapcontrol should check if the system has stopped (e.g. 5 seconds)
+# waittimeout = how long sapcontrol should wait for the system to stop before returning with a timeout (e.g. 300 seconds)
+# softtimeout = how long sapcontrol should wait for the system to stop before forcefully killing the processes (e.g. 600 seconds)
+
+# StartWait ABAP            Starts Dialogue; Returns immediatly
+# StopWait  ABAP            Stops  Dialogue; Returns immediatly
+# GetSystemInstanceList     returns list of instances and their status (e.g. running, stopped, stopping, starting)
+
+# Bootstrap triggers sapcpe kernel replication, shared memory cleanup and sapstartsrv restart 
+#   without actually starting the instance. If host and nr are not specified, the actual sapstartsrv triggers a bootstrap 
+#   for its own instance.
+
+
+
+
+# Flow
+#   SAP Application Servers
+#     Detect Cluster - Not in scope
+#     Verify Kernel Location
+#     Shutdown SAP Application Servers
+#   SAP SCS Server
+#     Detect Cluster - Not in scope
+#     Verify Kernel Location
+#     Shutdown SAP SCS
+#   Synchronize Kernel
+#   Bootstrap SCS
+
+
+---
+
+# - name:
+#   become:                               true
+#   become_user:                          x91adm
+#   become_flags:                         '--login'                               # Ensures that the user's login shell is invoked, which can be important for loading environment variables and configurations specific to that user, especially for SAP administrative tasks where environment setup is crucial.
+#   ansible.builtin.shell:                                                        # Using shell instead of command to allow for the use of shell features if needed in the future, and to ensure that the command is executed in a login shell context due to the become_flags.
+#     cmd: |
+#                                         sapcontrol                          \
+#                                           -prot       NI_HTTPS              \
+#                                           -nr         00                    \
+#                                           -host       localhost             \
+#                                           -function   StopWait ABAP {{ _timeout }} {{ _delay }}
+
+
+- name:                                 "SCR UTILITY: Stop SAP ABAP instance and wait for shutdown"
+  become:                               true
+  become_user:                          "{{ sapsid | lower }}adm"
+  become_flags:                         '--login'                               # Ensures that the user's login shell is invoked, which can be important for loading environment variables and configurations specific to that user, especially for SAP administrative tasks where environment setup is crucial.
+  ansible.builtin.shell:                                                        # Using shell instead of command to allow for the use of shell features if needed in the future, and to ensure that the command is executed in a login shell context due to the become_flags.
+    cmd: |
+                                        sapcontrol                          \
+                                          -prot       {{ sapcontrol_protocol | default('NI_HTTPS') }} \
+                                          -nr         {{ sap_instance_number | default('00') }} \
+                                          -host       localhost             \
+                                          -function   StopWait ABAP {{ sap_stop_timeout | default(_timeout) }} {{ sap_stop_delay | default(_delay) }}
+
+...

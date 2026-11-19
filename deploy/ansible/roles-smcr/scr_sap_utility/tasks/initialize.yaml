@@ -1,0 +1,2477 @@
+# jobs
+#   get SAP environment information
+#     check for SAP user and group id's
+#     check profiles for SAP environment variables
+#
+
+# Data Structure:
+#   sap_env:
+#     sap_sid:
+#     Database:
+#       DB_SID:
+#       Type:
+#       Version:
+#       Availability:
+#       Servers:
+#         <server>:
+#           Hostname:
+#             instance_number:
+#     application:
+#       SCS:
+#         Availability:
+#         Servers:
+#       APP:
+#         Servers:
+#           <server>:
+#             Instance Number:
+#             Hostname:
+
+
+# region: Initialize sap_env variable with default structure
+- name:
+  ansible.builtin.set_fact:
+    _results:                           null
+    _filter_service_keys: 
+                                        - AccessSELinuxContext
+                                        - Control.*
+                                        - CoredumpFilter
+                                        - Description
+                                        - Environment
+                                        - ExecStart.*
+                                        - ExecStop.*
+                                        - FinalKillSignal
+                                        - GID
+                                        - Group
+                                        - Id
+                                        - KillMode
+                                        - KillSignal
+                                        - LoadState
+                                        - Names
+                                        - RequiresMountsFor
+                                        - RestartKillSignal
+                                        - SecureBits
+                                        - SendSIGHUP
+                                        - SendSIGKILL
+                                        - Slice
+                                        - SyslogIdentifier
+                                        - UID
+                                        - UMask
+                                        - User
+                                        - WorkingDirectory
+    sap_env:
+      application:
+        scs:
+          servers:                      [{}]
+        app:
+          servers:                      [{}]
+      database:
+        servers:                        [{}]
+# endregion
+
+# region: Get SAP sapadm user information
+- name:   Get SAP sapadm user information
+  ansible.builtin.getent:
+    database:                           passwd
+    key:                                sapadm
+
+
+- name:   Register SAP sapadm user information in sap_env variable
+  ansible.builtin.set_fact:
+    sap_env: >-
+                                        {{ sap_env 
+                                            | combine({
+                                                'application': {
+                                                  'app': {
+                                                    'servers': {
+                                                      inventory_hostname: {
+                                                        'sapadm_user':     'sapadm',
+                                                        'sapadm_user_id':  getent_passwd['sapadm'][1] | default(''),
+                                                        'sapadm_group_id': getent_passwd['sapadm'][2] | default(''),
+                                                        'sapadm_homedir':  getent_passwd['sapadm'][4] | default(''),
+                                                        'sapadm_shell':    getent_passwd['sapadm'][5] | default(''),
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }, recursive=True)
+                                        }}
+  when: getent_passwd['sapadm'] is defined
+# endregion
+
+# region: Get SAP sidadm user information
+- name:   Get SAP sidadm user information
+  ansible.builtin.getent:
+    database:                           passwd
+    key:                                "{{ sapsid | lower }}adm"
+
+- name:   Register SAP sidadm user information in sap_env variable
+  ansible.builtin.set_fact:
+    sap_env: >-
+                                        {{ sap_env 
+                                            | combine({'sap_sid': sapsid}, recursive=True)
+                                            | combine({
+                                                'application': {
+                                                  'app': {
+                                                    'servers': {
+                                                      inventory_hostname: {
+                                                        'sidadm_user':     sapsid | lower ~ 'adm',
+                                                        'sidadm_user_id':  getent_passwd[sapsid | lower ~ 'adm'][1] | default(''),
+                                                        'sidadm_group_id': getent_passwd[sapsid | lower ~ 'adm'][2] | default(''),
+                                                        'sidadm_homedir':  getent_passwd[sapsid | lower ~ 'adm'][4] | default(''),
+                                                        'sidadm_shell':    getent_passwd[sapsid | lower ~ 'adm'][5] | default(''),
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }, recursive=True)
+                                        }}
+  when: getent_passwd[sapsid | lower ~ 'adm'] is defined
+# endregion
+
+# region: Get system initialization information
+- name:
+  ansible.builtin.set_fact:
+    sap_env: >-
+                                        {{ sap_env 
+                                            | combine({
+                                                'application': {
+                                                  'app': {
+                                                    'servers': {
+                                                      inventory_hostname: {
+                                                        'system_init':     ansible_facts.service_mgr,
+                                                      } } } } }, recursive=True)
+                                        }}
+  when: 
+                                        - ansible_facts.service_mgr is defined 
+# endregion
+
+
+
+
+- name:
+  block:
+
+# region: Get SAP systemd services information for saphostagent
+    - name: Gather services
+      ansible.builtin.systemd_service:
+        name:                           'saphostagent'
+      register:                         _results
+
+    - name:
+      ansible.builtin.set_fact:
+        sap_env: >-
+                                            {{ sap_env
+                                                | combine({
+                                                    'application': {
+                                                      'app': {
+                                                        'servers': {
+                                                          inventory_hostname: {
+                                                            'systemd_services': (
+                                                              (
+                                                                sap_env | default({})
+                                                              ).get('application', {})
+                                                               .get('app', {})
+                                                               .get('servers', {})
+                                                               .get(inventory_hostname, {})
+                                                               .get('systemd_services', {}) | default({})
+                                                            ) 
+                                                            | combine({
+                                                                _results.name: _results.status | default({})
+                                                                | dict2items
+                                                                | selectattr('key', 'match', '^(' ~ _filter_service_keys | join('|') ~ ')')
+                                                                | items2dict
+                                                              })
+                                                          } } } } }, recursive=True)
+                                            }}
+      when:   _results.status.LoadState | default('') == 'loaded'
+# endregion
+
+# region: Get SAP systemd services information for SAPX91_00
+    - name: Gather services
+      ansible.builtin.systemd_service:
+        name:                           'SAPX91_00'
+      register:                         _results
+
+    - name:
+      ansible.builtin.set_fact:
+        sap_env: >-
+                                            {{ sap_env
+                                                | combine({
+                                                    'application': {
+                                                      'app': {
+                                                        'servers': {
+                                                          inventory_hostname: {
+                                                            'systemd_services': (
+                                                              (
+                                                                sap_env | default({})
+                                                              ).get('application', {})
+                                                               .get('app', {})
+                                                               .get('servers', {})
+                                                               .get(inventory_hostname, {})
+                                                               .get('systemd_services', {}) | default({})
+                                                            ) 
+                                                            | combine({
+                                                                _results.name: _results.status | default({})
+                                                                | dict2items
+                                                                | selectattr('key', 'match', '^(' ~ _filter_service_keys | join('|') ~ ')')
+                                                                | items2dict
+                                                              })
+                                                          } } } } }, recursive=True)
+                                            }}
+      when:   _results.status.LoadState | default('') == 'loaded'
+# endregion
+
+
+
+
+
+  when: ansible_facts.service_mgr == 'systemd'
+
+
+
+- debug:
+    var: sap_env
+
+
+# - name:
+#   block:
+
+#       - name:                           "SCR UTILITY: ({{ type }}/Initialize) - Status message."
+#         ansible.builtin.debug:
+#           msg: >-
+#                   This is where we would initialize SAP parameters.
+#                   This is a placeholder task to represent those steps in the playbook.
+
+#       - name:                           "SCR UTILITY: ({{ type }}/Initialize) - List processes."
+#         shell:                          ps  -ewwo uid,pid,ppid,cmd --no-headers | cat
+#         register:                       _ps_output
+
+#       - name:                          "SCR UTILITY: ({{ type }}/Initialize) - Parse process list."
+#         set_fact:
+#           process_list: >-
+#             {{
+#               _ps_output.stdout_lines
+#               | map('regex_replace', '\\', '\\\\')
+#               | map('regex_replace',
+#                     '^\s*(\S+)\s+(\S+)\s+(\S+)\s+(.+)$',
+#                     '{"uid": \1, "pid": \2, "ppid": \3, "command": "\4"}')
+#               | map('from_json')
+#               | list
+#             }}
+#         tags:
+#           - silent_v1
+
+#       - debug:
+#           var:                          item.command
+#         loop:                           "{{ process_list }}"
+#         # when:                                 "'saphostagent' in item.command or 'sapstartsrv' in item.command or 'sapcontrol' in item.command"
+#         when:                           item.pid == 1
+
+#       - debug:
+#           var:                          ansible_facts.service_mgr
+
+
+
+
+
+# # [ansible_facts][service_mgr] systemd
+
+
+
+
+
+# # UID          PID    PPID  C STIME TTY          TIME CMD
+# # root           1       0  0 Apr03 ?        00:01:02 /usr/lib/systemd/systemd --system --deserialize=74
+
+# # Relevant
+# # /usr/sap/services
+# #       systemctl --no-ask-password start SAPX91_00 # sapstartsrv pf=/usr/sap/X91/SYS/profile/X91_D00_x91app00lf2a
+# # /etc/systemd/system/SAPX91_00.service
+#         # # Automatically generated. Do not modify.
+
+#         # [Unit]
+#         # Description=SAP Instance SAPX91_00
+#         # After=remote-fs.target time-sync.target
+#         # Wants=remote-fs.target
+
+#         # [Service]
+#         # User=x91adm
+#         # Group=sapsys
+#         # TimeoutStartSec=120sec
+#         # TimeoutStopSec=360sec
+#         # Type=notify
+#         # NotifyAccess=all
+#         # KillMode=process
+#         # WorkingDirectory=/usr/sap/X91/D00/work
+#         # Environment=LD_LIBRARY_PATH=/usr/sap/X91/D00/exe
+#         # ExecStart=/usr/sap/X91/D00/exe/sapstartsrv pf=/usr/sap/X91/SYS/profile/X91_D00_x91app00lf2a -setup_env
+#         # KillSignal=SIGINT
+#         # Slice=SAP.slice
+#         # SyslogIdentifier=SAPX91_00
+#         # LimitNOFILE=1048576
+#         # TasksMax=infinity
+#         # Restart=on-failure
+#         # RestartSec=60s
+
+#         # [Install]
+#         # WantedBy=multi-user.target
+# # /etc/systemd/system/saphostagent.service
+#         # # Automatically generated. Do not modify.
+
+#         # [Unit]
+#         # Description=SAP Host Agent
+#         # After=remote-fs.target time-sync.target
+#         # Wants=remote-fs.target
+
+#         # [Service]
+#         # Slice=SAP.slice
+#         # Type=notify
+#         # KillMode=none
+#         # TimeoutStartSec=60sec
+#         # TimeoutStopSec=330sec
+#         # ExecStartPre=/usr/sap/hostctrl/exe/saphostexec -issystemdenabled
+#         # ExecStart=/usr/sap/hostctrl/exe/saphostexec pf=/usr/sap/hostctrl/exe/host_profile -systemd
+#         # ExecStop=/usr/sap/hostctrl/exe/saphostexec -stopsystemd
+#         # TasksMax=infinity
+
+#         # [Install]
+#         # WantedBy=multi-user.target
+
+
+
+# # systemctl list-units
+# #   SAP.slice
+# #   SAPX91_00.service
+# #   saphostagent.service
+# #   sapmnt-X91.mount
+# #   usr-sap-install.mount
+# #   usr-sap-trans.mount
+# #   usr-sap.mount
+
+
+
+# # What are these files?
+# # /etc/sap_deployment_automation
+# # /etc/sap_deployment_automation/X91/sap_deployment_dbload.txt
+# # /etc/sap_deployment_automation/X91/sap_deployment_pas.txt
+
+
+
+# # Cleanup
+# # /var/tmp/X91/sapinst_instdir
+
+
+
+# # Not Relevant
+# # /root/.sapinst
+# # /etc/systemd/system/SAP.slice
+# # /etc/polkit-1/rules.d/10-SAPX91-00.rules
+
+
+
+
+# # /home/sapadm
+# # /home/sapadm/.sapenv_x91app00lf2a.sh
+# # /home/sapadm/.sapenv.sh
+# # /home/sapadm/.sapenv_x91app00lf2a.csh
+# # /home/sapadm/.sapenv.csh
+# # /home/sapadm/.sapsrc_x91app00lf2a.sh
+# # /home/sapadm/.sapsrc.sh
+# # /home/sapadm/.sapsrc_x91app00lf2a.csh
+# # /home/sapadm/.sapsrc.csh
+# # /home/x91adm/.sapenv_x91app00lf2a.sh
+# # /home/x91adm/.sapenv.sh
+# # /home/x91adm/.sapenv_x91app00lf2a.csh
+# # /home/x91adm/.sapenv.csh
+# # /home/x91adm/.sapsrc_x91app00lf2a.sh
+# # /home/x91adm/.sapsrc.sh
+# # /home/x91adm/.sapsrc_x91app00lf2a.csh
+# # /home/x91adm/.sapsrc.csh
+# # certificate             /usr/sap/hostctrl/exe/sec/x91app00lf2a.azure.sece.sdaf.sapcontoso.com.p10
+# # link                    /etc/systemd/system/multi-user.target.wants/saphostagent.service
+# # initd                   /etc/init.d_bckp/init.d/sapinit
+# # host, pid               /sapmnt/X91/global/sapcontrol
+# # link                    /etc/systemd/system/multi-user.target.wants/SAPX91_00.service
+
+
+
+
+
+#   when:                                 type == 'sap'
+
+
+# - name:
+#   block:
+
+#       - name:                           "SCR UTILITY: ({{ type }}/Initialize) - Status message."
+#         ansible.builtin.debug:
+#           msg: >-
+#                   This is where we would initialize Database parameters.
+#                   This is a placeholder task to represent those steps in the playbook.
+
+
+#   when:                                 type in ('hana')
+
+
+
+
+
+#   [root@x91app00lf2a exe]# cat /usr/lib/python3.9/site-packages/sos/report/plugins/sapnw.py
+# # This file is part of the sos project: https://github.com/sosreport/sos
+# #
+# # This copyrighted material is made available to anyone wishing to use,
+# # modify, copy, or redistribute it subject to the terms and conditions of
+# # version 2 of the GNU General Public License.
+# #
+# # See the LICENSE file in the source distribution for further information.
+
+# from sos.report.plugins import Plugin, RedHatPlugin
+
+
+# class Sapnw(Plugin, RedHatPlugin):
+
+#     short_desc = 'SAP NetWeaver'
+#     plugin_name = 'sapnw'
+#     profiles = ('sap',)
+#     files = ('/usr/sap',)
+
+#     def collect_list_instances(self):
+#         """ Collect data on installed instances """
+#         inst_list = self.collect_cmd_output(
+#             "/usr/sap/hostctrl/exe/saphostctrl -function ListInstances",
+#             suggest_filename="SAPInstances"
+#         )
+#         if inst_list['status'] != 0:
+#             return
+
+#         sidsunique = set()
+#         # Cycle through all the instances, get 'sid', 'instance_number'
+#         # and 'vhost' to determine the proper profile
+#         for inst_line in inst_list['output'].splitlines():
+#             if ("DAA" not in inst_line and not
+#                     inst_line.startswith("No instances found")):
+#                 fields = inst_line.strip().split()
+#                 if len(fields) < 8:
+#                     continue
+#                 sid = fields[3]
+#                 inst = fields[5]
+#                 vhost = fields[7]
+#                 sidsunique.add(sid)
+#                 path = f"/usr/sap/{sid}/SYS/profile/"
+#                 if not self.path_exists(path):
+#                     continue
+#                 for line in self.listdir(path):
+#                     if all(f in line for f in [sid, inst, vhost]):
+#                         ldenv = f'LD_LIBRARY_PATH=/usr/sap/{sid}/SYS/exe/run'
+#                         # Unicode is assumed here
+#                         # nuc should be accounted
+#                         path = f'/usr/sap/{sid}/SYS/exe/uc/linuxx86_64'
+#                         profile = line.strip()
+
+#                         # collect profiles
+#                         self.add_cmd_output(
+#                             f"env -i {ldenv} {path}/sappfpar all "
+#                             f"pf=/usr/sap/{sid}/SYS/profile/{profile}",
+#                             suggest_filename=f"{profile}_parameters"
+#                         )
+
+#                         # collect instance status
+#                         self.add_cmd_output(
+#                             f"env -i {ldenv} {path}/sapcontrol -nr {inst} "
+#                             "-function GetProcessList",
+#                             suggest_filename=f"{sid}_{inst}_GetProcList"
+#                         )
+
+#                         # collect version info for the various components
+#                         self.add_cmd_output(
+#                             f"env -i {ldenv} {path}/sapcontrol -nr {inst} "
+#                             "-function GetVersionInfo",
+#                             suggest_filename=f"{sid}_{inst}_GetVersInfo"
+#                         )
+
+#                         # collect <SID>adm user environment
+#                         lowsid = sid.lower()
+#                         fname = f"{sid}_{lowsid}adm_{inst}_userenv"
+#                         self.add_cmd_output(
+#                             f'su - {lowsid}adm -c "sapcontrol -nr {inst} '
+#                             '-function GetEnvironment"',
+#                             suggest_filename=fname
+#                         )
+
+#         # traverse the sids list, collecting info about dbclient
+#         for sid in sidsunique:
+#             self.add_copy_spec(f"/usr/sap/{sid}/*DVEB*/work/dev_w0")
+
+#     def collect_list_dbs(self):
+#         """ Collect data all the installed DBs """
+#         # list installed sap dbs
+#         db_list = self.collect_cmd_output(
+#             "/usr/sap/hostctrl/exe/saphostctrl -function ListDatabases",
+#             suggest_filename="SAPDatabases"
+#         )
+
+#         if db_list['status'] != 0:
+#             return
+
+#         for line in db_list['output'].splitlines():
+#             if "Instance name" in line:
+#                 fields = line.strip().split()
+#                 dbadm = fields[2][:-1]
+#                 dbtype = fields[8][:-1]
+#                 sid = dbadm[3:].upper()
+
+#                 if dbtype == 'db6':
+#                     # IBM DB2
+#                     self.add_cmd_output(
+#                         f"su - {dbadm} -c \"db2 get dbm cfg\"",
+#                         suggest_filename=f"{sid}_{dbadm}_db2_info"
+#                     )
+
+#                 elif dbtype == 'sap':
+#                     # SAP MAXDB
+#                     sid = fields[2][:-1]
+#                     self.add_copy_spec(
+#                         f"/sapdb/{sid}/data/config/{sid}.pah"
+#                     )
+
+#                 elif dbtype == 'ora':
+#                     # Oracle
+#                     sid = fields[2][:-1]
+#                     self.add_copy_spec(f"/oracle/{sid}/*/dbs/init.ora")
+
+#                 elif dbtype == 'syb':
+#                     # Sybase
+#                     sid = fields[2][:-1]
+#                     self.add_copy_spec(f"/sybase/{sid}/ASE*/{sid}.cfg")
+
+#     def setup(self):
+#         self.collect_list_instances()
+#         self.collect_list_dbs()
+
+
+
+# saphana.py
+# # This file is part of the sos project: https://github.com/sosreport/sos
+# #
+# # This copyrighted material is made available to anyone wishing to use,
+# # modify, copy, or redistribute it subject to the terms and conditions of
+# # version 2 of the GNU General Public License.
+# #
+# # See the LICENSE file in the source distribution for further information.
+
+# from sos.report.plugins import Plugin, RedHatPlugin
+
+
+# class Saphana(Plugin, RedHatPlugin):
+
+#     short_desc = 'SAP HANA'
+#     plugin_name = 'saphana'
+#     profiles = ('sap',)
+#     files = ('/hana',)
+
+#     def setup(self):
+
+#         sids = []
+
+#         if self.path_isdir("/hana/shared"):
+#             shared = self.listdir("/hana/shared")
+#             for sid in shared:
+#                 if len(sid) == 3:
+#                     sid = sid.strip()
+#                     sids.append(sid)
+
+#             for sid in sids:
+#                 sidadm = f'{sid.lower()}adm'
+#                 prefix = f'su - {sidadm} -c'
+
+#                 self.add_cmd_output(f'{prefix} "HDB info"',
+#                                     suggest_filename=f"{sid}_HDB_info")
+
+#                 self.add_cmd_output(f'{prefix} "hdbsrvutil -v"',
+#                                     suggest_filename=f"{sid}_version")
+
+#                 self.add_cmd_output(f'{prefix} \'hdbcons "mm l -s -S -p"\'',
+#                                     suggest_filename=f"{sid}_memusage")
+
+#                 self.add_cmd_output(f'{prefix} \'hdbcons -e hdbindexserver \
+#                                     "replication info"\'',
+#                                     suggest_filename=f"{sid}_replicainfo")
+
+#                 if self.path_isdir(f"/hana/shared/{sid}/"):
+#                     for inst in self.listdir(f"/hana/shared/{sid}/"):
+#                         if "HDB" in inst:
+#                             inst = inst.strip()[-2:]
+#                             self.get_inst_info(sid, sidadm, inst)
+
+#     def get_inst_info(self, sid, sidadm, inst):
+#         """ Collect the given instance info """
+#         proc_cmd = 'su - %s -c "sapcontrol -nr %s -function GetProcessList"'
+#         status_fname = f"{sid}_{inst}_status"
+#         self.add_cmd_output(
+#             proc_cmd % (sidadm, inst),
+#             suggest_filename=status_fname
+#         )
+
+#         path = f"/usr/sap/{sid}/HDB{inst}/exe/python_support"
+#         if self.path_isdir(path):
+#             py_cmd = 'su - %s -c "python %s/landscapeHostConfiguration.py"'
+#             py_fname = f"{sid}_{inst}_landscapeConfig"
+#             self.add_cmd_output(
+#                 py_cmd % (sidadm, path),
+#                 suggest_filename=py_fname
+#             )
+
+
+#-------------------------------------------------------------------------------
+
+# ok: [x91app00lf2a] =>
+#     hostvars[inventory_hostname]:
+#         _results:
+#             attempts: 1
+#             changed: false
+#             failed: false
+#             secrets:
+#             -   attributes:
+#                     created: '2026-04-06T04:07:08+00:00'
+#                     enabled: true
+#                     expires: '2027-04-06T02:01:18+00:00'
+#                     not_before: null
+#                     recovery_level: CustomizedRecoverable
+#                     updated: '2026-04-06T04:07:08+00:00'
+#                 content_type: secret
+#                 secret: |-
+#                     -----BEGIN RSA PRIVATE KEY-----
+#                     MIIEogIBAAKCAQEA1KnQqYE4tiW68apRfs+xU+hlzMr9L41nxXfsIi8fVsbr7n5v
+#                     aeq6tmiNl9eMl+T54zCtYVgDj32kXcTlfxR0m2ws/jBm46Des5BLXX/5V9pEpUTA
+#                     3PPpGX8TEHRnM2G7KQlLcqDhvSZYAHV+q+l6brD6vj64rli0QxbOCBoCCum4yzGp
+#                     EpMU27n1fd+4OD3RYOus0YTYBN9knRsSUWC2OEiwF3Uxbfv6lVSYwJpTqTR/eR82
+#                     2c+KiXOnm93xMgE2/qjjoaXtE2bGuPumPL2rHcEUJEaUpqWtiqhlxZ1+BEV9ulIg
+#                     iytNakI4Cx6rYk0TMCTovA3R6DYsMlzd2YP5EQIDAQABAoIBAFLnOnGB7yZO8iBY
+#                     yblaZSI1RE5ASdBaWzxnYjX3UcvF816/ilZri8slWiF6BZSHToUrSkPbCFRNYiCt
+#                     69uNEWIvmyCipNGTOo4cr8ys4XrGm6Ej+t2H9nSajceJ4Vtt+4TlWzS+FBJlWsQf
+#                     Cbkh5Tk2pCE7GUraSLeosbwFy4sN2RgkGX0iRvklmZLYpHhPN88omyajgXte5fDg
+#                     qSzcyfJirG60SgNxm/duIdK3093BdTvUqFT2h999sKFfrrRJe+sYrlVqcgrgfxSB
+#                     9yMqdi+Iipfr2nPFiPJmC18APR1q5mhrfQeRFN/1cu8Vvypx/B5S+grCLDwLt0iZ
+#                     6H2Wd8sCgYEA4czBWI0gdByCaIU0L8ZYZEZtgpzZe5A9TEAJI4h5FKvbbwM6yBLZ
+#                     WwAZe4kZzGHE4D10asLXAln0a7ZPNZNb/Fn87YuYYVFQ1M/W/X1J0Dj6xmUxbcZw
+#                     j0WNc6I1+gxgI48SOpVnofoMKtmK9Y2R6i7od+E8IMar7ALR3IXvt1sCgYEA8RtG
+#                     WUvt7MVIkVSnJqiekUR5HyLSaJOC8cNdZN9CmJBQOkbMNSnmZKJKjDJR9DKEBKTq
+#                     PPxS1x01p5zeQdCiVMj3//wu3k5VHMq8kDUJwhLilt5vrNvt0+A+EFVmGfvLKUmT
+#                     n0mL+STtK8ZcB9/FlJuzbTHupS4GkUkjNyjp6QMCgYBIpHLfZie2syVRMuljJVBy
+#                     kiXRC1z8X58Y1NEb2V/6wn9J66QRkd7TY+jO0YC3PAz2h07Yue4qF36G2JQLDGlf
+#                     eiPg2DQhuuNiU6s6yf/hOTOUeCG6y0iTDzE+rkTnOOwFBJY8uqwodCVN88a80NrM
+#                     mGK5joClmsTcnNufMoe4WQKBgDMkEubr+RqIuhzBdPb5OzEa8goNq82sxFCdnNjB
+#                     lnGf4rSJwdTg/1KHLgLQxZtjf6cwh9LJvpSMSI418trI8zXCrv/oMNTMjrcdtaNs
+#                     7JXyxYc0xUFIIQkY/nEefBq00uH+DkbyJbOCBqCLYYf2CgW8hPF7buAwhAobFlIj
+#                     5oGbAoGARQRw9Y4HEpRBselNN/EnzYHTvTcscUQnQ3r/uBzm+h9SVPE8K1SrnM2l
+#                     iWGYuMLexXtQ5QI92vOqZigkaSPUowITlMhIUjVflyE0eev5I/cZHqfBpiAcru2W
+#                     NlfYW2n5bnfmxcnq4cmP/pgQxrAshMpfMTq+L/rMHn7X9uCPuYg=
+#                     -----END RSA PRIVATE KEY-----
+#                 sid: https://mkdsesecesap00user2f8.vault.azure.net/secrets/MKDSE-SECE-SAP00-sid-sshkey/abaac023c3ac46979c1bcb9d16c31305
+#                 tags: {}
+#                 version: abaac023c3ac46979c1bcb9d16c31305
+#         _scr_lf_storage_discovery:
+#             changed: false
+#             cmd:
+#             - az
+#             - storage
+#             - account
+#             - list
+#             - --resource-group
+#             - MKDSD-SECE-SAP_LIBRARY
+#             - --query
+#             - '[?contains(name, ''tfstate'')].name | [0]'
+#             - --output
+#             - tsv
+#             delta: '0:00:01.128751'
+#             end: '2026-05-04 16:51:32.644320'
+#             failed: false
+#             msg: ''
+#             rc: 0
+#             start: '2026-05-04 16:51:31.515569'
+#             stderr: ''
+#             stderr_lines: []
+#             stdout: mkdsdsecetfstate5ef
+#             stdout_lines:
+#             - mkdsdsecetfstate5ef
+#         ansible_all_ipv4_addresses:
+#         - 10.170.21.100
+#         ansible_all_ipv6_addresses:
+#         - fe80::72a8:a5ff:fe52:46b4
+#         ansible_apparmor:
+#             status: enabled
+#         ansible_architecture: x86_64
+#         ansible_bios_date: 01/08/2026
+#         ansible_bios_vendor: Microsoft Corporation
+#         ansible_bios_version: Hyper-V UEFI Release v4.1
+#         ansible_board_asset_tag: None
+#         ansible_board_name: Virtual Machine
+#         ansible_board_serial: NA
+#         ansible_board_vendor: Microsoft Corporation
+#         ansible_board_version: Hyper-V UEFI Release v4.1
+#         ansible_chassis_asset_tag: 7783-7084-3265-9085-8269-3286-77
+#         ansible_chassis_serial: NA
+#         ansible_chassis_vendor: Microsoft Corporation
+#         ansible_chassis_version: Hyper-V UEFI Release v4.1
+#         ansible_check_mode: false
+#         ansible_cmdline:
+#             BOOT_IMAGE: /vmlinuz-6.17.0-1010-azure
+#             console: ttyS0
+#             earlyprintk: ttyS0
+#             nvme_core.io_timeout: '240'
+#             panic: '-1'
+#             ro: true
+#             root: PARTUUID=054c3354-42bf-4a6d-8c6f-2cf42bd83e63
+#         ansible_config_file: /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible/ansible.cfg
+#         ansible_connection: ssh
+#         ansible_date_time:
+#             date: '2026-05-04'
+#             day: '04'
+#             epoch: '1777913468'
+#             epoch_int: '1777913468'
+#             hour: '16'
+#             iso8601: '2026-05-04T16:51:08Z'
+#             iso8601_basic: 20260504T165108075255
+#             iso8601_basic_short: 20260504T165108
+#             iso8601_micro: '2026-05-04T16:51:08.075255Z'
+#             minute: '51'
+#             month: '05'
+#             second: 08
+#             time: '16:51:08'
+#             tz: UTC
+#             tz_dst: UTC
+#             tz_offset: '+0000'
+#             weekday: Monday
+#             weekday_number: '1'
+#             weeknumber: '18'
+#             year: '2026'
+#         ansible_default_ipv4:
+#             address: 10.170.21.100
+#             alias: eth0
+#             broadcast: ''
+#             gateway: 10.170.21.97
+#             interface: eth0
+#             macaddress: 70:a8:a5:52:46:b4
+#             mtu: 1500
+#             netmask: 255.255.255.224
+#             network: 10.170.21.96
+#             prefix: '27'
+#             type: ether
+#         ansible_default_ipv6: {}
+#         ansible_device_links:
+#             ids:
+#                 sda:
+#                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47
+#                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47
+#                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47
+#                 sda1:
+#                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part1
+#                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part1
+#                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part1
+#                 sda14:
+#                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part14
+#                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part14
+#                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part14
+#                 sda15:
+#                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part15
+#                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part15
+#                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part15
+#                 sda16:
+#                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part16
+#                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part16
+#                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part16
+#                 sdb:
+#                 - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d
+#                 - scsi-360022480a1128e0089f96d0b2c125e9d
+#                 - wwn-0x60022480a1128e0089f96d0b2c125e9d
+#                 sdb1:
+#                 - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d-part1
+#                 - scsi-360022480a1128e0089f96d0b2c125e9d-part1
+#                 - wwn-0x60022480a1128e0089f96d0b2c125e9d-part1
+#                 sr0:
+#                 - scsi-14d534654202020207305e3437703544694957d7ced624a7d
+#             labels:
+#                 sda1:
+#                 - cloudimg-rootfs
+#                 sda15:
+#                 - UEFI
+#                 sda16:
+#                 - BOOT
+#             masters: {}
+#             uuids:
+#                 sda1:
+#                 - 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#                 sda15:
+#                 - 9976-7892
+#                 sda16:
+#                 - 4bf66719-664b-47ad-b957-c15ad7d45441
+#                 sdb1:
+#                 - 9e4c058b-a47b-4e8d-9418-133600dc3357
+#         ansible_devices:
+#             loop0:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '1'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '4096'
+#                 vendor: null
+#                 virtual: 1
+#             loop1:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '0'
+#                 vendor: null
+#                 virtual: 1
+#             loop2:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '0'
+#                 vendor: null
+#                 virtual: 1
+#             loop3:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '0'
+#                 vendor: null
+#                 virtual: 1
+#             loop4:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '0'
+#                 vendor: null
+#                 virtual: 1
+#             loop5:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '0'
+#                 vendor: null
+#                 virtual: 1
+#             loop6:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '0'
+#                 vendor: null
+#                 virtual: 1
+#             loop7:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids: []
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: null
+#                 partitions: {}
+#                 removable: '0'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '0'
+#                 sectorsize: '512'
+#                 size: 0.00 Bytes
+#                 support_discard: '0'
+#                 vendor: null
+#                 virtual: 1
+#             sda:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids:
+#                     - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47
+#                     - scsi-360022480e3e1b7fa471c8a86f7ddcb47
+#                     - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: Virtual Disk
+#                 partitions:
+#                     sda1:
+#                         holders: []
+#                         links:
+#                             ids:
+#                             - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part1
+#                             - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part1
+#                             - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part1
+#                             labels:
+#                             - cloudimg-rootfs
+#                             masters: []
+#                             uuids:
+#                             - 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#                         sectors: '266336223'
+#                         sectorsize: 512
+#                         size: 127.00 GB
+#                         start: '2099200'
+#                         uuid: 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#                     sda14:
+#                         holders: []
+#                         links:
+#                             ids:
+#                             - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part14
+#                             - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part14
+#                             - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part14
+#                             labels: []
+#                             masters: []
+#                             uuids: []
+#                         sectors: '8192'
+#                         sectorsize: 512
+#                         size: 4.00 MB
+#                         start: '2048'
+#                         uuid: null
+#                     sda15:
+#                         holders: []
+#                         links:
+#                             ids:
+#                             - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part15
+#                             - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part15
+#                             - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part15
+#                             labels:
+#                             - UEFI
+#                             masters: []
+#                             uuids:
+#                             - 9976-7892
+#                         sectors: '217088'
+#                         sectorsize: 512
+#                         size: 106.00 MB
+#                         start: '10240'
+#                         uuid: 9976-7892
+#                     sda16:
+#                         holders: []
+#                         links:
+#                             ids:
+#                             - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part16
+#                             - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part16
+#                             - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part16
+#                             labels:
+#                             - BOOT
+#                             masters: []
+#                             uuids:
+#                             - 4bf66719-664b-47ad-b957-c15ad7d45441
+#                         sectors: '1869825'
+#                         sectorsize: 512
+#                         size: 913.00 MB
+#                         start: '227328'
+#                         uuid: 4bf66719-664b-47ad-b957-c15ad7d45441
+#                 removable: '0'
+#                 rotational: '1'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '268435456'
+#                 sectorsize: '512'
+#                 size: 128.00 GB
+#                 support_discard: '2097152'
+#                 vendor: Msft
+#                 virtual: 1
+#                 wwn: '0x60022480e3e1b7fa471c8a86f7ddcb47'
+#             sdb:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids:
+#                     - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d
+#                     - scsi-360022480a1128e0089f96d0b2c125e9d
+#                     - wwn-0x60022480a1128e0089f96d0b2c125e9d
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: Virtual Disk
+#                 partitions:
+#                     sdb1:
+#                         holders: []
+#                         links:
+#                             ids:
+#                             - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d-part1
+#                             - scsi-360022480a1128e0089f96d0b2c125e9d-part1
+#                             - wwn-0x60022480a1128e0089f96d0b2c125e9d-part1
+#                             labels: []
+#                             masters: []
+#                             uuids:
+#                             - 9e4c058b-a47b-4e8d-9418-133600dc3357
+#                         sectors: '314568704'
+#                         sectorsize: 512
+#                         size: 150.00 GB
+#                         start: '2048'
+#                         uuid: 9e4c058b-a47b-4e8d-9418-133600dc3357
+#                 removable: '0'
+#                 rotational: '1'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '314572800'
+#                 sectorsize: '512'
+#                 size: 150.00 GB
+#                 support_discard: '2097152'
+#                 vendor: Msft
+#                 virtual: 1
+#                 wwn: '0x60022480a1128e0089f96d0b2c125e9d'
+#             sr0:
+#                 holders: []
+#                 host: ''
+#                 links:
+#                     ids:
+#                     - scsi-14d534654202020207305e3437703544694957d7ced624a7d
+#                     labels: []
+#                     masters: []
+#                     uuids: []
+#                 model: Virtual DVD-ROM
+#                 partitions: {}
+#                 removable: '1'
+#                 rotational: '0'
+#                 sas_address: null
+#                 sas_device_handle: null
+#                 scheduler_mode: none
+#                 sectors: '2097151'
+#                 sectorsize: '512'
+#                 size: 1024.00 MB
+#                 support_discard: '0'
+#                 vendor: Msft
+#                 virtual: 1
+#         ansible_diff_mode: false
+#         ansible_distribution: Ubuntu
+#         ansible_distribution_file_parsed: true
+#         ansible_distribution_file_path: /etc/os-release
+#         ansible_distribution_file_variety: Debian
+#         ansible_distribution_major_version: '24'
+#         ansible_distribution_release: noble
+#         ansible_distribution_version: '24.04'
+#         ansible_dns:
+#             nameservers:
+#             - 127.0.0.53
+#             options:
+#                 edns0: true
+#                 trust-ad: true
+#             search:
+#             - owynhwxl2xbu5fuxci0coyqj2d.gvxx.internal.cloudapp.net
+#         ansible_domain: internal.cloudapp.net
+#         ansible_effective_group_id: 1000
+#         ansible_effective_user_id: 1000
+#         ansible_env:
+#             ANSIBLE_COLLECTIONS_PATH: /opt/ansible/collections
+#             ANSIBLE_HOST_KEY_CHECKING: 'False'
+#             ARM_CLIENT_ID: ae795775-2140-40d3-b60d-3b5249bc081e
+#             ARM_TENANT_ID: c01abe72-ffef-4ecc-bda0-937975b49e6b
+#             ARM_USE_MSI: 'true'
+#             AZADHOME: /home/azureadm
+#             DBUS_SESSION_BUS_ADDRESS: unix:path=/run/user/1000/bus
+#             DISPLAY: localhost:10.0
+#             DOTNET_ROOT: /snap/dotnet-sdk/current
+#             HOME: /home/azureadm
+#             LANG: C.UTF-8
+#             LESSCLOSE: /usr/bin/lesspipe %s %s
+#             LESSOPEN: '| /usr/bin/lesspipe %s'
+#             LOGNAME: azureadm
+#             LS_COLORS: 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:'
+#             OLDPWD: /home/azureadm
+#             PATH: /opt/ansible/bin:/opt/terraform/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin:/opt/ansible/bin:/opt/terraform/bin:/snap/dotnet-sdk/current:/snap/dotnet-sdk/current:/home/azureadm/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts
+#             PWD: /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible
+#             SGX_AESM_ADDR: '1'
+#             SHELL: /bin/bash
+#             SHLVL: '1'
+#             SSH_CLIENT: 10.170.21.133 33682 22
+#             SSH_CONNECTION: 10.170.21.133 33682 10.170.21.100 22
+#             SSH_TTY: /dev/pts/0
+#             TERM: xterm
+#             USER: azureadm
+#             XDG_DATA_DIRS: /usr/local/share:/usr/share:/var/lib/snapd/desktop
+#             XDG_RUNTIME_DIR: /run/user/1000
+#             XDG_SESSION_CLASS: user
+#             XDG_SESSION_ID: '5568'
+#             XDG_SESSION_TYPE: tty
+#             _: /opt/ansible/bin/ansible-playbook
+#         ansible_eth0:
+#             active: true
+#             device: eth0
+#             features:
+#                 esp_hw_offload: off [fixed]
+#                 esp_tx_csum_hw_offload: off [fixed]
+#                 generic_receive_offload: 'on'
+#                 generic_segmentation_offload: 'on'
+#                 highdma: on [fixed]
+#                 hsr_dup_offload: off [fixed]
+#                 hsr_fwd_offload: off [fixed]
+#                 hsr_tag_ins_offload: off [fixed]
+#                 hsr_tag_rm_offload: off [fixed]
+#                 hw_tc_offload: off [fixed]
+#                 l2_fwd_offload: off [fixed]
+#                 large_receive_offload: 'on'
+#                 loopback: off [fixed]
+#                 macsec_hw_offload: off [fixed]
+#                 ntuple_filters: off [fixed]
+#                 receive_hashing: 'on'
+#                 rx_all: off [fixed]
+#                 rx_checksumming: 'on'
+#                 rx_fcs: off [fixed]
+#                 rx_gro_hw: off [fixed]
+#                 rx_gro_list: 'off'
+#                 rx_udp_gro_forwarding: 'off'
+#                 rx_udp_tunnel_port_offload: off [fixed]
+#                 rx_vlan_filter: off [fixed]
+#                 rx_vlan_offload: on [fixed]
+#                 rx_vlan_stag_filter: off [fixed]
+#                 rx_vlan_stag_hw_parse: off [fixed]
+#                 scatter_gather: 'on'
+#                 tcp_segmentation_offload: 'on'
+#                 tls_hw_record: off [fixed]
+#                 tls_hw_rx_offload: off [fixed]
+#                 tls_hw_tx_offload: off [fixed]
+#                 tx_checksum_fcoe_crc: off [fixed]
+#                 tx_checksum_ip_generic: off [fixed]
+#                 tx_checksum_ipv4: 'on'
+#                 tx_checksum_ipv6: 'on'
+#                 tx_checksum_sctp: off [fixed]
+#                 tx_checksumming: 'on'
+#                 tx_esp_segmentation: off [fixed]
+#                 tx_fcoe_segmentation: off [fixed]
+#                 tx_gre_csum_segmentation: off [fixed]
+#                 tx_gre_segmentation: off [fixed]
+#                 tx_gso_list: off [fixed]
+#                 tx_gso_partial: off [fixed]
+#                 tx_gso_robust: off [fixed]
+#                 tx_ipxip4_segmentation: off [fixed]
+#                 tx_ipxip6_segmentation: off [fixed]
+#                 tx_nocache_copy: 'off'
+#                 tx_scatter_gather: 'on'
+#                 tx_scatter_gather_fraglist: off [fixed]
+#                 tx_sctp_segmentation: off [fixed]
+#                 tx_tcp6_segmentation: 'on'
+#                 tx_tcp_accecn_segmentation: off [fixed]
+#                 tx_tcp_ecn_segmentation: off [fixed]
+#                 tx_tcp_mangleid_segmentation: 'off'
+#                 tx_tcp_segmentation: 'on'
+#                 tx_tunnel_remcsum_segmentation: off [fixed]
+#                 tx_udp_segmentation: off [fixed]
+#                 tx_udp_tnl_csum_segmentation: off [fixed]
+#                 tx_udp_tnl_segmentation: off [fixed]
+#                 tx_vlan_offload: on [fixed]
+#                 tx_vlan_stag_hw_insert: off [fixed]
+#                 vlan_challenged: off [fixed]
+#             hw_timestamp_filters: []
+#             ipv4:
+#                 address: 10.170.21.100
+#                 broadcast: ''
+#                 netmask: 255.255.255.224
+#                 network: 10.170.21.96
+#                 prefix: '27'
+#             ipv6:
+#             -   address: fe80::72a8:a5ff:fe52:46b4
+#                 prefix: '64'
+#                 scope: link
+#             macaddress: 70:a8:a5:52:46:b4
+#             module: hv_netvsc
+#             mtu: 1500
+#             pciid: 70a8a552-46b4-70a8-a552-46b470a8a552
+#             promisc: false
+#             speed: 100000
+#             timestamping: []
+#             type: ether
+#         ansible_facts:
+#             all_ipv4_addresses:
+#             - 10.170.21.100
+#             all_ipv6_addresses:
+#             - fe80::72a8:a5ff:fe52:46b4
+#             ansible_local: {}
+#             apparmor:
+#                 status: enabled
+#             architecture: x86_64
+#             bios_date: 01/08/2026
+#             bios_vendor: Microsoft Corporation
+#             bios_version: Hyper-V UEFI Release v4.1
+#             board_asset_tag: None
+#             board_name: Virtual Machine
+#             board_serial: NA
+#             board_vendor: Microsoft Corporation
+#             board_version: Hyper-V UEFI Release v4.1
+#             chassis_asset_tag: 7783-7084-3265-9085-8269-3286-77
+#             chassis_serial: NA
+#             chassis_vendor: Microsoft Corporation
+#             chassis_version: Hyper-V UEFI Release v4.1
+#             cmdline:
+#                 BOOT_IMAGE: /vmlinuz-6.17.0-1010-azure
+#                 console: ttyS0
+#                 earlyprintk: ttyS0
+#                 nvme_core.io_timeout: '240'
+#                 panic: '-1'
+#                 ro: true
+#                 root: PARTUUID=054c3354-42bf-4a6d-8c6f-2cf42bd83e63
+#             date_time:
+#                 date: '2026-05-04'
+#                 day: '04'
+#                 epoch: '1777913468'
+#                 epoch_int: '1777913468'
+#                 hour: '16'
+#                 iso8601: '2026-05-04T16:51:08Z'
+#                 iso8601_basic: 20260504T165108075255
+#                 iso8601_basic_short: 20260504T165108
+#                 iso8601_micro: '2026-05-04T16:51:08.075255Z'
+#                 minute: '51'
+#                 month: '05'
+#                 second: 08
+#                 time: '16:51:08'
+#                 tz: UTC
+#                 tz_dst: UTC
+#                 tz_offset: '+0000'
+#                 weekday: Monday
+#                 weekday_number: '1'
+#                 weeknumber: '18'
+#                 year: '2026'
+#             default_ipv4:
+#                 address: 10.170.21.100
+#                 alias: eth0
+#                 broadcast: ''
+#                 gateway: 10.170.21.97
+#                 interface: eth0
+#                 macaddress: 70:a8:a5:52:46:b4
+#                 mtu: 1500
+#                 netmask: 255.255.255.224
+#                 network: 10.170.21.96
+#                 prefix: '27'
+#                 type: ether
+#             default_ipv6: {}
+#             device_links:
+#                 ids:
+#                     sda:
+#                     - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47
+#                     - scsi-360022480e3e1b7fa471c8a86f7ddcb47
+#                     - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47
+#                     sda1:
+#                     - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part1
+#                     - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part1
+#                     - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part1
+#                     sda14:
+#                     - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part14
+#                     - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part14
+#                     - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part14
+#                     sda15:
+#                     - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part15
+#                     - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part15
+#                     - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part15
+#                     sda16:
+#                     - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part16
+#                     - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part16
+#                     - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part16
+#                     sdb:
+#                     - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d
+#                     - scsi-360022480a1128e0089f96d0b2c125e9d
+#                     - wwn-0x60022480a1128e0089f96d0b2c125e9d
+#                     sdb1:
+#                     - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d-part1
+#                     - scsi-360022480a1128e0089f96d0b2c125e9d-part1
+#                     - wwn-0x60022480a1128e0089f96d0b2c125e9d-part1
+#                     sr0:
+#                     - scsi-14d534654202020207305e3437703544694957d7ced624a7d
+#                 labels:
+#                     sda1:
+#                     - cloudimg-rootfs
+#                     sda15:
+#                     - UEFI
+#                     sda16:
+#                     - BOOT
+#                 masters: {}
+#                 uuids:
+#                     sda1:
+#                     - 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#                     sda15:
+#                     - 9976-7892
+#                     sda16:
+#                     - 4bf66719-664b-47ad-b957-c15ad7d45441
+#                     sdb1:
+#                     - 9e4c058b-a47b-4e8d-9418-133600dc3357
+#             devices:
+#                 loop0:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '1'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '4096'
+#                     vendor: null
+#                     virtual: 1
+#                 loop1:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '0'
+#                     vendor: null
+#                     virtual: 1
+#                 loop2:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '0'
+#                     vendor: null
+#                     virtual: 1
+#                 loop3:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '0'
+#                     vendor: null
+#                     virtual: 1
+#                 loop4:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '0'
+#                     vendor: null
+#                     virtual: 1
+#                 loop5:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '0'
+#                     vendor: null
+#                     virtual: 1
+#                 loop6:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '0'
+#                     vendor: null
+#                     virtual: 1
+#                 loop7:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids: []
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: null
+#                     partitions: {}
+#                     removable: '0'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '0'
+#                     sectorsize: '512'
+#                     size: 0.00 Bytes
+#                     support_discard: '0'
+#                     vendor: null
+#                     virtual: 1
+#                 sda:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids:
+#                         - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47
+#                         - scsi-360022480e3e1b7fa471c8a86f7ddcb47
+#                         - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: Virtual Disk
+#                     partitions:
+#                         sda1:
+#                             holders: []
+#                             links:
+#                                 ids:
+#                                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part1
+#                                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part1
+#                                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part1
+#                                 labels:
+#                                 - cloudimg-rootfs
+#                                 masters: []
+#                                 uuids:
+#                                 - 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#                             sectors: '266336223'
+#                             sectorsize: 512
+#                             size: 127.00 GB
+#                             start: '2099200'
+#                             uuid: 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#                         sda14:
+#                             holders: []
+#                             links:
+#                                 ids:
+#                                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part14
+#                                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part14
+#                                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part14
+#                                 labels: []
+#                                 masters: []
+#                                 uuids: []
+#                             sectors: '8192'
+#                             sectorsize: 512
+#                             size: 4.00 MB
+#                             start: '2048'
+#                             uuid: null
+#                         sda15:
+#                             holders: []
+#                             links:
+#                                 ids:
+#                                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part15
+#                                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part15
+#                                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part15
+#                                 labels:
+#                                 - UEFI
+#                                 masters: []
+#                                 uuids:
+#                                 - 9976-7892
+#                             sectors: '217088'
+#                             sectorsize: 512
+#                             size: 106.00 MB
+#                             start: '10240'
+#                             uuid: 9976-7892
+#                         sda16:
+#                             holders: []
+#                             links:
+#                                 ids:
+#                                 - scsi-14d53465420202020e3e1b7fa471c8c49be418a86f7ddcb47-part16
+#                                 - scsi-360022480e3e1b7fa471c8a86f7ddcb47-part16
+#                                 - wwn-0x60022480e3e1b7fa471c8a86f7ddcb47-part16
+#                                 labels:
+#                                 - BOOT
+#                                 masters: []
+#                                 uuids:
+#                                 - 4bf66719-664b-47ad-b957-c15ad7d45441
+#                             sectors: '1869825'
+#                             sectorsize: 512
+#                             size: 913.00 MB
+#                             start: '227328'
+#                             uuid: 4bf66719-664b-47ad-b957-c15ad7d45441
+#                     removable: '0'
+#                     rotational: '1'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '268435456'
+#                     sectorsize: '512'
+#                     size: 128.00 GB
+#                     support_discard: '2097152'
+#                     vendor: Msft
+#                     virtual: 1
+#                     wwn: '0x60022480e3e1b7fa471c8a86f7ddcb47'
+#                 sdb:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids:
+#                         - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d
+#                         - scsi-360022480a1128e0089f96d0b2c125e9d
+#                         - wwn-0x60022480a1128e0089f96d0b2c125e9d
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: Virtual Disk
+#                     partitions:
+#                         sdb1:
+#                             holders: []
+#                             links:
+#                                 ids:
+#                                 - scsi-14d53465420202020a1128e0089f95941b6776d0b2c125e9d-part1
+#                                 - scsi-360022480a1128e0089f96d0b2c125e9d-part1
+#                                 - wwn-0x60022480a1128e0089f96d0b2c125e9d-part1
+#                                 labels: []
+#                                 masters: []
+#                                 uuids:
+#                                 - 9e4c058b-a47b-4e8d-9418-133600dc3357
+#                             sectors: '314568704'
+#                             sectorsize: 512
+#                             size: 150.00 GB
+#                             start: '2048'
+#                             uuid: 9e4c058b-a47b-4e8d-9418-133600dc3357
+#                     removable: '0'
+#                     rotational: '1'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '314572800'
+#                     sectorsize: '512'
+#                     size: 150.00 GB
+#                     support_discard: '2097152'
+#                     vendor: Msft
+#                     virtual: 1
+#                     wwn: '0x60022480a1128e0089f96d0b2c125e9d'
+#                 sr0:
+#                     holders: []
+#                     host: ''
+#                     links:
+#                         ids:
+#                         - scsi-14d534654202020207305e3437703544694957d7ced624a7d
+#                         labels: []
+#                         masters: []
+#                         uuids: []
+#                     model: Virtual DVD-ROM
+#                     partitions: {}
+#                     removable: '1'
+#                     rotational: '0'
+#                     sas_address: null
+#                     sas_device_handle: null
+#                     scheduler_mode: none
+#                     sectors: '2097151'
+#                     sectorsize: '512'
+#                     size: 1024.00 MB
+#                     support_discard: '0'
+#                     vendor: Msft
+#                     virtual: 1
+#             discovered_interpreter_python: /usr/bin/python3
+#             distribution: Ubuntu
+#             distribution_file_parsed: true
+#             distribution_file_path: /etc/os-release
+#             distribution_file_variety: Debian
+#             distribution_major_version: '24'
+#             distribution_release: noble
+#             distribution_version: '24.04'
+#             dns:
+#                 nameservers:
+#                 - 127.0.0.53
+#                 options:
+#                     edns0: true
+#                     trust-ad: true
+#                 search:
+#                 - owynhwxl2xbu5fuxci0coyqj2d.gvxx.internal.cloudapp.net
+#             domain: internal.cloudapp.net
+#             effective_group_id: 1000
+#             effective_user_id: 1000
+#             env:
+#                 ANSIBLE_COLLECTIONS_PATH: /opt/ansible/collections
+#                 ANSIBLE_HOST_KEY_CHECKING: 'False'
+#                 ARM_CLIENT_ID: ae795775-2140-40d3-b60d-3b5249bc081e
+#                 ARM_TENANT_ID: c01abe72-ffef-4ecc-bda0-937975b49e6b
+#                 ARM_USE_MSI: 'true'
+#                 AZADHOME: /home/azureadm
+#                 DBUS_SESSION_BUS_ADDRESS: unix:path=/run/user/1000/bus
+#                 DISPLAY: localhost:10.0
+#                 DOTNET_ROOT: /snap/dotnet-sdk/current
+#                 HOME: /home/azureadm
+#                 LANG: C.UTF-8
+#                 LESSCLOSE: /usr/bin/lesspipe %s %s
+#                 LESSOPEN: '| /usr/bin/lesspipe %s'
+#                 LOGNAME: azureadm
+#                 LS_COLORS: 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:'
+#                 OLDPWD: /home/azureadm
+#                 PATH: /opt/ansible/bin:/opt/terraform/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin:/opt/ansible/bin:/opt/terraform/bin:/snap/dotnet-sdk/current:/snap/dotnet-sdk/current:/home/azureadm/Azure_SAP_Automated_Deployment/sap-automation/deploy/scripts
+#                 PWD: /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible
+#                 SGX_AESM_ADDR: '1'
+#                 SHELL: /bin/bash
+#                 SHLVL: '1'
+#                 SSH_CLIENT: 10.170.21.133 33682 22
+#                 SSH_CONNECTION: 10.170.21.133 33682 10.170.21.100 22
+#                 SSH_TTY: /dev/pts/0
+#                 TERM: xterm
+#                 USER: azureadm
+#                 XDG_DATA_DIRS: /usr/local/share:/usr/share:/var/lib/snapd/desktop
+#                 XDG_RUNTIME_DIR: /run/user/1000
+#                 XDG_SESSION_CLASS: user
+#                 XDG_SESSION_ID: '5568'
+#                 XDG_SESSION_TYPE: tty
+#                 _: /opt/ansible/bin/ansible-playbook
+#             eth0:
+#                 active: true
+#                 device: eth0
+#                 features:
+#                     esp_hw_offload: off [fixed]
+#                     esp_tx_csum_hw_offload: off [fixed]
+#                     generic_receive_offload: 'on'
+#                     generic_segmentation_offload: 'on'
+#                     highdma: on [fixed]
+#                     hsr_dup_offload: off [fixed]
+#                     hsr_fwd_offload: off [fixed]
+#                     hsr_tag_ins_offload: off [fixed]
+#                     hsr_tag_rm_offload: off [fixed]
+#                     hw_tc_offload: off [fixed]
+#                     l2_fwd_offload: off [fixed]
+#                     large_receive_offload: 'on'
+#                     loopback: off [fixed]
+#                     macsec_hw_offload: off [fixed]
+#                     ntuple_filters: off [fixed]
+#                     receive_hashing: 'on'
+#                     rx_all: off [fixed]
+#                     rx_checksumming: 'on'
+#                     rx_fcs: off [fixed]
+#                     rx_gro_hw: off [fixed]
+#                     rx_gro_list: 'off'
+#                     rx_udp_gro_forwarding: 'off'
+#                     rx_udp_tunnel_port_offload: off [fixed]
+#                     rx_vlan_filter: off [fixed]
+#                     rx_vlan_offload: on [fixed]
+#                     rx_vlan_stag_filter: off [fixed]
+#                     rx_vlan_stag_hw_parse: off [fixed]
+#                     scatter_gather: 'on'
+#                     tcp_segmentation_offload: 'on'
+#                     tls_hw_record: off [fixed]
+#                     tls_hw_rx_offload: off [fixed]
+#                     tls_hw_tx_offload: off [fixed]
+#                     tx_checksum_fcoe_crc: off [fixed]
+#                     tx_checksum_ip_generic: off [fixed]
+#                     tx_checksum_ipv4: 'on'
+#                     tx_checksum_ipv6: 'on'
+#                     tx_checksum_sctp: off [fixed]
+#                     tx_checksumming: 'on'
+#                     tx_esp_segmentation: off [fixed]
+#                     tx_fcoe_segmentation: off [fixed]
+#                     tx_gre_csum_segmentation: off [fixed]
+#                     tx_gre_segmentation: off [fixed]
+#                     tx_gso_list: off [fixed]
+#                     tx_gso_partial: off [fixed]
+#                     tx_gso_robust: off [fixed]
+#                     tx_ipxip4_segmentation: off [fixed]
+#                     tx_ipxip6_segmentation: off [fixed]
+#                     tx_nocache_copy: 'off'
+#                     tx_scatter_gather: 'on'
+#                     tx_scatter_gather_fraglist: off [fixed]
+#                     tx_sctp_segmentation: off [fixed]
+#                     tx_tcp6_segmentation: 'on'
+#                     tx_tcp_accecn_segmentation: off [fixed]
+#                     tx_tcp_ecn_segmentation: off [fixed]
+#                     tx_tcp_mangleid_segmentation: 'off'
+#                     tx_tcp_segmentation: 'on'
+#                     tx_tunnel_remcsum_segmentation: off [fixed]
+#                     tx_udp_segmentation: off [fixed]
+#                     tx_udp_tnl_csum_segmentation: off [fixed]
+#                     tx_udp_tnl_segmentation: off [fixed]
+#                     tx_vlan_offload: on [fixed]
+#                     tx_vlan_stag_hw_insert: off [fixed]
+#                     vlan_challenged: off [fixed]
+#                 hw_timestamp_filters: []
+#                 ipv4:
+#                     address: 10.170.21.100
+#                     broadcast: ''
+#                     netmask: 255.255.255.224
+#                     network: 10.170.21.96
+#                     prefix: '27'
+#                 ipv6:
+#                 -   address: fe80::72a8:a5ff:fe52:46b4
+#                     prefix: '64'
+#                     scope: link
+#                 macaddress: 70:a8:a5:52:46:b4
+#                 module: hv_netvsc
+#                 mtu: 1500
+#                 pciid: 70a8a552-46b4-70a8-a552-46b470a8a552
+#                 promisc: false
+#                 speed: 100000
+#                 timestamping: []
+#                 type: ether
+#             fibre_channel_wwn: []
+#             fips: false
+#             form_factor: Desktop
+#             fqdn: mkdsdsecedep00deploy00.internal.cloudapp.net
+#             gather_subset:
+#             - all
+#             hostname: mkdsdsecedep00deploy00
+#             hostnqn: nqn.2014-08.org.nvmexpress:uuid:77d784dd-de4e-4296-8c51-46e635f79b37
+#             interfaces:
+#             - eth0
+#             - lo
+#             is_chroot: false
+#             iscsi_iqn: ''
+#             kernel: 6.17.0-1010-azure
+#             kernel_version: '#10~24.04.1-Ubuntu SMP Fri Mar  6 22:00:57 UTC 2026'
+#             lo:
+#                 active: true
+#                 device: lo
+#                 features:
+#                     esp_hw_offload: off [fixed]
+#                     esp_tx_csum_hw_offload: off [fixed]
+#                     generic_receive_offload: 'on'
+#                     generic_segmentation_offload: 'on'
+#                     highdma: on [fixed]
+#                     hsr_dup_offload: off [fixed]
+#                     hsr_fwd_offload: off [fixed]
+#                     hsr_tag_ins_offload: off [fixed]
+#                     hsr_tag_rm_offload: off [fixed]
+#                     hw_tc_offload: off [fixed]
+#                     l2_fwd_offload: off [fixed]
+#                     large_receive_offload: off [fixed]
+#                     loopback: on [fixed]
+#                     macsec_hw_offload: off [fixed]
+#                     ntuple_filters: off [fixed]
+#                     receive_hashing: off [fixed]
+#                     rx_all: off [fixed]
+#                     rx_checksumming: on [fixed]
+#                     rx_fcs: off [fixed]
+#                     rx_gro_hw: off [fixed]
+#                     rx_gro_list: 'off'
+#                     rx_udp_gro_forwarding: 'off'
+#                     rx_udp_tunnel_port_offload: off [fixed]
+#                     rx_vlan_filter: off [fixed]
+#                     rx_vlan_offload: off [fixed]
+#                     rx_vlan_stag_filter: off [fixed]
+#                     rx_vlan_stag_hw_parse: off [fixed]
+#                     scatter_gather: 'on'
+#                     tcp_segmentation_offload: 'on'
+#                     tls_hw_record: off [fixed]
+#                     tls_hw_rx_offload: off [fixed]
+#                     tls_hw_tx_offload: off [fixed]
+#                     tx_checksum_fcoe_crc: off [fixed]
+#                     tx_checksum_ip_generic: on [fixed]
+#                     tx_checksum_ipv4: off [fixed]
+#                     tx_checksum_ipv6: off [fixed]
+#                     tx_checksum_sctp: on [fixed]
+#                     tx_checksumming: 'on'
+#                     tx_esp_segmentation: off [fixed]
+#                     tx_fcoe_segmentation: off [fixed]
+#                     tx_gre_csum_segmentation: off [fixed]
+#                     tx_gre_segmentation: off [fixed]
+#                     tx_gso_list: 'on'
+#                     tx_gso_partial: off [fixed]
+#                     tx_gso_robust: off [fixed]
+#                     tx_ipxip4_segmentation: off [fixed]
+#                     tx_ipxip6_segmentation: off [fixed]
+#                     tx_nocache_copy: off [fixed]
+#                     tx_scatter_gather: on [fixed]
+#                     tx_scatter_gather_fraglist: on [fixed]
+#                     tx_sctp_segmentation: 'on'
+#                     tx_tcp6_segmentation: 'on'
+#                     tx_tcp_accecn_segmentation: 'on'
+#                     tx_tcp_ecn_segmentation: 'on'
+#                     tx_tcp_mangleid_segmentation: 'on'
+#                     tx_tcp_segmentation: 'on'
+#                     tx_tunnel_remcsum_segmentation: off [fixed]
+#                     tx_udp_segmentation: 'on'
+#                     tx_udp_tnl_csum_segmentation: off [fixed]
+#                     tx_udp_tnl_segmentation: off [fixed]
+#                     tx_vlan_offload: off [fixed]
+#                     tx_vlan_stag_hw_insert: off [fixed]
+#                     vlan_challenged: on [fixed]
+#                 hw_timestamp_filters: []
+#                 ipv4:
+#                     address: 127.0.0.1
+#                     broadcast: ''
+#                     netmask: 255.0.0.0
+#                     network: 127.0.0.0
+#                     prefix: '8'
+#                 ipv6:
+#                 -   address: ::1
+#                     prefix: '128'
+#                     scope: host
+#                 mtu: 65536
+#                 promisc: false
+#                 timestamping: []
+#                 type: loopback
+#             loadavg:
+#                 15m: 0.26806640625
+#                 1m: 0.12060546875
+#                 5m: 0.28369140625
+#             locally_reachable_ips:
+#                 ipv4:
+#                 - 10.170.21.100
+#                 - 127.0.0.0/8
+#                 - 127.0.0.1
+#                 ipv6:
+#                 - ::1
+#                 - fe80::72a8:a5ff:fe52:46b4
+#             lsb:
+#                 codename: noble
+#                 description: Ubuntu 24.04.4 LTS
+#                 id: Ubuntu
+#                 major_release: '24'
+#                 release: '24.04'
+#             lvm: N/A
+#             machine: x86_64
+#             machine_id: 8f3cf0c972fd45b3a3ce1a8961a2f3ab
+#             memfree_mb: 7152
+#             memory_mb:
+#                 nocache:
+#                     free: 13806
+#                     used: 2183
+#                 real:
+#                     free: 7152
+#                     total: 15989
+#                     used: 8837
+#                 swap:
+#                     cached: 0
+#                     free: 0
+#                     total: 0
+#                     used: 0
+#             memtotal_mb: 15989
+#             module_setup: true
+#             mounts:
+#             -   block_available: 29398221
+#                 block_size: 4096
+#                 block_total: 32229372
+#                 block_used: 2831151
+#                 device: /dev/root
+#                 fstype: ext4
+#                 inode_available: 16316086
+#                 inode_total: 16646144
+#                 inode_used: 330058
+#                 mount: /
+#                 options: rw,relatime,discard,errors=remount-ro,commit=30
+#                 size_available: 120415113216
+#                 size_total: 132011507712
+#                 uuid: 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#             -   block_available: 179813
+#                 block_size: 4096
+#                 block_total: 225380
+#                 block_used: 45567
+#                 device: /dev/sda16
+#                 fstype: ext4
+#                 inode_available: 57892
+#                 inode_total: 58496
+#                 inode_used: 604
+#                 mount: /boot
+#                 options: rw,relatime,discard
+#                 size_available: 736514048
+#                 size_total: 923156480
+#                 uuid: 4bf66719-664b-47ad-b957-c15ad7d45441
+#             -   block_available: 201164
+#                 block_size: 512
+#                 block_total: 213663
+#                 block_used: 12499
+#                 device: /dev/sda15
+#                 fstype: vfat
+#                 inode_available: 0
+#                 inode_total: 0
+#                 inode_used: 0
+#                 mount: /boot/efi
+#                 options: rw,relatime,fmask=0077,dmask=0077,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro
+#                 size_available: 102995968
+#                 size_total: 109395456
+#                 uuid: 9976-7892
+#             -   block_available: 36456326
+#                 block_size: 4096
+#                 block_total: 38426484
+#                 block_used: 1970158
+#                 device: /dev/sdb1
+#                 fstype: ext4
+#                 inode_available: 9830388
+#                 inode_total: 9830400
+#                 inode_used: 12
+#                 mount: /mnt
+#                 options: rw,relatime
+#                 size_available: 149325111296
+#                 size_total: 157394878464
+#                 uuid: 9e4c058b-a47b-4e8d-9418-133600dc3357
+#             nodename: mkdsdsecedep00deploy00
+#             os_family: Debian
+#             pkg_mgr: apt
+#             proc_cmdline:
+#                 BOOT_IMAGE: /vmlinuz-6.17.0-1010-azure
+#                 console:
+#                 - tty1
+#                 - ttyS0
+#                 earlyprintk: ttyS0
+#                 nvme_core.io_timeout: '240'
+#                 panic: '-1'
+#                 ro: true
+#                 root: PARTUUID=054c3354-42bf-4a6d-8c6f-2cf42bd83e63
+#             processor:
+#             - '0'
+#             - GenuineIntel
+#             - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#             - '1'
+#             - GenuineIntel
+#             - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#             - '2'
+#             - GenuineIntel
+#             - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#             - '3'
+#             - GenuineIntel
+#             - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#             processor_cores: 2
+#             processor_count: 1
+#             processor_nproc: 4
+#             processor_threads_per_core: 2
+#             processor_vcpus: 4
+#             product_name: Virtual Machine
+#             product_serial: NA
+#             product_uuid: 22a74510-20cc-48eb-9339-f00d857da458
+#             product_version: Hyper-V UEFI Release v4.1
+#             python:
+#                 executable: /opt/ansible/venv/2.16/bin/python
+#                 has_sslcontext: true
+#                 type: cpython
+#                 version:
+#                     major: 3
+#                     micro: 3
+#                     minor: 12
+#                     releaselevel: final
+#                     serial: 0
+#                 version_info:
+#                 - 3
+#                 - 12
+#                 - 3
+#                 - final
+#                 - 0
+#             python_version: 3.12.3
+#             real_group_id: 1000
+#             real_user_id: 1000
+#             selinux:
+#                 status: disabled
+#             selinux_python_present: true
+#             service_mgr: systemd
+#             ssh_host_key_ecdsa_public: AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBBYX1/q8vP60VVtS9GZp+j3RKVB+LhrOkOIqyG8HMNcpC6Jx76C/ergQhp8HqfwhlFQKMQOCOQrfZtzsyvLjESw=
+#             ssh_host_key_ecdsa_public_keytype: ecdsa-sha2-nistp256
+#             ssh_host_key_ed25519_public: AAAAC3NzaC1lZDI1NTE5AAAAIF3r7kAx/QUytbjcldo4q6fG5pX6lXnWy+tHyTlncl4q
+#             ssh_host_key_ed25519_public_keytype: ssh-ed25519
+#             ssh_host_key_rsa_public: AAAAB3NzaC1yc2EAAAADAQABAAABgQDtdnA8GL3nzlDi4oQsMMvar4VxhDmmy1JXnpITuINlRuCACWkzBktUU1LHE+RVELdZU+JvrCzBvkGJu09ihFkKe0tHdDbym8MdcEXOyJ2sOWwV3WI6NQVI6nCaKUrFjVFXLaO5mKDv7KQ9ri5Ht0NTbzLdXjg8yBvnG4YQr5Tahgx/h9cItGXelC2F2ElhBvX+1WtsWLpGhWC3iAFKFuqZ3wa5khTrulWnQVk/C9hl5pid7Hl+1RqC0xIp/B4jy5ppbKhMgnZOr3v/pyyj/3p3REeTxB9ZGI8j/5lx4R9QP0C7VXR6IJ+eMBENs3giTqH8YWIPwZW/cv1aabhTigIwhzhXig09Q4zoy6tdMEaJfW5JUwFKdPXDHrhdibausnVw8n7ZDSKe1KvxEeZLgS5o5BKFg3tRL7fcFQtPEgJsYWMT+aRLKkjXOqLLv0C/3Y8u7tMhz4abK6TGy6Z5uBSwKLGnjTmBuAhXZmewdjovpMMzCbEDYgNOphQhlQHQUJ0=
+#             ssh_host_key_rsa_public_keytype: ssh-rsa
+#             swapfree_mb: 0
+#             swaptotal_mb: 0
+#             system: Linux
+#             system_capabilities:
+#             - ''
+#             system_capabilities_enforced: 'True'
+#             system_vendor: Microsoft Corporation
+#             uptime_seconds: 2735725
+#             user_dir: /home/azureadm
+#             user_gecos: Ubuntu
+#             user_gid: 1000
+#             user_id: azureadm
+#             user_shell: /bin/bash
+#             user_uid: 1000
+#             userspace_architecture: x86_64
+#             userspace_bits: '64'
+#             virtualization_role: guest
+#             virtualization_tech_guest:
+#             - VirtualPC
+#             virtualization_tech_host:
+#             - kvm
+#             virtualization_type: VirtualPC
+#         ansible_fibre_channel_wwn: []
+#         ansible_fips: false
+#         ansible_forks: 5
+#         ansible_form_factor: Desktop
+#         ansible_fqdn: mkdsdsecedep00deploy00.internal.cloudapp.net
+#         ansible_host: 10.111.1.80
+#         ansible_hostname: mkdsdsecedep00deploy00
+#         ansible_hostnqn: nqn.2014-08.org.nvmexpress:uuid:77d784dd-de4e-4296-8c51-46e635f79b37
+#         ansible_interfaces:
+#         - eth0
+#         - lo
+#         ansible_inventory_sources:
+#         - /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible/x_scr_testing_inventory_X90.yaml
+#         - /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible/x_scr_testing_inventory_X91.yaml
+#         ansible_is_chroot: false
+#         ansible_iscsi_iqn: ''
+#         ansible_kernel: 6.17.0-1010-azure
+#         ansible_kernel_version: '#10~24.04.1-Ubuntu SMP Fri Mar  6 22:00:57 UTC 2026'
+#         ansible_lo:
+#             active: true
+#             device: lo
+#             features:
+#                 esp_hw_offload: off [fixed]
+#                 esp_tx_csum_hw_offload: off [fixed]
+#                 generic_receive_offload: 'on'
+#                 generic_segmentation_offload: 'on'
+#                 highdma: on [fixed]
+#                 hsr_dup_offload: off [fixed]
+#                 hsr_fwd_offload: off [fixed]
+#                 hsr_tag_ins_offload: off [fixed]
+#                 hsr_tag_rm_offload: off [fixed]
+#                 hw_tc_offload: off [fixed]
+#                 l2_fwd_offload: off [fixed]
+#                 large_receive_offload: off [fixed]
+#                 loopback: on [fixed]
+#                 macsec_hw_offload: off [fixed]
+#                 ntuple_filters: off [fixed]
+#                 receive_hashing: off [fixed]
+#                 rx_all: off [fixed]
+#                 rx_checksumming: on [fixed]
+#                 rx_fcs: off [fixed]
+#                 rx_gro_hw: off [fixed]
+#                 rx_gro_list: 'off'
+#                 rx_udp_gro_forwarding: 'off'
+#                 rx_udp_tunnel_port_offload: off [fixed]
+#                 rx_vlan_filter: off [fixed]
+#                 rx_vlan_offload: off [fixed]
+#                 rx_vlan_stag_filter: off [fixed]
+#                 rx_vlan_stag_hw_parse: off [fixed]
+#                 scatter_gather: 'on'
+#                 tcp_segmentation_offload: 'on'
+#                 tls_hw_record: off [fixed]
+#                 tls_hw_rx_offload: off [fixed]
+#                 tls_hw_tx_offload: off [fixed]
+#                 tx_checksum_fcoe_crc: off [fixed]
+#                 tx_checksum_ip_generic: on [fixed]
+#                 tx_checksum_ipv4: off [fixed]
+#                 tx_checksum_ipv6: off [fixed]
+#                 tx_checksum_sctp: on [fixed]
+#                 tx_checksumming: 'on'
+#                 tx_esp_segmentation: off [fixed]
+#                 tx_fcoe_segmentation: off [fixed]
+#                 tx_gre_csum_segmentation: off [fixed]
+#                 tx_gre_segmentation: off [fixed]
+#                 tx_gso_list: 'on'
+#                 tx_gso_partial: off [fixed]
+#                 tx_gso_robust: off [fixed]
+#                 tx_ipxip4_segmentation: off [fixed]
+#                 tx_ipxip6_segmentation: off [fixed]
+#                 tx_nocache_copy: off [fixed]
+#                 tx_scatter_gather: on [fixed]
+#                 tx_scatter_gather_fraglist: on [fixed]
+#                 tx_sctp_segmentation: 'on'
+#                 tx_tcp6_segmentation: 'on'
+#                 tx_tcp_accecn_segmentation: 'on'
+#                 tx_tcp_ecn_segmentation: 'on'
+#                 tx_tcp_mangleid_segmentation: 'on'
+#                 tx_tcp_segmentation: 'on'
+#                 tx_tunnel_remcsum_segmentation: off [fixed]
+#                 tx_udp_segmentation: 'on'
+#                 tx_udp_tnl_csum_segmentation: off [fixed]
+#                 tx_udp_tnl_segmentation: off [fixed]
+#                 tx_vlan_offload: off [fixed]
+#                 tx_vlan_stag_hw_insert: off [fixed]
+#                 vlan_challenged: on [fixed]
+#             hw_timestamp_filters: []
+#             ipv4:
+#                 address: 127.0.0.1
+#                 broadcast: ''
+#                 netmask: 255.0.0.0
+#                 network: 127.0.0.0
+#                 prefix: '8'
+#             ipv6:
+#             -   address: ::1
+#                 prefix: '128'
+#                 scope: host
+#             mtu: 65536
+#             promisc: false
+#             timestamping: []
+#             type: loopback
+#         ansible_loadavg:
+#             15m: 0.26806640625
+#             1m: 0.12060546875
+#             5m: 0.28369140625
+#         ansible_local: {}
+#         ansible_locally_reachable_ips:
+#             ipv4:
+#             - 10.170.21.100
+#             - 127.0.0.0/8
+#             - 127.0.0.1
+#             ipv6:
+#             - ::1
+#             - fe80::72a8:a5ff:fe52:46b4
+#         ansible_lsb:
+#             codename: noble
+#             description: Ubuntu 24.04.4 LTS
+#             id: Ubuntu
+#             major_release: '24'
+#             release: '24.04'
+#         ansible_lvm: N/A
+#         ansible_machine: x86_64
+#         ansible_machine_id: 8f3cf0c972fd45b3a3ce1a8961a2f3ab
+#         ansible_memfree_mb: 7152
+#         ansible_memory_mb:
+#             nocache:
+#                 free: 13806
+#                 used: 2183
+#             real:
+#                 free: 7152
+#                 total: 15989
+#                 used: 8837
+#             swap:
+#                 cached: 0
+#                 free: 0
+#                 total: 0
+#                 used: 0
+#         ansible_memtotal_mb: 15989
+#         ansible_mounts:
+#         -   block_available: 29398221
+#             block_size: 4096
+#             block_total: 32229372
+#             block_used: 2831151
+#             device: /dev/root
+#             fstype: ext4
+#             inode_available: 16316086
+#             inode_total: 16646144
+#             inode_used: 330058
+#             mount: /
+#             options: rw,relatime,discard,errors=remount-ro,commit=30
+#             size_available: 120415113216
+#             size_total: 132011507712
+#             uuid: 822e1863-9256-4ccd-9104-ffffb1fd93b0
+#         -   block_available: 179813
+#             block_size: 4096
+#             block_total: 225380
+#             block_used: 45567
+#             device: /dev/sda16
+#             fstype: ext4
+#             inode_available: 57892
+#             inode_total: 58496
+#             inode_used: 604
+#             mount: /boot
+#             options: rw,relatime,discard
+#             size_available: 736514048
+#             size_total: 923156480
+#             uuid: 4bf66719-664b-47ad-b957-c15ad7d45441
+#         -   block_available: 201164
+#             block_size: 512
+#             block_total: 213663
+#             block_used: 12499
+#             device: /dev/sda15
+#             fstype: vfat
+#             inode_available: 0
+#             inode_total: 0
+#             inode_used: 0
+#             mount: /boot/efi
+#             options: rw,relatime,fmask=0077,dmask=0077,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro
+#             size_available: 102995968
+#             size_total: 109395456
+#             uuid: 9976-7892
+#         -   block_available: 36456326
+#             block_size: 4096
+#             block_total: 38426484
+#             block_used: 1970158
+#             device: /dev/sdb1
+#             fstype: ext4
+#             inode_available: 9830388
+#             inode_total: 9830400
+#             inode_used: 12
+#             mount: /mnt
+#             options: rw,relatime
+#             size_available: 149325111296
+#             size_total: 157394878464
+#             uuid: 9e4c058b-a47b-4e8d-9418-133600dc3357
+#         ansible_nodename: mkdsdsecedep00deploy00
+#         ansible_os_family: Debian
+#         ansible_pkg_mgr: apt
+#         ansible_playbook_python: /opt/ansible/venv/2.16/bin/python
+#         ansible_proc_cmdline:
+#             BOOT_IMAGE: /vmlinuz-6.17.0-1010-azure
+#             console:
+#             - tty1
+#             - ttyS0
+#             earlyprintk: ttyS0
+#             nvme_core.io_timeout: '240'
+#             panic: '-1'
+#             ro: true
+#             root: PARTUUID=054c3354-42bf-4a6d-8c6f-2cf42bd83e63
+#         ansible_processor:
+#         - '0'
+#         - GenuineIntel
+#         - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#         - '1'
+#         - GenuineIntel
+#         - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#         - '2'
+#         - GenuineIntel
+#         - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#         - '3'
+#         - GenuineIntel
+#         - Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz
+#         ansible_processor_cores: 2
+#         ansible_processor_count: 1
+#         ansible_processor_nproc: 4
+#         ansible_processor_threads_per_core: 2
+#         ansible_processor_vcpus: 4
+#         ansible_product_name: Virtual Machine
+#         ansible_product_serial: NA
+#         ansible_product_uuid: 22a74510-20cc-48eb-9339-f00d857da458
+#         ansible_product_version: Hyper-V UEFI Release v4.1
+#         ansible_python:
+#             executable: /opt/ansible/venv/2.16/bin/python
+#             has_sslcontext: true
+#             type: cpython
+#             version:
+#                 major: 3
+#                 micro: 3
+#                 minor: 12
+#                 releaselevel: final
+#                 serial: 0
+#             version_info:
+#             - 3
+#             - 12
+#             - 3
+#             - final
+#             - 0
+#         ansible_python_version: 3.12.3
+#         ansible_real_group_id: 1000
+#         ansible_real_user_id: 1000
+#         ansible_run_tags:
+#         - all
+#         ansible_selinux:
+#             status: disabled
+#         ansible_selinux_python_present: true
+#         ansible_service_mgr: systemd
+#         ansible_skip_tags: []
+#         ansible_ssh_host_key_ecdsa_public: AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBBYX1/q8vP60VVtS9GZp+j3RKVB+LhrOkOIqyG8HMNcpC6Jx76C/ergQhp8HqfwhlFQKMQOCOQrfZtzsyvLjESw=
+#         ansible_ssh_host_key_ecdsa_public_keytype: ecdsa-sha2-nistp256
+#         ansible_ssh_host_key_ed25519_public: AAAAC3NzaC1lZDI1NTE5AAAAIF3r7kAx/QUytbjcldo4q6fG5pX6lXnWy+tHyTlncl4q
+#         ansible_ssh_host_key_ed25519_public_keytype: ssh-ed25519
+#         ansible_ssh_host_key_rsa_public: AAAAB3NzaC1yc2EAAAADAQABAAABgQDtdnA8GL3nzlDi4oQsMMvar4VxhDmmy1JXnpITuINlRuCACWkzBktUU1LHE+RVELdZU+JvrCzBvkGJu09ihFkKe0tHdDbym8MdcEXOyJ2sOWwV3WI6NQVI6nCaKUrFjVFXLaO5mKDv7KQ9ri5Ht0NTbzLdXjg8yBvnG4YQr5Tahgx/h9cItGXelC2F2ElhBvX+1WtsWLpGhWC3iAFKFuqZ3wa5khTrulWnQVk/C9hl5pid7Hl+1RqC0xIp/B4jy5ppbKhMgnZOr3v/pyyj/3p3REeTxB9ZGI8j/5lx4R9QP0C7VXR6IJ+eMBENs3giTqH8YWIPwZW/cv1aabhTigIwhzhXig09Q4zoy6tdMEaJfW5JUwFKdPXDHrhdibausnVw8n7ZDSKe1KvxEeZLgS5o5BKFg3tRL7fcFQtPEgJsYWMT+aRLKkjXOqLLv0C/3Y8u7tMhz4abK6TGy6Z5uBSwKLGnjTmBuAhXZmewdjovpMMzCbEDYgNOphQhlQHQUJ0=
+#         ansible_ssh_host_key_rsa_public_keytype: ssh-rsa
+#         ansible_ssh_private_key_file: /tmp/ansible_kv_key_x91app00lf2a
+#         ansible_swapfree_mb: 0
+#         ansible_swaptotal_mb: 0
+#         ansible_system: Linux
+#         ansible_system_capabilities:
+#         - ''
+#         ansible_system_capabilities_enforced: 'True'
+#         ansible_system_vendor: Microsoft Corporation
+#         ansible_uptime_seconds: 2735725
+#         ansible_user: azureadm
+#         ansible_user_dir: /home/azureadm
+#         ansible_user_gecos: Ubuntu
+#         ansible_user_gid: 1000
+#         ansible_user_id: azureadm
+#         ansible_user_shell: /bin/bash
+#         ansible_user_uid: 1000
+#         ansible_userspace_architecture: x86_64
+#         ansible_userspace_bits: '64'
+#         ansible_verbosity: 1
+#         ansible_version:
+#             full: 2.16.18
+#             major: 2
+#             minor: 16
+#             revision: 18
+#             string: 2.16.18
+#         ansible_virtualization_role: guest
+#         ansible_virtualization_tech_guest:
+#         - VirtualPC
+#         ansible_virtualization_tech_host:
+#         - kvm
+#         ansible_virtualization_type: VirtualPC
+#         become_user: root
+#         connection_type: key
+#         discovered_interpreter_python: /usr/bin/python3
+#         gather_subset:
+#         - all
+#         group_names:
+#         - X91_PAS
+#         groups:
+#             X90_APP: []
+#             X90_DB:
+#             - x90dhdb00l0ba
+#             X90_ERS: []
+#             X90_ISCSI: []
+#             X90_OBSERVER_DB: []
+#             X90_PAS:
+#             - x90app00lba8
+#             X90_SCS:
+#             - x90scs00lba8
+#             X90_WEB: []
+#             X91_APP: []
+#             X91_DB:
+#             - x91dhdb00l0f2
+#             X91_ERS: []
+#             X91_ISCSI: []
+#             X91_OBSERVER_DB: []
+#             X91_PAS:
+#             - x91app00lf2a
+#             X91_SCS:
+#             - x91scs00lf2a
+#             X91_WEB: []
+#             all:
+#             - x90dhdb00l0ba
+#             - x90scs00lba8
+#             - x90app00lba8
+#             - x91dhdb00l0f2
+#             - x91scs00lf2a
+#             - x91app00lf2a
+#             ungrouped: []
+#         inventory_dir: /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible
+#         inventory_file: /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible/x_scr_testing_inventory_X91.yaml
+#         inventory_hostname: x91app00lf2a
+#         inventory_hostname_short: x91app00lf2a
+#         module_setup: true
+#         node_tier: pas
+#         omit: __omit_place_holder__55926fd1aa23be382ee9a6d1a645c008f222e3cf
+#         os_type: linux
+#         playbook_dir: /home/azureadm/SCR-TESTING-MKD/sap-automation/deploy/ansible
+#         resource_group_name: MKDSE-SECE-SAP00-X91
+#         scr_azure_resource_group: MKDSD-SECE-SAP_LIBRARY
+#         scr_azure_storage_account: mkdsdsecetfstate5ef
+#         scr_dest_kv_name: MKDSESECESAP00user2f8
+#         scr_dest_prefix: MKDSE-SECE-SAP00
+#         scr_dest_sid: X91
+#         scr_run_id: 0058
+#         scr_source_kv_name: mkdsesecesap00user2f8
+#         scr_source_prefix: MKDSE-SECE-SAP00
+#         scr_source_sid: X90
+#         subscription_id: 02993e58-2910-4b39-910c-aeccd207abf7
+#         supported_tiers:
+#         - pas
+#         use_nvme_disks: false
+#         virtual_host: x91app00lf2a
+#         vm_name: MKDSE-SECE-SAP00-X91_x91app_z3_00lf2a
+

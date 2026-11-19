@@ -1,0 +1,72 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Directory to interogate:    /sapmnt/SID/exe
+---
+# -------------------------------------+---------------------------------------8
+
+- name:                                 "Initialize {{ function }} system discovery"
+  ansible.builtin.debug:
+    msg: 
+      - "Inventory SAP or DB Kernel for {{ sapsid }}"
+      - "Source or Target {{ sapsid }}:"
+      # - "Starting SCR system discovery for {{ scr_discovery_system_role }} system"
+      # - "Target SID: {{ scr_discovery_sid }}"
+      # - "Discovery scope: {{ scr_discovery_scope.keys() | select() | list }}"
+
+        # msg: |-
+        #                                 path:             {{ object_stats.stat.path }}
+        #                                 mimetype:         {{ object_stats.stat.mimetype }}
+        #                                 sub_path:         {{ sub_path }}
+        #                                 destination:      {{ destination }}
+    verbosity:                          0
+
+# SAP Kernel directory structure (to be recursively inventoried):
+#   /
+#   ┗━sapmnt
+#     ┗━SID
+#       ┗━exe
+#         ┣━uc
+#         ┃ ┗━linuxx86_64
+#         ┣━nuc
+#         ┗━jvm
+- name:                         "SCR Kernel: ({{ function | upper }}) Inventory SAP Kernel for SID {{ sapsid }}"
+  block:
+
+
+    - name:                                 "Recursively list files with details and checksums"
+      become:                               true                              # root permissions may be required to access certain files and directories
+      ansible.builtin.find:
+        paths:                              "/sapmnt/{{ sapsid }}/exe"
+        file_type:                          any
+        recurse:                            true
+        hidden:                             true
+        get_checksum:                       true
+        # checksum_algorithm:                 sha256
+      register:                             _results
+      tags:
+        - silent_v2                                                           # This task can be very verbose, so we silence it by default and only show it when verbosity >= 3 (-vvv)
+
+
+# Set fact as a global variable by storing it on the localhost (delegation)
+    - name:                                 "SCR Kernel: ({{ function | upper }})"
+      delegate_to:                          localhost
+      delegate_facts:                       true
+      ansible.builtin.set_fact:
+        scr_kernel_files_{{ sapsid }}:      "{{ _results }}"
+      tags:
+        - silent_v2                                                           # This task can be very verbose, so we silence it by default and only show it when verbosity >= 3 (-vvv)
+
+
+# TODO: OBJ_STORE: Store scr_kernel_files_{{ sapsid }}
+
+- name:                                 "Display file inventory"
+
+  ansible.builtin.debug:
+    msg:                                "{{ lookup('template', 'roles-scr/scr_kernel/templates/inventory_file_detail.j2') }}"
+    verbosity:                          0
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...

@@ -1,0 +1,98 @@
+---
+# initialize_register.yaml
+# Find or create a Job, allocate the next Run number, set the facts
+# scr_job_id, scr_run_id and scr_resume_from_step, then assemble the
+# updated index.
+#
+# Reuse rules:
+#   - A Job for the same source_sid + dest_sid in status Failed (or, in
+#     practice, Active/In-Progress — but abort_stale just cleaned those)
+#     is reused as a RESUME: scr_resume_from_step = last_completed_step + 1.
+#   - Otherwise a new Job is created: scr_resume_from_step = 1,
+#     last_completed_step = 0.
+#
+# All tasks in this file are gated by `when: action == 'register'`.
+
+- name:                                 "SCR Log Function [index/register] - Find re-usable job (Active|In-Progress|Failed)"
+  ansible.builtin.set_fact:
+    _scr_active_jobs: >-
+                                        {{ _scr_index.jobs
+                                           | selectattr('source_sid', 'equalto', payload.source_sid)
+                                           | selectattr('dest_sid',   'equalto', payload.dest_sid)
+                                           | selectattr('status', 'match', '^(Active|In-Progress|Failed)$')
+                                           | list }}
+  when:                                 action == 'register'
+
+
+# ----- New job branch (no re-usable job exists) -------------------------------
+- name:                                 "SCR Log Function [index/register] - Set facts for NEW job"
+  ansible.builtin.set_fact:
+    scr_job_id:                         "{{ '%04d' | format(_scr_index.last_job_number | int + 1) }}"
+    scr_run_id:                         "0001"
+    scr_resume_from_step:               1
+  when:
+    - action == 'register'
+    - _scr_active_jobs | length == 0
+
+# ----- Resume branch (re-using a Failed/Active job) ---------------------------
+- name:                                 "SCR Log Function [index/register] - Set facts for RESUME of existing job"
+  ansible.builtin.set_fact:
+    scr_job_id:                         "{{ '%04d' | format((_scr_active_jobs | last).job_id | int) }}"
+    scr_run_id:                         "{{ '%04d' | format((_scr_active_jobs | last).last_run_number | int + 1) }}"
+    scr_resume_from_step:               "{{ ((_scr_active_jobs | last).last_completed_step | default(0) | int) + 1 }}"
+  when:
+    - action == 'register'
+    - _scr_active_jobs | length > 0
+
+
+# ----- Build the new Run entry -----------------------------------------------
+- name:                                 "SCR Log Function [index/register] - Build new run entry"
+  ansible.builtin.set_fact:
+    _scr_new_run:
+      run_id:                           "{{ scr_run_id | int }}"
+      start_date:                       "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+      end_date:                         ""
+      status:                           "Active"
+  when:                                 action == 'register'
+
+
+# ----- Assemble updated index, NEW job branch --------------------------------
+- name:                                 "SCR Log Function [index/register] - Assemble index (new job)"
+  ansible.builtin.set_fact:
+    _scr_index_updated:
+      last_job_number:                  "{{ scr_job_id | int }}"
+      jobs: >-
+                                        {{ _scr_index.jobs + [{
+                                            'job_id':              scr_job_id | int,
+                                            'activity':            payload.activity,
+                                            'source_sid':          payload.source_sid,
+                                            'dest_sid':            payload.dest_sid,
+                                            'status':              'Active',
+                                            'last_run_number':     1,
+                                            'last_completed_step': 0,
+                                            'runs':                [_scr_new_run]
+                                          }]
+                                        }}
+  when:
+    - action == 'register'
+    - _scr_active_jobs | length == 0
+
+
+# ----- Assemble updated index, RESUME branch ---------------------------------
+- name:                                 "SCR Log Function [index/register] - Assemble index (existing job + resume run)"
+  ansible.builtin.set_fact:
+    _scr_index_updated:
+      last_job_number:                  "{{ _scr_index.last_job_number }}"
+      jobs: >-
+                                        {{ (_scr_index.jobs
+                                           | rejectattr('job_id', 'equalto', (_scr_active_jobs | last).job_id)
+                                           | list)
+                                           + [(_scr_active_jobs | last) | combine({
+                                               'status':              'Active',
+                                               'last_run_number':     scr_run_id | int,
+                                               'runs':                (_scr_active_jobs | last).runs + [_scr_new_run]
+                                             })]
+                                        }}
+  when:
+    - action == 'register'
+    - _scr_active_jobs | length > 0

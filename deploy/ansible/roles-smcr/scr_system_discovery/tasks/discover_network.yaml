@@ -1,0 +1,42 @@
+---
+# Discover network configuration and connectivity
+
+- name: Get network interface details
+  ansible.builtin.shell: |
+    echo "=== NETWORK INTERFACES ==="
+    ip addr show | grep -A 3 -B 1 "state UP"
+    echo "=== ROUTING TABLE ==="
+    ip route | head -10
+    echo "=== DNS CONFIGURATION ==="
+    cat /etc/resolv.conf 2>/dev/null | head -10
+  register: network_details
+  ignore_errors: true
+
+- name: Check SAP-specific ports
+  ansible.builtin.shell: |
+    echo "=== SAP PORTS LISTENING ==="
+    netstat -tlnp 2>/dev/null | grep -E "(3200|3300|3600|8000|5[0-9]{4})" | head -20
+  register: sap_ports
+  ignore_errors: true
+
+- name: Test connectivity to common SAP services
+  ansible.builtin.shell: |
+    echo "=== CONNECTIVITY TESTS ==="
+    # Test if we can resolve our own hostname
+    nslookup {{ ansible_hostname }} 2>/dev/null || echo "Hostname resolution failed"
+    # Check if standard SAP ports are reachable locally
+    for port in 3200 3300 3600; do
+      timeout 2 bash -c "cat < /dev/null > /dev/tcp/localhost/$port" 2>/dev/null && echo "Port $port: OPEN" || echo "Port $port: CLOSED"
+    done
+  register: connectivity_test
+  ignore_errors: true
+
+- name: Set network facts
+  ansible.builtin.set_fact:
+    discovered_network_facts:
+      interfaces: "{{ ansible_interfaces | default([]) }}"
+      primary_ip: "{{ ansible_default_ipv4.address | default('Unknown') }}"
+      gateway: "{{ ansible_default_ipv4.gateway | default('Unknown') }}"
+      nameservers: "{{ ansible_dns.nameservers | default([]) }}"
+      sap_ports_open: "{{ sap_ports.stdout_lines | length }}"
+      hostname_resolvable: "{{ 'has address' in connectivity_test.stdout or ansible_hostname in connectivity_test.stdout }}"

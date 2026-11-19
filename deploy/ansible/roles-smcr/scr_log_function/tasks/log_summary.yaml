@@ -1,0 +1,43 @@
+---
+# scr_log_function/tasks/log_summary.yaml
+#
+# Appends one or more timestamped lines to the run summary log file
+# and re-uploads it to Azure Blob Storage.
+#
+# Supported actions: store
+#
+# vars:
+#   payload:  string or list of strings
+#
+# Blob path: scr-runs/job_<scr_job_id>/logs/<scr_job_id>_summary.log
+# (job-scoped — shared across all runs of the same job)
+
+
+- name:                                 "SCR Log Function [log_summary] - Ensure log directory exists"
+  ansible.builtin.file:
+    path:                               "{{ scr_log_function_local_log_dir }}"
+    state:                              directory
+    mode:                               "0755"
+  delegate_to:                          localhost
+
+- name:                                 "SCR Log Function [log_summary] - Append to summary log"
+  ansible.builtin.lineinfile:
+    path:                               "{{ scr_log_function_local_log_dir }}/{{ scr_job_id | default('0000') }}_summary.log"
+    line:                               "[{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}] {{ item }}"
+    insertafter:                        EOF
+    create:                             true
+    mode:                               "0644"
+  loop:                                 "{{ [payload] | flatten }}"
+  delegate_to:                          localhost
+
+- name:                                 "SCR Log Function [log_summary] - Upload summary log to Azure"
+  ansible.builtin.command: >-
+    az storage blob upload
+    --account-name  {{ scr_azure_storage_account }}
+    --container-name {{ scr_azure_container }}
+    --name          {{ scr_log_function_remote_log_dir }}/{{ scr_job_id | default('0000') }}_summary.log
+    --file          {{ scr_log_function_local_log_dir }}/{{ scr_job_id | default('0000') }}_summary.log
+    --overwrite
+    --auth-mode     login
+  delegate_to:                          localhost
+  changed_when:                         true

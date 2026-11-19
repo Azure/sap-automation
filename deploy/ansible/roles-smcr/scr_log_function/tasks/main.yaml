@@ -1,0 +1,128 @@
+---
+# scr_log_function/tasks/main.yaml
+#
+# Generic log/storage/index function for SCR automation. Routes by the
+# `activity` variable to one of the activity sub-tasks below. The
+# storage-account discovery block at the top runs (cached) on first call.
+#
+# Required vars (set by caller):
+#   activity:        initialize | checkpoint | log_summary | log_detail | object | file
+#   action:          register | update | store | retrieve | delete
+#                    (some activities ignore action; see README.md)
+#   payload: string, list of strings, dict, fact name(s), or file path(s)
+#
+# Optional vars:
+#   result_var:   variable name to register retrieved data (object/file retrieve)
+#   result_path:  local directory for downloaded files (file retrieve)
+#   step, description:  for activity=checkpoint
+#
+# See roles-scr/scr_log_function/README.md for the full per-activity
+# contract, restartability/checkpoint semantics, and blob layout.
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |           Discover storage account name from resource group                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                 "SCR Log Function - Discover tfstate storage account in {{ scr_azure_resource_group }}"
+  block:
+
+    - name:                             "SCR Log Function - Discover tfstate storage account in {{ scr_azure_resource_group }}"
+      ansible.builtin.command: >-
+                                        az storage account list
+                                          --resource-group {{ scr_azure_resource_group }}
+                                          --query "[?contains(name, 'tfstate')].name | [0]"
+                                          --output tsv
+      register:                         _scr_lf_storage_discovery
+      delegate_to:                      localhost
+      # run_once:                         true
+      changed_when:                     false
+
+    - name:                             "SCR Log Function - Set scr_azure_storage_account from discovery"
+      ansible.builtin.set_fact:
+        scr_azure_storage_account:      "{{ _scr_lf_storage_discovery.stdout | trim }}"
+      delegate_to:                      localhost
+      # run_once:                         true
+      when:                             _scr_lf_storage_discovery.stdout | trim | length > 0
+
+  when:                                 scr_azure_storage_account is not defined
+  tags:                                 always
+  # run_once:                             true
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Route to activity sub-task                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- name:                                 "SCR Log Function - Route: initialize / {{ action }}"
+  ansible.builtin.import_tasks:         initialize.yaml
+  when:                                 activity == "initialize"
+  tags:                                 always
+
+- name:                                 "SCR Log Function - Route: checkpoint (log STEP + advance index step)"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/checkpoint.yaml
+  when:                                 activity == "checkpoint"
+  tags:                                 always
+
+- name:                                 "SCR Log Function - Route: log_summary / {{ action }}"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/log_summary.yaml
+  when:                                 activity == "log_summary"
+  tags:                                 always
+
+- name:                                 "SCR Log Function - Route: log_detail / {{ action }}"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/log_detail.yaml
+  when:                                 activity == "log_detail"
+  tags:                                 always
+
+# /*---------------------------------------------------------------------------8
+# activity: object
+# action:   store | retrieve | update | delete
+#
+# payload supports the following call patterns:
+# The optional host value identifies the host context where the fact
+# will be found. If omitted, the current host is used.
+#
+# 1) Single fact reference (optional host override)
+#    payload: fact_name
+#    payload: fact_name, host_name
+#
+# 2) Multiple fact references (each entry can include an optional host)
+#    payload:
+#      - fact_name1
+#      - fact_name2, host2
+# +------------------------------------4--------------------------------------*/
+- name:                                 "SCR Log Function - Route: object / {{ action }}"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/object.yaml
+  when:                                 activity == "object"
+  tags:                                 always
+
+# /*---------------------------------------------------------------------------8
+# activity: file
+# action:   store | retrieve | update | delete
+#
+# payload supports the following call patterns:
+# The optional host value identifies the host context where the fact
+# will be found. If omitted, the current host is used.
+#
+# 1) Single file reference (optional host override)
+#    payload: file_name
+#    payload: file_name, host_name
+#
+# 2) Multiple file references (each entry can include an optional host)
+#    payload:
+#      - file_name1
+#      - file_name2, host2
+# +------------------------------------4--------------------------------------*/
+- name:                                 "SCR Log Function - Route: file / {{ action }}"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/file.yaml
+  when:                                 activity == "file"
+  tags:                                 always

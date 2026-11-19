@@ -1,0 +1,188 @@
+# Flow:
+#   1. get file_store metadata for file
+#   2. Download each file to default location 
+#   3. Verify checksum
+#   4. Move file to target location on target host (if applicable)
+#   5. Verify checksum after move (if applicable)
+# 
+
+# file retrieve payload format: file_to_retrieve, [localhost]
+#
+# payload:
+#   - FILE.gz                                  # delegates to the play host and places file in default local filestore directory
+#   - /path/FILE.gz                            # path is used as the files target location
+#   - FILE2.gz, localhost                      # delegates to the local controller and places file in default local filestore directory
+#
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Initialize                                                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Compute per-item working vars"
+  ansible.builtin.set_fact:
+    _file_name:                         "{{ _file_entry.split(',')[0] | trim | basename }}"
+    _target_host:                       "{{ 'localhost'
+                                              if   _file_entry.split(',')[1] | default('') | trim == 'localhost'
+                                              else inventory_hostname }}"
+    _target_location:                   "{{ scr_log_function_local_filestore_dir
+                                              if   _file_entry.split(',')[0] | trim | dirname == ''
+                                              else _file_entry.split(',')[0] | trim | dirname }}"
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Get file_store object for metadata                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Retrieve file_store from OBJECT_STORE"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/object.yaml
+  vars:
+    activity:                           object                              # Only neccessary when including the Role, not neccessary when including the task directly. Included here for clarity and consistency in how we pass parameters in the Role
+    action:                             retrieve
+    payload:                    file_store
+# endregion
+
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Download file from FILESTORE                                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                             "SCR Log Function [file/retrieve] - Download file from Azure"
+  ansible.builtin.command: >-
+                                    az storage blob download
+                                      --account-name   {{ scr_azure_storage_account }}
+                                      --container-name {{ scr_azure_container }}
+                                      --name           {{ scr_log_function_remote_filestore_dir }}/{{ _file_name }}
+                                      --file           {{ scr_log_function_local_filestore_dir  }}/{{ _file_name }}
+                                      --overwrite
+                                      --auth-mode      login
+  delegate_to:                      localhost
+  changed_when:                     true
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Verify checksum                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+# Get checksum of downloaded file at temporary location
+- name:                                 "SCR Log Function [file/{{ action }}] - Stat downloaded file"
+  ansible.builtin.stat:
+    path:                               "{{ scr_log_function_local_filestore_dir }}/{{ _file_name }}"
+    get_attributes:                     false
+    get_checksum:                       true
+  delegate_to:                          localhost
+  register:                             _retrieve_local_file
+  # tags:
+  #   - silent_v1
+
+
+# Assert verification of duplicated file checksum
+- name:                                 "SCR Log Function [file/{{ action }}] - Verify downloaded file checksum"
+  ansible.builtin.assert:
+    that:
+                                        - _retrieve_local_file.stat.exists   | default(false)
+                                        - file_store[_file_name].checksum    | default('') ==
+                                          _retrieve_local_file.stat.checksum | default('')
+    fail_msg:                           "Checksum mismatch after download for {{ _file_name }}"
+  delegate_to:                          localhost
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Move file to target location                                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:
+  block:
+    # Ensure target directory exists 
+    - name:                                 "SCR Log Function [file/{{ action }}] - Ensure directory exists"
+      ansible.builtin.file:
+        path:                               "{{ _target_location }}"
+        state:                              directory
+        mode:                               "0755"
+      delegate_to:                          "{{ _target_host }}"
+      become:                               "{{ false if _target_location == scr_log_function_local_filestore_dir else true }}"
+
+
+    # Copy file from local temporary location to target location on target host (if target host is not localhost
+    # and/or target location is not the default local filestore directory)
+    - name:                                 "SCR Log Function [file/{{ action }}] - Move file to target"
+      ansible.builtin.copy:
+        src:                                "{{ scr_log_function_local_filestore_dir  }}/{{ _file_name }}"
+        dest:                               "{{ _target_location }}/{{ _file_name }}"
+        mode:                               preserve
+      delegate_to:                          "{{ _target_host }}"
+      become:                               "{{ false if _target_location == scr_log_function_local_filestore_dir else true }}"
+
+
+    # Purge file from local temporary storage if target location is not the default local filestore directory
+    # (unless the file was intended to be placed in the default local filestore directory, in which case we can
+    # leave the file there and it will be cleaned up by a later task)
+    - name:                                 "SCR Log Function [file/{{ action }}] - Remove file (delete file)"
+      ansible.builtin.file:
+        path:                               "{{ scr_log_function_local_filestore_dir  }}/{{ _file_name }}"
+        state:                              absent
+      delegate_to:                          localhost
+
+  when:                                 not (_target_location == scr_log_function_local_filestore_dir and
+                                             _target_host     == 'localhost')
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Verify checksum                                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+# Get checksum of downloaded file at temporary location
+- name:                                 "SCR Log Function [file/{{ action }}] - Stat copied file"
+  ansible.builtin.stat:
+    path:                               "{{ _target_location }}/{{ _file_name }}"
+    get_attributes:                     false
+    get_checksum:                       true
+  delegate_to:                          "{{ _target_host }}"
+  become:                               "{{ false if _target_location == scr_log_function_local_filestore_dir else true }}"
+  register:                             _retrieve_local_file
+  # tags:
+  #   - silent_v1
+
+
+# Assert verification of duplicated file checksum
+- name:                                 "SCR Log Function [file/{{ action }}] - Verify copied file checksum"
+  ansible.builtin.assert:
+    that:
+                                        - _retrieve_local_file.stat.exists   | default(false)
+                                        - file_store[_file_name].checksum    | default('') ==
+                                          _retrieve_local_file.stat.checksum | default('')
+    fail_msg:                           "Checksum mismatch after copy for {{ _file_name }}"
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Cleanup                                                                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/cleanup] - Set facts to null"
+  ansible.builtin.set_fact:
+    "{{ item }}":                       null
+  loop:
+                                        - _file_name
+                                        - _target_host
+                                        - _target_location
+                                        - _retrieve_local_file
+# endregion

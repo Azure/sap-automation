@@ -1,0 +1,35 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# scr_db_backup/defaults/main.yaml
+#
+# Minimal defaults. We'll add settings as we build the role up
+# one task at a time.
+
+# Per-side KV secret names for the HANA SYSTEMDB SYSTEM password.
+# Source and dest typically have different SYSTEM passwords, so each
+# host fetches its own side's password from its own side's KV
+# (scr_source_kv_name / scr_dest_kv_name).
+#
+# MUST be set by the caller — there is no safe global default.
+# Example: "MKDSE-SECE-SAP00-X90-sap-password"
+# db_source_password_secret_name:       "<set-by-caller>"
+# db_dest_password_secret_name:         "<set-by-caller>"
+
+# HANA DB SID on the target host (used as <sid>adm OS user and to
+# resolve $HOME/.sapenv.sh). MUST be set by the caller because the
+# HANA DB SID is often different from the SAP SID (e.g. SAP=X90 but
+# HANA SID = HDB — OS user hdbadm).
+# Example: "HDB"
+# db_sid:                               "<set-by-caller>"
+
+# HANA instance number. Used by hdbsql -i so the daemon resolves the
+# right SQL port (3<NN>13 for SYSTEMDB, 3<NN>15 for tenants).
+db_instance_number:                     "00"
+
+# HANA SYSTEMDB SQL endpoint. The role runs hdbsql directly on the HANA
+# host, so local access is the reliable default. Override db_sql_host for
+# clustered systems that require a separate database virtual hostname.
+db_sql_host:                            "localhost"
+db_sql_port:                            "3{{ db_instance_number }}13"

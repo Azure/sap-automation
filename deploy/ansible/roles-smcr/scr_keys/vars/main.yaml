@@ -1,0 +1,20 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+---
+cleanup:                            false
+
+# TODO: Refactor this approach to dynamically construct only the variable that will be used
+_scr_username_workload:             "{{ prefix }}-sid-username"
+_scr_sshkey_workload:               "{{ prefix }}-sid-sshkey"
+
+# TODO: Consider the use of relying on a variable that is not passed into the role.
+_scr_username_sid:                  "{{ prefix }}-sid-username-{{ lookup('vars', 'scr_' + function + '_sid') }}"
+_scr_sshkey_sid:                    "{{ prefix }}-sid-sshkey-{{ lookup('vars', 'scr_' + function + '_sid') }}"
+
+_scr_username_host:                 "{{ prefix }}-sid-username-{{ inventory_hostname }}"
+_scr_sshkey_host:                   "{{ prefix }}-sid-sshkey-{{ inventory_hostname }}"
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...

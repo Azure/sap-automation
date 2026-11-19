@@ -1,0 +1,143 @@
+---
+# Discover comprehensive database facts for SAP systems
+
+- name: Check for HANA database
+  ansible.builtin.shell: |
+    ps aux | grep -i hdb | grep -v grep | head -10
+  register: hana_processes
+  ignore_errors: true
+
+- name: Check for Oracle database
+  ansible.builtin.shell: |
+    ps aux | grep -E "(ora_|oracle)" | grep -v grep | head -10
+  register: oracle_processes
+  ignore_errors: true
+
+- name: Check for DB2 database
+  ansible.builtin.shell: |
+    ps aux | grep -i db2 | grep -v grep | head -10
+  register: db2_processes
+  ignore_errors: true
+
+- name: Check for ASE/Sybase database
+  ansible.builtin.shell: |
+    ps aux | grep -E "(dataserver|backupserver)" | grep -v grep | head -10
+  register: ase_processes
+  ignore_errors: true
+
+- name: Determine database type
+  ansible.builtin.set_fact:
+    detected_db_type: >-
+      {%- if hana_processes.stdout_lines | length > 0 -%}
+      hana
+      {%- elif oracle_processes.stdout_lines | length > 0 -%}
+      oracle
+      {%- elif db2_processes.stdout_lines | length > 0 -%}
+      db2
+      {%- elif ase_processes.stdout_lines | length > 0 -%}
+      ase
+      {%- else -%}
+      unknown
+      {%- endif -%}
+
+# HANA-specific discovery
+- name: "HANA - Discover version and system info"
+  block:
+    - name: Get HANA version and info
+      ansible.builtin.shell: |
+        sudo -i -u {{ working_sid | lower }}adm << 'EOF'
+        echo "=== HANA VERSION ==="
+        HDB version 2>/dev/null || echo "HDB command not found"
+        echo "=== HANA STATUS ==="
+        HDB info 2>/dev/null || echo "Could not get HANA info"
+        echo "=== HANA PROCESSES ==="
+        sapcontrol -nr {{ ansible_hostname[-2:] | default('00') }} -function GetProcessList 2>/dev/null || echo "sapcontrol not available"
+        EOF
+      register: hana_info
+      ignore_errors: true
+
+    - name: Get HANA system info from SQL
+      ansible.builtin.shell: |
+        sudo -i -u {{ working_sid | lower }}adm << 'EOF'
+        hdbsql -U DEFAULT "SELECT DATABASE_NAME, SQL_PORT, VERSION FROM SYS.M_DATABASES" 2>/dev/null || echo "HANA SQL query failed"
+        EOF
+      register: hana_sql_info
+      ignore_errors: true
+
+  when: detected_db_type == 'hana' and working_sid | length > 0
+
+# Oracle-specific discovery
+- name: "Oracle - Discover version and system info"
+  block:
+    - name: Get Oracle version and info
+      ansible.builtin.shell: |
+        # Try different Oracle user patterns
+        for user in oracle ora{{ working_sid | lower }} {{ working_sid | lower }}; do
+          if id "$user" >/dev/null 2>&1; then
+            sudo -i -u "$user" << 'EOF'
+        echo "=== ORACLE VERSION ==="
+        sqlplus -v 2>/dev/null || echo "SQLPlus not found"
+        echo "=== ORACLE HOME ==="
+        echo $ORACLE_HOME
+        echo "=== ORACLE SID ==="
+        echo $ORACLE_SID
+        EOF
+            break
+          fi
+        done
+      register: oracle_info
+      ignore_errors: true
+
+  when: detected_db_type == 'oracle' and working_sid | length > 0
+
+# Get database connection info from SAP profiles
+- name: Extract database connection info from SAP profiles
+  ansible.builtin.shell: |
+    if [ -f "/usr/sap/{{ working_sid }}/SYS/profile/DEFAULT.PFL" ]; then
+      echo "=== DB CONNECTION INFO ==="
+      grep -E "(DBMS|dbs/|rdisp/)" "/usr/sap/{{ working_sid }}/SYS/profile/DEFAULT.PFL" 2>/dev/null | head -10
+    fi
+  register: db_connection_info
+  ignore_errors: true
+  when: working_sid | length > 0
+
+- name: Check database listener ports
+  ansible.builtin.shell: |
+    echo "=== LISTENING PORTS ==="
+    netstat -tlnp 2>/dev/null | grep -E "(1521|30013|30015|50013|50014)" | head -10
+  register: db_ports
+  ignore_errors: true
+
+- name: Set consolidated database facts
+  ansible.builtin.set_fact:
+    discovered_db_facts:
+      type: "{{ detected_db_type }}"
+      version: >-
+        {%- if detected_db_type == 'hana' -%}
+        {%- set hana_match = hana_info.stdout | default('') | regex_search('version\\s+([0-9.]+)', '\\1') -%}
+        {{ hana_match | first if hana_match else 'Unknown' }}
+        {%- elif detected_db_type == 'oracle' -%}
+        {%- set oracle_match = oracle_info.stdout | default('') | regex_search('Release\\s+([0-9.]+)', '\\1') -%}
+        {{ oracle_match | first if oracle_match else 'Unknown' }}
+        {%- else -%}
+        Unknown
+        {%- endif -%}
+      processes_running: >-
+        {%- if detected_db_type == 'hana' -%}
+        {{ (hana_processes.stdout_lines | length) > 0 }}
+        {%- elif detected_db_type == 'oracle' -%}
+        {{ (oracle_processes.stdout_lines | length) > 0 }}
+        {%- elif detected_db_type == 'db2' -%}
+        {{ (db2_processes.stdout_lines | length) > 0 }}
+        {%- elif detected_db_type == 'ase' -%}
+        {{ (ase_processes.stdout_lines | length) > 0 }}
+        {%- else -%}
+        false
+        {%- endif -%}
+      listening_ports: "{{ db_ports.stdout_lines | default([]) }}"
+      connection_info: "{{ db_connection_info.stdout_lines | default([]) }}"
+
+- name: Debug database discovery results
+  ansible.builtin.debug:
+    var: discovered_db_facts
+  when: ansible_verbosity >= 1

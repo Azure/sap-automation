@@ -1,0 +1,55 @@
+---
+# Discover storage configuration for SAP systems
+
+- name: Get filesystem information
+  ansible.builtin.shell: |
+    echo "=== FILESYSTEM USAGE ==="
+    df -h | grep -E "(sap|hana|oracle|db2|usr)" || df -h
+    echo "=== MOUNT POINTS ==="
+    mount | grep -E "(sap|hana|oracle|db2)" | head -20
+  register: filesystem_info
+  ignore_errors: true
+
+- name: Get SAP-specific directories and sizes
+  ansible.builtin.shell: |
+    echo "=== SAP DIRECTORY SIZES ==="
+    if [ -d "/usr/sap" ]; then
+      du -sh /usr/sap/* 2>/dev/null | head -10
+    fi
+    if [ -d "/hana" ]; then
+      du -sh /hana/* 2>/dev/null | head -10
+    fi
+    echo "=== SAP MOUNT POINTS ==="
+    mount | grep -E "/usr/sap|/hana|/oracle|/db2" | head -10
+  register: sap_storage_info
+  ignore_errors: true
+
+- name: Get disk device information
+  ansible.builtin.shell: |
+    echo "=== BLOCK DEVICES ==="
+    lsblk | head -20
+    echo "=== DISK USAGE DETAILS ==="
+    fdisk -l 2>/dev/null | grep -E "(Disk /dev|Device)" | head -20
+  register: disk_info
+  ignore_errors: true
+
+- name: Check for LVM and RAID
+  ansible.builtin.shell: |
+    echo "=== LVM INFORMATION ==="
+    if command -v lvs >/dev/null 2>&1; then
+      lvs 2>/dev/null | head -10 || echo "No LVM volumes"
+    fi
+    echo "=== RAID INFORMATION ==="
+    cat /proc/mdstat 2>/dev/null | head -10 || echo "No RAID configured"
+  register: advanced_storage
+  ignore_errors: true
+
+- name: Set storage facts
+  ansible.builtin.set_fact:
+    discovered_storage_facts:
+      total_disk_gb: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_total') | first | default(0) // (1024*1024*1024) }}"
+      sap_filesystems: "{{ filesystem_info.stdout_lines | select('match', '.*sap.*') | list }}"
+      mount_points: "{{ ansible_mounts | map(attribute='mount') | list }}"
+      free_space_gb: "{{ ansible_mounts | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first | default(0) // (1024*1024*1024) }}"
+      lvm_configured: "{{ 'LV' in advanced_storage.stdout }}"
+      raid_configured: "{{ 'md' in advanced_storage.stdout and 'active' in advanced_storage.stdout }}"

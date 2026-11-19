@@ -1,0 +1,80 @@
+# -------------------------------------+---------------------------------------8
+#
+# SAP KERNEL - Inventory
+#
+# -------------------------------------+---------------------------------------8
+- name:                             "Source - Inventory SAP Kernel Files for SID"
+  include_role:
+    name:                           roles-scr/scr_kernel
+  vars:
+    function:                       "inventory"                                                 #
+    kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+    sapsid:                         "{{ scr_source_sid }}"                                      # SID
+  when:                             
+    - (sapsid | upper + '_PAS') in vars['group_names'] or
+      (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
+
+- name:                             "Destination - Inventory SAP Kernel Files for SID"
+  include_role:
+    name:                           roles-scr/scr_kernel
+  vars:
+    function:                       "inventory"                                                 #
+    kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+    sapsid:                         "{{ scr_dest_sid }}"                                        # SID
+  when:                             
+    - (sapsid | upper + '_PAS') in vars['group_names'] or
+      (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
+
+- name:                             "LOG - STEP 6: SAP kernel inventory completed"  # noqa: run-once[task]
+  ansible.builtin.include_role:
+    name:                           roles-scr/scr_log_function
+  vars:
+    activity:                       log_summary
+    action:                         store
+    payload:                "STEP 6 : SAP kernel inventory completed — {{ inventory_hostname }}"
+  run_once:                         true
+  tags:                             [kernel]
+
+
+# -------------------------------------+---------------------------------------8
+#
+# SAP KERNEL - Comparison
+#
+# -------------------------------------+---------------------------------------8
+- name:                             "Compare SAP Kernel Files for SID"
+  include_role:
+    name:                           roles-scr/scr_kernel
+  vars:
+    function:                       "compare"                                                   #
+    kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+  run_once:                         true
+
+
+- name:                             "LOG - STEP 7: SAP kernel comparison completed"  # noqa: run-once[task]
+  ansible.builtin.include_role:
+    name:                           roles-scr/scr_log_function
+  vars:
+    activity:                       log_summary
+    action:                         store
+    payload:                "STEP 7 : SAP kernel comparison completed"
+  run_once:                         true
+  tags:                             [kernel]
+
+
+# -------------------------------------+---------------------------------------8
+#
+# SAP KERNEL - Archive
+#
+# -------------------------------------+---------------------------------------8
+- name:                             "Source - Archive SAP Kernel Files for SID"
+  include_role:
+    name:                           roles-scr/scr_kernel
+  vars:
+    function:                       "archive"                                                   #
+    kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+    sapsid:                         "{{ scr_source_sid }}"                                      # SID
+  when:                             
+    - (sapsid | upper + '_PAS') in vars['group_names'] or
+      (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups

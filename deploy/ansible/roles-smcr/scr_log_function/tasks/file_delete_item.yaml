@@ -1,0 +1,91 @@
+---
+# scr_log_function/tasks/file_store_update_item.yaml
+#
+# Atomic unit for one file store/update iteration.
+# Expects:
+#   _file_entry - string in the format "file_path, host_name" (host_name is optional, defaults to inventory_hostname)
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Initialize                                                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Compute per-item working vars"
+  ansible.builtin.set_fact:
+    _file_name:                         "{{ _file_entry.split(',')[0] | trim }}"
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Delete file from Azure FILESTORE                                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Delete file from Azure FILESTORE"
+  ansible.builtin.command: >-
+                                        az storage blob delete
+                                          --account-name   {{ scr_azure_storage_account }}
+                                          --container-name {{ scr_azure_container }}
+                                          --name           {{ scr_log_function_remote_filestore_dir }}/{{ _file_name | basename }}
+                                          --auth-mode      login
+  delegate_to:                          localhost
+  changed_when:                         true
+  ignore_errors:                        true
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Remove Metadata in OBJECT_STORE                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Retrieve file_store from OBJECT_STORE"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/object.yaml
+  vars:
+    activity:                           object                                  # Only neccessary when including the Role, not neccessary when including the task directly. Included here for clarity and consistency in how we pass parameters in the Role
+    action:                             retrieve
+    payload:                            file_store
+
+- debug:
+    var:                                file_store
+    verbosity:                          0
+
+- name:                                 "SCR Log Function [file/{{ action }}] - Prune {{ _file_name }} entry from file_store"
+  ansible.builtin.set_fact:
+    file_store:                         "{{ file_store
+                                            | dict2items
+                                            | rejectattr('key', 'eq', (_file_name | basename))
+                                            | items2dict
+                                        }}"
+  changed_when:                         true
+  ignore_errors:                        true
+
+
+- name:                                 "SCR Log Function [file/{{ action }}] - Save updated file_store into OBJECT_STORE"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/object.yaml
+  vars:
+    activity:                           object                                  # Only neccessary when including the Role, not neccessary when including the task directly. Included here for clarity and consistency in how we pass parameters in the Role
+    action:                             update
+    payload:                            file_store
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Cleanup Local Temporary Objects                                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/cleanup] - Set facts to null"
+  ansible.builtin.set_fact:
+    "{{ item }}":                       null
+  loop:
+                                        - file_store
+  delegate_to:                          localhost
+# endregion

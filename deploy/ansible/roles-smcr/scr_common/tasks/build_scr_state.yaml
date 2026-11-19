@@ -1,0 +1,149 @@
+---
+# Build complete SCR state Text from scratch with discovered facts
+# This replaces the template → merge → update workflow with a single build operation
+
+- name: Build complete SCR state structure
+  ansible.builtin.set_fact:
+    complete_scr_state:
+      run_id: "{{ scr_run_id }}"
+      source:
+        sid: "{{ source_facts.sap.sid | default(scr_source_sid | default('')) }}"
+        scs_host: "{{ source_facts.topology.scs_host | default(None) }}"
+        facts:
+          sap_kernel: "{{ source_facts.sap.kernel | default(None) }}"
+          db_kernel: "{{ source_facts.db.version | default(None) }}"
+          db_type: "{{ source_facts.db.type | default(scr_db_type | default('hana')) }}"
+          os: >-
+            {%- if source_facts.os is defined -%}
+            {{ source_facts.os.distribution | default('') }} {{ source_facts.os.version | default('') }}
+            {%- else -%}
+            null
+            {%- endif -%}
+          topology:
+            architecture: "{{ source_facts.topology.architecture | default(None) }}"
+            scs_instance: "{{ source_facts.topology.scs_instance | default(None) }}"
+            app_servers: "{{ source_facts.topology.app_servers | default([]) }}"
+            app_server_count: "{{ source_facts.topology.app_server_count | default(0) }}"
+            cluster_configured: "{{ source_facts.topology.cluster_configured | default(false) }}"
+      target:
+        sid: "{{ target_facts.sap.sid | default(scr_target_sid | default('')) }}"
+        scs_host: "{{ target_facts.topology.scs_host | default(None) }}"
+        facts:
+          sap_kernel: "{{ target_facts.sap.kernel | default(None) }}"
+          db_kernel: "{{ target_facts.db.version | default(None) }}"
+          os: >-
+            {%- if target_facts.os is defined -%}
+            {{ target_facts.os.distribution | default('') }} {{ target_facts.os.version | default('') }}
+            {%- else -%}
+            null
+            {%- endif -%}
+          topology:
+            architecture: "{{ target_facts.topology.architecture | default(None) }}"
+            scs_instance: "{{ target_facts.topology.scs_instance | default(None) }}"
+            app_servers: "{{ target_facts.topology.app_servers | default([]) }}"
+            app_server_count: "{{ target_facts.topology.app_server_count | default(0) }}"
+            cluster_configured: "{{ target_facts.topology.cluster_configured | default(false) }}"
+        deployment:
+          requested: false
+          status: "unknown"
+      refresh:
+        protocol: "{{ scr_refresh_protocol | default('service') }}"
+        retained_tables: "{{ scr_retained_tables | default([{'name': 'USR02', 'key': 'MANDT'}]) }}"
+      parity:
+        os: "{{ scr_parity.os | default(true) }}"
+        sap_kernel: "{{ scr_parity.sap_kernel | default(true) }}"
+        db_kernel: "{{ scr_parity.db_kernel | default(true) }}"
+      telemetry:
+        step_markers: []
+        restart_marker: {}
+      metadata:
+        created: "{{ ansible_date_time.iso8601 }}"
+        created_by: "{{ ansible_user | default('ansible') }}@{{ ansible_hostname }}"
+        workflow_version: "2.0"
+
+- name: Build human-readable SCR state text
+  ansible.builtin.set_fact:
+    scr_state_text: |
+      ================================================================================
+      SAP SYSTEM COPY AND REFRESH (SCR) STATE
+      ================================================================================
+      Run ID: {{ complete_scr_state.run_id }}
+      Created: {{ complete_scr_state.metadata.created }}
+      Created By: {{ complete_scr_state.metadata.created_by }}
+      Workflow Version: {{ complete_scr_state.metadata.workflow_version }}
+
+      --------------------------------------------------------------------------------
+      SOURCE SYSTEM
+      --------------------------------------------------------------------------------
+      SID: {{ complete_scr_state.source.sid }}
+      SCS Host: {{ complete_scr_state.source.scs_host | default('N/A') }}
+
+      SAP Kernel: {{ complete_scr_state.source.facts.sap_kernel | default('N/A') }}
+      DB Type: {{ complete_scr_state.source.facts.db_type | default('N/A') }}
+      DB Kernel: {{ complete_scr_state.source.facts.db_kernel | default('N/A') }}
+      Operating System: {{ complete_scr_state.source.facts.os | default('N/A') }}
+
+      Topology:
+        Architecture: {{ complete_scr_state.source.facts.topology.architecture | default('N/A') }}
+        SCS Instance: {{ complete_scr_state.source.facts.topology.scs_instance | default('N/A') }}
+        App Server Count: {{ complete_scr_state.source.facts.topology.app_server_count }}
+        Cluster Configured: {{ complete_scr_state.source.facts.topology.cluster_configured }}
+        App Servers: {{ complete_scr_state.source.facts.topology.app_servers | join(', ') if complete_scr_state.source.facts.topology.app_servers else 'None' }}
+
+      --------------------------------------------------------------------------------
+      TARGET SYSTEM
+      --------------------------------------------------------------------------------
+      SID: {{ complete_scr_state.target.sid }}
+      SCS Host: {{ complete_scr_state.target.scs_host | default('N/A') }}
+
+      SAP Kernel: {{ complete_scr_state.target.facts.sap_kernel | default('N/A') }}
+      DB Kernel: {{ complete_scr_state.target.facts.db_kernel | default('N/A') }}
+      Operating System: {{ complete_scr_state.target.facts.os | default('N/A') }}
+
+      Topology:
+        Architecture: {{ complete_scr_state.target.facts.topology.architecture | default('N/A') }}
+        SCS Instance: {{ complete_scr_state.target.facts.topology.scs_instance | default('N/A') }}
+        App Server Count: {{ complete_scr_state.target.facts.topology.app_server_count }}
+        Cluster Configured: {{ complete_scr_state.target.facts.topology.cluster_configured }}
+        App Servers: {{ complete_scr_state.target.facts.topology.app_servers | join(', ') if complete_scr_state.target.facts.topology.app_servers else 'None' }}
+
+      Deployment:
+        Requested: {{ complete_scr_state.target.deployment.requested }}
+        Status: {{ complete_scr_state.target.deployment.status }}
+
+      --------------------------------------------------------------------------------
+      REFRESH CONFIGURATION
+      --------------------------------------------------------------------------------
+      Protocol: {{ complete_scr_state.refresh.protocol }}
+      Retained Tables:
+      {%- for table in complete_scr_state.refresh.retained_tables %}
+        - {{ table.name }} (Key: {{ table.key }})
+      {%- endfor %}
+
+      --------------------------------------------------------------------------------
+      PARITY CHECKS
+      --------------------------------------------------------------------------------
+      Operating System: {{ 'Required' if complete_scr_state.parity.os else 'Not Required' }}
+      SAP Kernel: {{ 'Required' if complete_scr_state.parity.sap_kernel else 'Not Required' }}
+      DB Kernel: {{ 'Required' if complete_scr_state.parity.db_kernel else 'Not Required' }}
+
+      --------------------------------------------------------------------------------
+      WORKFLOW PROGRESS AND TELEMETRY
+      --------------------------------------------------------------------------------
+      (Step markers will be appended here as workflow progresses)
+
+      ================================================================================
+
+- name: Write complete SCR state to local file
+  ansible.builtin.copy:
+    content: "{{ scr_state_text }}"
+    dest: "/tmp/{{ scr_state_blob_name }}"
+    mode: "0644"
+
+- name: Display SCR state build summary
+  ansible.builtin.debug:
+    msg:
+      - "Complete SCR state text file built successfully"
+      - "Source SID: {{ complete_scr_state.source.sid }}"
+      - "Target SID: {{ complete_scr_state.target.sid }}"
+      - "Local file: /tmp/{{ scr_state_blob_name }}"

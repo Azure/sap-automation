@@ -1,0 +1,299 @@
+---
+- name:                                 "scr_db_restore: Discover tfstate storage account"
+  ansible.builtin.command:
+    argv:
+      - az
+      - storage
+      - account
+      - list
+      - --resource-group
+      - "{{ scr_azure_resource_group }}"
+      - --query
+      - "[?contains(name, 'tfstate')].name | [0]"
+      - --output
+      - tsv
+  register:                             _restore_storage_discovery
+  delegate_to:                          localhost
+  changed_when:                         false
+  when:                                 scr_azure_storage_account is not defined
+
+
+- name:                                 "scr_db_restore: Set discovered storage account"
+  ansible.builtin.set_fact:
+    scr_azure_storage_account:          "{{ _restore_storage_discovery.stdout | trim }}"
+  when:
+    - scr_azure_storage_account is not defined
+    - _restore_storage_discovery.stdout | default('') | trim | length > 0
+
+
+- name:                                 "scr_db_restore: Validate required inputs"
+  ansible.builtin.assert:
+    that:
+      - db_restore_manifest_blob is defined
+      - db_restore_manifest_blob | default('') | length > 0
+      - db_restore_expected_backup_side is defined
+      - db_restore_expected_backup_side | default('') in ['source', 'dest']
+      - >-
+        db_restore_expected_backup_side | default('') == 'dest'
+        or db_restore_rollback_manifest_blob | default('') | length > 0
+      - db_sid is defined
+      - db_sid | default('') | length > 0
+      - scr_azure_storage_account is defined
+      - scr_azure_storage_account | default('') | length > 0
+      - scr_azure_container is defined
+      - scr_azure_container | default('') | length > 0
+    fail_msg: >-
+      Set db_restore_manifest_blob to the exact RESTORE MANIFEST path from the
+      backup summary log. Set db_restore_expected_backup_side to source for a
+      refresh or dest for rollback. A source refresh also requires
+      db_restore_rollback_manifest_blob pointing to the target's dest manifest.
+
+
+- name:                                 "scr_db_restore: Resolve controller manifest path"
+  ansible.builtin.set_fact:
+    _restore_manifest_local:            "{{ db_restore_controller_stage }}/{{ db_restore_manifest_blob | basename }}"
+
+
+- name:                                 "scr_db_restore: Ensure controller staging directory exists"
+  ansible.builtin.file:
+    path:                               "{{ db_restore_controller_stage }}"
+    state:                              directory
+    mode:                               "0700"
+  delegate_to:                          localhost
+
+
+- name:                                 "scr_db_restore: Download restore manifest from Azure"
+  ansible.builtin.command:
+    argv:
+      - az
+      - storage
+      - blob
+      - download
+      - --account-name
+      - "{{ scr_azure_storage_account }}"
+      - --container-name
+      - "{{ scr_azure_container }}"
+      - --name
+      - "{{ db_restore_manifest_blob }}"
+      - --file
+      - "{{ _restore_manifest_local }}"
+      - --overwrite
+      - --auth-mode
+      - login
+      - --only-show-errors
+  delegate_to:                          localhost
+  changed_when:                         true
+
+
+- name:                                 "scr_db_restore: Read restore manifest"
+  ansible.builtin.slurp:
+    src:                                "{{ _restore_manifest_local }}"
+  delegate_to:                          localhost
+  register:                             _restore_manifest_raw
+
+
+- name:                                 "scr_db_restore: Parse restore manifest"
+  ansible.builtin.set_fact:
+    _restore_manifest:                  "{{ _restore_manifest_raw.content | b64decode | from_json }}"
+
+
+- name:                                 "scr_db_restore: Validate restore manifest"
+  ansible.builtin.assert:
+    that:
+      - _restore_manifest.schema_version | int == 2
+      - _restore_manifest.backup_side == db_restore_expected_backup_side
+      - _restore_manifest.db_sid | upper == db_sid | upper
+      - _restore_manifest.backup_prefix | length > 0
+      - _restore_manifest.files | length > 0
+      - db_restore_expected_prefix | default(_restore_manifest.backup_prefix) == _restore_manifest.backup_prefix
+    fail_msg: >-
+      The manifest is empty, unsupported, or does not match the expected
+      backup side, db_sid, or db_restore_expected_prefix. Refusing to place
+      backup files.
+
+
+- name:                                 "scr_db_restore: Resolve target rollback manifest path"
+  ansible.builtin.set_fact:
+    _rollback_manifest_local:           "{{ db_restore_controller_stage }}/rollback__{{ db_restore_rollback_manifest_blob | basename }}"
+  when:                                 db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Download target rollback manifest"
+  ansible.builtin.command:
+    argv:
+      - az
+      - storage
+      - blob
+      - download
+      - --account-name
+      - "{{ scr_azure_storage_account }}"
+      - --container-name
+      - "{{ scr_azure_container }}"
+      - --name
+      - "{{ db_restore_rollback_manifest_blob }}"
+      - --file
+      - "{{ _rollback_manifest_local }}"
+      - --overwrite
+      - --auth-mode
+      - login
+      - --only-show-errors
+  delegate_to:                          localhost
+  changed_when:                         true
+  when:                                 db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Read target rollback manifest"
+  ansible.builtin.slurp:
+    src:                                "{{ _rollback_manifest_local }}"
+  delegate_to:                          localhost
+  register:                             _rollback_manifest_raw
+  when:                                 db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Parse target rollback manifest"
+  ansible.builtin.set_fact:
+    _rollback_manifest:                 "{{ _rollback_manifest_raw.content | b64decode | from_json }}"
+  when:                                 db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Validate target rollback point before refresh"
+  ansible.builtin.assert:
+    that:
+      - _rollback_manifest.schema_version | int == 2
+      - _rollback_manifest.backup_side == 'dest'
+      - _rollback_manifest.db_sid | upper == db_sid | upper
+      - _rollback_manifest.backup_prefix | length > 0
+      - _rollback_manifest.files | length > 0
+      - _rollback_manifest.backup_prefix != _restore_manifest.backup_prefix
+    fail_msg: >-
+      The target rollback manifest is invalid or is not a completed dest-side
+      protection backup. Refusing to stage the source refresh backup.
+  when:                                 db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Inspect every target rollback blob"
+  ansible.builtin.command:
+    argv:
+      - az
+      - storage
+      - blob
+      - show
+      - --account-name
+      - "{{ scr_azure_storage_account }}"
+      - --container-name
+      - "{{ scr_azure_container }}"
+      - --name
+      - "{{ item.blob_name }}"
+      - --auth-mode
+      - login
+      - --query
+      - properties.contentLength
+      - --output
+      - tsv
+      - --only-show-errors
+  delegate_to:                          localhost
+  register:                             _rollback_blob_checks
+  changed_when:                         false
+  failed_when:                          false
+  loop:                                 "{{ _rollback_manifest.files }}"
+  loop_control:
+    label:                              "{{ item.blob_name }}"
+  when:                                 db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Verify every target rollback blob is available"
+  ansible.builtin.assert:
+    that:
+      - item.rc == 0
+      - item.stdout | int == item.item.size | int
+    fail_msg: >-
+      Target rollback blob {{ item.item.blob_name }} is missing or has the
+      wrong size. Refusing to stage the source refresh backup.
+  loop:                                 "{{ _rollback_blob_checks.results | default([]) }}"
+  loop_control:
+    label:                              "{{ item.item.blob_name }}"
+  when:                                 db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Reject unsafe relative restore paths"
+  ansible.builtin.assert:
+    that:
+      - not item.relative_restore_path.startswith('/')
+      - "'..' not in item.relative_restore_path.split('/')"
+      - item.relative_restore_path.split('/')[0].startswith('DB_')
+      - item.relative_restore_path | basename | length > 0
+      - item.blob_name | length > 0
+      - item.checksum_algorithm == 'sha1'
+      - item.checksum | length == 40
+    fail_msg:                           "Unsafe or incomplete manifest entry: {{ item }}"
+  loop:                                 "{{ _restore_manifest.files }}"
+  loop_control:
+    label:                              "{{ item.relative_restore_path | default('<missing>') }}"
+
+
+- name:                                 "scr_db_restore: Ensure destination backup root exists"
+  become:                               true
+  ansible.builtin.file:
+    path:                               "{{ db_restore_root }}"
+    state:                              directory
+    owner:                              "{{ db_sid | lower }}adm"
+    group:                              sapsys
+    mode:                               "0750"
+
+
+- name:                                 "scr_db_restore: Read free space on destination filesystem"
+  ansible.builtin.shell: |
+                                        set -o pipefail
+                                        df -P -B1 "{{ db_restore_root }}" | awk 'NR==2 {print $4}'
+  args:
+    executable:                         /bin/bash
+  register:                             _restore_target_df
+  changed_when:                         false
+
+
+- name:                                 "scr_db_restore: Require space for the complete backup set"
+  ansible.builtin.assert:
+    that:
+      - (_restore_target_df.stdout | int) >= ((_restore_manifest.files | map(attribute='size') | map('int') | sum) * 1.1)
+    fail_msg: >-
+      {{ db_restore_root }} has {{ _restore_target_df.stdout }} bytes free, but
+      the manifest requires {{ _restore_manifest.files | map(attribute='size') | map('int') | sum }}
+      bytes plus 10 percent headroom.
+
+
+- name:                                 "scr_db_restore: Download, transfer, and verify each backup part"
+  ansible.builtin.include_tasks:        restore_one_file.yaml
+  loop:                                 "{{ _restore_manifest.files }}"
+  loop_control:
+    loop_var:                           _restore_file
+    index_var:                          _restore_file_index
+    label:                              "{{ _restore_file.relative_restore_path }}"
+
+
+- name:                                 "scr_db_restore: Remove downloaded manifest from controller"
+  ansible.builtin.file:
+    path:                               "{{ _restore_manifest_local }}"
+    state:                              absent
+  delegate_to:                          localhost
+  when:                                 db_restore_cleanup_controller | bool
+
+
+- name:                                 "scr_db_restore: Remove rollback manifest from controller"
+  ansible.builtin.file:
+    path:                               "{{ _rollback_manifest_local }}"
+    state:                              absent
+  delegate_to:                          localhost
+  when:
+    - db_restore_cleanup_controller | bool
+    - db_restore_expected_backup_side == 'source'
+
+
+- name:                                 "scr_db_restore: Report staged backup set"
+  ansible.builtin.debug:
+    msg:
+      - "Restore files verified on {{ inventory_hostname }}"
+      - "Backup prefix: {{ _restore_manifest.backup_prefix }}"
+      - "Backup side: {{ _restore_manifest.backup_side }}"
+      - "Files: {{ _restore_manifest.files | length }}"
+      - "Destination root: {{ db_restore_root }}"
+      - "HANA recovery has not been started; complete the controlled recovery procedure in the role README."

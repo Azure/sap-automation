@@ -1,0 +1,184 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# -------------------------------------+---------------------------------------8
+
+# -------------------------------------------------------------------
+# 1) Read /usr/sap/sapservices and determine startup facility
+# -------------------------------------------------------------------
+- name:                                 Read /usr/sap/sapservices
+  ansible.builtin.slurp:
+    src:                                "{{ sapservices_path }}"
+  register:                             _results_b64
+
+
+- name:                                 Normalize sapservices lines (strip comments + whitespace)
+  ansible.builtin.set_fact:
+    sapservices_lines: >-
+                                        {{
+                                          (_results_b64.content | b64decode).splitlines()
+                                          | map('regex_replace', '\r$', '')
+                                          | map('regex_replace', '\s*#.*$', '')
+                                          | map('trim')
+                                          | reject('equalto', '')
+                                          | list
+                                        }}
+
+
+- name:                                 Detect whether systemd service or direct sapstartsrv is used
+  ansible.builtin.set_fact:
+    sap_start_facility: >-
+                                        {%- set has_systemctl   = (sapservices_lines
+                                                                  | select('search', '(^|\\s)systemctl(\\s|$)')
+                                                                  | list | length) > 0                               -%}
+                                        {%- set has_sapstartsrv = (sapservices_lines 
+                                                                  | select('search', '(^|\\s)sapstartsrv(\\s|$)')
+                                                                  | list | length) > 0                               -%}
+                                        {%- if has_systemctl         -%}
+                                        systemd_service
+                                        {%- elif has_sapstartsrv     -%}
+                                        sapstartsrv_direct
+                                        {%- else                     -%}
+                                        unknown
+                                        {%- endif                    -%}
+
+
+- name:                                 "Test"
+  ansible.builtin.debug:
+    msg: |-
+                                        _results_b64:               {{ _results_b64 }}
+                                        _results_decoded:           {{ _results_b64.content | b64decode }}
+                                        sapservices_path:           {{ sapservices_path     | default('-')  }}
+                                        sapservices_lines:          {{ sapservices_lines    | default('-') }}
+                                        sap_start_facility:         {{ sap_start_facility   | default('-') }}
+                                        sap_systemd_units:          {{ sap_systemd_units    | default('-') }}
+                                        sap_unit:                   {{ sap_unit             | default('-') }}
+                                        sap_pf:                     {{ sap_pf               | default('-') }}
+                                        sap_system_name:            {{ sap_system_name      | default('-') }}
+                                        sap_system:                 {{ sap_system           | default('-') }}
+                                        sap_instance_name:          {{ sap_instance_name    | default('-') }}
+    verbosity:                          0
+
+
+
+# # Optional: capture the systemd unit name(s) from sapservices
+# - name:                                 Extract SAP systemd unit names from sapservices (if present)
+#   ansible.builtin.set_fact:
+#     sap_systemd_units: >-
+#                                         {{
+#                                           sapservices_lines
+#                                           | select('search', '(^|\\s)systemctl(\\s|$).*\\sstart\\s+SAP')
+#                                           | map('regex_search', 'start\\s+(SAP\\S+)', '\\1')
+#                                           | select('string')
+#                                           | list
+#                                         }}
+
+# - name:                                 Choose a single unit to inspect (first match)
+#   ansible.builtin.set_fact:
+#     sap_unit:                           "{{ (sap_systemd_units | length > 0) | ternary(sap_systemd_units[0], '') }}"
+
+# # -------------------------------------------------------------------
+# # 2) If systemd: resolve unit file via FragmentPath and extract pf
+# # -------------------------------------------------------------------
+# - name:                                 Get unit FragmentPath (systemd)
+#   ansible.builtin.command:              "systemctl show -P FragmentPath {{ sap_unit }}"
+#   register:                             fragpath
+#   changed_when:                         false
+#   when:
+#         - sap_start_facility        ==  "systemd_service"
+#         - sap_unit | length         >   0
+
+# - name:                                 Read systemd unit file
+#   ansible.builtin.slurp:
+#     src:                                "{{ fragpath.stdout }}"
+#   register:                             unit_raw
+#   when:
+#         - sap_start_facility        ==  "systemd_service"
+#         - fragpath.stdout           is  defined
+#         - fragpath.stdout | length  >   0
+
+# - name:                                 Extract pf parameter from ExecStart in systemd unit file
+#   ansible.builtin.set_fact:
+#     sap_pf: >-
+#                                         {{
+#                                           (unit_raw.content | b64decode)
+#                                           | regex_search('(?m)^ExecStart=.*\\bpf=([^\\s]+)', '\\1')
+#                                         }}
+#   when:
+#         - sap_start_facility        ==  "systemd_service"
+#         - unit_raw                  is  defined
+#         - unit_raw.content          is  defined
+
+# # -------------------------------------------------------------------
+# # 3) If direct sapstartsrv: extract pf directly from sapservices
+# # -------------------------------------------------------------------
+# - name:                                 Extract pf parameter directly from sapservices (sapstartsrv direct)
+#   ansible.builtin.set_fact:
+#     sap_pf: >-
+#                                         {{
+#                                           (sapservices_lines
+#                                             | select('search', '(^|\\s)sapstartsrv(\\s|$).*\\bpf=')
+#                                             | list
+#                                             | first
+#                                             | regex_search('\\bpf=([^\\s]+)', '\\1')
+#                                           )
+#                                         }}
+#   when:
+#         - sap_start_facility        ==  "sapstartsrv_direct"
+
+# # -------------------------------------------------------------------
+# # 4) Read the pf profile file and extract SAPSYSTEMNAME / SAPSYSTEM / INSTANCE_NAME
+# # -------------------------------------------------------------------
+# - name:                                 Read SAP profile file indicated by pf
+#   ansible.builtin.slurp:
+#     src:                                "{{ sap_pf }}"
+#   register:                             sap_profile_raw
+#   when:
+#         - sap_pf                  is  defined
+#         - sap_pf | length         >   0
+
+# - name:                                 Extract SAPSYSTEMNAME, SAPSYSTEM, INSTANCE_NAME from profile
+#   ansible.builtin.set_fact:
+#     sap_system_name: >-
+#                                         {{
+#                                           (sap_profile_raw.content | b64decode)
+#                                           | regex_search('(?m)^SAPSYSTEMNAME\\s*=\\s*(\\S+)', '\\1')
+#                                         }}
+#     sap_system: >-
+#                                         {{
+#                                           (sap_profile_raw.content | b64decode)
+#                                           | regex_search('(?m)^SAPSYSTEM\\s*=\\s*(\\S+)', '\\1')
+#                                         }}
+#     sap_instance_name: >-
+#                                         {{
+#                                           (sap_profile_raw.content | b64decode)
+#                                           | regex_search('(?m)^INSTANCE_NAME\\s*=\\s*(\\S+)', '\\1')
+#                                         }}
+#   when:
+#         - sap_profile_raw         is  defined
+#         - sap_profile_raw.content is  defined
+
+# # -------------------------------------------------------------------
+# # 5) Emit consolidated output
+# # -------------------------------------------------------------------
+# - name:                                 Show consolidated discovery result
+#   ansible.builtin.debug:
+#     msg:
+#                                         startup_facility:   "{{ sap_start_facility }}"
+#                                         systemd_unit:       "{{ sap_unit | default('') }}"
+#                                         profile_pf:         "{{ sap_pf | default('') }}"
+#                                         SAPSYSTEMNAME:      "{{ sap_system_name | default('') }}"
+#                                         SAPSYSTEM:          "{{ sap_system | default('') }}"
+#                                         INSTANCE_NAME:      "{{ sap_instance_name | default('') }}"
+
+# # Optional: consistency check (INSTANCE_NAME == SAPSYSTEMNAME + SAPSYSTEM)
+# - name:                                 Validate instance name matches SAPSYSTEMNAME+SAPSYSTEM
+#   ansible.builtin.assert:
+#     that:
+#           - sap_instance_name == sap_system_name ~ sap_system
+#     fail_msg:                           "INSTANCE_NAME does not match SAPSYSTEMNAME+SAPSYSTEM (profile inconsistency)"
+#   when:
+#         - sap_system_name         is  defined
+#         - sap_system              is  defined
+#         - sap_instance_name       is  defined

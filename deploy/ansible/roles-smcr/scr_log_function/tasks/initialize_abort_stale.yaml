@@ -1,0 +1,47 @@
+---
+# initialize_abort_stale.yaml
+# On every new register, any prior Run/Job still sitting in Active or
+# In-Progress must be stale (only one run can be live at a time, and we
+# are about to start a new one). Mark those as Aborted so they leave the
+# "needs visibility" bucket.
+#
+# Failed entries are LEFT AS-IS so the next register can pick them up
+# for a resume.
+#
+# Implementation note: loop-based accumulator (not a Jinja {% for %} block
+# with to_json/from_json) — the round-trip pattern is fragile under
+# Ansible's native-types templating.
+
+- name:                                 "SCR Log Function [index/abort_stale] - Init accumulator"
+  ansible.builtin.set_fact:
+    _abort_stale_jobs:                  []
+    _abort_stale_now:                   "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+  when:                                 action == 'register'
+
+# For each existing job: if it's Active/In-Progress, mark it Aborted and
+# also flip any of its Active/In-Progress runs to Aborted. Other jobs and
+# other runs are passed through untouched.
+- name:                                 "SCR Log Function [index/abort_stale] - Build aborted-stale jobs list"
+  ansible.builtin.set_fact:
+    _abort_stale_jobs: >-
+                                        {{ _abort_stale_jobs + [
+                                          (item | combine({
+                                             'status': 'Aborted',
+                                             'runs':
+                                               (item.runs | rejectattr('status', 'in', ['Active', 'In-Progress']) | list)
+                                             + (item.runs | selectattr('status', 'in', ['Active', 'In-Progress'])
+                                                          | map('combine', {'status': 'Aborted', 'end_date': _abort_stale_now})
+                                                          | list)
+                                           }))
+                                          if item.status in ['Active', 'In-Progress']
+                                          else item
+                                        ] }}
+  loop:                                 "{{ _scr_index.jobs }}"
+  when:                                 action == 'register'
+
+- name:                                 "SCR Log Function [index/abort_stale] - Replace _scr_index with aborted-stale version"
+  ansible.builtin.set_fact:
+    _scr_index:
+      last_job_number:                  "{{ _scr_index.last_job_number }}"
+      jobs:                             "{{ _abort_stale_jobs }}"
+  when:                                 action == 'register'

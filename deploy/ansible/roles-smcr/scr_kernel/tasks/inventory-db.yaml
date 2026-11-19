@@ -1,0 +1,172 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# Directory to interogate:    /hana/shared/DBSID/exe
+# /hana/shared/DBSID/hdblcm
+# /hana/shared/DBSID/HDB<instance#>
+# /hana/shared/DBSID/profile
+# /hana/shared/DBSID/global
+# /hana/shared/DBSID/exe
+# /hana/shared/DBSID/hdbstudio
+# /hana/shared/DBSID/hdbclient
+# /hana/shared/DBSID/lm_structure
+# /hana/shared/DBSID/federation
+
+
+# https://help.sap.com/docs/SAP_HANA_PLATFORM/2c1988d620e04368aa4103bf26f17727/4c24d332a37b4a3caad3e634f9900a45.html
+
+
+# /usr/sap/DBSID
+# /hana/backup/DBSID/INSTANCE
+# /hana/data/DBSID
+# /hana/log/DBSID
+# /lss/shared/DBSID
+
+
+
+
+# /usr/sap/sapservices
+# cat /usr/sap/sapservices
+# #!/bin/sh
+# systemctl --no-ask-password start SAPHDB_00 # sapstartsrv pf=/usr/sap/HDB/SYS/profile/HDB_HDB00_x90dhdb00l05a
+# limit.descriptors=1048576
+
+
+
+# systemctl show -P FragmentPath SAPHDB_00
+# /etc/systemd/system/SAPHDB_00.service
+# [root@x90dhdb00l05a azureadm]# cat /etc/systemd/system/SAPHDB_00.service
+# # Automatically generated. Do not modify.
+
+# [Unit]
+# Description=SAP Instance SAPHDB_00
+# After=remote-fs.target time-sync.target
+# Wants=remote-fs.target
+
+# [Service]
+# User=hdbadm
+# Group=sapsys
+# TimeoutStartSec=120sec
+# TimeoutStopSec=360sec
+# Type=notify
+# NotifyAccess=all
+# KillMode=process
+# WorkingDirectory=/usr/sap/HDB/HDB00/x90dhdb00l05a/trace
+# Environment=LD_LIBRARY_PATH=/usr/sap/HDB/HDB00/exe
+# ExecStart=/usr/sap/HDB/HDB00/exe/sapstartsrv pf=/usr/sap/HDB/SYS/profile/HDB_HDB00_x90dhdb00l05a -setup_env
+# KillSignal=SIGINT
+# Slice=SAP.slice
+# SyslogIdentifier=SAPHDB_00
+# LimitNOFILE=1048576
+# TasksMax=infinity
+# Restart=on-failure
+# RestartSec=60s
+
+# [Install]
+# WantedBy=multi-user.target
+
+
+# Extract parameter and element from file
+# Find files in multiple directories with Ansible find module
+# Loop through results and display file details and checksum
+
+---
+# -------------------------------------+---------------------------------------8
+
+- name:                                 "Initialize {{ function }} system discovery"
+  ansible.builtin.debug:
+    msg: 
+      - "Inventory SAP or DB Kernel for {{ sapsid }}"
+      - "Source or Target {{ sapsid }}:"
+      # - "Starting SCR system discovery for {{ scr_discovery_system_role }} system"
+      # - "Target SID: {{ scr_discovery_sid }}"
+      # - "Discovery scope: {{ scr_discovery_scope.keys() | select() | list }}"
+
+        # msg: |-
+        #                                 path:             {{ object_stats.stat.path }}
+        #                                 mimetype:         {{ object_stats.stat.mimetype }}
+        #                                 sub_path:         {{ sub_path }}
+        #                                 destination:      {{ destination }}
+    verbosity:                      0
+
+- name:                                 "SCR Kernel: ({{ function | upper }}) Analyze Database Server"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_kernel/tasks/analyze-db.yaml
+
+
+
+# - name:                         "SCR Kernel: ({{ function | upper }}) Inventory Database Kernel for SID {{ sapsid }}"
+#   block:
+
+
+
+    # - name:                                 "Recursively list files with details and checksums"
+    #   become:                               true                              # root permissions may be required to access certain files and directories
+    #   ansible.builtin.find:
+    #     paths:                              "{{ item.path }}"
+    #     file_type:                          any
+    #     recurse:                            true
+    #     hidden:                             true
+    #     get_checksum:                       true
+    #     # checksum_algorithm:                 sha256
+    #   register:                             _results
+    #   loop:
+    #                                         - { path:  "/usr/sap"                       }
+    #                                         # - { path:  "/usr/sap/SID"                   }
+    #                                         # - { path:  "/usr/sap/hostctrl"              }
+    #                                         # - { path:  "/usr/sap/SMD agent"             }
+    #                                         - { path:  "/hana/shared/HDB/exe"           }   # primary directory to inventory for kernel files
+    #                                         # - { path:  "/hana/shared/HDB/hdblcm"        }   #
+    #                                         # - { path:  "/hana/shared/HDB/HDB00"         }   #
+    #                                         # - { path:  "/hana/shared/HDB/profile"       }   #
+    #                                         # - { path:  "/hana/shared/HDB/global"        }   #
+    #                                         # - { path:  "/hana/shared/HDB/hdbstudio"     }   #
+    #                                         # - { path:  "/hana/shared/HDB/hdbclient"     }   #
+    #                                         # - { path:  "/hana/shared/HDB/lm_structure"  }   #
+    #                                         # - { path:  "/hana/shared/HDB/federation"    }   #
+    #                                         # - { path:  "/hana/data/HDB/"                }   #
+    #                                         # - { path:  "/hana/log/HDB/"                 }   #
+    #                                         # - { path:  "/lss/shared/HDB"                }   #
+    #   loop_control:
+    #     loop_var:                           item
+
+
+    # - name:                                 "SCR Kernel: ({{ function | upper }})"
+    #   ansible.builtin.set_fact:
+    #     scr_kernel_files_{{ sapsid }}:      "{{ _results }}"
+
+
+
+    # - name:                                 "Display file inventory"
+    #   ansible.builtin.debug:
+    #     msg:                                "{{ lookup('template', 'roles-scr/scr_kernel/templates/inventory_file_detail.j2') }}"
+    #     verbosity:                      0
+    #       # Mode:     {{ item.mode }}
+    #       # Owner:    {{ item.uid }}
+    #       # Group:    {{ item.gid }}
+    #       # Size:     {{ item.size }}
+    #       # Modified: {{ item.mtime }}
+    #       # Checksum: {{ item.checksum | default('N/A (directory)') }}
+    #       # Path:     {{ item.path }}
+    #       # Type:     {{ item.islnk | ternary('link', item.isdir | ternary('directory', 'file')) }}
+    #   # loop:                                "{{ kernel_files.files }}"
+    #   # loop_control:
+    #   #   label:                             "{{ item.path }}"
+
+  # when:     (sapsid | upper + '_DB') in vars['group_names']
+
+
+
+
+
+
+
+
+
+...
+
+
+
+
+
+

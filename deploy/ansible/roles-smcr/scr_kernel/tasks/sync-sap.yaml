@@ -1,0 +1,168 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+# REQUIRED INPUTS:
+#   sapsid:         SID of the SAP system (e.g., PRD)
+#   function:       Function being performed (e.g., "archive")
+#   scr_source_sid: Source system SID (e.g., PRD)
+#   scr_changed:    List of files that are present in both source and target systems but have different checksums (indicating they have changed and may need to be updated on the target system)
+#   scr_missing:    List of files that are present in the source system but missing in the target system (these are the files we want to archive and transfer to the target system for remediation)
+#   progress:       List of dictionaries tracking the status of each step in the process (inventory, compare, archive, upload, cleanup). This can be used for logging, debugging, and resuming the process if needed.
+
+
+---
+# -------------------------------------+---------------------------------------8
+
+- debug:
+    msg: >
+      "SCR Kernel Sync: Starting synchronization of SAP Kernel files for SID {{ scr_dest_sid }}.
+      This will compare the kernel files between the source and destination systems, identify
+      any missing or changed files on the destination system, and synchronize those files from
+      the source to the destination system to ensure they are in sync. The progress of this
+      operation will be tracked in the 'progress' variable with status updates for each step of
+      the process."
+
+# TODO: STEP_CHECK:
+
+
+
+# flow:
+#   stop SAP
+#   ensure processes are stopped
+#   download archive
+#   extract archive
+#   remove files that are not present on source system (based on inventory and comparison results)
+#   log completion of synchronization step
+
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Get file_store object for metadata                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR KERNEL: [{{ kernel }}/{{ function }}] - Retrieve file_store from OBJECT_STORE"
+  ansible.builtin.include_role:
+    name:                               roles-scr/scr_log_function
+  vars:
+    activity:                           object
+    action:                             retrieve
+    payload:                            scr_extra_on_target
+
+# Replace __SID__ placeholder in file paths with actual SID
+# Filter for relevant kernel files based on typical SAP kernel directory structure
+# - ansible.builtin.set_fact:
+#     scr_extra_on_target:                  "{{ (scr_extra_on_target
+#                                               | map('replace', '__SID__', sapsid)
+#                                               | select('search', 'exe/(n)?uc/linuxx86_64/')
+#                                               | map('replace', 'uc/linuxx86_64/', 'uc/linuxx86_64_test/')
+#                                               | list) }}"
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Download archive from FILE_STORE                                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR KERNEL: [{{ kernel }}/{{ function }}] - Download archive from FILE_STORE"
+  ansible.builtin.include_role:
+    name:                               roles-scr/scr_log_function
+  vars:
+    activity:                           file
+    action:                             retrieve
+    payload:                            /tmp/.scr/{{ scr_source_sid }}_SAP_kernel_files.tar.gz
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Get file_store object for metadata                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+
+- name:                                 "SCR KERNEL: [{{ kernel }}/{{ function }}] - Create directory for extracting archive"
+  become:                               true                                                        # root permissions may be required to create directories in certain locations
+  ansible.builtin.file:
+    path:                               /sapmnt/{{ scr_dest_sid }}/exe/unarch_test
+    state:                              directory
+    mode:                               '0755'                                                      # Set appropriate permissions for the directory
+    owner:                              x91adm                                                      # Set appropriate ownership for the directory
+    group:                              sapsys                                                      # Set appropriate group ownership for the directory
+
+- name:                                 "SCR KERNEL: [{{ kernel }}/{{ function }}] - Extract archive on target system"
+  become:                               true                                                        # root permissions may be required to extract files to certain directories in
+  ansible.builtin.unarchive:
+    src:                                /tmp/.scr/{{ scr_source_sid }}_SAP_kernel_files.tar.gz
+    dest:                               /sapmnt/{{ scr_dest_sid }}/exe/unarch_test
+    remote_src:                         true                                                         # The archive is already on the target system, so we set remote_src to yes to avoid trying to upload it again
+    # extra_opts:                         [--no-same-owner]                                           # Avoid permission issues by not trying to set the original ownership from the source system, which may not exist on the target system
+
+
+
+
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Get file_store object for metadata                                         |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+# - name:                                 "SCR KERNEL: [{{ kernel }}/{{ function }}] - Delete files from SAP kernel directory that are not present on the Source System"
+#   become:                               true                                                        # root permissions may be required to delete certain files and directories
+#   ansible.builtin.file:
+#     path:                               "{{ _file_name }}"
+#     state:                              absent
+#   loop:                                 "{{ purge_list }}"
+#   loop_control:
+#     loop_var:                           _file_name
+#   vars:
+#                                         # Replace __SID__ placeholder in file paths with actual SID
+#                                         # Filter for relevant kernel files based on typical SAP kernel directory structure
+#                                         # /sapmnt/__SID__/exe/uc/linuxx86_64/hdbclient/rtt/lib/tc_logging_java-1.0.0.jar
+#     purge_list:                         "{{ (scr_extra_on_target
+#                                               | map('replace', '__SID__', sapsid)
+#                                               | select('search', 'exe/(n)?uc/linuxx86_64/')
+#                                               | map('replace', 'uc/linuxx86_64/', 'uc/linuxx86_64_test/')
+#                                               | list) }}"
+
+
+
+
+
+
+# endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Store archive in FILE_STORE                                                |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+# TODO: OBJECT_STORE: Update step status to 'completed' for archive step
+# TODO: cleanup file from OS after upload to FILE_STORE to save space on the source system, especially if the archive file is large. This can be done with an ansible.builtin.file task to remove the local archive file after it has been successfully uploaded to the FILE_STORE.
+
+
+
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...

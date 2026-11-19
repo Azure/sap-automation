@@ -1,0 +1,5 @@
+---
+db_restore_root:                       "{{ db_backup_dir | default('/hana/backup') }}"
+db_restore_controller_stage:           "{{ (scr_basedir | default(lookup('env', 'HOME') ~ '/.scr_tmp')) }}/RESTORE_STORE"
+db_restore_overwrite:                  false
+db_restore_cleanup_controller:         true

@@ -1,0 +1,28 @@
+---
+# defaults for scr_log_function role
+scr_log_function_objectstore_file:        "object_store.json"
+
+
+# Local directory for log files on the controller and target systems
+scr_log_function_local_basedir:           "{{ scr_basedir }}"
+scr_log_function_local_log_dir:           "{{ scr_log_function_local_basedir }}/logs"
+scr_log_function_local_filestore_dir:     "{{ scr_log_function_local_basedir }}/FILE_STORE"
+scr_log_function_local_objectstore:       "{{ scr_log_function_local_basedir }}/{{ scr_log_function_objectstore_file }}"
+
+
+# Azure Storage account/container locations
+#   Global run index — fixed path, shared across all runs
+scr_log_function_index_blob:              "scr-runs/scr_global_index.json"
+
+#   Blob path prefixes inside the tfstate container
+#     job_<id>/
+#       logs/                  → summary and detail log files (job-scoped, shared across runs)
+#       FILE_STORE/            → arbitrary files uploaded by the file activity (job-scoped)
+#       object_store.json      → Ansible facts (job-scoped, shared across runs)
+#       run_<id>/              → reserved for future per-run artifacts (e.g. run-specific logs)
+scr_log_function_remote_job_basedir:      "scr-runs/job_{{ scr_job_id | default('unknown') }}"
+scr_log_function_remote_basedir:          "{{ scr_log_function_remote_job_basedir }}/run_{{ scr_run_id | default('unknown') }}"
+scr_log_function_remote_log_dir:          "{{ scr_log_function_remote_job_basedir }}/logs"
+scr_log_function_remote_filestore_dir:    "{{ scr_log_function_remote_job_basedir }}/FILE_STORE"
+scr_log_function_remote_objectstore:      "{{ scr_log_function_remote_job_basedir }}/{{ scr_log_function_objectstore_file }}"
+
