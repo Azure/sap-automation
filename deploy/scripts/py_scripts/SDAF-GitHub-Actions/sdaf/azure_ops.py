@@ -829,7 +829,7 @@ def create_app_registration(application_name, service_management_reference=None)
             "displayName": "SDAF Administrator",
             "id": "b1e9099d-97dc-4eb7-a25e-7a33c87c93f2",
             "isEnabled": True,
-            "value": "SDAF.Administrator"
+            "value": "SDAF.Administrator",
         }
     ]
 
@@ -837,7 +837,9 @@ def create_app_registration(application_name, service_management_reference=None)
     manifest_fd, manifest_path = tempfile.mkstemp(suffix=".json", prefix="sdaf_manifest_")
 
     # Write the role manifest to a temp file so it can be passed to az ad app create
-    role_manifest_fd, role_manifest_path = tempfile.mkstemp(suffix=".json", prefix="sdaf_role_manifest_")
+    role_manifest_fd, role_manifest_path = tempfile.mkstemp(
+        suffix=".json", prefix="sdaf_role_manifest_"
+    )
 
     try:
         with os.fdopen(manifest_fd, "w") as f:
