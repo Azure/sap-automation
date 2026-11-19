@@ -1,0 +1,325 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |          Playbook: SCR DB Test                                             |
+# |                                                                            |
+# |          Step 1 — fetch the HANA SYSTEMDB SYSTEM password from Key Vault.  |
+# |          Step 2 — list SYSTEMDB users on each DB host (hdbsql as           |
+# |                   <sid>adm) to verify the password works end-to-end.       |
+# |                                                                            |
+# |          The play targets the DB hosts. Step 1 runs on the controller via  |
+# |          delegate_to: localhost inside the role; step 2 runs on each DB    |
+# |          host (so we need SSH credentials, hence the scr_keys pre-task).   |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+#
+# Run:
+#   ansible-playbook \
+#     --inventory  x_scr_testing_inventory_X90.yaml \
+#     --inventory  x_scr_testing_inventory_X91.yaml \
+#     --extra-vars @x_scr_parameters.yaml \
+#     --extra-vars "db_password_secret_name=MKDSE-SECE-SAP00-sid-password db_sid=HDB" \
+#     playbook_scr_db_test.yaml
+#
+# Required extra-vars:
+#   scr_source_sid             from x_scr_parameters.yaml
+#   scr_dest_sid               from x_scr_parameters.yaml
+#   scr_source_kv_name         from x_scr_parameters.yaml
+#                              (used as db_kv_name default in the role)
+#   db_password_secret_name    name of the KV secret holding the HANA SYSTEMDB
+#                              SYSTEM password (e.g. MKDSE-SECE-SAP00-sid-password)
+#   db_sid                     HANA DB SID (e.g. HDB).
+#                              Often different from SAP SID; defines <sid>adm.
+#
+# Optional extra-vars:
+#   db_kv_name                 override which KV to read from
+#                              (defaults to scr_source_kv_name in role defaults)
+#   db_instance_number         HANA instance number (default "00")
+
+
+# Protect both sides before a refresh. The source backup is used to refresh the
+# destination; the destination backup is the rollback point used to return the
+# destination to its original state after validation.
+- hosts:                                "{{ scr_source_sid | upper }}_DB : {{ scr_dest_sid | upper }}_DB"
+
+  name:                                 "SCR DB Source and Target Protection Backup"
+  gather_facts:                         false
+  any_errors_fatal:                     true
+  strategy:                             linear
+
+  vars_files:
+    - x_scr_parameters.yaml
+    - roles-scr/scr_common/defaults/main.yaml
+
+  pre_tasks:
+
+    # =======================================================================
+    # LOGGING / RUN-REGISTRATION  (same pattern as playbook_scr_initialize.yaml)
+    # -----------------------------------------------------------------------
+    # Step A — Gather facts on the controller (timestamps), truncate the
+    #          per-run ansible log, ensure the local log directory exists.
+    # Step B — Register this run in the global SCR index via
+    #          scr_log_function/initialize/register. That assigns the
+    #          scr_job_id and scr_run_id on the run_once host
+    #          (ansible_play_hosts[0]). Broadcast to all DB hosts so the
+    #          per-host backup tasks land in the right run_<id>/ folder.
+    # Step C — Write the summary log header and log STEP 1 ("Logging
+    #          initialized") so the run shows up in summary + detail logs.
+    # =======================================================================
+
+    - name:                             "Controller - Gather facts for timestamps"  # noqa: run-once[task]
+      ansible.builtin.setup:
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging, always]
+
+    # Truncate the ansible log file so this run starts fresh. Must be done
+    # in-place (same inode) so ansible's open log handle keeps writing to it.
+    - name:                             "Controller - Truncate ansible run log (in place)"  # noqa: run-once[task]
+      ansible.builtin.shell:            ": > /tmp/scr_ansible_run.log"
+      delegate_to:                      localhost
+      run_once:                         true
+      changed_when:                     false
+      tags:                             [logging, always]
+
+    - name:                             "Controller - Create SCR log directory"  # noqa: run-once[task]
+      ansible.builtin.file:
+        path:                           "{{ scr_log_dir }}"
+        state:                          directory
+        mode:                           "0755"
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging]
+
+    - name:                             "LOG - Register SCR run in global index"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       initialize
+        action:                         register
+        payload:
+          activity:                     SCR_DB_BACKUP
+          source_sid:                   "{{ scr_source_sid }}"
+          dest_sid:                     "{{ scr_dest_sid }}"
+      run_once:                         true
+      tags:                             [logging, always]
+
+    # scr_job_id, scr_run_id, and scr_resume_from_step are set on the run_once
+    # host (ansible_play_hosts[0]) by initialize/register. Broadcast to all
+    # play hosts so the per-host backup_database.yaml tasks read the same IDs
+    # and upload into scr-runs/job_<id>/run_<id>/FILE_STORE/<host>/...
+    - name:                             "Controller - Broadcast scr_job_id, scr_run_id, scr_resume_from_step to all hosts"
+      ansible.builtin.set_fact:
+        scr_job_id:                     "{{ hostvars[ansible_play_hosts[0]]['scr_job_id'] }}"
+        scr_run_id:                     "{{ hostvars[ansible_play_hosts[0]]['scr_run_id'] }}"
+        scr_resume_from_step:           "{{ hostvars[ansible_play_hosts[0]]['scr_resume_from_step'] | int }}"
+      tags:                             [logging, always]
+
+    - name:                             "Controller - Write summary log header"  # noqa: run-once[task]
+      ansible.builtin.copy:
+        dest:                           "{{ scr_log_dir }}/{{ scr_job_id }}_summary.log"
+        mode:                           "0644"
+        content: |
+          ============================================================
+          SCR DB BACKUP - RUN STARTED
+          ============================================================
+          Job ID  : {{ scr_job_id }}
+          Run ID  : {{ scr_run_id }}
+          Source  : {{ scr_source_sid }}
+          Target  : {{ scr_dest_sid }}
+          DB SID  : {{ db_sid }}
+          Started : {{ ansible_date_time.iso8601 }}
+          ============================================================
+
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging]
+
+    - name:                             "LOG - STEP 1: Logging initialized"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload:                        "STEP 1 : Logging initialized for SCR_DB_BACKUP run"
+      run_once:                         true
+      tags:                             [logging]
+
+
+    # =======================================================================
+    # SSH credentials from Key Vault (existing logic, just relocated below
+    # the logging block so the summary header is in place before they run).
+    # =======================================================================
+    # Pull SSH credentials (username + private key) from Key Vault so we
+    # can become <sid>adm on the DB hosts in the main task below. Uses
+    # the same scr_keys invocation pattern as playbook_scr_initialize.yaml.
+    - name:                             "SCR DB Test - Source: get SSH credentials from Key Vault"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+        apply:
+          tags:                         [secrets]
+      vars:
+        function:                       "source"
+        granularity:                    "workload"
+        kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"
+        prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"
+      when:
+        - (vars['scr_' + 'source' + '_sid'] | upper) + '_DB' in vars['group_names']
+      tags:                             [secrets]
+
+    - name:                             "SCR DB Test - Dest: get SSH credentials from Key Vault"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+        apply:
+          tags:                         [secrets]
+      vars:
+        function:                       "dest"
+        granularity:                    "workload"
+        kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"
+        prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"
+      when:
+        - (vars['scr_' + 'dest'   + '_sid'] | upper) + '_DB' in vars['group_names']
+      tags:                             [secrets]
+
+    - name:                             "LOG - STEP 2: SSH credentials loaded"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload:                        "STEP 2 : SSH credentials pulled from Key Vault for both source and dest DB hosts"
+      run_once:                         true
+      tags:                             [secrets]
+
+  tasks:
+    - name:                             "SCR DB Test - Fetch password + create backup user + run backup + upload"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_db_backup
+
+    - name:                             "LOG - STEP 3: HANA backup + upload complete"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload: >-
+                                        STEP 3 : HANA backup taken and uploaded to
+                                        scr-runs/job_{{ scr_job_id }}/run_{{ scr_run_id }}/FILE_STORE/<host>/DB_*/...
+      run_once:                         true
+
+
+# /*---------------------------------------------------------------------------8
+# |  POST-TASKS                                                                |
+# |    Final-status decision, run/job index update, ansible run log upload.    |
+# |    Same shape as playbook_scr_initialize.yaml's post_tasks.                |
+# +------------------------------------4--------------------------------------*/
+  post_tasks:
+
+    # -----------------------------------------------------------------------
+    # Compute final run status:
+    #   - ansible_play_hosts_all minus ansible_play_hosts = hosts that
+    #     dropped out due to a failed task without ignore_errors.
+    #   - any non-empty difference -> 'Failed' (retry-able).
+    # -----------------------------------------------------------------------
+    - name:                             "Controller - Compute final run status"  # noqa: run-once[task]
+      ansible.builtin.set_fact:
+        _scr_failed_hosts:              "{{ ansible_play_hosts_all | difference(ansible_play_hosts) | list }}"
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "Controller - Set final run status string"  # noqa: run-once[task]
+      ansible.builtin.set_fact:
+        _scr_final_status: >-
+                                        {{ 'Failed'
+                                           if (_scr_failed_hosts | length > 0)
+                                           else 'Completed-Success' }}
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "LOG - Record failure summary in detail log"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload: >-
+                                        FAILURE : run ended with status {{ _scr_final_status }} —
+                                        failed_hosts={{ _scr_failed_hosts | default([]) }}
+      run_once:                         true
+      when:                             _scr_final_status != 'Completed-Success'
+      tags:                             [cleanup, always]
+
+    - name:                             "LOG - Mark run completed"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       initialize
+        action:                         update
+        payload:
+          target:                       run
+          status:                       "{{ _scr_final_status }}"
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "LOG - Mark job completed"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       initialize
+        action:                         update
+        payload:
+          target:                       job
+          status:                       "{{ _scr_final_status }}"
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    # -----------------------------------------------------------------------
+    # Upload the captured ansible run log (written by ANSIBLE_LOG_PATH)
+    # to the run folder, identical to what playbook_scr_initialize.yaml does.
+    # Run with:
+    #   ANSIBLE_LOG_PATH=/tmp/scr_ansible_run.log ansible-playbook ...
+    # -----------------------------------------------------------------------
+    - name:                             "Controller - Locate ansible run log"  # noqa: run-once[task]
+      ansible.builtin.set_fact:
+        _scr_ansible_log_path:          "{{ lookup('env', 'ANSIBLE_LOG_PATH') | default('/tmp/scr_ansible_run.log', true) }}"
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "Controller - Stat ansible run log"  # noqa: run-once[task]
+      ansible.builtin.stat:
+        path:                           "{{ _scr_ansible_log_path }}"
+      register:                         _scr_ansible_log_stat
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "Controller - Upload ansible run log to run folder"  # noqa: run-once[task]
+      ansible.builtin.command: >-
+                                        az storage blob upload
+                                        --account-name   {{ scr_azure_storage_account }}
+                                        --container-name {{ scr_azure_container }}
+                                        --name           scr-runs/job_{{ scr_job_id }}/run_{{ scr_run_id }}/ansible_run.log
+                                        --file           {{ _scr_ansible_log_path }}
+                                        --overwrite
+                                        --auth-mode      login
+                                        --only-show-errors
+      delegate_to:                      localhost
+      run_once:                         true
+      when:                             _scr_ansible_log_stat.stat.exists
+      changed_when:                     true
+      failed_when:                      false
+      tags:                             [cleanup, always]
+
+    - name:                             "Controller - Warn if ansible run log not found"  # noqa: run-once[task]
+      ansible.builtin.debug:
+        msg: >-
+                                        ANSIBLE_LOG_PATH not set or file missing
+                                        ({{ _scr_ansible_log_path }}); skipping run-log upload.
+      delegate_to:                      localhost
+      run_once:                         true
+      when:                             not _scr_ansible_log_stat.stat.exists
+      tags:                             [cleanup, always]

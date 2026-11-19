@@ -1,0 +1,139 @@
+# Commandline calling for testing:
+# ansible-playbook  --inventory  x_scr_testing_inventory_X90.yaml     \
+#                   --inventory  x_scr_testing_inventory_X91.yaml     \
+#                   --extra-vars @x_scr_parameters.yaml               \
+#                   playbook_scr_MKD_main.yaml                        \
+#                   -v
+
+---
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |           Play for performing SAP System Copy tasks on Source              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- name:                                 "SCR: Main Playbook for MKD Testing - Source System Tasks"
+  hosts:                                "{{ scr_source_sid | upper }}_PAS :
+                                         {{ scr_source_sid | upper }}_DB  :
+                                         {{ scr_dest_sid   | upper }}_PAS :
+                                         {{ scr_dest_sid   | upper }}_DB"
+
+  gather_facts:                         false                                    # Important to collect hostvars information
+  any_errors_fatal:                     true
+
+  vars:
+    # If you're using a user-assigned managed identity, set this:
+    # msi_client_id:                      "<user-assigned-mi-client-id>"          # optional
+
+  vars_files:
+    - roles-scr/scr_common/defaults/main.yaml                                   # loads scr_log_dir, scr_azure_*, etc.
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                        Retrieve KeyVault Secrets                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Added ansible-galaxy collection install of azure.azcollection to configure_deployer.sh
+# Added ansible-galaxy collection install of azure.azcollection to configure_deployer.sh.tmpl
+
+  pre_tasks:
+    - name:
+      import_tasks:                     tasks/scr_pre_tasks.yaml
+
+    - name:
+      import_tasks:                     tasks/scr_pre_tasks_ssh_keys.yaml
+
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+# Connection test using the fetched SSH credentials to ensure we can connect to
+# the target systems before proceeding with the inventory and comparison steps.
+# This can help catch any issues with the credentials early on before we get
+# into the more time-consuming tasks.
+  tasks:
+    - name:                             Ping using the fetched key
+      ansible.builtin.ping:
+
+
+# -------------------------------------+---------------------------------------8
+#
+# SAP KERNEL
+#
+# -------------------------------------+---------------------------------------8
+    # - name:
+    #   include_tasks:                    tasks/scr_sap_kernel.yaml
+
+    - name:                             "LOG - STEP [KERNEL-SAP-SYNC]: SAP kernel synchronization completed"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload:                        "STEP [KERNEL-SAP-SYNC] : SAP kernel synchronization completed — {{ inventory_hostname }}"
+        sapsid:                         "{{ scr_dest_sid }}"
+      # run_once:                         true
+      tags:                             [kernel]
+      when:                             
+        - (sapsid | upper + '_PAS') in vars['group_names']
+
+
+    - ansible.builtin.set_fact:
+        scr_run_id:                     0058
+
+
+
+
+
+
+    # - name:                             "Dest - Initialize SAP parameters for SID"
+    #   include_role:
+    #     name:                           roles-scr/scr_sap_utility
+    #   vars:
+    #     function:                       "init"                                                      #
+    #     type:                           "sap"                                                       # sap or db (hana, oracle, etc.)
+    #     sapsid:                         "{{ scr_dest_sid }}"                                        # SID
+    #   when:                             
+    #     - (sapsid | upper + '_PAS') in vars['group_names'] or
+    #       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
+
+
+    - name:                             "Dest - Stop SAP Application for SID"
+      include_role:
+        name:                           roles-scr/scr_sap_utility
+      vars:
+        function:                       "stopsap"                                                      #
+        type:                           "sap"                                                       # sap or db (hana, oracle, etc.)
+        sapsid:                         "{{ scr_dest_sid }}"                                        # SID
+      when:                             
+        - (sapsid | upper + '_PAS') in vars['group_names'] or
+          (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
+
+
+
+
+    # - name:                             "Dest - Synchronize SAP Kernel Files for SID"
+    #   include_role:
+    #     name:                           roles-scr/scr_kernel
+    #   vars:
+    #     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+    #     function:                       "sync"                                                      #
+    #     sapsid:                         "{{ scr_dest_sid }}"                                        # SID
+    #   when:                             
+    #     - (sapsid | upper + '_PAS') in vars['group_names'] or
+    #       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
+
+
+
+
+
+    - meta:         end_play
+
+
+
+# - import_playbook: playbook_scr_mkd_testing2.yaml         # static
+# - include_playbook: playbook_scr_mkd_testing2.yaml        # dynamic include allows for conditional execution based on variables and host groups, which is useful for running certain tasks only on the source or destination systems as needed.

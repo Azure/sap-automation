@@ -1,0 +1,465 @@
+# Commandline calling for testing:
+# ansible-playbook  --inventory  x_scr_testing_inventory_X90.yaml     \
+#                   --inventory  x_scr_testing_inventory_X91.yaml     \
+#                   --extra-vars @x_scr_parameters.yaml               \
+#                   playbook_scr_mkd_testing.yaml                     \
+#                   -vvv
+
+---
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |           Play for performing SAP System Copy tasks on Source              |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+- hosts:                                "{{ scr_source_sid | upper }}_PAS :
+                                         {{ scr_source_sid | upper }}_DB  :
+                                         {{ scr_dest_sid   | upper }}_PAS :
+                                         {{ scr_dest_sid   | upper }}_DB"
+
+  name:                                 "SCR Source"
+  gather_facts:                         false                                    # Important to collect hostvars information
+  any_errors_fatal:                     true
+
+  vars:
+    # If you're using a user-assigned managed identity, set this:
+    # msi_client_id:                      "<user-assigned-mi-client-id>"          # optional
+
+  vars_files:
+    - roles-scr/scr_common/defaults/main.yaml                                   # loads scr_log_dir, scr_azure_*, etc.
+
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                        Retrieve KeyVault Secrets                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Added ansible-galaxy collection install of azure.azcollection to configure_deployer.sh
+# Added ansible-galaxy collection install of azure.azcollection to configure_deployer.sh.tmpl
+
+  pre_tasks:
+    - name:                             "Controller - Gather facts for timestamps"  # noqa: run-once[task]
+      ansible.builtin.setup:
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging, always]
+
+
+    - name:                             "Controller - Create SCR log directory"  # noqa: run-once[task]
+      ansible.builtin.file:
+        path:                           "{{ scr_log_dir }}"
+        state:                          directory
+        mode:                           "0755"
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging]
+
+
+    - name:                             "LOG - Register SCR run in global index"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       index
+        action:                         register
+        payload:
+          activity:                     SCR
+          source_sid:                   "{{ scr_source_sid }}"
+          dest_sid:                     "{{ scr_dest_sid }}"
+      run_once:                         true
+      tags:                             [logging, always]
+
+
+    # scr_run_id is set on localhost by index/register above.
+    # Broadcast it to every host so all tasks use the correct run-scoped blob path.
+    - name:                             "Controller - Broadcast scr_run_id to all hosts"
+      ansible.builtin.set_fact:
+        scr_run_id:                     "{{ hostvars['localhost']['scr_run_id'] }}"
+      tags:                             [logging, always]
+
+
+    - name:                             "Controller - Write summary log header"  # noqa: run-once[task]
+      ansible.builtin.copy:
+        dest:                           "{{ scr_log_dir }}/{{ scr_run_id }}_summary.log"
+        mode:                           "0644"
+        content: |
+          ============================================================
+          SCR INITIALIZE — RUN STARTED
+          ============================================================
+          Run ID  : {{ scr_run_id }}
+          Source  : {{ scr_source_sid }}
+          Target  : {{ scr_dest_sid }}
+          Started : {{ ansible_date_time.iso8601 }}
+          ============================================================
+
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging]
+
+
+    - name:                             "LOG - STEP 1: Logging initialized"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload:                "STEP 1 : Logging initialized"
+      run_once:                         true
+      tags:                             [logging]
+
+
+    # -----------------------------------------------------------------------
+    # Step 2 — Pull SSH credentials from Key Vault using MSI.
+    #          Based directly on colleague's playbook_scr_mkd_testing1.yaml.
+    #          No client secret required — managed identity handles auth.
+    # -----------------------------------------------------------------------
+    - name:                             "Source - Get the SSH credentials for the SAP system from Key Vault"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        function:                       "source"                                                    # source or dest
+        granularity:                    "workload"                                                  # workload | sid | host
+        kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
+        prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
+      when:                             
+        - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+          (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
+
+
+    - name:                             "Destination - Get the SSH credentials for the SAP system from Key Vault"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        function:                       "dest"                                                      # source or dest
+        granularity:                    "workload"                                                  # workload | sid | host
+        kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
+        prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
+      when:                             
+        - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+          (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
+
+
+    - name:                             "LOG - STEP 2: Key Vault secrets retrieved"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload:                "STEP 2 : Key Vault secrets retrieved"
+      run_once:                         true
+      tags:                             [secrets]
+
+
+
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+# Connection test using the fetched SSH credentials to ensure we can connect to
+# the target systems before proceeding with the inventory and comparison steps.
+# This can help catch any issues with the credentials early on before we get
+# into the more time-consuming tasks.
+  tasks:
+    - name:                             Ping using the fetched key
+      ansible.builtin.ping:
+
+
+
+
+
+
+
+# -------------------------------------+---------------------------------------8
+#
+# SAP KERNEL
+#
+# -------------------------------------+---------------------------------------8
+    # - name:                             "Source - Inventory SAP Kernel Files for SID"
+    #   include_role:
+    #     name:                           roles-scr/scr_kernel
+    #   vars:
+    #     function:                       "inventory"                                                 #
+    #     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+    #     sapsid:                         "{{ scr_source_sid }}"                                      # SID
+    #   when:                             
+    #     - (sapsid | upper + '_PAS') in vars['group_names'] or
+    #       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
+
+    # - name:                             "Destination - Inventory SAP Kernel Files for SID"
+    #   include_role:
+    #     name:                           roles-scr/scr_kernel
+    #   vars:
+    #     function:                       "inventory"                                                 #
+    #     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+    #     sapsid:                         "{{ scr_dest_sid }}"                                        # SID
+    #   when:                             
+    #     - (sapsid | upper + '_PAS') in vars['group_names'] or
+    #       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
+
+    # - name:                             "LOG - STEP 6: SAP kernel inventory completed"  # noqa: run-once[task]
+    #   ansible.builtin.include_role:
+    #     name:                           roles-scr/scr_log_function
+    #   vars:
+    #     activity:                       log_summary
+    #     action:                         store
+    #     payload:                "STEP 6 : SAP kernel inventory completed — {{ inventory_hostname }}"
+    #   run_once:                         true
+    #   tags:                             [kernel]
+
+
+# -------------------------------------+
+    # - name:                             "Compare SAP Kernel Files for SID"
+    #   include_role:
+    #     name:                           roles-scr/scr_kernel
+    #   vars:
+    #     function:                       "compare"                                                   #
+    #     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+    #   run_once:                         true
+
+
+    # - name:                             "LOG - STEP 7: SAP kernel comparison completed"  # noqa: run-once[task]
+    #   ansible.builtin.include_role:
+    #     name:                           roles-scr/scr_log_function
+    #   vars:
+    #     activity:                       log_summary
+    #     action:                         store
+    #     payload:                "STEP 7 : SAP kernel comparison completed"
+    #   run_once:                         true
+    #   tags:                             [kernel]
+
+
+    # -----------------------------------------------------------------------
+    # Step 8 — Write the kernel sync report to the controller log directory.
+    #          Sections: COPY, OVERWRITE, REMOVE  (MATCH items omitted).
+    #          Uploaded to Azure in post_tasks via scr_log_function file/store.
+    # -----------------------------------------------------------------------
+    # - name:                             "Controller - Write kernel sync report"  # noqa: run-once[task]
+    #   ansible.builtin.copy:
+    #     dest:                           "{{ scr_log_dir }}/kernel_sync_report_{{ scr_source_sid }}_to_{{ scr_dest_sid }}.log"
+    #     mode:                           "0644"
+    #     content:                        "{{ lookup('template', 'roles-scr/scr_kernel/templates/kernel_sync_report.j2') }}"
+    #   delegate_to:                      localhost
+    #   run_once:                         true
+    #   tags:                             [kernel]
+
+    # - name:                             "LOG - STEP 8: Kernel sync report written"  # noqa: run-once[task]
+    #   ansible.builtin.include_role:
+    #     name:                           roles-scr/scr_log_function
+    #   vars:
+    #     activity:                       log_summary
+    #     action:                         store
+    #     payload:                "STEP 8 : Kernel sync report written — kernel_sync_report_{{ scr_source_sid }}_to_{{ scr_dest_sid }}.log"
+    #   run_once:                         true
+    #   tags:                             [kernel]
+
+
+# -------------------------------------+
+    # - name:                             "LOG - STEP 9: Kernel sync state stored"  # noqa: run-once[task]
+    #   ansible.builtin.include_role:
+    #     name:                           roles-scr/scr_log_function
+    #   vars:
+    #     payload:                "STEP 9 : Kernel sync state stored to objectstore — scr_kernel_sync_state.json"
+    #     activity:                       log_summary
+    #     action:                         store
+    #   run_once:                         true
+    #   tags:                             [kernel]
+
+
+
+
+
+# -------------------------------------+
+    - name:                             "Source - Archive SAP Kernel Files for SID"
+      include_role:
+        name:                           roles-scr/scr_kernel
+      vars:
+        function:                       "archive"                                                   #
+        kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
+        sapsid:                         "{{ scr_source_sid }}"                                      # SID
+      when:                             
+        - (sapsid | upper + '_PAS') in vars['group_names'] or
+          (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+# -------------------------------------+---------------------------------------8
+
+
+    # - name:                                 "SCR: delete archive from FILE_STORE"
+    #   ansible.builtin.include_role:
+    #     name:                               roles-scr/scr_log_function
+    #   vars:
+    #     activity:                           file
+    #     action:                             delete
+    #     payload:
+    #                                         - /tmp/X90_SAP_kernel_files.tar.gz
+    #                                         - /tmp/MKDTEST.gz
+    #                                         - /tmp/MKD.tst
+    #   run_once:                             true
+
+    - name:                             "SCR: retrieve archive from FILE_STORE"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       file
+        action:                         retrieve
+        payload:                /tmp/X90_SAP_kernel_files.tar.gz
+        sapsid:                         "{{ scr_dest_sid }}"                                        # SID
+      when:                             
+        - (sapsid | upper + '_PAS') in vars['group_names']
+
+
+
+
+
+
+    - meta:         end_play
+
+
+
+
+
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                         Clean Up Temp Key File                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+  post_tasks:
+    # -----------------------------------------------------------------------
+    # Step 6 — Remove the temp SSH key files that scr_keys wrote to /tmp.
+    # -----------------------------------------------------------------------
+    # - name:                               "Source - Cleanup the SSH credential files from the OS"
+    #   ansible.builtin.include_role:
+    #     name:                             roles-scr/scr_keys
+    #   vars:
+    #     cleanup:                          true
+    #     function:                         "source"
+    #   when:                             
+    #     - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+    #       (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
+
+    # - name:                               "Destination - Cleanup the SSH credential files from the OS"
+    #   ansible.builtin.include_role:
+    #     name:                             roles-scr/scr_keys
+    #   vars:
+    #     cleanup:                          true
+    #     function:                         "dest"
+    #   when:                             
+    #     - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+    #       (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
+
+
+
+
+
+    - name:                               "All - Cleanup the SSH credential files from the OS"
+      ansible.builtin.include_role:
+        name:                             roles-scr/scr_keys
+      vars:
+        cleanup:                          true
+        function:                         "dest"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # /*----------------------------------------------------------------------------8
+# # |                                                                            |
+# # |           Play for performing SAP System Copy tasks on Target              |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+# - name:                                 SCR Destination
+#   hosts:                                "{{ scr_dest_sid | upper }}_PAS :
+#                                          {{ scr_dest_sid | upper }}_DB"
+
+#   remote_user:                          "{{ scr_dest_ssh_username | default('azureadm') }}"
+#   gather_facts:                         false                                    # Important to collect hostvars information
+#   any_errors_fatal:                     true
+
+#   vars:
+#     function:                           "dest"                                # source or dest
+#     # keyvault_uri:                       "https://<your-vault-name>.vault.azure.net/"
+#     # private_key_secret_name:            "<secret-name-for-private-key>"
+#     # If you're using a user-assigned managed identity, set this:
+#     # msi_client_id:                      "<user-assigned-mi-client-id>"   # optional
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                        Retrieve KeyVault Secrets                           |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+# # sudo -H "$${ansible_venv_bin}/ansible-galaxy" collection install azure.azcollection --force --collections-path "$${ansible_collections}"
+# # /opt/ansible/venv/2.16/bin/ansible-galaxy collection install azure.azcollection --force --collections-path /opt/ansible/collections
+# # /opt/ansible/venv/2.16/bin/pip3 install -r /opt/ansible/collections/ansible_collections/azure/azcollection/requirements.txt
+#   pre_tasks:
+#     - name:                             "Destination - Get the SSH credentials for the SAP system from Key Vault"
+#       ansible.builtin.include_role:
+#         name:                           roles-scr/scr_keys
+#       vars:
+#         function:                       "dest"                                  # source or dest
+#         prefix:                         "{{ scr_dest_prefix }}"
+#         kv_name:                        "{{ scr_dest_kv_name }}"
+
+
+# # -------------------------------------+---------------------------------------8
+# #
+# # Build the list of tasks to be executed in order here.
+# #
+# # -------------------------------------+---------------------------------------8
+#   tasks:
+#     - name:                             Ping using the fetched key
+#       ansible.builtin.ping:
+
+#     # - name:                             "Source - Inventory SAP Kernel Files for SID"
+#     #   include_role:
+#     #     name: roles-scr/scr_kernel
+#     #   vars:
+#     #     scr_function:                   "source"                                # source or dest
+#     #     scr_sid:                        "{{ scr_sap_sid_source | upper }}"      # SID
+#     #   # when: actual_discovery_mode in ['source', 'both']
+#     #   # tags: scr_source_discovery
+
+
+# # /*---------------------------------------------------------------------------8
+# # |                                                                            |
+# # |                         Clean Up Temp Key File                             |
+# # |                                                                            |
+# # +------------------------------------4--------------------------------------*/
+#   post_tasks:
+#     - name:                             "Source - Get the SSH credentials for the SAP system from Key Vault"
+#       ansible.builtin.include_role:
+#         name:                           roles-scr/scr_keys
+#       vars:
+#         function:                       "source"
+#         kv_name:                        "{{ scr_kv_name_source }}"
+#         prefix:                         "{{ scr_prefix_source }}"
+...
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
