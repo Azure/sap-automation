@@ -282,3 +282,4 @@
                                           -function   StopWait ABAP {{ sap_stop_timeout | default(_timeout) }} {{ sap_stop_delay | default(_delay) }}
 
 ...
+
