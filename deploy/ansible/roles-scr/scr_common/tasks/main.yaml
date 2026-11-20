@@ -1,0 +1,10 @@
+---
+# scr_common/tasks/main.yaml
+#
+# This file is intentionally minimal. Its sole purpose is to allow
+# `include_role: name: roles-scr/scr_common` to execute, which causes
+# Ansible to load this role's defaults/main.yaml into the play scope.
+#
+# Specific task files (build_scr_state.yaml, add_step_marker.yaml) are
+# called explicitly via `tasks_from:` from the playbook as needed.
+...

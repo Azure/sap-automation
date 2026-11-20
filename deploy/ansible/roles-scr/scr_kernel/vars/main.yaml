@@ -1,0 +1,61 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# -------------------------------------+---------------------------------------8
+sapservices_path:                       "/usr/sap/sapservices"
+sapservices_lines:                      ""
+sap_start_facility:                     unknown
+sap_systemd_units:                      []
+sap_unit:                               ""
+sap_pf:                                 ""
+sap_system_name:                        ""
+sap_system:                             ""
+sap_instance_name:                      ""
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Normalize Paths with Checksums                       |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# Normalize paths + build checksum maps
+# Key = relative path, Value = checksum
+# Omits non‑regular files (e.g. directories, symlinks, etc.) since they don't have checksums
+#   and aren't relevant for content synchronization  
+_source_map: >-
+                                        {{
+                                          dict(
+                                            (hostvars['localhost']['scr_kernel_files_' ~ scr_source_sid].files
+                                              | selectattr('isreg', 'equalto', true)
+                                              | map(attribute='path')
+                                              | map('regex_replace', '^/sapmnt/' ~ scr_source_sid ~ '/', '/sapmnt/__SID__/')
+                                              | list)
+                                            | zip(
+                                              hostvars['localhost']['scr_kernel_files_' ~ scr_source_sid].files
+                                              | selectattr('isreg', 'equalto', true)
+                                              | map(attribute='checksum', default='NO_CHECKSUM')
+                                              | list
+                                            )
+                                          )
+                                        }}
+_target_map: >-
+                                        {{
+                                          dict(
+                                            (hostvars['localhost']['scr_kernel_files_' ~ scr_dest_sid].files
+                                              | selectattr('isreg', 'equalto', true)
+                                              | map(attribute='path')
+                                              | map('regex_replace', '^/sapmnt/' ~ scr_dest_sid ~ '/', '/sapmnt/__SID__/')
+                                              | list)
+                                            | zip(
+                                              hostvars['localhost']['scr_kernel_files_' ~ scr_dest_sid].files
+                                              | selectattr('isreg', 'equalto', true)
+                                              | map(attribute='checksum', default='NO_CHECKSUM')
+                                              | list
+                                            )
+                                          )
+                                        }}
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...

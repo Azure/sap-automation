@@ -1,0 +1,642 @@
+# Commandline calling for testing:
+# ansible-playbook  --inventory    x_scr_testing_inventory_X90.yaml          \
+#                   --inventory    x_scr_testing_inventory_X91.yaml          \
+#                   --extra-vars   "scr_source_sid=X90 scr_dest_sid=X91"    \
+#                   playbook_scr_initialize.yaml                             \
+#                   -vvv
+#
+# Run individual stages using tags:
+#   --tags logging      Step 1   (write summary log header, log STEP 1)
+#   --tags secrets      Step 2   (pull Key Vault SSH credentials, log STEP 2)
+#   --tags discovery    Step 4   (system discovery on all hosts)
+#   --tags fetch        Step 5   (fetch reports to controller, log STEP 4-5)
+#   --tags kernel       Steps 6-9 (SAP kernel inventory, compare, reports)
+#   --tags upload       Step 3 / post_tasks (log to Azure, upload artifacts)
+#   --tags cleanup      Cleanup  (remove temp SSH key files)
+#
+# Combine tags to run a subset, e.g.:
+#   --tags "secrets,discovery"
+
+---
+# /*----------------------------------------------------------------------------8
+# |                                                                            |
+# |      SCR Initialize — Register, Log, Secrets, Discovery, Upload           |
+# |                                                                            |
+# |  Steps:                                                                   |
+# |    1. Register run in global index (scr_run_id = 0001, 0002 …)            |
+# |    2. Pull SSH credentials from Key Vault (scr_keys)   [tag: secrets]     |
+# |    3. Run system discovery on source + destination      [tag: discovery]   |
+# |    5. Fetch discovery reports to controller             [tag: fetch]       |
+# |    6. SAP kernel inventory on source + destination      [tag: kernel]      |
+# |    7. SAP kernel compare (source vs target)             [tag: kernel]      |
+# |    8. Write kernel sync report                          [tag: kernel]      |
+# |    9. Store kernel sync state to objectstore            [tag: kernel]      |
+# |   10. Append discovery + kernel report to detail log    [tag: fetch]       |
+# |   11. Mark run Completed-Success in global index        [tag: cleanup]     |
+# |   12. Clean up temp SSH key files                       [tag: cleanup]     |
+# |                                                                            |
+# +---------------------------------------------------------------------------*/
+- hosts:                                "{{ scr_source_sid | upper }}_PAS :
+                                         {{ scr_source_sid | upper }}_DB  :
+                                         {{ scr_dest_sid   | upper }}_PAS :
+                                         {{ scr_dest_sid   | upper }}_DB"
+
+  name:                                 "SCR Initialize"
+  gather_facts:                         false
+  any_errors_fatal:                     false    # a discovery failure on one host must not stop all others
+  strategy:                             linear   # required: makes run_once behaviour deterministic
+
+  # scr_source_sid and scr_dest_sid MUST be passed via --extra-vars at runtime.
+  # They are resolved before hosts: is evaluated, which is why they cannot come
+  # from role defaults — extra-vars is the only source available that early.
+
+  vars_files:
+    - roles-scr/scr_common/defaults/main.yaml    # loads scr_log_dir, scr_azure_*, etc.
+    - x_scr_parameters.yaml                      # loads scr_azure_resource_group, etc.
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |   PRE-TASKS                                                                |
+# |     1. Write initial log entry to controller                               |
+# |     2. Pull Key Vault SSH credentials (scr_keys role)                      |
+# |     3. Upload initial log to Azure Blob Storage                            |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+  pre_tasks:
+
+    # -----------------------------------------------------------------------
+    # Step 1 — Gather controller datetime, create log dir, register this run
+    #          in the global index (sets scr_run_id), write summary log header.
+    # -----------------------------------------------------------------------
+    - name:                             "Controller - Gather facts for timestamps"  # noqa: run-once[task]
+      ansible.builtin.setup:
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging, always]
+
+    # Truncate the ansible log file so each run starts fresh. log_path in
+    # ansible.cfg appends forever; this gives us a per-run log for the
+    # blob-storage upload at the end of post_tasks.
+    # IMPORTANT: must truncate IN-PLACE (same inode) — the copy module
+    # uses atomic-rename which creates a new inode and ansible keeps
+    # writing to the deleted old one, leaving the new file empty.
+    - name:                             "Controller - Truncate ansible run log (in place)"  # noqa: run-once[task]
+      ansible.builtin.shell:            ": > /tmp/scr_ansible_run.log"
+      delegate_to:                      localhost
+      run_once:                         true
+      changed_when:                     false
+      tags:                             [logging, always]
+
+    - name:                             "Controller - Create SCR log directory"  # noqa: run-once[task]
+      ansible.builtin.file:
+        path:                           "{{ scr_log_dir }}"
+        state:                          directory
+        mode:                           "0755"
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging]
+
+    - name:                             "LOG - Register SCR run in global index"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       initialize
+        action:                         register
+        payload:
+          activity:                     SCR
+          source_sid:                   "{{ scr_source_sid }}"
+          dest_sid:                     "{{ scr_dest_sid }}"
+      run_once:                         true
+      tags:                             [logging, always]
+
+    # scr_job_id, scr_run_id, and scr_resume_from_step are set on the run_once
+    # host (ansible_play_hosts[0]) by index/register. Broadcast them to all
+    # play hosts so per-host tasks and step-skip guards work everywhere.
+    - name:                             "Controller - Broadcast scr_job_id, scr_run_id, scr_resume_from_step to all hosts"
+      ansible.builtin.set_fact:
+        scr_job_id:                     "{{ hostvars[ansible_play_hosts[0]]['scr_job_id'] }}"
+        scr_run_id:                     "{{ hostvars[ansible_play_hosts[0]]['scr_run_id'] }}"
+        scr_resume_from_step:           "{{ hostvars[ansible_play_hosts[0]]['scr_resume_from_step'] | int }}"
+      tags:                             [logging, always]
+
+
+    - name:                             "Controller - Write summary log header"  # noqa: run-once[task]
+      ansible.builtin.copy:
+        dest:                           "{{ scr_log_dir }}/{{ scr_job_id }}_summary.log"
+        mode:                           "0644"
+        content: |
+          ============================================================
+          SCR INITIALIZE — RUN STARTED
+          ============================================================
+          Job ID  : {{ scr_job_id }}
+          Run ID  : {{ scr_run_id }}
+          Source  : {{ scr_source_sid }}
+          Target  : {{ scr_dest_sid }}
+          Started : {{ ansible_date_time.iso8601 }}
+          ============================================================
+
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [logging]
+
+    - name:                             "LOG - STEP 1: Logging initialized"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload:                "STEP 1 : Logging initialized"
+      run_once:                         true
+      tags:                             [logging]
+
+
+    # -----------------------------------------------------------------------
+    # Step 2 — Pull SSH credentials from Key Vault using MSI.
+    #          Based directly on colleague's playbook_scr_mkd_testing1.yaml.
+    #          No client secret required — managed identity handles auth.
+    # -----------------------------------------------------------------------
+    - name:                             "Source - Get SSH credentials from Key Vault"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        function:                       "source"
+        granularity:                    "workload"
+        kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"
+        prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"
+      when:
+        - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+          (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']
+      tags:                             [secrets]
+
+    - name:                             "Destination - Get SSH credentials from Key Vault"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        function:                       "dest"
+        granularity:                    "workload"
+        kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"
+        prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"
+      when:
+        - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+          (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']
+      tags:                             [secrets]
+
+
+    - name:                             "LOG - STEP 2: Key Vault secrets retrieved"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload:                "STEP 2 : Key Vault secrets retrieved"
+      run_once:                         true
+      tags:                             [secrets]
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |   TASKS                                                                    |
+# |     Each numbered STEP is one block, guarded by                            |
+# |       when: scr_resume_from_step | int <= N                                |
+# |     so a resume of a Failed job starts at the right step.                  |
+# |     Every block ends with a CHECKPOINT call which (a) writes a STEP N      |
+# |     summary line and (b) advances last_completed_step in the global index. |
+# |     Foundation steps (1 = log init, 2 = secrets) always run and are in     |
+# |     pre_tasks.                                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+  tasks:
+
+    # =======================================================================
+    # STEP 4 — System discovery on source + destination hosts
+    # =======================================================================
+    - name:                             "STEP 4 — Discovery"
+      when:                             scr_resume_from_step | int <= 4
+      tags:                             [discovery]
+      block:
+
+        # Remove stale per-host /tmp reports first so we don't re-fetch
+        # leftovers from previous runs.
+        - name:                         "Host - Remove stale discovery reports from /tmp"
+          ansible.builtin.shell:        "rm -f /tmp/scr_discovery_*.txt /tmp/scr_discovery_*.md"
+          changed_when:                 false
+
+        # Discovery runs on each host independently and in parallel.
+        # ignore_errors keeps one bad host from stopping the rest; the
+        # failure surfaces in the final run status via _scr_*_discovery_result.
+        - name:                         "Source - System Discovery"
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_system_discovery
+          vars:
+            scr_discovery_system_role:  "source"
+            scr_discovery_sid:          "{{ scr_source_sid }}"
+          when:
+            - (scr_source_sid | upper + '_PAS') in vars['group_names'] or
+              (scr_source_sid | upper + '_DB')  in vars['group_names']
+          ignore_errors:                true
+          register:                     _source_discovery_result
+
+        - name:                         "Destination - System Discovery"
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_system_discovery
+          vars:
+            scr_discovery_system_role:  "target"
+            scr_discovery_sid:          "{{ scr_dest_sid }}"
+          when:
+            - (scr_dest_sid | upper + '_PAS') in vars['group_names'] or
+              (scr_dest_sid | upper + '_DB')  in vars['group_names']
+          ignore_errors:                true
+          register:                     _dest_discovery_result
+
+        # Per-host discovery outcome (run on every host).
+        - name:                         "LOG - STEP 4 outcome per host"
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   log_summary
+            action:                     store
+            payload: >-
+                                        STEP 4 : Discovery
+                                        {{ 'FAILED' if ((_source_discovery_result is defined and _source_discovery_result is failed)
+                                                     or (_dest_discovery_result   is defined and _dest_discovery_result   is failed))
+                                           else 'completed' }} — {{ inventory_hostname }}
+
+        - name:                         "CHECKPOINT - STEP 4 complete"  # noqa: run-once[task]
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   checkpoint
+            step:                       4
+            description:                "Discovery completed on all hosts"
+          run_once:                     true
+
+
+    # =======================================================================
+    # STEP 5 — Fetch per-host discovery reports to the controller
+    # =======================================================================
+    - name:                             "STEP 5 — Fetch discovery reports"
+      when:                             scr_resume_from_step | int <= 5
+      tags:                             [fetch]
+      block:
+
+        - name:                         "Host - Find discovery report files in /tmp"
+          ansible.builtin.find:
+            paths:                      "/tmp"
+            patterns:                   "scr_discovery_*.txt"
+          register:                     _scr_discovery_reports
+
+        - name:                         "Controller - Fetch each discovery report"
+          ansible.builtin.fetch:
+            src:                        "{{ item.path }}"
+            dest:                       "{{ scr_log_dir }}/scr_discovery_{{ inventory_hostname }}_{{ item.path | basename }}"
+            flat:                       true
+            fail_on_missing:            true
+          loop:                         "{{ _scr_discovery_reports.files }}"
+          when:                         _scr_discovery_reports.files | length > 0
+
+        - name:                         "CHECKPOINT - STEP 5 complete"  # noqa: run-once[task]
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   checkpoint
+            step:                       5
+            description:                "Discovery reports fetched to controller"
+          run_once:                     true
+
+
+    # =======================================================================
+    # STEP 6 — SAP Kernel inventory on source + destination hosts
+    # =======================================================================
+    - name:                             "STEP 6 — SAP Kernel inventory"
+      when:                             scr_resume_from_step | int <= 6
+      tags:                             [kernel]
+      block:
+
+        - name:                         "Source - Inventory SAP Kernel Files"
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_kernel
+          vars:
+            function:                   "inventory"
+            kernel:                     "sap"
+            sapsid:                     "{{ scr_source_sid }}"
+          when:
+            - (sapsid | upper + '_PAS') in vars['group_names'] or
+              (sapsid | upper + '_DB')  in vars['group_names']
+
+        - name:                         "Destination - Inventory SAP Kernel Files"
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_kernel
+          vars:
+            function:                   "inventory"
+            kernel:                     "sap"
+            sapsid:                     "{{ scr_dest_sid }}"
+          when:
+            - (sapsid | upper + '_PAS') in vars['group_names'] or
+              (sapsid | upper + '_DB')  in vars['group_names']
+
+        - name:                         "CHECKPOINT - STEP 6 complete"  # noqa: run-once[task]
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   checkpoint
+            step:                       6
+            description:                "SAP kernel inventory completed"
+          run_once:                     true
+
+
+    # =======================================================================
+    # STEP 7 — Compare SAP Kernel (source vs target)
+    # =======================================================================
+    - name:                             "STEP 7 — SAP Kernel comparison"
+      when:                             scr_resume_from_step | int <= 7
+      tags:                             [kernel]
+      block:
+
+        - name:                         "Compare - SAP Kernel Files"
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_kernel
+          vars:
+            function:                   "compare"
+            kernel:                     "sap"
+          run_once:                     true
+
+        - name:                         "CHECKPOINT - STEP 7 complete"  # noqa: run-once[task]
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   checkpoint
+            step:                       7
+            description:                "SAP kernel comparison completed"
+          run_once:                     true
+
+
+    # =======================================================================
+    # STEP 8 — Write the kernel sync report to the controller log directory
+    #          Sections: COPY, OVERWRITE, REMOVE  (MATCH items omitted).
+    # =======================================================================
+    - name:                             "STEP 8 — Write kernel sync report"
+      when:                             scr_resume_from_step | int <= 8
+      tags:                             [kernel]
+      block:
+
+        - name:                         "Controller - Write kernel sync report"  # noqa: run-once[task]
+          ansible.builtin.copy:
+            dest:                       "{{ scr_log_dir }}/kernel_sync_report_{{ scr_source_sid }}_to_{{ scr_dest_sid }}.log"
+            mode:                       "0644"
+            content:                    "{{ lookup('template', 'roles-scr/scr_kernel/templates/kernel_sync_report.j2') }}"
+          delegate_to:                  localhost
+          run_once:                     true
+
+        - name:                         "CHECKPOINT - STEP 8 complete"  # noqa: run-once[task]
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   checkpoint
+            step:                       8
+            description: >-
+                                        Kernel sync report written —
+                                        kernel_sync_report_{{ scr_source_sid }}_to_{{ scr_dest_sid }}.log
+          run_once:                     true
+
+
+    # =======================================================================
+    # STEP 9 — Build kernel sync state fact and persist it to Azure
+    #          objectstore as scr_kernel_sync_state.json.
+    # =======================================================================
+    - name:                             "STEP 9 — Kernel sync state"
+      when:                             scr_resume_from_step | int <= 9
+      tags:                             [kernel]
+      block:
+
+        - name:                         "Controller - Build kernel sync state fact"  # noqa: run-once[task]
+          ansible.builtin.set_fact:
+            scr_kernel_sync_state:
+              job_id:                   "{{ scr_job_id }}"
+              run_id:                   "{{ scr_run_id }}"
+              source_sid:               "{{ scr_source_sid }}"
+              dest_sid:                 "{{ scr_dest_sid }}"
+              generated:                "{{ ansible_date_time.iso8601 }}"
+              kernel_sync_state:
+                match:                  "{{ hostvars['localhost']['scr_matches']           | default([]) | sort }}"
+                copy_from_source:       "{{ hostvars['localhost']['scr_missing_on_target'] | default([]) | sort }}"
+                overwrite_from_source:  "{{ hostvars['localhost']['scr_changed']           | default([]) | sort }}"
+                remove_from_target:     "{{ hostvars['localhost']['scr_extra_on_target']   | default([]) | sort }}"
+          delegate_to:                  localhost
+          run_once:                     true
+
+        - name:                         "Store kernel sync state to objectstore"  # noqa: run-once[task]
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   object
+            action:                     store
+            payload:                    scr_kernel_sync_state
+          run_once:                     true
+
+        - name:                         "CHECKPOINT - STEP 9 complete"  # noqa: run-once[task]
+          ansible.builtin.include_role:
+            name:                       roles-scr/scr_log_function
+          vars:
+            activity:                   checkpoint
+            step:                       9
+            description:                "Kernel sync state stored to objectstore (scr_kernel_sync_state.json)"
+          run_once:                     true
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |   POST-TASKS                                                               |
+# |     Runs only after ALL hosts have completed their tasks section.          |
+#     5. Append discovery reports to detail log; upload kernel sync report     |
+# |     6. Remove temp SSH key files from controller                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+  post_tasks:
+
+    # -----------------------------------------------------------------------
+    # Step 5 final — All hosts done; append discovery reports and kernel sync
+    #               report to the detail log.
+    # -----------------------------------------------------------------------
+    - name:                             "Controller - Find fetched discovery reports"  # noqa: run-once[task]
+      ansible.builtin.find:
+        paths:                          "{{ scr_log_dir }}"
+        patterns:                       "scr_discovery_*.txt"
+        recurse:                        false
+      register:                         _scr_discovery_txt_files
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [fetch, upload]
+
+    - name:                             "LOG - Append discovery reports to detail log"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_detail
+        action:                         store
+        payload_type:                   file_content
+        payload:                "{{ _scr_discovery_txt_files.files | map(attribute='path') | list }}"
+      run_once:                         true
+      when:                             _scr_discovery_txt_files.files | length > 0
+      tags:                             [fetch, upload]
+
+    - name:                             "LOG - Append kernel sync report to detail log"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_detail
+        action:                         store
+        payload_type:                   file_content
+        payload:                "{{ scr_log_dir }}/kernel_sync_report_{{ scr_source_sid }}_to_{{ scr_dest_sid }}.log"
+      run_once:                         true
+      tags:                             [fetch, upload]
+
+    # -----------------------------------------------------------------------
+    # Step 5 — Compute final run status from per-host outcomes:
+    #            * Hosts dropped from ansible_play_hosts = task failed without
+    #              ignore_errors (e.g. SSH, fetch, kernel role).
+    #            * _source_discovery_result / _dest_discovery_result carry
+    #              ignore_errors:true failures from the discovery step.
+    #          If any of those are set, the run status is 'Failed' (retry-able).
+    #          Clean runs are 'Completed-Success' (terminal — new job next time).
+    # -----------------------------------------------------------------------
+    - name:                             "Controller - Compute final run status"  # noqa: run-once[task]
+      ansible.builtin.set_fact:
+        _scr_failed_hosts:              "{{ ansible_play_hosts_all | difference(ansible_play_hosts) | list }}"
+        _scr_discovery_failed: >-
+                                        {{ (hostvars | dict2items
+                                            | selectattr('value._source_discovery_result', 'defined')
+                                            | selectattr('value._source_discovery_result.failed', 'defined')
+                                            | selectattr('value._source_discovery_result.failed', 'equalto', true)
+                                            | list | length) > 0
+                                        or (hostvars | dict2items
+                                            | selectattr('value._dest_discovery_result', 'defined')
+                                            | selectattr('value._dest_discovery_result.failed', 'defined')
+                                            | selectattr('value._dest_discovery_result.failed', 'equalto', true)
+                                            | list | length) > 0 }}
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    # On failure we use status 'Failed' (NOT 'Completed-Failed'), so the next
+    # run will reuse this job and resume from last_completed_step + 1.
+    # 'Completed-Failed' is reserved for a manual "give up" decision.
+    - name:                             "Controller - Set final run status string"  # noqa: run-once[task]
+      ansible.builtin.set_fact:
+        _scr_final_status: >-
+                                        {{ 'Failed'
+                                           if (_scr_failed_hosts | length > 0) or _scr_discovery_failed
+                                           else 'Completed-Success' }}
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "LOG - Record failure summary in detail log"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload: >-
+                                        FAILURE : run ended with status {{ _scr_final_status }} —
+                                        failed_hosts={{ _scr_failed_hosts | default([]) }}
+                                        discovery_failed={{ _scr_discovery_failed | default(false) }}
+      run_once:                         true
+      when:                             _scr_final_status != 'Completed-Success'
+      tags:                             [cleanup, always]
+
+    - name:                             "LOG - Mark run completed"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       initialize
+        action:                         update
+        payload:
+          target:                 run
+          status:                 "{{ _scr_final_status }}"
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "LOG - Mark job completed"  # noqa: run-once[task]
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       initialize
+        action:                         update
+        payload:
+          target:                 job
+          status:                 "{{ _scr_final_status }}"
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    # -----------------------------------------------------------------------
+    # Step 6 — Remove the temp SSH key files that scr_keys wrote to /tmp.
+    # -----------------------------------------------------------------------
+    - name:                             "Source - Cleanup SSH credential files"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        cleanup:                        true
+        function:                       "source"
+      when:
+        - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+          (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']
+      tags:                             [cleanup]
+
+    - name:                             "Destination - Cleanup SSH credential files"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        cleanup:                        true
+        function:                       "dest"
+      when:
+        - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+          (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']
+      tags:                             [cleanup]
+
+    # -----------------------------------------------------------------------
+    # Final step — Upload the captured ansible run log (written by
+    # ANSIBLE_LOG_PATH) to the run folder in Azure blob storage.
+    # Set ANSIBLE_LOG_PATH before invoking the playbook, e.g.:
+    #   ANSIBLE_LOG_PATH=/tmp/scr_ansible_run.log ansible-playbook ...
+    # failed_when:false ensures a missing/failed upload never kills the run.
+    # -----------------------------------------------------------------------
+    - name:                             "Controller - Locate ansible run log"  # noqa: run-once[task]
+      ansible.builtin.set_fact:
+        _scr_ansible_log_path:          "{{ lookup('env', 'ANSIBLE_LOG_PATH') | default('/tmp/scr_ansible_run.log', true) }}"
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "Controller - Stat ansible run log"  # noqa: run-once[task]
+      ansible.builtin.stat:
+        path:                           "{{ _scr_ansible_log_path }}"
+      register:                         _scr_ansible_log_stat
+      delegate_to:                      localhost
+      run_once:                         true
+      tags:                             [cleanup, always]
+
+    - name:                             "Controller - Upload ansible run log to run folder"  # noqa: run-once[task]
+      ansible.builtin.command: >-
+                                        az storage blob upload
+                                        --account-name   {{ scr_azure_storage_account }}
+                                        --container-name {{ scr_azure_container }}
+                                        --name           scr-runs/job_{{ scr_job_id }}/run_{{ scr_run_id }}/ansible_run.log
+                                        --file           {{ _scr_ansible_log_path }}
+                                        --overwrite
+                                        --auth-mode      login
+                                        --only-show-errors
+      delegate_to:                      localhost
+      run_once:                         true
+      when:                             _scr_ansible_log_stat.stat.exists
+      changed_when:                     true
+      failed_when:                      false
+      tags:                             [cleanup, always]
+
+    - name:                             "Controller - Warn if ansible run log not found"  # noqa: run-once[task]
+      ansible.builtin.debug:
+        msg: >-
+                                        ANSIBLE_LOG_PATH not set or file missing
+                                        ({{ _scr_ansible_log_path }}); skipping run-log upload.
+      delegate_to:                      localhost
+      run_once:                         true
+      when:                             not _scr_ansible_log_stat.stat.exists
+      tags:                             [cleanup, always]

@@ -1,0 +1,44 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# scr_db_backup/tasks/main.yaml
+#
+# Orchestrates the scr_db_backup role. Each phase lives in its own
+# task file under tasks/ so this orchestrator stays readable.
+#
+# Phases:
+#   Step 1 - fetch_db_password.yaml     fetch HANA SYSTEM password from KV
+#   Step 2 - create_backup_user.yaml    provision backup_operator + verify
+#   Step 3 - backup_database.yaml       run BACKUP DATA + upload files to FILE_STORE
+#
+# See each sub-file's header for the vars it requires and the facts
+# it sets for downstream phases.
+
+
+# Step 1 - fetch the HANA SYSTEMDB SYSTEM password from Key Vault for
+# this host's side (source/dest) and validate required inputs. See
+# fetch_db_password.yaml for inputs and the facts it sets.
+- name:                                 "scr_db_backup: Fetch HANA SYSTEM password from Key Vault"
+  ansible.builtin.include_tasks:        fetch_db_password.yaml
+  tags:
+    - fetch_password
+
+
+# Step 2 - provision the dedicated HANA SYSTEMDB user used to drive
+# backups (idempotent), and verify by logging in as that user. See
+# create_backup_user.yaml for the full implementation and inputs.
+- name:                                 "scr_db_backup: Provision backup_operator (create + grant + verify)"
+  ansible.builtin.include_tasks:        create_backup_user.yaml
+  tags:
+    - backup_user
+
+
+# Step 3 - run BACKUP DATA as backup_operator, then upload the
+# resulting files from disk to FILE_STORE via scr_log_function. See
+# backup_database.yaml for inputs (and how to switch INCREMENTAL ->
+# full).
+- name:                                 "scr_db_backup: Run HANA backup and upload files to FILE_STORE"
+  ansible.builtin.include_tasks:        backup_database.yaml
+  tags:
+    - backup_run

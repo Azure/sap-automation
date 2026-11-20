@@ -1,0 +1,136 @@
+---
+# Discover SAP system topology - SCS, app servers, database servers, etc.
+
+- name: Get SAP instance information from sapservices
+  ansible.builtin.shell: |
+    if [ -f "/usr/sap/sapservices" ]; then
+      cat /usr/sap/sapservices
+    else
+      echo "sapservices file not found"
+    fi
+  register: sapservices_content
+  ignore_errors: true
+
+- name: Check for SCS/ASCS instance
+  ansible.builtin.shell: |
+    # Check for SCS processes
+    ps aux | grep -E "(enserver|msgserver)" | grep -v grep
+    # Check for SCS directories
+    ls -la /usr/sap/{{ working_sid }}/*/exe/ 2>/dev/null | grep -E "(ASCS|SCS)" || echo "No SCS directories found"
+  register: scs_info
+  ignore_errors: true
+  when: working_sid | length > 0
+
+- name: Check for application server instances
+  ansible.builtin.shell: |
+    # Check for app server processes
+    ps aux | grep -E "(disp\+work|gwrd)" | grep -v grep
+    # Check for app server directories
+    ls -la /usr/sap/{{ working_sid }}/ 2>/dev/null | grep -E "D[0-9]{2}" || echo "No app server directories found"
+  register: app_server_info
+  ignore_errors: true
+  when: working_sid | length > 0
+
+- name: Get instance numbers from processes
+  ansible.builtin.shell: |
+    # Extract instance numbers from running processes
+    ps aux | grep -E "(sapstart|gwrd|disp\+work)" | grep -v grep | sed -n 's/.*pf=.*_\([0-9][0-9]\)_.*/\1/p' | sort -u
+  register: instance_numbers
+  ignore_errors: true
+
+- name: Check sapcontrol for instance status (if available)
+  ansible.builtin.shell: |
+    if command -v sapcontrol >/dev/null 2>&1; then
+      for instance_nr in {{ instance_numbers.stdout_lines | join(' ') }}; do
+        echo "=== Instance $instance_nr ==="
+        sapcontrol -nr "$instance_nr" -function GetProcessList 2>/dev/null || echo "sapcontrol failed for instance $instance_nr"
+      done
+    else
+      echo "sapcontrol not available"
+    fi
+  register: sapcontrol_status
+  ignore_errors: true
+  when: instance_numbers.stdout_lines | length > 0
+
+- name: Get hostname and network info
+  ansible.builtin.shell: |
+    echo "=== HOSTNAME INFO ==="
+    hostname -f 2>/dev/null || hostname
+    echo "=== NETWORK INTERFACES ==="
+    ip addr show | grep -E "(inet |inet6)" | head -10
+    echo "=== HOSTS FILE ==="
+    grep -E "({{ working_sid | lower }}|{{ ansible_hostname }})" /etc/hosts 2>/dev/null | head -5
+  register: network_topology
+  ignore_errors: true
+
+- name: Parse SCS instance information
+  ansible.builtin.set_fact:
+    scs_instance: >-
+      {%- set scs_match = scs_info.stdout | regex_search('(ASCS|SCS)([0-9]{2})', '\\1', '\\2') -%}
+      {%- if scs_match -%}
+      {{ scs_match[0] + scs_match[1] }}
+      {%- else -%}
+      Unknown
+      {%- endif -%}
+  when: scs_info.stdout is defined
+
+- name: Set default SCS instance if not found
+  ansible.builtin.set_fact:
+    scs_instance: "Unknown"
+  when: scs_instance is not defined
+
+- name: Parse application server instances
+  ansible.builtin.set_fact:
+    app_server_instances: >-
+      {%- set app_matches = app_server_info.stdout_lines | select('match', '.*D[0-9]{2}.*') | list -%}
+      {{ app_matches | map('regex_replace', '.*D([0-9]{2}).*', 'D\\1') | list | unique }}
+  when: app_server_info.stdout_lines is defined
+
+- name: Set default app server instances if not found
+  ansible.builtin.set_fact:
+    app_server_instances: []
+  when: app_server_instances is not defined
+
+- name: Determine system architecture
+  ansible.builtin.set_fact:
+    system_architecture: >-
+      {%- if scs_instance != 'Unknown' and app_server_instances | length > 0 -%}
+      distributed
+      {%- elif scs_instance != 'Unknown' or app_server_instances | length > 0 -%}
+      central
+      {%- else -%}
+      unknown
+      {%- endif -%}
+
+- name: Get load balancer/virtual IP information
+  ansible.builtin.shell: |
+    # Check for virtual IPs or load balancer config
+    ip addr show | grep -E "(virtual|vip)" || echo "No virtual IPs found"
+    # Check cluster resources if available
+    if command -v crm >/dev/null 2>&1; then
+      crm status 2>/dev/null | head -20 || echo "Cluster not configured"
+    elif command -v pcs >/dev/null 2>&1; then
+      pcs status 2>/dev/null | head -20 || echo "Pacemaker not configured"
+    else
+      echo "No cluster tools found"
+    fi
+  register: cluster_info
+  ignore_errors: true
+
+- name: Set consolidated topology facts
+  ansible.builtin.set_fact:
+    discovered_topology_facts:
+      architecture: "{{ system_architecture | default('unknown') }}"
+      scs_instance: "{{ scs_instance | default('Unknown') }}"
+      scs_host: "{{ ansible_fqdn if scs_instance != 'Unknown' else 'Unknown' }}"
+      app_servers: "{{ app_server_instances | default([]) }}"
+      app_server_count: "{{ app_server_instances | default([]) | length }}"
+      instance_numbers: "{{ instance_numbers.stdout_lines | default([]) }}"
+      database_host: "{{ ansible_fqdn if detected_db_type != 'unknown' else 'Unknown' }}"
+      cluster_configured: "{{ 'cluster' in cluster_info.stdout or 'pacemaker' in cluster_info.stdout or 'corosync' in cluster_info.stdout }}"
+      virtual_hostname: "{{ network_topology.stdout | regex_search('vip[\\w.-]+') | default('None') }}"
+
+- name: Debug topology discovery results
+  ansible.builtin.debug:
+    var: discovered_topology_facts
+  when: ansible_verbosity >= 1

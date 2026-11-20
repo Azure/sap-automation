@@ -1,0 +1,46 @@
+---
+# initialize.yaml — dispatcher for global SCR index management.
+#
+# Each phase is in its own task file for readability. They are imported
+# in order and run unconditionally; each phase internally gates on the
+# `action` and (where relevant) `payload.target` variables.
+#
+#   initialize_load.yaml          — download + normalize the global index           (always)
+#   initialize_abort_stale.yaml   — mark stale Active/In-Progress as Aborted        (register only)
+#   initialize_register.yaml      — find/create Job, allocate Run, set facts:
+#                                   scr_job_id, scr_run_id, scr_resume_from_step    (register only)
+#   initialize_update.yaml        — update target=run|job|step                      (update only)
+#   initialize_write.yaml         — write+upload if a phase produced _scr_index_updated (always)
+#
+# Status semantics:
+#   Active | In-Progress  — this run is currently executing
+#   Failed                — finished with errors; the NEXT register will
+#                           reuse this job for a resume from
+#                           last_completed_step + 1
+#   Aborted               — never finished; cleared by the next register's
+#                           abort_stale phase (terminal — new job created)
+#   Completed-Success     — finished cleanly                (terminal)
+#   Completed-Failed      — finished, given up              (terminal)
+#
+# Required vars (set by caller):
+#   action:   register | update
+#   payload:
+#     register → { activity, source_sid, dest_sid }
+#     update   → { target: run|job|step,
+#                  status: <state>     (run|job),
+#                  step:   <int>       (step)
+#                }
+#
+# Outputs (facts set on the controller, broadcast by the playbook):
+#   scr_job_id              "0001" .. "9999"
+#   scr_run_id              "0001" .. "9999"
+#   scr_resume_from_step    int — 1 for new jobs, last_completed_step+1 for resume
+#
+# Index blob path: scr-runs/scr_global_index.json
+# Per-job blob:    scr-runs/job_<scr_job_id>/
+
+- ansible.builtin.import_tasks:         initialize_load.yaml
+- ansible.builtin.import_tasks:         initialize_abort_stale.yaml
+- ansible.builtin.import_tasks:         initialize_register.yaml
+- ansible.builtin.import_tasks:         initialize_update.yaml
+- ansible.builtin.import_tasks:         initialize_write.yaml

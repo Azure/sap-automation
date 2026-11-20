@@ -1,0 +1,714 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# scr_db_backup/tasks/backup_database.yaml
+#
+# Run a HANA data backup as backup_operator, locate the files HANA
+# wrote on disk, and upload them to FILE_STORE (Azure Blob Storage)
+# via the shared roles-scr/scr_log_function role.
+#
+# Statement issued (against SYSTEMDB so FOR FULL SYSTEM is allowed):
+#   BACKUP DATA INCREMENTAL FOR FULL SYSTEM USING FILE ('<prefix>')
+#
+# IMPORTANT: INCREMENTAL backups require a previous COMPLETE (FULL)
+# data backup to already exist for every database in the system. If
+# none exists yet, run a full backup first by overriding:
+#     -e db_backup_type=''
+#
+# Required facts (set by earlier phases):
+#   _db_pwd_result   (only used if you choose to authenticate as
+#                    SYSTEM instead of backup_operator)
+#   _backup_user     backup_operator (from create_backup_user.yaml)
+#   _backup_pwd      backup_operator password (from create_backup_user.yaml)
+#   db_sid           HANA DB SID (used as <sid>adm OS user)
+#   db_instance_number  HANA instance number, e.g. "00"
+#
+# Optional extra-vars (with defaults):
+#   db_backup_type      'INCREMENTAL' (default) | 'DIFFERENTIAL' | ''  (= full / complete)
+#   db_backup_scope     'FOR FULL SYSTEM' (default) | 'FOR <tenant_name>'
+#   db_backup_prefix    Default 'SCR_<SID>_<SOURCE|DEST>_<UTC timestamp>'.
+#   db_backup_dir       Default '/hana/backup'. ABSOLUTE directory on
+#                       every DB host where HANA must write the backup.
+#   db_backup_dry_run   Default false. When true, the role runs the
+#                       capture/parse/decide/announce tasks only and
+#                       skips the SET / BACKUP / UNSET block entirely.
+#                       Useful to verify what HANA currently reports
+#                       for the SYSTEM-layer basepath_databackup
+#                       without modifying configuration or writing
+#                       any backup files. Invoke with:
+#                         -e db_backup_dry_run=true
+#
+# How db_backup_dir is applied:
+#   HANA's BACKUP DATA ... FOR FULL SYSTEM rejects an absolute path in
+#   USING FILE (error 7: "feature not supported: Invalid option FULL
+#   SYSTEM with absolute path to file"). FOR FULL SYSTEM only accepts
+#   a BARE PREFIX, which it resolves against each database's configured
+#   basepath_databackup parameter.
+#
+#   So instead of passing an absolute path, this role:
+#     1. Captures the current SYSTEM-layer value of basepath_databackup
+#        (including whether SYSTEM layer was set at all).
+#     2. If the effective value already equals db_backup_dir -> does
+#        nothing (no SET, no UNSET).
+#     3. Otherwise SETs basepath_databackup = db_backup_dir at SYSTEM
+#        layer via ALTER SYSTEM ALTER CONFIGURATION ... WITH RECONFIGURE,
+#        runs BACKUP DATA with a bare prefix, then RESTORES the original
+#        state in an always: block - SET back to the captured value if
+#        it was previously a SYSTEM-layer override, or UNSET at SYSTEM
+#        layer if there was no override before (in which case the
+#        effective value came from DEFAULT / HOST / DATABASE layer).
+#
+#   Requirements for db_backup_dir:
+#     - Must exist on every DB host.
+#     - Must be writable by <sid>adm (e.g. hdbadm).
+#     - For FOR FULL SYSTEM in scale-out / MDC deployments must resolve
+#       to the same path on every node (i.e. a shared mount).
+
+
+- name:                                 "scr_db_backup: Resolve backup parameters (prefix, scope, absolute dir)"
+  ansible.builtin.set_fact:
+    _backup_type:                       "{{ db_backup_type   | default('INCREMENTAL') }}"
+    _backup_scope:                      "{{ db_backup_scope  | default('FOR FULL SYSTEM') }}"
+    _backup_prefix:                     "{{ db_backup_prefix | default('SCR_' + (db_sid | upper) + '_' + (_db_side | upper) + '_' + (now(utc=true, fmt='%Y%m%d_%H%M%S'))) }}"
+    _backup_dir:                        "{{ db_backup_dir    | default('/hana/backup') }}"
+    _dry_run:                           "{{ db_backup_dry_run | default(false) | bool }}"
+    # Controller-side staging directory for rsync.
+    #
+    # Resolved to EXACTLY the same path that scr_log_function uses for
+    # its own controller-local working copy
+    # (scr_log_function_local_filestore_dir, which defaults to
+    # <scr_basedir>/FILE_STORE = $HOME/.scr_tmp/FILE_STORE). Doing so
+    # makes the role's "copy from localhost" step a no-op (src and dest
+    # resolve to the same inode, ansible.builtin.copy detects matching
+    # checksums and skips the write), so the controller never holds
+    # two copies of the same backup file at once.
+    #
+    # Disk requirement: ~1 x size(largest single backup part) at any
+    # moment. After scr_log_function uploads and runs its own per-
+    # iteration cleanup of _local_file_path, the staged file is gone
+    # and the next file can start. No leftover at rest after a clean
+    # run; on mid-loop failure the in-flight file is left in
+    # scr_log_function's working dir (same place the role leaves
+    # anything that fails its own upload step - no new mess).
+    #
+    # To move staging to a different filesystem, override scr_basedir
+    # itself (-e scr_basedir=/path/with/space) rather than splitting
+    # the two paths - they MUST stay in sync or the no-op-copy
+    # optimization is lost and peak disk doubles back to 2x.
+    _backup_stage_dir:                  "{{ (scr_basedir | default(lookup('env', 'HOME') ~ '/.scr_tmp')) ~ '/FILE_STORE' }}"
+
+
+# Pre-flight: verify the absolute backup directory exists and is
+# writable by <sid>adm BEFORE we issue BACKUP DATA. Doing a real
+# touch-probe (rather than stat'ing mode bits) catches problems that
+# bare permission checks miss - NFS root-squash, read-only mounts,
+# ACLs, SELinux contexts, etc.
+- name:                                 "scr_db_backup: Pre-flight - verify backup directory is writable by <sid>adm"
+  become:                               true
+  become_user:                          "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: |
+                                        set -u
+                                        dir="{{ _backup_dir }}"
+                                        if [[ ! -d "$dir" ]]; then
+                                          echo "MISSING: $dir does not exist or is not a directory" >&2
+                                          exit 10
+                                        fi
+                                        probe="$dir/.scr_db_backup_precheck_$$"
+                                        if ! touch "$probe" 2>/dev/null; then
+                                          echo "NOT WRITABLE: $(id -un) cannot create files in $dir" >&2
+                                          exit 11
+                                        fi
+                                        rm -f "$probe"
+                                        echo "OK: $dir exists and is writable by $(id -un)"
+  args:
+    executable:                         /bin/bash
+  register:                             _backup_dir_check
+  changed_when:                         false
+  failed_when:                          false
+
+
+- name:                                 "scr_db_backup: Fail if backup directory is missing or not writable"
+  ansible.builtin.fail:
+    msg: |-
+      Backup directory pre-flight failed on {{ inventory_hostname }}.
+      Directory: {{ _backup_dir }}
+      As user:   {{ db_sid | lower }}adm
+      rc:        {{ _backup_dir_check.rc }}
+      stderr:    {{ _backup_dir_check.stderr }}
+      stdout:    {{ _backup_dir_check.stdout }}
+
+      Make sure {{ _backup_dir }} exists on every DB host, is mounted
+      consistently across the system (especially for FOR FULL SYSTEM in
+      scale-out / MDC deployments), and is owned/writable by
+      {{ db_sid | lower }}adm. Override the path with
+      -e db_backup_dir=/some/other/path if needed.
+  when:                                 _backup_dir_check.rc != 0
+
+
+# ---------------------------------------------------------------------------
+# Capture the current SYSTEM-layer state of basepath_databackup so we
+# can deterministically restore it at the end. Done in four small
+# steps so each task has one job:
+#
+#   1. Read inifile  - run hdbsql, capture raw stdout.
+#   2. Sanity-check  - fail loudly if the query did not succeed.
+#   3. Parse         - pull the value out of hdbsql's chatty output.
+#   4. Decide        - derive boolean flags driving SET / UNSET / skip.
+#
+# The query embeds the result between literal @@@ delimiters so step 3
+# can extract it with a single regex without depending on quote
+# placement, row-count footers, or hdbsql whitespace quirks. COALESCE
+# returns the marker string '__NOT_SET__' when no SYSTEM-layer row
+# exists (i.e. the effective value is coming from DEFAULT / HOST /
+# DATABASE), distinguishing "system layer set to empty" from
+# "system layer not set at all".
+#
+# Connects as SYSTEM (whose password we already have from
+# fetch_db_password.yaml) rather than backup_operator: INIFILE ADMIN
+# is not granted by BACKUP ADMIN, and we want to keep the configuration
+# changes audit-attributable to SYSTEM rather than the backup role.
+# ---------------------------------------------------------------------------
+- name:                                 "scr_db_backup: Read SYSTEM-layer basepath_databackup from M_INIFILE_CONTENTS"
+  become:                               true
+  become_user:                          "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -x -A -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" \
+                                          "SELECT '@@@' || COALESCE((SELECT VALUE FROM M_INIFILE_CONTENTS WHERE FILE_NAME='global.ini' AND SECTION='persistence' AND KEY='basepath_databackup' AND LAYER_NAME='SYSTEM'), '__NOT_SET__') || '@@@' FROM DUMMY"
+  args:
+    executable:                         /bin/bash
+    stdin:                              "{{ _db_pwd_result.secrets[0].secret }}"
+  register:                             _basepath_capture
+  changed_when:                         false
+  failed_when:                          false
+  no_log:                               true
+
+
+- name:                                 "scr_db_backup: Fail if reading basepath_databackup did not succeed"
+  ansible.builtin.fail:
+    msg: |-
+      Could not read current SYSTEM-layer basepath_databackup on
+      {{ inventory_hostname }}. We refuse to proceed because any SET
+      we make would be impossible to safely restore.
+      rc     = {{ _basepath_capture.rc     | default('?') }}
+      stderr = {{ _basepath_capture.stderr | default('') }}
+      stdout = {{ _basepath_capture.stdout | default('') }}
+  when:                                 _basepath_capture.rc != 0
+
+
+- name:                                 "scr_db_backup: Parse SYSTEM-layer basepath_databackup out of query output"
+  ansible.builtin.set_fact:
+    _basepath_orig_value:               "{{ _basepath_capture.stdout | regex_search('@@@(.*)@@@', '\\1') | first }}"
+
+
+- name:                                 "scr_db_backup: Decide whether basepath_databackup is already set to db_backup_dir"
+  ansible.builtin.set_fact:
+    _basepath_was_set_at_system:        "{{ _basepath_orig_value != '__NOT_SET__' }}"
+    _basepath_needs_change:             "{{ _basepath_orig_value != _backup_dir }}"
+
+
+- name:                                 "scr_db_backup: Announce config plan + backup about to run"
+  ansible.builtin.debug:
+    msg:
+      - "Host:                {{ inventory_hostname }}"
+      - "DB SID:              {{ db_sid }}"
+      - "Instance:            {{ db_instance_number }}"
+      - "Connect (backup):    SYSTEMDB as {{ _backup_user }}"
+      - "Connect (config):    SYSTEMDB as SYSTEM"
+      - "Backup dir target:   {{ _backup_dir }}"
+      - "SYSTEM-layer value:  {{ _basepath_orig_value }}  (was_set={{ _basepath_was_set_at_system }})"
+      - "Needs SET/UNSET:     {{ _basepath_needs_change }}"
+      - "Dry run:             {{ _dry_run }}"
+      - "Statement:           BACKUP DATA {{ _backup_type }} {{ _backup_scope }} USING FILE ('{{ _backup_prefix }}')"
+
+
+- name:                                 "scr_db_backup: Dry run requested - skipping SET / BACKUP / UNSET"
+  ansible.builtin.debug:
+    msg: |-
+      db_backup_dry_run=true was passed, so this role stops here.
+      The capture above shows what HANA currently reports for the
+      SYSTEM-layer value of basepath_databackup. No ALTER SYSTEM,
+      no BACKUP DATA, and no upload will be performed on this run.
+      Re-run without -e db_backup_dry_run=true (or with =false) to
+      take an actual backup.
+  when:                                 _dry_run
+
+
+# ---------------------------------------------------------------------------
+# block / always wrapper:
+#   - block: SET basepath_databackup (if needed), run BACKUP DATA,
+#            locate files, upload to FILE_STORE.
+#   - always: undo the SET no matter what - even on backup failure or
+#             upload failure. If SYSTEM layer was previously set,
+#             restore it to its original value via SET; if it was not
+#             previously a SYSTEM-layer override, drop our override
+#             via UNSET so the effective value falls back to whatever
+#             layer it came from (DEFAULT / HOST / DATABASE).
+#
+# The whole wrapper is gated by `when: not _dry_run` so a dry-run
+# invocation (-e db_backup_dry_run=true) stops cleanly after the
+# capture/announce phase above without touching HANA configuration.
+# ---------------------------------------------------------------------------
+- name:                                 "scr_db_backup: Run backup with managed basepath_databackup"
+  when:                                 not _dry_run
+  block:
+
+    - name:                             "scr_db_backup: SET basepath_databackup -> {{ _backup_dir }} (SYSTEM layer)"
+      become:                           true
+      become_user:                      "{{ db_sid | lower }}adm"
+      ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" -A \
+                                          "ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('persistence', 'basepath_databackup') = '{{ _backup_dir }}' WITH RECONFIGURE"
+      args:
+        executable:                     /bin/bash
+        stdin:                          "{{ _db_pwd_result.secrets[0].secret }}"
+      register:                         _basepath_set
+      failed_when:                      false
+      no_log:                           true
+      when:                             _basepath_needs_change
+
+
+    - name:                             "scr_db_backup: Fail if SET basepath_databackup did not succeed"
+      ansible.builtin.fail:
+        msg: |-
+          ALTER SYSTEM ALTER CONFIGURATION ... SET basepath_databackup
+          to {{ _backup_dir }} failed on {{ inventory_hostname }}.
+          rc     = {{ _basepath_set.rc     | default('?') }}
+          stderr = {{ _basepath_set.stderr | default('') }}
+          stdout = {{ _basepath_set.stdout | default('') }}
+      when:
+        - _basepath_needs_change
+        - (_basepath_set.rc | default(1)) != 0
+
+
+    # Authenticate as backup_operator, connect to SYSTEMDB (required
+    # for FOR FULL SYSTEM), pipe password via stdin so it never appears
+    # on argv or in logs. See no_log / failed_when reasoning in the
+    # original module banner above.
+    - name:                             "scr_db_backup: Run BACKUP DATA as backup_operator"
+      become:                           true
+      become_user:                      "{{ db_sid | lower }}adm"
+      ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u {{ _backup_user }} -p "$P" -A \
+                                          "BACKUP DATA {{ _backup_type }} {{ _backup_scope }} USING FILE ('{{ _backup_prefix }}')"
+      args:
+        executable:                     /bin/bash
+        stdin:                          "{{ _backup_pwd }}"
+      register:                         _backup_run
+      failed_when:                      false
+      no_log:                           true
+
+
+    - name:                             "scr_db_backup: Report backup statement result"
+      ansible.builtin.debug:
+        msg:
+          - "Host:    {{ inventory_hostname }}"
+          - "DB SID:  {{ db_sid }}"
+          - "Prefix:  {{ _backup_prefix }}"
+          - "rc:      {{ _backup_run.rc     | default('?') }}"
+          - "stderr:  {{ _backup_run.stderr | default('') }}"
+          - "stdout:  {{ _backup_run.stdout | default('') }}"
+
+
+    - name:                             "scr_db_backup: Fail if BACKUP DATA returned non-zero"
+      ansible.builtin.fail:
+        msg: |-
+          HANA backup failed on {{ inventory_hostname }}.
+          Statement: BACKUP DATA {{ _backup_type }} {{ _backup_scope }} USING FILE ('{{ _backup_prefix }}')
+          rc     = {{ _backup_run.rc     | default('?') }}
+          stderr = {{ _backup_run.stderr | default('') }}
+          stdout = {{ _backup_run.stdout | default('') }}
+      when:                             (_backup_run.rc | default(1)) != 0
+
+
+    # HANA writes one set of files per database (SYSTEMDB + each
+    # tenant) under <basepath_databackup>/<DB_NAME>/<prefix>_databackup_*.
+    # Because we just set basepath_databackup = _backup_dir, files
+    # land under _backup_dir. Recursing from there and matching on the
+    # unique prefix gives us THIS run's files only.
+    - name:                             "scr_db_backup: Locate backup files written by this run"
+      become:                           true
+      become_user:                      "{{ db_sid | lower }}adm"
+      ansible.builtin.find:
+        paths:                          "{{ _backup_dir }}"
+        patterns:                       "{{ _backup_prefix }}_*"
+        recurse:                        true
+        file_type:                      file
+      register:                         _backup_files
+
+
+    - name:                             "scr_db_backup: Fail if no backup files were found"
+      ansible.builtin.fail:
+        msg: |-
+          BACKUP DATA reported success on {{ inventory_hostname }} but
+          no files matching prefix '{{ _backup_prefix }}' were found
+          under {{ _backup_dir }}. Either basepath_databackup did not
+          actually take effect (check ALTER SYSTEM result) or HANA
+          wrote elsewhere; inspect basepath_databackup at all layers:
+            SELECT LAYER_NAME, VALUE FROM M_INIFILE_CONTENTS
+            WHERE FILE_NAME='global.ini' AND SECTION='persistence'
+              AND KEY='basepath_databackup';
+      when:                             (_backup_files.files | default([]) | length) == 0
+
+
+    - name:                             "scr_db_backup: Summarise backup files that will be uploaded"
+      ansible.builtin.debug:
+        msg:
+          - "Host:  {{ inventory_hostname }}"
+          - "Count: {{ _backup_files.files | length }}"
+          - "Bytes: {{ _backup_files.files | map(attribute='size') | sum }}"
+          - "Files:"
+          - "{{ _backup_files.files | map(attribute='path') | list }}"
+
+
+    # Append a per-host BACKUP COMPLETE entry to the run's summary log
+    # (scr-runs/job_<id>/logs/<job_id>_summary.log). Runs per host so
+    # every DB host that finishes its backup contributes its own line.
+    # The log call delegates to localhost internally and re-uploads the
+    # summary log to the storage account.
+    - name:                             "scr_db_backup: LOG - BACKUP COMPLETE for this host"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload: >-
+                                        BACKUP COMPLETE on {{ inventory_hostname }} -
+                                        SID={{ db_sid }},
+                                        prefix={{ _backup_prefix }},
+                                        files={{ _backup_files.files | length }},
+                                        bytes={{ _backup_files.files | map(attribute='size') | sum }},
+                                        duration={{ _backup_run.delta | default('?') }},
+                                        rc={{ _backup_run.rc | default('?') }}
+
+
+    # -----------------------------------------------------------------
+    # Streamed per-file upload to FILE_STORE via the controller, using
+    # the shared scr_log_function role (same pattern as the SAP kernel
+    # archive flow in roles-scr/scr_kernel/tasks/archive-sap.yaml).
+    #
+    # Why the controller hop (instead of uploading directly from the
+    # DB host as we used to):
+    #   The previous implementation ran `az storage blob upload-batch`
+    #   on the DB host using its managed identity. That required the
+    #   az CLI to be installed on every DB host in the customer's
+    #   environment, which we can't assume. Customer feedback: route
+    #   uploads through the controller (which already has az CLI +
+    #   managed identity) so the DB host only needs SSH.
+    #
+    # Why per-file with explicit rsync (instead of just calling
+    # scr_log_function in batch mode):
+    #   HANA data backup files are routinely tens to hundreds of GB.
+    #   scr_log_function's remote->controller hop uses
+    #   ansible.builtin.fetch, which base64-encodes the whole file
+    #   into memory and OOMs the controller for files of that size.
+    #   We therefore stream each file to a controller staging dir with
+    #   rsync (no base64, no memory blow-up), then hand the role the
+    #   controller-local path so it takes its copy-from-localhost
+    #   branch and skips fetch entirely. After the role uploads, we
+    #   delete the staged copy before moving to the next file. Peak
+    #   controller disk = ~2 x size(largest single backup file),
+    #   regardless of how many files or how large the total backup is.
+    #
+    # Blob basename prefixing:
+    #   The role names blobs as `<scr_log_function_remote_filestore_dir>
+    #   /<basename>`. In scale-out HANA, multiple DB hosts can write
+    #   files with identical basenames (same prefix, same
+    #   _databackup_<part> suffix scheme). We prefix the staged
+    #   basename with `<inventory_hostname>__` so blobs from
+    #   different hosts don't overwrite each other in FILE_STORE.
+    #
+    # Per-run blob layout (one flat FILE_STORE per job, see
+    # roles-scr/scr_log_function/defaults/main.yaml):
+    #   <container>/scr-runs/job_<job_id>/FILE_STORE/<host>__<orig basename>
+    # -----------------------------------------------------------------
+
+    - name:                             "scr_db_backup: Mark checkpoint - streamed upload starting"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       checkpoint
+        step:                           "scr_db_backup_upload_stream"
+        description:                    "Stream {{ _backup_files.files | length }} HANA backup files from {{ inventory_hostname }} to FILE_STORE via controller (prefix {{ _backup_prefix }})"
+
+
+    # Staging dir on the controller. This is the SAME directory
+    # scr_log_function uses for its own working copy
+    # (scr_log_function_local_filestore_dir). By staging directly
+    # into that dir we make the role's copy-from-localhost step a
+    # no-op, so the controller never holds two copies of the file at
+    # once. See the param-resolution task at the top of this file
+    # for the full reasoning.
+    - name:                             "scr_db_backup: Ensure controller-side staging dir exists"
+      ansible.builtin.file:
+        path:                           "{{ _backup_stage_dir }}"
+        state:                          directory
+        mode:                           "0700"
+      delegate_to:                      localhost
+
+
+    - name:                             "scr_db_backup: Initialize restore manifest"
+      ansible.builtin.set_fact:
+        _backup_manifest_name:          "{{ _backup_prefix }}__{{ _db_side }}__{{ inventory_hostname }}__manifest.json"
+        _backup_uploaded_files:         []
+
+
+    # Pre-flight: verify the staging filesystem has enough free space
+    # to hold the largest single backup file (we stage at the role's
+    # filestore_dir so its copy step is a no-op - peak disk is 1x,
+    # not 2x). 10% headroom covers filesystem metadata, rsync's
+    # in-place temp file and other small overhead. Catching this
+    # here gives a clear early error instead of a "No space left on
+    # device" mid-rsync failure that wastes minutes of transfer time.
+    - name:                             "scr_db_backup: Pre-flight - stat free space on controller staging filesystem"
+      ansible.builtin.shell: |
+                                        set -u
+                                        df -P -B1 "{{ _backup_stage_dir }}" | awk 'NR==2 {print $4}'
+      args:
+        executable:                     /bin/bash
+      register:                         _stage_df
+      delegate_to:                      localhost
+      changed_when:                     false
+
+
+    - name:                             "scr_db_backup: Fail if controller staging filesystem has too little free space"
+      ansible.builtin.fail:
+        msg: |-
+          Controller staging filesystem at {{ _backup_stage_dir }} has only
+          {{ ((_stage_df.stdout | int) / 1024 / 1024 / 1024) | round(2) }} GiB free,
+          but the largest single backup part is
+          {{ ((_backup_files.files | map(attribute='size') | max) / 1024 / 1024 / 1024) | round(2) }} GiB
+          and this role needs at least 1.1x that ({{ ((_backup_files.files | map(attribute='size') | max) * 1.1 / 1024 / 1024 / 1024) | round(2) }} GiB)
+          available (single staged copy + filesystem overhead). Move
+          staging to a larger filesystem by overriding scr_basedir:
+              -e scr_basedir=/path/with/space/.scr_tmp
+          Or increase free space on the current location ({{ _backup_stage_dir }}).
+      when:                             (_stage_df.stdout | int) < ((_backup_files.files | map(attribute='size') | max) * 1.1)
+
+
+    # Blob layout under scr_log_function_remote_filestore_dir:
+    #   FILE_STORE/<SID>/<host>/<DB_folder>/<original basename>
+    #
+    # We pass `subdir: "<SID>/<host>/<DB_folder>"` to scr_log_function so it
+    # uploads the blob under that virtual folder in Azure Blob Storage
+    # (instead of flattening every file into FILE_STORE/<basename>).
+    # The <host> level disambiguates scale-out workers that write parts
+    # with identical names on their local volumes. The <DB_folder> level
+    # mirrors HANA's on-disk layout (DB_SYSTEMDB/, DB_HDB/, DB_<tenant>/)
+    # so SYSTEMDB part-0 and tenant part-0 do not collide. The staged
+    # basename on the controller is just the file's original basename
+    # (no host__db__ prefix encoding) since the path information is now
+    # carried by `subdir` rather than the filename.
+    - name:                             "scr_db_backup: Stream each backup file to FILE_STORE (rsync -> upload -> delete)"
+      ansible.builtin.include_tasks:    upload_one_backup_file.yaml
+      loop:                             "{{ _backup_files.files }}"
+      loop_control:
+        loop_var:                       _bk
+        index_var:                      _bk_idx
+        label:                          "{{ _bk.path | dirname | basename }}/{{ _bk.path | basename }} ({{ _bk.size }} B)"
+      vars:
+        _stage_dir:                     "{{ _backup_stage_dir }}"
+        _staged_basename:               "{{ _bk.path | basename }}"
+        _db_folder:                     "{{ _bk.path | dirname | basename }}"
+        _database_name:                 "{{ (_bk.path | dirname | basename) | regex_replace('^DB_', '') }}"
+        _database_type:                 "{{ 'SYSTEMDB' if ((_bk.path | dirname | basename) == 'DB_SYSTEMDB') else 'TENANT' }}"
+        _blob_subdir:                   "{{ db_sid | upper }}/{{ inventory_hostname }}/{{ _bk.path | dirname | basename }}"
+        _bk_total_count:                "{{ _backup_files.files | length }}"
+        _bk_total_bytes:                "{{ _backup_files.files | map(attribute='size') | sum }}"
+
+
+    - name:                             "scr_db_backup: Write restore manifest on controller"
+      ansible.builtin.copy:
+        dest:                           "{{ _backup_stage_dir }}/{{ _backup_manifest_name }}"
+        mode:                           "0600"
+        content: >-
+          {{ {
+            'schema_version': 2,
+            'job_id': scr_job_id,
+            'run_id': scr_run_id,
+            'backup_side': _db_side,
+            'source_host': inventory_hostname,
+            'db_sid': db_sid,
+            'backup_prefix': _backup_prefix,
+            'backup_root': _backup_dir,
+            'created_utc': now(utc=true, fmt='%Y-%m-%dT%H:%M:%SZ'),
+            'files': _backup_uploaded_files
+          } | to_nice_json }}
+      delegate_to:                      localhost
+
+
+    - name:                             "scr_db_backup: Upload restore manifest after all backup parts"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       file
+        action:                         store
+        payload:                        "{{ _backup_stage_dir }}/{{ _backup_manifest_name }}, localhost"
+        subdir:                         "manifests/{{ db_sid | upper }}/{{ inventory_hostname }}"
+        file_metadata:
+          artifact_type:                hana_backup_manifest
+          db_sid:                       "{{ db_sid | upper }}"
+          source_host:                  "{{ inventory_hostname }}"
+          backup_prefix:                "{{ _backup_prefix }}"
+          backup_side:                  "{{ _db_side }}"
+
+
+    - name:                             "scr_db_backup: Verify restore manifest exists in Azure Blob Storage"
+      ansible.builtin.command:
+        argv:
+          - az
+          - storage
+          - blob
+          - exists
+          - --account-name
+          - "{{ scr_azure_storage_account }}"
+          - --container-name
+          - "{{ scr_azure_container }}"
+          - --name
+          - "{{ scr_log_function_remote_filestore_dir }}/manifests/{{ db_sid | upper }}/{{ inventory_hostname }}/{{ _backup_manifest_name }}"
+          - --auth-mode
+          - login
+          - --query
+          - exists
+          - --output
+          - tsv
+      register:                         _backup_manifest_exists
+      delegate_to:                      localhost
+      changed_when:                     false
+      failed_when:                      (_backup_manifest_exists.stdout | trim | lower) != 'true'
+
+
+    - name:                             "scr_db_backup: LOG - Restore manifest available"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_log_function
+      vars:
+        activity:                       log_summary
+        action:                         store
+        payload: >-
+                                        RESTORE MANIFEST side={{ _db_side }} prefix={{ _backup_prefix }} -
+                                        {{ scr_log_function_remote_filestore_dir }}/manifests/{{ db_sid | upper }}/{{ inventory_hostname }}/{{ _backup_manifest_name }}
+
+
+    - name:                             "scr_db_backup: Report streamed upload result"
+      ansible.builtin.debug:
+        msg:
+          - "Host:        {{ inventory_hostname }}"
+          - "Files:       {{ _backup_files.files | length }}"
+          - "Bytes:       {{ _backup_files.files | map(attribute='size') | sum }}"
+          - "Backup side: {{ _db_side }}"
+          - "Source:      {{ _backup_dir }} on {{ inventory_hostname }}"
+          - "Via:         rsync -> controller staging -> scr_log_function -> FILE_STORE"
+          - "Manifest:    {{ scr_log_function_remote_filestore_dir }}/manifests/{{ db_sid | upper }}/{{ inventory_hostname }}/{{ _backup_manifest_name }}"
+          - "Job / Run:   job_{{ scr_job_id | default('unknown') }} / run_{{ scr_run_id | default('unknown') }}"
+
+
+  always:
+
+    # Restore basepath_databackup to its ORIGINAL state. These two
+    # tasks are mutually exclusive (driven by _basepath_was_set_at_system)
+    # and both run inside the always: block so they execute even if
+    # BACKUP DATA failed mid-block. Both are skipped entirely when we
+    # never changed basepath_databackup in the first place.
+    - name:                             "scr_db_backup: Restore basepath_databackup - SET back to original value"
+      become:                           true
+      become_user:                      "{{ db_sid | lower }}adm"
+      ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" -A \
+                                          "ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') SET ('persistence', 'basepath_databackup') = '{{ _basepath_orig_value }}' WITH RECONFIGURE"
+      args:
+        executable:                     /bin/bash
+        stdin:                          "{{ _db_pwd_result.secrets[0].secret }}"
+      register:                         _basepath_restore_set
+      changed_when:                     true
+      failed_when:                      false
+      no_log:                           true
+      when:
+        - _basepath_needs_change
+        - _basepath_was_set_at_system
+
+
+    - name:                             "scr_db_backup: Restore basepath_databackup - UNSET SYSTEM-layer override"
+      become:                           true
+      become_user:                      "{{ db_sid | lower }}adm"
+      ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" -A \
+                                          "ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM') UNSET ('persistence', 'basepath_databackup') WITH RECONFIGURE"
+      args:
+        executable:                     /bin/bash
+        stdin:                          "{{ _db_pwd_result.secrets[0].secret }}"
+      register:                         _basepath_restore_unset
+      changed_when:                     true
+      failed_when:                      false
+      no_log:                           true
+      when:
+        - _basepath_needs_change
+        - not _basepath_was_set_at_system
+
+
+    # Pick whichever of the two restore tasks actually ran so the
+    # downstream Report / Warn tasks can reference a single result var.
+    - name:                             "scr_db_backup: Normalise restore result for reporting"
+      ansible.builtin.set_fact:
+        _basepath_restore:              "{{ _basepath_restore_set if _basepath_was_set_at_system else _basepath_restore_unset }}"
+      when:                             _basepath_needs_change
+
+
+    - name:                             "scr_db_backup: Report basepath_databackup restore result"
+      ansible.builtin.debug:
+        msg:
+          - "Host:               {{ inventory_hostname }}"
+          - "Restore performed:  {{ _basepath_needs_change }}"
+          - "Action:             {{ 'SET back to ' + _basepath_orig_value if _basepath_was_set_at_system else 'UNSET at SYSTEM layer' }}"
+          - "rc:                 {{ _basepath_restore.rc     | default('not-run') }}"
+          - "stderr:             {{ _basepath_restore.stderr | default('') }}"
+      when:                             _basepath_needs_change
+
+
+    - name:                             "scr_db_backup: Warn loudly if restore failed"
+      ansible.builtin.fail:
+        msg: |-
+          *** WARNING - basepath_databackup RESTORE FAILED on {{ inventory_hostname }} ***
+          The SYSTEM-layer override is STILL set to {{ _backup_dir }}.
+          You must restore it manually before any other backup runs:
+            {% if _basepath_was_set_at_system %}
+            ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM')
+              SET ('persistence', 'basepath_databackup') = '{{ _basepath_orig_value }}'
+              WITH RECONFIGURE;
+            {% else %}
+            ALTER SYSTEM ALTER CONFIGURATION ('global.ini', 'SYSTEM')
+              UNSET ('persistence', 'basepath_databackup')
+              WITH RECONFIGURE;
+            {% endif %}
+          rc     = {{ _basepath_restore.rc     | default('?') }}
+          stderr = {{ _basepath_restore.stderr | default('') }}
+          stdout = {{ _basepath_restore.stdout | default('') }}
+      when:
+        - _basepath_needs_change
+        - (_basepath_restore.rc | default(1)) != 0
+
+
+    # NOTE on staging-dir cleanup: We deliberately do NOT delete
+    # _backup_stage_dir here. It now points at
+    # scr_log_function_local_filestore_dir (the role's own per-
+    # controller working dir, owned by scr_log_function across all
+    # callers and across runs). Per-file cleanup is the role's job:
+    # at the end of every file/store iteration it removes its
+    # _local_file_path. On a clean run the dir is empty when we
+    # exit. On mid-loop failure the in-flight file may remain - same
+    # behaviour as any other consumer of scr_log_function and not
+    # something this role should reach in to "fix".

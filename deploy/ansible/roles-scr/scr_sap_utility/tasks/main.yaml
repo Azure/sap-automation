@@ -1,0 +1,44 @@
+# jobs
+#   check for SAP user sidadm
+#   get user id and group id for sidadm
+#   check for running processes owned by sidadm
+#   stop SAP system using appropriate method (e.g. sapcontrol, sapshcut, etc.)
+#   wait for processes to stop
+#   check for any remaining processes and force kill if necessary
+#   log completion of stop step
+#   check hostctrl for running SAP processes
+#   check for multiple application servers and stop them in the correct order (if applicable)
+#   check for SCS processes and stop them (if applicable)
+#   check for clustered environment and stop cluster resources if necessary (if applicable)
+#   get SAP environment information
+
+# Calling parameters:
+#   function = init, stop, start, sync, etc.
+#   type = sap or db (hana, oracle, etc.)
+#   sapsid = SID of the SAP system to target
+
+---
+
+- name:                                 "SCR UTILITY: ({{ type }}/Initialize) - Initialize variables and check connectivity"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_sap_utility/tasks/initialize.yaml
+  when:
+                                        # - (function == 'init' and (sapsid | upper + '_PAS') in vars['group_names']) or
+                                        #   (function == 'init' and (sapsid | upper + '_DB')  in vars['group_names'])                                          # source or destination groups
+                                        - (function == 'init' and (sapsid | upper + '_PAS') in vars['group_names'])
+
+
+- name:                                 "SCR UTILITY: ({{ type }}/Initialize) - Stop SAP system"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_sap_utility/tasks/sapcontrol.yaml
+  when:
+                                        # - (function == 'init' and (sapsid | upper + '_PAS') in vars['group_names']) or
+                                        #   (function == 'init' and (sapsid | upper + '_DB')  in vars['group_names'])                                          # source or destination groups
+                                        - (function == 'stopsap' and (sapsid | upper + '_PAS') in vars['group_names'])
+
+
+
+
+
+
+...

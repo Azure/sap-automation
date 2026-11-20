@@ -1,0 +1,25 @@
+---
+# initialize_write.yaml
+# Write the updated index to a local file and upload it to Azure.
+# Only fires when an upstream task built `_scr_index_updated`.
+
+- name:                                 "SCR Log Function [index/write] - Write updated index locally"
+  ansible.builtin.copy:
+    dest:                               "{{ scr_log_function_local_log_dir }}/scr_global_index.json"
+    content:                            "{{ _scr_index_updated | to_nice_json }}"
+    mode:                               "0644"
+  delegate_to:                          localhost
+  when:                                 _scr_index_updated is defined
+
+- name:                                 "SCR Log Function [index/write] - Upload updated index to Azure"
+  ansible.builtin.command: >-
+                                        az storage blob upload
+                                          --account-name   {{ scr_azure_storage_account }}
+                                          --container-name {{ scr_azure_container }}
+                                          --name           {{ scr_log_function_index_blob }}
+                                          --file           {{ scr_log_function_local_log_dir }}/scr_global_index.json
+                                          --overwrite
+                                          --auth-mode      login
+  delegate_to:                          localhost
+  changed_when:                         true
+  when:                                 _scr_index_updated is defined

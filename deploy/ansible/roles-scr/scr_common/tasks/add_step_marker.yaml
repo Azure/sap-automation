@@ -1,0 +1,87 @@
+---
+# Add step marker to SCR state for restart capability
+# This enables the workflow to track progress and resume from checkpoints
+
+- name: Validate step marker parameters
+  ansible.builtin.assert:
+    that:
+      - scr_step_name is defined
+      - scr_step_status is defined
+      - scr_step_status in ['started', 'completed', 'failed', 'skipped']
+    fail_msg: "Missing or invalid step marker parameters"
+
+- name: Check if SCR state file exists
+  ansible.builtin.stat:
+    path: "/tmp/{{ scr_state_blob_name }}"
+  register: state_file_check
+
+- name: Read current SCR state file
+  ansible.builtin.slurp:
+    src: "/tmp/{{ scr_state_blob_name }}"
+  register: current_state_content
+  when: state_file_check.stat.exists
+
+- name: Get current state text
+  ansible.builtin.set_fact:
+    current_state_text: "{{ current_state_content.content | b64decode if state_file_check.stat.exists else '' }}"
+
+- name: Build step marker text entry
+  ansible.builtin.set_fact:
+    step_marker_text: |
+      [{{ ansible_date_time.iso8601 }}] {{ scr_step_name }}: {{ scr_step_status | upper }}
+      {%- if scr_step_details is defined and scr_step_details %}
+      {%- for key, value in scr_step_details.items() %}
+        {{ key }}: {{ value }}
+      {%- endfor %}
+      {%- endif %}
+
+- name: Check if telemetry section exists
+  ansible.builtin.set_fact:
+    has_telemetry_section: "{{ 'WORKFLOW PROGRESS AND TELEMETRY' in current_state_text }}"
+
+- name: Append step marker to existing telemetry section
+  ansible.builtin.set_fact:
+    updated_state_text: "{{ current_state_text }}{{ step_marker_text }}"
+  when: has_telemetry_section
+
+- name: Create new telemetry section if needed
+  ansible.builtin.set_fact:
+    updated_state_text: |
+      {{ current_state_text }}
+      --------------------------------------------------------------------------------
+      WORKFLOW PROGRESS AND TELEMETRY
+      --------------------------------------------------------------------------------
+      {{ step_marker_text }}
+  when: not has_telemetry_section
+
+- name: Update restart marker if step completed
+  ansible.builtin.set_fact:
+    restart_marker_text: |
+
+      RESTART CHECKPOINT:
+      Last Completed Step: {{ scr_step_name }}
+      Timestamp: {{ ansible_date_time.iso8601 }}
+  when: scr_step_status == 'completed'
+
+- name: Append restart marker if completed
+  ansible.builtin.set_fact:
+    final_state_text: "{{ updated_state_text }}{{ restart_marker_text }}"
+  when: scr_step_status == 'completed'
+
+- name: Use state without restart marker for other statuses
+  ansible.builtin.set_fact:
+    final_state_text: "{{ updated_state_text }}"
+  when: scr_step_status != 'completed'
+
+- name: Write updated SCR state to local file
+  ansible.builtin.copy:
+    content: "{{ final_state_text }}"
+    dest: "/tmp/{{ scr_state_blob_name }}"
+    mode: "0644"
+
+- name: Display step marker added
+  ansible.builtin.debug:
+    msg:
+      - "Step marker added: {{ scr_step_name }}"
+      - "Status: {{ scr_step_status }}"
+      - "Timestamp: {{ ansible_date_time.iso8601 }}"

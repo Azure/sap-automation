@@ -1,0 +1,64 @@
+---
+# SCR System Discovery Role Defaults
+# This role discovers comprehensive facts about SAP systems for SCR operations
+
+# Target specification - can be 'source' or 'target'
+scr_discovery_system_role: "source"  # source|target
+
+# System identification - will auto-discover if empty
+scr_discovery_sid: ""  # Can be set to specific SID or left empty for auto-discovery
+
+# Discovery scope - what to gather
+scr_discovery_scope:
+  os_facts: true
+  sap_facts: true
+  db_facts: true
+  topology: true
+  networking: true
+  storage: true
+  performance_baseline: false  # Optional: gather performance metrics
+
+# SAP-specific discovery settings
+sap_discovery:
+  check_services: true
+  check_processes: true
+  get_kernel_info: true
+  get_profile_info: true
+  check_users: true
+
+# Database discovery settings
+db_discovery:
+  check_version: true
+  check_status: true
+  get_parameters: true
+  check_tablespaces: true
+  get_size_info: true
+
+# Network discovery
+network_discovery:
+  check_ports: true
+  check_connectivity: true
+  get_hostname_resolution: true
+
+# Output settings
+scr_discovery_output:
+  update_scr_state: true  # Update the SCR state JSON with discovered facts
+  create_inventory: true  # Create detailed inventory file
+  log_discoveries: true   # Log all discovered facts
+
+# Timeouts and retries
+scr_discovery_timeouts:
+  command_timeout: 30
+  service_check_timeout: 10
+  db_query_timeout: 60
+
+# Error handling
+scr_discovery_error_handling:
+  continue_on_error: true
+  required_facts:
+    - "sap_sid"
+    - "os_info"
+    - "sap_kernel"
+  optional_facts:
+    - "db_kernel"
+    - "topology_details"

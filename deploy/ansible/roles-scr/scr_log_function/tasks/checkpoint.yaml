@@ -1,0 +1,39 @@
+---
+# checkpoint.yaml
+# Records that step `step` finished successfully. Does TWO things:
+#   1. Appends a line to the per-run summary log (via log_summary).
+#   2. Advances the current Job's last_completed_step in the global index.
+#
+# Caller pattern (run_once recommended, since checkpoints are per-run):
+#   - include_role:
+#       name: roles-scr/scr_log_function
+#     vars:
+#       activity:    checkpoint
+#       step:        6
+#       description: "SAP kernel inventory completed"
+#
+# Required vars: step (int), description (string), scr_job_id (set by register).
+#
+# Implementation note: we use include_role with tasks_from instead of
+# include_tasks to preserve role context. initialize.yaml uses import_tasks
+# with bare filenames (initialize_load.yaml, ...) which only resolve correctly
+# when Ansible knows it is executing inside this role.
+
+- name:                                 "SCR Log Function [checkpoint] - Write summary log line for STEP {{ step }}"
+  ansible.builtin.include_role:
+    name:                               roles-scr/scr_log_function
+    tasks_from:                         log_summary.yaml
+  vars:
+    action:                             store
+    payload:                            "STEP {{ '%-2d' | format(step | int) }} : {{ description }}"
+
+- name:                                 "SCR Log Function [checkpoint] - Advance last_completed_step to {{ step }} in global index"
+  ansible.builtin.include_role:
+    name:                               roles-scr/scr_log_function
+    tasks_from:                         initialize.yaml
+  vars:
+    activity:                           initialize
+    action:                             update
+    payload:
+      target:                           step
+      step:                             "{{ step | int }}"

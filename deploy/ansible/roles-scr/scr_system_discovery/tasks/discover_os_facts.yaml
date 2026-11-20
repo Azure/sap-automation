@@ -1,0 +1,70 @@
+---
+# Discover comprehensive OS and system facts
+
+- name: Gather comprehensive system facts
+  ansible.builtin.setup:
+    gather_subset:
+      - "all"
+  register: system_facts
+
+- name: Get detailed OS information
+  ansible.builtin.shell: |
+    echo "=== OS RELEASE ==="
+    cat /etc/os-release || echo "os-release not found"
+    echo "=== KERNEL ==="
+    uname -a
+    echo "=== CPU INFO ==="
+    lscpu | head -20
+    echo "=== MEMORY ==="
+    free -h
+    echo "=== DISK USAGE ==="
+    df -h
+    echo "=== UPTIME ==="
+    uptime
+  register: detailed_os_info
+  ignore_errors: true
+
+- name: Check if system is virtualized
+  ansible.builtin.shell: |
+    if command -v systemd-detect-virt >/dev/null 2>&1; then
+      systemd-detect-virt
+    elif [ -f /proc/cpuinfo ]; then
+      grep -i hypervisor /proc/cpuinfo >/dev/null && echo "vm" || echo "physical"
+    else
+      echo "unknown"
+    fi
+  register: virtualization_check
+  ignore_errors: true
+
+- name: Get timezone information
+  ansible.builtin.shell: timedatectl status 2>/dev/null || date
+  register: timezone_info
+  ignore_errors: true
+
+- name: Check systemd services status  # noqa: command-instead-of-module
+  ansible.builtin.shell: systemctl list-units --state=running --type=service --no-pager | head -50
+  register: running_services
+  ignore_errors: true
+
+- name: Set consolidated OS facts
+  ansible.builtin.set_fact:
+    discovered_os_facts:
+      distribution: "{{ ansible_distribution | default('Unknown') }}"
+      version: "{{ ansible_distribution_version | default('Unknown') }}"
+      release: "{{ ansible_distribution_release | default('Unknown') }}"
+      kernel: "{{ ansible_kernel | default('Unknown') }}"
+      architecture: "{{ ansible_architecture | default('Unknown') }}"
+      hostname: "{{ ansible_hostname | default('Unknown') }}"
+      fqdn: "{{ ansible_fqdn | default('Unknown') }}"
+      ipv4_addresses: "{{ ansible_all_ipv4_addresses | default([]) }}"
+      cpu_cores: "{{ ansible_processor_vcpus | default(0) }}"
+      memory_mb: "{{ ansible_memtotal_mb | default(0) }}"
+      virtualization: "{{ virtualization_check.stdout | default('unknown') | trim }}"
+      timezone: "{{ timezone_info.stdout | default('unknown') }}"
+      uptime: "{{ ansible_uptime_seconds | default(0) }}"
+      python_version: "{{ ansible_python_version | default('unknown') }}"
+
+- name: Debug OS discovery results
+  ansible.builtin.debug:
+    var: discovered_os_facts
+  when: ansible_verbosity >= 1

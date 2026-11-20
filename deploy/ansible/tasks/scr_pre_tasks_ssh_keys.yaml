@@ -1,0 +1,46 @@
+# -----------------------------------------------------------------------
+# Step 2 — Pull SSH credentials from Key Vault using MSI.
+#          Based directly on colleague's playbook_scr_mkd_testing1.yaml.
+#          No client secret required — managed identity handles auth.
+# -----------------------------------------------------------------------
+- name:                             "Source - Get the SSH credentials for the SAP system from Key Vault"
+  ansible.builtin.include_role:
+    name:                           roles-scr/scr_keys
+    apply:
+      tags:                         [secrets]
+  vars:
+    function:                       "source"                                                    # source or dest
+    granularity:                    "workload"                                                  # workload | sid | host
+    kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
+    prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
+  when:                             
+    - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+      (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
+  tags:                             [secrets]
+
+
+- name:                             "Destination - Get the SSH credentials for the SAP system from Key Vault"
+  ansible.builtin.include_role:
+    name:                           roles-scr/scr_keys
+    apply:
+      tags:                         [secrets]
+  vars:
+    function:                       "dest"                                                      # source or dest
+    granularity:                    "workload"                                                  # workload | sid | host
+    kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
+    prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
+  when:                             
+    - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
+      (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
+  tags:                             [secrets]
+
+
+- name:                             "LOG - STEP 2: Key Vault secrets retrieved"  # noqa: run-once[task]
+  ansible.builtin.include_role:
+    name:                           roles-scr/scr_log_function
+  vars:
+    activity:                       log_summary
+    action:                         store
+    payload:                        "STEP 2 : Key Vault secrets retrieved"
+  run_once:                         true
+  tags:                             [secrets]

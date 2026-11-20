@@ -1,0 +1,69 @@
+- name:                             "Controller - Gather facts for timestamps"  # noqa: run-once[task]
+  ansible.builtin.setup:
+  delegate_to:                      localhost
+  run_once:                         true
+  tags:                             [logging, always]
+
+
+- name:                             "Controller - Create SCR log directory"  # noqa: run-once[task]
+  ansible.builtin.file:
+    path:                           "{{ scr_log_dir }}"
+    state:                          directory
+    mode:                           "0755"
+  delegate_to:                      localhost
+  run_once:                         true
+  tags:                             [logging]
+
+
+- name:                             "LOG - Register SCR run in global index"  # noqa: run-once[task]
+  ansible.builtin.include_role:
+    name:                           roles-scr/scr_log_function
+  vars:
+    activity:                       index
+    action:                         register
+    payload:
+      activity:                     SCR
+      source_sid:                   "{{ scr_source_sid }}"
+      dest_sid:                     "{{ scr_dest_sid }}"
+  run_once:                         true
+  tags:                             [logging, always]
+
+
+# scr_job_id and scr_run_id are set on the run_once host (ansible_play_hosts[0]) by index/register.
+# set_fact tasks in index.yaml have no delegate_to, so facts land on the current play host.
+- name:                             "Controller - Broadcast scr_job_id and scr_run_id to all hosts"
+  ansible.builtin.set_fact:
+    scr_job_id:                     "{{ hostvars[ansible_play_hosts[0]]['scr_job_id'] }}"
+    scr_run_id:                     "{{ hostvars[ansible_play_hosts[0]]['scr_run_id'] }}"
+  tags:                             [logging, always]
+
+
+- name:                             "Controller - Write summary log header"  # noqa: run-once[task]
+  ansible.builtin.copy:
+    dest:                           "{{ scr_log_dir }}/{{ scr_job_id }}_{{ scr_run_id }}_summary.log"
+    mode:                           "0644"
+    content: |
+      ============================================================
+      SCR INITIALIZE — RUN STARTED
+      ============================================================
+      Job ID  : {{ scr_job_id }}
+      Run ID  : {{ scr_run_id }}
+      Source  : {{ scr_source_sid }}
+      Target  : {{ scr_dest_sid }}
+      Started : {{ ansible_date_time.iso8601 }}
+      ============================================================
+
+  delegate_to:                      localhost
+  run_once:                         true
+  tags:                             [logging]
+
+
+- name:                             "LOG - STEP 1: Logging initialized"  # noqa: run-once[task]
+  ansible.builtin.include_role:
+    name:                           roles-scr/scr_log_function
+  vars:
+    activity:                       log_summary
+    action:                         store
+    payload:                "STEP 1 : Logging initialized"
+  run_once:                         true
+  tags:                             [logging]

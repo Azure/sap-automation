@@ -1,0 +1,62 @@
+{# kernel_sync_report.j2
+   Rendered by the "Controller - Write kernel sync report" task in
+   playbook_scr_initialize.yaml.  Produces a structured text log
+   of the SAP kernel comparison result, grouped by action category.
+#}
+{%- set _match     = hostvars['localhost']['scr_matches']           | default([]) | sort -%}
+{%- set _copy      = hostvars['localhost']['scr_missing_on_target'] | default([]) | sort -%}
+{%- set _overwrite = hostvars['localhost']['scr_changed']           | default([]) | sort -%}
+{%- set _remove    = hostvars['localhost']['scr_extra_on_target']   | default([]) | sort -%}
+============================================================
+SAP KERNEL SYNC REPORT
+============================================================
+Source    : {{ scr_source_sid }}
+Target    : {{ scr_dest_sid }}
+Job ID    : {{ scr_job_id }}
+Run ID    : {{ scr_run_id }}
+Generated : {{ ansible_date_time.iso8601 }}
+============================================================
+
+------------------------------------------------------------
+FILES MATCHING  [{{ _match | length }} file(s)]
+  (present on both, content identical — no action needed)
+------------------------------------------------------------
+{% if _match | length > 0 %}
+{% for f in _match %}  {{ f }}
+{% endfor %}
+{% else %}  (none)
+{% endif %}
+
+------------------------------------------------------------
+FILES TO COPY FROM SOURCE  [{{ _copy | length }} file(s)]
+  (present on source, missing from target)
+------------------------------------------------------------
+{% if _copy | length > 0 %}
+{% for f in _copy %}  {{ f }}
+{% endfor %}
+{% else %}  (none)
+{% endif %}
+
+------------------------------------------------------------
+FILES TO OVERWRITE FROM SOURCE  [{{ _overwrite | length }} file(s)]
+  (present on both, content differs)
+------------------------------------------------------------
+{% if _overwrite | length > 0 %}
+{% for f in _overwrite %}  {{ f }}
+{% endfor %}
+{% else %}  (none)
+{% endif %}
+
+------------------------------------------------------------
+FILES TO REMOVE FROM TARGET  [{{ _remove | length }} file(s)]
+  (present on target, not present on source)
+------------------------------------------------------------
+{% if _remove | length > 0 %}
+{% for f in _remove %}  {{ f }}
+{% endfor %}
+{% else %}  (none)
+{% endif %}
+
+============================================================
+END OF REPORT
+============================================================

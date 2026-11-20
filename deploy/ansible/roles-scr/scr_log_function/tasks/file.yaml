@@ -1,0 +1,129 @@
+---
+# scr_log_function/tasks/file.yaml
+#
+# CRUD operations on files in Azure Blob Storage under the filestore/ prefix.
+#
+# Supported actions: store | retrieve | update | delete
+#
+# vars:
+#   payload:  file path (string) or list of file paths
+#   result_path:      local directory to download files into (retrieve only)
+#                     defaults to scr_log_function_local_log_dir
+#
+# Blob path: scr-runs/<run_id>/filestore/<basename>
+#
+#           single  multi
+# Store       ✔       ✔
+# Update      ✔       ✔
+# Retrieve    ✔       ✔
+# Delete      ✔       ✔
+#
+# where:
+#   single  = payload is a string representing a single file path (e.g. "/tmp/myfile.txt")
+#   multi   = payload is a list of file paths (e.g. ["/tmp/a.txt", "/tmp/b.txt"])
+
+
+# /*---------------------------------------------------------------------------8
+# | INITIALIZE                                                                 |
+# +------------------------------------4---------------------------------------*/
+# region: OPERATION: ALL
+- name:                                 "SCR Log Function [file/{{ action }}] - Ensure local temp directory exists"
+  ansible.builtin.file:
+    path:                               "{{ scr_log_function_local_filestore_dir }}"
+    state:                              directory
+    mode:                               "0755"
+  delegate_to:                          localhost
+  tags:
+    - silent_v1
+
+
+- name:                                 "SCR Log Function [file/{{ action }}] - Normalize payload into a list (string OR list)"
+  ansible.builtin.set_fact:
+    _payload_files: >-
+                                        {{
+                                          payload
+                                          if (payload is sequence and payload is not string)
+                                          else [payload]
+                                        }}
+  delegate_to:                          localhost
+  # tags:
+  #   - silent_v1
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |  STORE / UPDATE — upload file(s) to Azure filestore                       |
+# +------------------------------------4--------------------------------------*/
+# region: OPERATION: store/update
+#
+# Flow:
+#   1. Normalize each payload entry into file_name/file_host
+#   2. Run per-item atomic workflow via include_tasks
+- name:                                 "SCR Log Function [file/{{ action }}] - Process each file entry atomically"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/file_store_update_item.yaml
+  loop:                                 "{{ _payload_files }}"
+  loop_control:
+    loop_var:                           _file_entry
+  when:                                 action in ['store', 'update']
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |  RETRIEVE — download file(s) from Azure filestore                          |
+# +------------------------------------4---------------------------------------*/
+# region: OPERATION: retrieve
+#
+# Flow:
+- name:                                 "SCR Log Function [file/{{ action }}] - Process each file entry atomically"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/file_retrieve_item.yaml
+  loop:                                 "{{ _payload_files }}"
+  loop_control:
+    loop_var:                           _file_entry
+  when:                                 action == "retrieve"
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |  DELETE — remove file blob(s) from Azure                                  |
+# +------------------------------------4--------------------------------------*/
+# region: OPERATION: delete
+#
+# Flow:
+- name:                                 "SCR Log Function [file/{{ action }}] - Process each file entry atomically"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/file_delete_item.yaml
+  loop:                                 "{{ _payload_files }}"
+  loop_control:
+    loop_var:                           _file_entry
+  when:                                 action == "delete"
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |  CLEANUP — reset temporary facts                                           |
+# +------------------------------------4--------------------------------------*/
+# region: OPERATION: ALL
+- name:                                 "SCR Log Function [file/cleanup] - Reset temporary facts"
+  block:
+
+    - name:                             "SCR Log Function [file/cleanup] - Set facts to null"
+      ansible.builtin.set_fact:
+        "{{ item }}":                   null
+      loop:
+                                        - _file_name
+                                        - _payload_files
+                                        # - _payload_file_entries
+                                        # - _file_stats
+                                        # - _file_host_effective
+                                        # # - _local_file_id
+                                        # - _local_file_path
+                                        # - _store_source_stat
+                                        # - _store_local_stat
+      delegate_to:                      localhost
+      changed_when:                     true
+
+  tags:
+    - silent_v1
+# endregion
