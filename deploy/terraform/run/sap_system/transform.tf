@@ -77,6 +77,7 @@ locals {
                                             resource_offset        = var.resource_offset
                                             nsg_asg_with_vnet      = var.nsg_asg_with_vnet
                                             legacy_nic_order       = var.legacy_nic_order
+                                            use_entra_login        = var.use_entra_login
                                           }
 
   key_vault_temp                        = { }

@@ -247,11 +247,13 @@ resource "azurerm_linux_virtual_machine" "scs" {
                    }
 
   dynamic "identity" {
-                       for_each = range((var.use_msi_for_clusters && var.application_tier.scs_high_availability) || length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                       for_each = range( local.use_system_assigned_identity || length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
                        content {
-                         type         = var.use_msi_for_clusters && length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : var.use_msi_for_clusters ? "SystemAssigned" : "UserAssigned"
-                         identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
-                       }
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
                      }
   lifecycle {
     ignore_changes = [
@@ -437,13 +439,17 @@ resource "azurerm_windows_virtual_machine" "scs" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
-  dynamic "identity"   {
-                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
-                         content {
-                                   type         = "UserAssigned"
-                                   identity_ids = [var.application_tier.user_assigned_identity_id]
-                                 }
-                       }
+
+  dynamic "identity" {
+                       for_each = range( local.use_system_assigned_identity || length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                       content {
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
+                     }
+
   lifecycle {
     ignore_changes = [
       source_image_id
@@ -751,3 +757,30 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_win" {
                                             }
                                           )
 }
+
+
+resource "azurerm_virtual_machine_extension" "aad_login_scs_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
+                                           var.application_tier.scs_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.scs[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_scs_win" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
+                                           var.application_tier.scs_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.scs[count.index].id
+  name                                 = "AADLoginForWindows"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADLoginForWindows"
+  type_handler_version                 = "2.2"
+}
+
+

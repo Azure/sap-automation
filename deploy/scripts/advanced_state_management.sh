@@ -367,7 +367,7 @@ export TF_DATA_DIR="${directory}"
 
 if [ "${operation}" == "break_lease" ]; then
 
-	az storage blob lease break --account-name "${storage_account_name}" --container-name tfstate --name "${key}" --subscription "${subscription_id}"
+	az storage blob lease break --account-name "${storage_account_name}" --container-name tfstate --blob-name "${key}" --subscription "${subscription_id}"
 	return_value=$?
 	if [ 0 != $return_value ]; then
 		echo "Failed to break lease on blob: ${key}"

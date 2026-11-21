@@ -180,11 +180,13 @@ resource "azurerm_linux_virtual_machine" "utility_vm" {
 
                          }
   dynamic "identity"     {
-                           for_each = range(length(var.infrastructure.user_assigned_identity_id) > 0 ? 1 : 0)
+                           for_each = range((length(var.infrastructure.user_assigned_identity_id) > 0 || var.options.use_entra_login) ? 1 : 0)
                            content {
-                                   type         = "UserAssigned"
-                                   identity_ids = [var.infrastructure.user_assigned_identity_id]
-                                 }
+                               type = var.options.use_entra_login ? (
+                                 length(var.infrastructure.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                    ) : "UserAssigned"
+                               identity_ids = length(var.infrastructure.user_assigned_identity_id) > 0 ? [var.infrastructure.user_assigned_identity_id] : null
+                            }
                           }
 
 
@@ -257,3 +259,31 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_utility_win" {
                                             }
                                           )
 }
+
+
+
+resource "azurerm_virtual_machine_extension" "aad_login_utility_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.vm_settings.image.os_type) == "LINUX" ? (
+                                           var.vm_settings.count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.utility_vm[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_utility_win" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.vm_settings.image.os_type) == "WINDOWS" ? (
+                                           var.vm_settings.count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.utility_vm[count.index].id
+  name                                 = "AADLoginForWindows"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADLoginForWindows"
+  type_handler_version                 = "2.2"
+}
+
+
