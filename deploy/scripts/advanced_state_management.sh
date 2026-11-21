@@ -406,6 +406,7 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
+export TF_VAR_deployer_tfstate_key="${control_plane_name}-INFRASTRUCTURE.terraform.tfstate"
 
 if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	if [ -n "${workload_zone_name}" ]; then
@@ -446,8 +447,8 @@ fi
 
 shorter_name=$(echo "${moduleID}" | cut -d[ -f1)
 tf_resource=$(grep "${shorter_name}" resources.lst || true)
-echo "Result after grep: " "${tf_resource}"
 if [ "${operation}" == "import" ] || [ "${operation}" == "remove" ]; then
+	echo "Result after grep: " "${tf_resource}"
 	if [ -n "${tf_resource}" ]; then
 
 		echo "#########################################################################################"
@@ -472,8 +473,6 @@ if [ "${operation}" == "import" ] || [ "${operation}" == "remove" ]; then
 	fi
 fi
 
-rm resources.lst
-
 if [ "${operation}" == "import" ]; then
 
 	terraform -chdir="${module_dir}" import -var-file "${parameter_file}" "${moduleID}" "${resourceID}"
@@ -491,5 +490,8 @@ if [ "${operation}" == "import" ]; then
 		exit $return_value
 	fi
 fi
+
+rm resources.lst
+
 
 unset TF_DATA_DIR
