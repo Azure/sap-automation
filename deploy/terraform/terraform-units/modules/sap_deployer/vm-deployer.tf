@@ -317,3 +317,16 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_deployer_lnx" 
                                           )
   tags                                 = var.infrastructure.tags
 }
+
+
+resource "azurerm_virtual_machine_extension" "aad_login_web_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login ? (
+                                           var.deployer_vm_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.deployer[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
