@@ -429,7 +429,7 @@ namespace SDAFWebApp.Controllers
             string jsonFormattedOutput;
             while (true)
             {
-                string currLine = stringReader.ReadLine();
+                string currLine = stringReader.ReadLine()?.Trim();
                 if (currLine == null)
                 {
                     RemoveTrailingComma(jsonString);
@@ -459,35 +459,7 @@ namespace SDAFWebApp.Controllers
                         string value = null;
                         if (key.EndsWith("tags\""))
                         {
-                            StringBuilder valueBuilder = new();
-                            valueBuilder.Append('[');
-                            currLine = stringReader.ReadLine()?.TrimStart();
-                            while (currLine != null && !currLine.StartsWith('}'))
-                            {
-                                if (string.IsNullOrWhiteSpace(currLine) || currLine.StartsWith('#') || currLine.StartsWith("//", StringComparison.Ordinal))
-                                {
-                                    currLine = stringReader.ReadLine()?.TrimStart();
-                                    continue;
-                                }
-
-                                equalIndex = currLine.IndexOf('=');
-                                if (equalIndex < 0)
-                                {
-                                    throw new FormatException($"Invalid tag entry: {currLine}");
-                                }
-
-                                string tagKey = ConvertTfvarsMapTokenToJsonString(currLine[..equalIndex]);
-                                string tagValue = ConvertTfvarsMapTokenToJsonString(currLine[(equalIndex + 1)..]);
-                                valueBuilder.Append('{');
-                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue);
-                                valueBuilder.Append("},");
-                                currLine = stringReader.ReadLine()?.TrimStart();
-                            }
-                            if (currLine == null)
-                            {
-                                throw new FormatException("Unterminated tags map.");
-                            }
-                            value = valueBuilder.ToString().Trim(',') + "],";
+                            value = ReadKeyValueBlock(stringReader, currLine[(equalIndex + 1)..].Trim(), key) + ",";
                         }
                         else if (key.ToLower() == "\"network_address_space\"")
                         {
@@ -505,31 +477,7 @@ namespace SDAFWebApp.Controllers
                         }
                         else if (key.EndsWith("configuration_settings\""))
                         {
-                            StringBuilder valueBuilder = new();
-                            valueBuilder.Append('[');
-                            currLine = stringReader.ReadLine()?.TrimStart();
-                            while (currLine != null && !currLine.StartsWith('}'))
-                            {
-                                if (string.IsNullOrWhiteSpace(currLine) || currLine.StartsWith('#'))
-                                {
-                                    currLine = stringReader.ReadLine()?.TrimStart();
-                                    continue;
-                                }
-
-                                equalIndex = currLine.IndexOf('=');
-                                if (equalIndex < 0)
-                                {
-                                    throw new FormatException($"Invalid configuration setting entry: {currLine}");
-                                }
-
-                                string tagKey = ConvertTfvarsMapTokenToJsonString(currLine[..equalIndex]);
-                                string tagValue = ConvertTfvarsMapTokenToJsonString(currLine[(equalIndex + 1)..]);
-                                valueBuilder.Append('{');
-                                valueBuilder.Append("\"Key\":").Append(tagKey).Append(',').Append("\"Value\":").Append(tagValue);
-                                valueBuilder.Append("},");
-                                currLine = stringReader.ReadLine()?.TrimStart();
-                            }
-                            value = valueBuilder.ToString().Trim(',') + "],";
+                            value = ReadKeyValueBlock(stringReader, currLine[(equalIndex + 1)..].Trim(), key) + ",";
                         }
                         else
                         {
@@ -552,41 +500,53 @@ namespace SDAFWebApp.Controllers
             return jsonFormattedOutput;
         }
 
-        private static string NormalizeStringArray(string value)
+        private static string ReadKeyValueBlock(StringReader reader, string openingValue, string key)
         {
-            using JsonDocument document = JsonDocument.Parse(value);
-            string[] values = document.RootElement
-                .EnumerateArray()
-                .Select(element => element.ValueKind == JsonValueKind.String
-                    ? element.GetString()
-                    : element.GetRawText())
-                .ToArray();
-
-            return JsonSerializer.Serialize(values);
-        }
-
-        private static string ConvertTfvarsMapTokenToJsonString(string value)
-        {
-            string token = value.Trim().TrimEnd(',').TrimEnd();
-            if (token.StartsWith('"'))
+            if (openingValue == "{}")
             {
-                token = JsonSerializer.Deserialize<string>(token);
+                return "[]";
             }
 
-            return JsonSerializer.Serialize(token);
-        }
-
-        private static void RemoveTrailingComma(StringBuilder value)
-        {
-            while (value.Length > 0 && char.IsWhiteSpace(value[^1]))
+            string openingRemainder = openingValue.StartsWith('{') ? openingValue[1..].Trim() : null;
+            if (openingRemainder == null ||
+                (openingRemainder.Length > 0 && !openingRemainder.StartsWith('#') && !openingRemainder.StartsWith("//")))
             {
-                value.Length--;
+                throw new FormatException($"Expected a map block for {key}.");
             }
 
-            if (value.Length > 0 && value[^1] == ',')
+            StringBuilder values = new("[");
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
-                value.Length--;
+                line = line.Trim();
+                if (line.Length == 0 || line.StartsWith('#') || line.StartsWith("//"))
+                {
+                    continue;
+                }
+
+                if (line.StartsWith('}'))
+                {
+                    return values.ToString().TrimEnd(',') + "]";
+                }
+
+                int equalIndex = line.IndexOf('=');
+                if (equalIndex <= 0)
+                {
+                    throw new FormatException($"Expected a key=value entry in {key}.");
+                }
+
+                string entryKey = line[..equalIndex].Trim();
+                if (!entryKey.StartsWith('"'))
+                {
+                    entryKey = JsonSerializer.Serialize(entryKey);
+                }
+
+                string entryValue = line[(equalIndex + 1)..].Trim().TrimEnd(',');
+                values.Append("{\"Key\":").Append(entryKey)
+                    .Append(",\"Value\":").Append(entryValue).Append("},");
             }
+
+            throw new FormatException($"Unterminated map block for {key}.");
         }
 
         public static async Task<AppFile> GetImagesFile(
