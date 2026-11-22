@@ -142,14 +142,7 @@ namespace SDAFWebApp
                     provider.GetRequiredService<IDatabaseSettings>(),
                     provider.GetRequiredService<RestHelper>()));
 
-            services.AddScoped<RepositoryAppFileService>(provider =>
-                new RepositoryAppFileService(
-                    provider.GetRequiredService<IRepositoryDataAccessProvider>(),
-                    provider.GetRequiredService<IRepositoryPathConvention>(),
-                    provider.GetRequiredService<RestHelper>(),
-                    provider.GetRequiredService<IDatabaseSettings>()));
-
-            // Register selectors that implement repository-first with storage fallback strategy
+            // Workload zones retain the configured repository/storage persistence strategy.
             services.AddScoped<ITableStorageService<LandscapeEntity>>(provider =>
                 new TableStorageServiceSelector<LandscapeEntity>(
                     provider.GetRequiredService<IOptions<RepositoryPersistenceSettings>>(),
@@ -158,18 +151,11 @@ namespace SDAFWebApp
                     provider.GetRequiredService<ILogger<TableStorageServiceSelector<LandscapeEntity>>>()));
 
             services.AddScoped<ITableStorageService<SystemEntity>>(provider =>
-                new TableStorageServiceSelector<SystemEntity>(
-                    provider.GetRequiredService<IOptions<RepositoryPersistenceSettings>>(),
-                    provider.GetRequiredService<RepositorySystemService>(),
-                    provider.GetRequiredService<SystemService>(),
-                    provider.GetRequiredService<ILogger<TableStorageServiceSelector<SystemEntity>>>()));
+                provider.GetRequiredService<RepositorySystemService>());
 
+            // Uploaded files and system artifacts always use the storage account.
             services.AddScoped<ITableStorageService<AppFile>>(provider =>
-                new TableStorageServiceSelector<AppFile>(
-                    provider.GetRequiredService<IOptions<RepositoryPersistenceSettings>>(),
-                    provider.GetRequiredService<RepositoryAppFileService>(),
-                    provider.GetRequiredService<AppFileService>(),
-                    provider.GetRequiredService<ILogger<TableStorageServiceSelector<AppFile>>>()));
+                provider.GetRequiredService<AppFileService>());
 
             services.AddAzureClients(builder =>
             {
