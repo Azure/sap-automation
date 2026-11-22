@@ -1493,6 +1493,16 @@
         "Overrules": "",
         "Display": 2
       },
+
+      {
+        "Name": "use_entra_login",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Entra login extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
       {
         "Name": "patch_mode",
         "Required": false,

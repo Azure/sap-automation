@@ -340,6 +340,9 @@ $$deploy_monitoring_extension$$
 # If defined, will add the Microsoft.Azure.Security.Monitoring extension to the Virtual Machines
 $$deploy_defender_extension$$
 
+# If defined, will add the Microsoft.Azure.Entra login extension to the virtual machines
+$$use_entra_login$$
+
 # If defined, defines the patching mode for the Virtual Machines
 $$patch_mode$$
 
