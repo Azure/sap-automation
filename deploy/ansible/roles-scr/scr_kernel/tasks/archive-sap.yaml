@@ -64,6 +64,7 @@
         path:                           "{{ archive_files }}"
         dest:                           "/tmp/.scr/{{ scr_source_sid }}_SAP_kernel_files.tar.gz"
         format:                         gz
+        mode:                           "0600"
         force_archive:                  true                                                        # If the destination archive already exists, overwrite it with the new archive containing the current list of files to be archived. This ensures that we always have an up-to-date archive that reflects the current state of the source system's SAP kernel files, especially if this task is re-run after making changes to the source system or if the inventory results have changed.
       vars:
         archive_files: >-

@@ -8,7 +8,7 @@
 # source_root: /sapmnt/{{ scr_source_sid }}
 # destination_root: /sapmnt/{{ scr_dest_sid }}
 
-# TODO: 
+# TODO:
 #   If scr_kernel_files_{{ scr_source_sid }} or scr_kernel_files_{{ scr_dest_sid }} is not defined, it means the inventory step was skipped for that system. In this case, we should either:
 #     - Load the inventory data from a previously saved location (if available) to allow the comparison to proceed without forcing the user to re-run the inventory step.
 #     - Fail with a clear error message indicating that the inventory step must be completed before comparison.
@@ -46,7 +46,7 @@
 # |                       Compute structural differences                       |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- name:                                 "Compare: Compute file sets" 
+- name:                                 "Compare: Compute file sets"
   delegate_to:                          localhost
   delegate_facts:                       true
   ansible.builtin.set_fact:

@@ -7,7 +7,7 @@
 
 - name:                                 "Initialize {{ function }} system discovery"
   ansible.builtin.debug:
-    msg: 
+    msg:
       - "Inventory SAP or DB Kernel for {{ sapsid }}"
       - "Source or Target {{ sapsid }}:"
       # - "Starting SCR system discovery for {{ scr_discovery_system_role }} system"

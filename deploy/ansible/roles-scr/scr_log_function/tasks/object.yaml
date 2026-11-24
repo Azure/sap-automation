@@ -65,7 +65,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 # region: OPERATION: ALL
-- name:
+- name:                                 "SCR Log Function [object/{{ action }}] - Download object store"
   block:
 
 # Download the OBJECT_STORE to the localhost server.
@@ -146,8 +146,6 @@
         loop_var:                       _obj_loop_item
       # delegate_to:                      "{{ _fact_host if _fact_host else 'localhost' }}"
       # delegate_facts:                   "{{ true if _fact_host else false }}"
-      delegate_to:                      "{{ _fact_host }}"
-      delegate_facts:                   "{{ true if _fact_host == 'localhost' else false }}"
       vars:
         _fact_parts:                    "{{ _obj_loop_item.split(',') }}"
         _fact_name:                     "{{ _fact_parts[0] | trim }}"
@@ -155,7 +153,29 @@
                                               if (_fact_parts[1] | default('') | trim) == 'localhost'
                                               else inventory_hostname
                                         }}"
-      when:                             _fact_name in _object_store
+      delegate_to:                      "{{ _fact_host }}"
+      when:
+                                        - _fact_name in _object_store
+                                        - _fact_host != 'localhost'
+
+    - name:                             "SCR Log Function [object/{{ action }}/({{ _payload_names | map('regex_replace', '^\\s*([^,]+).*$','\\1') | map('trim') | list }})] - Promote JSON key to localhost fact"
+      ansible.builtin.set_fact:
+        "{{ _fact_name }}":             "{{ _object_store[_fact_name] }}"
+      loop:                             "{{ _payload_names }}"
+      loop_control:
+        loop_var:                       _obj_loop_item
+      delegate_to:                      localhost
+      delegate_facts:                   true
+      vars:
+        _fact_parts:                    "{{ _obj_loop_item.split(',') }}"
+        _fact_name:                     "{{ _fact_parts[0] | trim }}"
+        _fact_host:                     "{{ 'localhost'
+                                              if (_fact_parts[1] | default('') | trim) == 'localhost'
+                                              else inventory_hostname
+                                        }}"
+      when:
+                                        - _fact_name in _object_store
+                                        - _fact_host == 'localhost'
 
   when:                                 action == "retrieve"
   tags:

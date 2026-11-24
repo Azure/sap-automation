@@ -33,7 +33,7 @@
                                           --auth-mode      login
   delegate_to:                          localhost
   changed_when:                         true
-  ignore_errors:                        true
+  failed_when:                          false
 # endregion
 
 
@@ -51,7 +51,8 @@
     action:                             retrieve
     payload:                            file_store
 
-- debug:
+- name:                                 "SCR Log Function [file/{{ action }}] - Debug file store"
+  ansible.builtin.debug:
     var:                                file_store
     verbosity:                          0
 
@@ -63,7 +64,7 @@
                                             | items2dict
                                         }}"
   changed_when:                         true
-  ignore_errors:                        true
+  failed_when:                          false
 
 
 - name:                                 "SCR Log Function [file/{{ action }}] - Save updated file_store into OBJECT_STORE"

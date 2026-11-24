@@ -28,7 +28,7 @@
 
 
 # region: Initialize sap_env variable with default structure
-- name:
+- name:                                 "SCR SAP Utility - Initialize results"
   ansible.builtin.set_fact:
     _results:                           null
     _filter_service_keys:
@@ -129,7 +129,7 @@
 # endregion
 
 # region: Get system initialization information
-- name:
+- name:                                 "SCR SAP Utility - Set application system initialization"
   ansible.builtin.set_fact:
     sap_env: >-
                                         {{ sap_env
@@ -148,7 +148,7 @@
 
 
 
-- name:
+- name:                                 "SCR SAP Utility - Collect systemd services"
   block:
 
 # region: Get SAP systemd services information for saphostagent
@@ -157,7 +157,7 @@
         name:                           'saphostagent'
       register:                         _results
 
-    - name:
+    - name:                             "SCR SAP Utility - Combine SAP systemd services"
       ansible.builtin.set_fact:
         sap_env: >-
                                             {{ sap_env
@@ -192,7 +192,7 @@
         name:                           'SAPX91_00'
       register:                         _results
 
-    - name:
+    - name:                                 "SCR SAP Utility - Combine SAPX91_00 systemd services"
       ansible.builtin.set_fact:
         sap_env: >-
                                             {{ sap_env
@@ -229,7 +229,8 @@
 
 
 
-- debug:
+- name:                                 "SCR SAP Utility - Display SAP environment"
+  ansible.builtin.debug:
     var: sap_env
 
 

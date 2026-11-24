@@ -91,7 +91,7 @@
 
 - name:                                 "SCR Kernel: ({{ function | upper }}) Analyze Database Server"
   ansible.builtin.include_tasks:
-    file:                               roles-scr/scr_kernel/tasks/analyze-db.yaml
+    file:                               "{{ role_path }}/tasks/analyze-db.yaml"
 
 
 

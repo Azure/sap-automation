@@ -104,7 +104,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 # region:
-- name:
+- name:                                 "SCR Log Function [file/{{ action }}] - Move retrieved file"
   block:
     # Ensure target directory exists
     - name:                                 "SCR Log Function [file/{{ action }}] - Ensure directory exists"
