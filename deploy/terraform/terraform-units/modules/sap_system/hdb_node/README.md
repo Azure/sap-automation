@@ -1,6 +1,4 @@
 <!-- BEGIN_TF_DOCS -->
-
-
 ## Requirements
 
 | Name | Version |
@@ -61,6 +59,8 @@ No modules.
 | [azurerm_virtual_machine_data_disk_attachment.cluster_observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.vm_dbnode_data_disk](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_extension.aad_login_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_observer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_extension_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [time_sleep.wait_for_private_endpoints](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
@@ -80,11 +80,16 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_AFS_enable_encryption_in_transit"></a> [AFS\_enable\_encryption\_in\_transit](#input\_AFS\_enable\_encryption\_in\_transit) | Enable encryption in transit for Azure Files | `bool` | `false` | no |
+| <a name="input_Agent_IP"></a> [Agent\_IP](#input\_Agent\_IP) | The IP address of the agent | `list` | <pre>[<br/>  ""<br/>]</pre> | no |
 | <a name="input_NFS_provider"></a> [NFS\_provider](#input\_NFS\_provider) | Describes the NFS solution used | `string` | n/a | yes |
 | <a name="input_admin_subnet"></a> [admin\_subnet](#input\_admin\_subnet) | Information about SAP admin subnet | `any` | n/a | yes |
+| <a name="input_anchor_vm"></a> [anchor\_vm](#input\_anchor\_vm) | Deployed anchor VM | `any` | `null` | no |
 | <a name="input_cloudinit_growpart_config"></a> [cloudinit\_growpart\_config](#input\_cloudinit\_growpart\_config) | A cloud-init config that configures automatic growpart expansion of root partition | `any` | n/a | yes |
+| <a name="input_custom_disk_sizes_filename"></a> [custom\_disk\_sizes\_filename](#input\_custom\_disk\_sizes\_filename) | Disk size json file | `string` | `""` | no |
 | <a name="input_database"></a> [database](#input\_database) | n/a | `any` | n/a | yes |
 | <a name="input_database_active_active"></a> [database\_active\_active](#input\_database\_active\_active) | If true, database will deployed with Active/Active (read enabled) configuration | `bool` | n/a | yes |
+| <a name="input_database_server_count"></a> [database\_server\_count](#input\_database\_server\_count) | The number of database servers | `number` | `1` | no |
 | <a name="input_database_use_premium_v2_storage"></a> [database\_use\_premium\_v2\_storage](#input\_database\_use\_premium\_v2\_storage) | If true, the database tier will use premium storage | `bool` | n/a | yes |
 | <a name="input_database_vm_admin_nic_ips"></a> [database\_vm\_admin\_nic\_ips](#input\_database\_vm\_admin\_nic\_ips) | If provided, the database tier will be configured with the specified IPs (admin subnet) | `any` | n/a | yes |
 | <a name="input_database_vm_db_nic_ips"></a> [database\_vm\_db\_nic\_ips](#input\_database\_vm\_db\_nic\_ips) | If provided, the database tier will be configured with the specified IPs | `any` | n/a | yes |
@@ -100,10 +105,15 @@ No modules.
 | <a name="input_enable_storage_nic"></a> [enable\_storage\_nic](#input\_enable\_storage\_nic) | Boolean to determine if a storage nic should be used when scale out is enabled | `bool` | n/a | yes |
 | <a name="input_fencing_role_name"></a> [fencing\_role\_name](#input\_fencing\_role\_name) | If specified the role name to use for the fencing | `any` | n/a | yes |
 | <a name="input_hana_ANF_volumes"></a> [hana\_ANF\_volumes](#input\_hana\_ANF\_volumes) | Defines HANA ANF volumes | `any` | n/a | yes |
+| <a name="input_hanashared_id"></a> [hanashared\_id](#input\_hanashared\_id) | Azure Resource Identifier for an storage account | `list` | <pre>[<br/>  ""<br/>]</pre> | no |
+| <a name="input_hanashared_private_endpoint_id"></a> [hanashared\_private\_endpoint\_id](#input\_hanashared\_private\_endpoint\_id) | Azure Resource Identifier for an private endpoint connection | `list` | <pre>[<br/>  ""<br/>]</pre> | no |
+| <a name="input_hanashared_volume_size"></a> [hanashared\_volume\_size](#input\_hanashared\_volume\_size) | The volume size in GB for hana shared | `number` | `128` | no |
 | <a name="input_infrastructure"></a> [infrastructure](#input\_infrastructure) | Dictionary with infrastructure settings | `any` | n/a | yes |
 | <a name="input_landscape_tfstate"></a> [landscape\_tfstate](#input\_landscape\_tfstate) | Landscape remote tfstate file | `any` | n/a | yes |
+| <a name="input_license_type"></a> [license\_type](#input\_license\_type) | Specifies the license type for the OS | `string` | `""` | no |
 | <a name="input_naming"></a> [naming](#input\_naming) | Defines the names for the resources | `any` | n/a | yes |
 | <a name="input_observer_vm_size"></a> [observer\_vm\_size](#input\_observer\_vm\_size) | n/a | `any` | n/a | yes |
+| <a name="input_observer_vm_tags"></a> [observer\_vm\_tags](#input\_observer\_vm\_tags) | Tags to use specifically for the observer VM | `map` | `{}` | no |
 | <a name="input_observer_vm_zones"></a> [observer\_vm\_zones](#input\_observer\_vm\_zones) | n/a | `any` | n/a | yes |
 | <a name="input_options"></a> [options](#input\_options) | n/a | `any` | n/a | yes |
 | <a name="input_ppg"></a> [ppg](#input\_ppg) | Details of the proximity placement group | `any` | n/a | yes |
@@ -121,21 +131,11 @@ No modules.
 | <a name="input_terraform_template_version"></a> [terraform\_template\_version](#input\_terraform\_template\_version) | The version of Terraform templates that were identified in the state file | `any` | n/a | yes |
 | <a name="input_use_admin_nic_for_asg"></a> [use\_admin\_nic\_for\_asg](#input\_use\_admin\_nic\_for\_asg) | If true, the admin nic will be assigned to the ASG instead of the second nic | `any` | n/a | yes |
 | <a name="input_use_admin_nic_suffix_for_observer"></a> [use\_admin\_nic\_suffix\_for\_observer](#input\_use\_admin\_nic\_suffix\_for\_observer) | If true, the admin nic suffix will be used for the observer | `any` | n/a | yes |
+| <a name="input_use_loadbalancers_for_standalone_deployments"></a> [use\_loadbalancers\_for\_standalone\_deployments](#input\_use\_loadbalancers\_for\_standalone\_deployments) | Defines if load balancers are used even for standalone deployments | `bool` | `true` | no |
 | <a name="input_use_msi_for_clusters"></a> [use\_msi\_for\_clusters](#input\_use\_msi\_for\_clusters) | If true, the Pacemaker cluster will use a managed identity | `any` | n/a | yes |
 | <a name="input_use_observer"></a> [use\_observer](#input\_use\_observer) | Use Observer VM | `any` | n/a | yes |
-| <a name="input_use_scalesets_for_deployment"></a> [use\_scalesets\_for\_deployment](#input\_use\_scalesets\_for\_deployment) | Use Flexible Virtual Machine Scale Sets for the deployment | `any` | n/a | yes |
-| <a name="input_AFS_enable_encryption_in_transit"></a> [AFS\_enable\_encryption\_in\_transit](#input\_AFS\_enable\_encryption\_in\_transit) | Enable encryption in transit for Azure Files | `bool` | `false` | no |
-| <a name="input_Agent_IP"></a> [Agent\_IP](#input\_Agent\_IP) | The IP address of the agent | `list` | <pre>[<br/>  ""<br/>]</pre> | no |
-| <a name="input_anchor_vm"></a> [anchor\_vm](#input\_anchor\_vm) | Deployed anchor VM | `any` | `null` | no |
-| <a name="input_custom_disk_sizes_filename"></a> [custom\_disk\_sizes\_filename](#input\_custom\_disk\_sizes\_filename) | Disk size json file | `string` | `""` | no |
-| <a name="input_database_server_count"></a> [database\_server\_count](#input\_database\_server\_count) | The number of database servers | `number` | `1` | no |
-| <a name="input_hanashared_id"></a> [hanashared\_id](#input\_hanashared\_id) | Azure Resource Identifier for an storage account | `list` | <pre>[<br/>  ""<br/>]</pre> | no |
-| <a name="input_hanashared_private_endpoint_id"></a> [hanashared\_private\_endpoint\_id](#input\_hanashared\_private\_endpoint\_id) | Azure Resource Identifier for an private endpoint connection | `list` | <pre>[<br/>  ""<br/>]</pre> | no |
-| <a name="input_hanashared_volume_size"></a> [hanashared\_volume\_size](#input\_hanashared\_volume\_size) | The volume size in GB for hana shared | `number` | `128` | no |
-| <a name="input_license_type"></a> [license\_type](#input\_license\_type) | Specifies the license type for the OS | `string` | `""` | no |
-| <a name="input_observer_vm_tags"></a> [observer\_vm\_tags](#input\_observer\_vm\_tags) | Tags to use specifically for the observer VM | `map` | `{}` | no |
-| <a name="input_use_loadbalancers_for_standalone_deployments"></a> [use\_loadbalancers\_for\_standalone\_deployments](#input\_use\_loadbalancers\_for\_standalone\_deployments) | Defines if load balancers are used even for standalone deployments | `bool` | `true` | no |
 | <a name="input_use_private_endpoint"></a> [use\_private\_endpoint](#input\_use\_private\_endpoint) | Boolean value indicating if private endpoint should be used for the deployment | `bool` | `false` | no |
+| <a name="input_use_scalesets_for_deployment"></a> [use\_scalesets\_for\_deployment](#input\_use\_scalesets\_for\_deployment) | Use Flexible Virtual Machine Scale Sets for the deployment | `any` | n/a | yes |
 | <a name="input_use_secondary_ips"></a> [use\_secondary\_ips](#input\_use\_secondary\_ips) | Use secondary IPs for the SAP System | `bool` | `false` | no |
 | <a name="input_use_single_hana_shared"></a> [use\_single\_hana\_shared](#input\_use\_single\_hana\_shared) | Boolean indicating wether to use a single storage account for all HANA file shares | `bool` | `false` | no |
 
@@ -167,5 +167,4 @@ No modules.
 | <a name="output_observer_shared_disks"></a> [observer\_shared\_disks](#output\_observer\_shared\_disks) | List of Azure shared disks on the majority maker |
 | <a name="output_observer_vms"></a> [observer\_vms](#output\_observer\_vms) | Resource IDs for observer nodes |
 | <a name="output_site_information"></a> [site\_information](#output\_site\_information) | Site information |
-
 <!-- END_TF_DOCS -->
