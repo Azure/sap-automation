@@ -23,6 +23,8 @@
   vars:
     # If you're using a user-assigned managed identity, set this:
     # msi_client_id:                      "<user-assigned-mi-client-id>"          # optional
+    scr_source_sid:                     "{{ scr_source_sid | default 'X00' }}"
+    scr_dest_sid:                       "{{ scr_dest_sid | default 'X01' }}"
 
   vars_files:
     - roles-scr/scr_common/defaults/main.yaml                                   # loads scr_log_dir, scr_azure_*, etc.
@@ -124,7 +126,7 @@
         granularity:                    "workload"                                                  # workload | sid | host
         kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
         prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
-      when:                             
+      when:
         - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
           (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
 
@@ -137,7 +139,7 @@
         granularity:                    "workload"                                                  # workload | sid | host
         kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
         prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
-      when:                             
+      when:
         - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
           (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
 
@@ -272,25 +274,25 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                             "Source - Inventory SAP Kernel Files for SID"
-      include_role:
+      ansible.builtin.include_role:
         name:                           roles-scr/scr_kernel
       vars:
         function:                       "inventory"                                                 #
         kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
         sapsid:                         "{{ scr_source_sid }}"                                      # SID
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names'] or
           (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
 
     - name:                             "Destination - Inventory SAP Kernel Files for SID"
-      include_role:
+      ansible.builtin.include_role:
         name:                           roles-scr/scr_kernel
       vars:
         function:                       "inventory"                                                 #
         kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
         sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names'] or
           (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -308,7 +310,7 @@
 
 # -------------------------------------+
     - name:                             "Compare SAP Kernel Files for SID"
-      include_role:
+      ansible.builtin.include_role:
         name:                           roles-scr/scr_kernel
       vars:
         function:                       "compare"                                                   #
@@ -375,7 +377,7 @@
         function:                       "archive"                                                   #
         kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
         sapsid:                         "{{ scr_source_sid }}"                                      # SID
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names'] or
           (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 # -------------------------------------+---------------------------------------8
@@ -407,7 +409,7 @@
     #     function:                       "inventory"                                                 #
     #     kernel:                         "db"                                                        # sap or db (hana, oracle, etc.)
     #     sapsid:                         "{{ scr_source_sid }}"                                      # SID
-    #   when:                             
+    #   when:
     #     - (sapsid | upper + '_PAS') in vars['group_names'] or
     #       (sapsid | upper + '_DB')  in vars['group_names']                  # source or destination groups
 
@@ -494,7 +496,7 @@
       vars:
         cleanup:                          true
         function:                         "source"
-      when:                             
+      when:
         - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
           (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
 
@@ -504,7 +506,7 @@
       vars:
         cleanup:                          true
         function:                         "dest"
-      when:                             
+      when:
         - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
           (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
 

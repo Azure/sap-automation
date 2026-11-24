@@ -120,7 +120,7 @@
         granularity:                    "workload"                                                  # workload | sid | host
         kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
         prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
-      when:                             
+      when:
         - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
           (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
 
@@ -133,7 +133,7 @@
         granularity:                    "workload"                                                  # workload | sid | host
         kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
         prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
-      when:                             
+      when:
         - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
           (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
 
@@ -181,7 +181,7 @@
     #     function:                       "inventory"                                                 #
     #     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     #     sapsid:                         "{{ scr_source_sid }}"                                      # SID
-    #   when:                             
+    #   when:
     #     - (sapsid | upper + '_PAS') in vars['group_names'] or
     #       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -193,7 +193,7 @@
     #     function:                       "inventory"                                                 #
     #     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     #     sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-    #   when:                             
+    #   when:
     #     - (sapsid | upper + '_PAS') in vars['group_names'] or
     #       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -272,13 +272,13 @@
 
 # -------------------------------------+
     - name:                             "Source - Archive SAP Kernel Files for SID"
-      include_role:
+      ansible.builtin.include_role:
         name:                           roles-scr/scr_kernel
       vars:
         function:                       "archive"                                                   #
         kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
         sapsid:                         "{{ scr_source_sid }}"                                      # SID
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names'] or
           (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 # -------------------------------------+---------------------------------------8
@@ -304,21 +304,10 @@
         action:                         retrieve
         payload:                /tmp/X90_SAP_kernel_files.tar.gz
         sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names']
 
-
-
-
-
-
     - meta:         end_play
-
-
-
-
-
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -335,7 +324,7 @@
     #   vars:
     #     cleanup:                          true
     #     function:                         "source"
-    #   when:                             
+    #   when:
     #     - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
     #       (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
 
@@ -345,13 +334,9 @@
     #   vars:
     #     cleanup:                          true
     #     function:                         "dest"
-    #   when:                             
+    #   when:
     #     - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
     #       (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
-
-
-
-
 
     - name:                               "All - Cleanup the SSH credential files from the OS"
       ansible.builtin.include_role:
@@ -359,34 +344,6 @@
       vars:
         cleanup:                          true
         function:                         "dest"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # # /*----------------------------------------------------------------------------8
