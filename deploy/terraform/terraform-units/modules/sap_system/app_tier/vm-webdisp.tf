@@ -392,7 +392,7 @@ resource "azurerm_windows_virtual_machine" "web" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
   dynamic "identity"   {
-                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 var.options.use_entra_login ? 1 : 0)
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login ? 1 : 0)
                          content {
                                    type         = var.options.use_entra_login ? "UserAssigned,SystemAssigned" : "UserAssigned"
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
