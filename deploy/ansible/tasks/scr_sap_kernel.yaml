@@ -4,7 +4,7 @@
 #
 # -------------------------------------+---------------------------------------8
 - name:                             "Source - Inventory SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "inventory"                                                 #
@@ -16,7 +16,7 @@
 
 
 - name:                             "Destination - Inventory SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "inventory"                                                 #
@@ -44,7 +44,7 @@
 #
 # -------------------------------------+---------------------------------------8
 - name:                             "Compare SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "compare"                                                   #
@@ -69,7 +69,7 @@
 #
 # -------------------------------------+---------------------------------------8
 - name:                             "Source - Archive SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "archive"                                                   #

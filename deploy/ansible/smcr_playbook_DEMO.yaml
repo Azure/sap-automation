@@ -23,6 +23,8 @@
   vars:
     # If you're using a user-assigned managed identity, set this:
     # msi_client_id:                      "<user-assigned-mi-client-id>"          # optional
+    scr_source_sid:                     "{{ scr_source_sid | default 'X00' }}"
+    scr_dest_sid:                       "{{ scr_dest_sid | default 'X01' }}"
 
   vars_files:
     - roles-scr/scr_common/defaults/main.yaml                                   # loads scr_log_dir, scr_azure_*, etc.
@@ -177,7 +179,7 @@
         sapsid:                         "{{ scr_dest_sid }}"
       # run_once:                         true
       tags:                             [kernel]
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names']
 
 
@@ -196,7 +198,7 @@
     #     function:                       "init"                                                      #
     #     type:                           "sap"                                                       # sap or db (hana, oracle, etc.)
     #     sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-    #   when:                             
+    #   when:
     #     - (sapsid | upper + '_PAS') in vars['group_names'] or
     #       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -209,7 +211,7 @@
         function:                       "stopsap"                                                      #
         type:                           "sap"                                                       # sap or db (hana, oracle, etc.)
         sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names'] or
           (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -224,7 +226,7 @@
         kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
         function:                       "sync"                                                      #
         sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-      when:                             
+      when:
         - (sapsid | upper + '_PAS') in vars['group_names'] or
           (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -240,7 +242,7 @@
     - name:                             "SCR DB Test - Fetch password + create backup user + run backup + upload"
       ansible.builtin.include_role:
         name:                           roles-scr/scr_db_backup
-      when:                             
+      when:
         - (scr_source_sid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
     - name:                             "LOG - STEP 3: HANA backup + upload complete"  # noqa: run-once[task]
