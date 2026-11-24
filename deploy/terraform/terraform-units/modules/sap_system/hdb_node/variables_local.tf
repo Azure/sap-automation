@@ -116,7 +116,7 @@ locals {
   hdb_vm_sku                           = length(var.database.database_vm_sku) > 0 ? var.database.database_vm_sku : try(local.db_size.vm_size, "Standard_E16_v3")
 
   sid_auth_type                       = try(var.database.authentication.type, "key")
-  enable_auth_password                = false
+  enable_auth_password                = try(var.database.authentication.type, "key") == "password"
   enable_auth_key                     = try(var.database.authentication.type, "key") == "key"
 
   authentication                      = {
