@@ -514,6 +514,32 @@ namespace SDAFWebApp.Controllers
             return jsonFormattedOutput;
         }
 
+        private static string NormalizeStringArray(string value)
+        {
+            using JsonDocument document = JsonDocument.Parse(value);
+            string[] values = document.RootElement
+                .EnumerateArray()
+                .Select(element => element.ValueKind == JsonValueKind.String
+                    ? element.GetString()
+                    : element.GetRawText())
+                .ToArray();
+
+            return JsonSerializer.Serialize(values);
+        }
+
+        private static void RemoveTrailingComma(StringBuilder value)
+        {
+            while (value.Length > 0 && char.IsWhiteSpace(value[^1]))
+            {
+                value.Length--;
+            }
+
+            if (value.Length > 0 && value[^1] == ',')
+            {
+                value.Length--;
+            }
+        }
+
         private static string ReadKeyValueBlock(StringReader reader, string openingValue, string key)
         {
             if (openingValue == "{}")

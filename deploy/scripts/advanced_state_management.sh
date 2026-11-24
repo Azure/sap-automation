@@ -406,7 +406,9 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
-export TF_VAR_deployer_tfstate_key="${control_plane_name}-INFRASTRUCTURE.terraform.tfstate"
+if [ -n "${control_plane_name}" ]; then
+	export TF_VAR_deployer_tfstate_key="${control_plane_name}-INFRASTRUCTURE.terraform.tfstate"
+fi
 
 if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	if [ -n "${workload_zone_name}" ]; then

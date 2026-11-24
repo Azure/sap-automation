@@ -151,7 +151,11 @@ namespace SDAFWebApp
                     provider.GetRequiredService<ILogger<TableStorageServiceSelector<LandscapeEntity>>>()));
 
             services.AddScoped<ITableStorageService<SystemEntity>>(provider =>
-                provider.GetRequiredService<RepositorySystemService>());
+                new TableStorageServiceSelector<SystemEntity>(
+                    provider.GetRequiredService<IOptions<RepositoryPersistenceSettings>>(),
+                    provider.GetRequiredService<RepositorySystemService>(),
+                    provider.GetRequiredService<SystemService>(),
+                    provider.GetRequiredService<ILogger<TableStorageServiceSelector<SystemEntity>>>()));
 
             // Uploaded files and system artifacts always use the storage account.
             services.AddScoped<ITableStorageService<AppFile>>(provider =>
