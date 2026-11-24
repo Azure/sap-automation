@@ -1,0 +1,32 @@
+{# Copyright (c) Microsoft Corporation.     #}
+{# Licensed under the MIT License.          #}
+{% set kernel_files  = 'scr_kernel_files_' + sapsid      %}
+Vars: ['localhost']{{ kernel_files }}
+
+{# Header #}
+{{  "%-4s"  | format("mode")      }}{{ ' '*2 }}
+{{- "%-7s"  | format("owner")     }}{{ ' '*2 }}
+{{- "%-7s"  | format("group")     }}{{ ' '*2 }}
+{{- "%-9s"  | format("size")      }}{{ ' '*2 }}
+{{- "%-40s" | format("checksum")  }}{{ ' '*2 }}
+{{- "%-60s" | format("filename")  }}
+{# Divider #}
+{{  "%-4s"  | format('-'*4)       }}{{ ' '*2 }}
+{{- "%-7s"  | format('-'*7)       }}{{ ' '*2 }}
+{{- "%-7s"  | format('-'*7)       }}{{ ' '*2 }}
+{{- "%-9s"  | format('-'*9)       }}{{ ' '*2 }}
+{{- "%-40s" | format('-'*40)      }}{{ ' '*2 }}
+{{- "%-60s" | format('-'*60)      }}
+
+{# for fileinfo in lookup('vars', kernel_files).files         -#}
+{% for fileinfo in hostvars['localhost'][kernel_files].files  -%}
+{#    if fileinfo.isreg                                 #}
+{%    if true                                           %}
+{{  "%-4s"   | format(fileinfo.mode                 | default('-')) }}{{ ' '*2 }}
+{{- "%-7s"   | format(fileinfo.pw_name              | default('-')) }}{{ ' '*2 }}
+{{- "%-7s"   | format(fileinfo.gr_name              | default('-')) }}{{ ' '*2 }}
+{{- "%9s"    | format(fileinfo.size                 | default('-')) }}{{ ' '*2 }}
+{{- "%-40s"  | format(fileinfo.checksum             | default('-')) }}{{ ' '*2 }}
+{{- "%-60s"  | format(fileinfo.path.split('/')[-1]  | default('-')) }}
+{%    endif                                             %}
+{%  endfor                                              %}

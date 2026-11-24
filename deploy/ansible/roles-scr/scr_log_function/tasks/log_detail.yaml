@@ -1,0 +1,62 @@
+---
+# scr_log_function/tasks/log_detail.yaml
+#
+# Appends content to the run detail log and re-uploads it to Azure Blob Storage.
+# Use this for verbose facts, variable dumps, and diagnostic output
+# that would clutter the summary log.
+#
+# Supported actions: store
+#
+# vars:
+#   payload:  string or list of strings            (default)
+#   payload_type:     message (default) | file_content
+#                     file_content — payload is a list of file paths;
+#                     each file's raw content is appended under a header block.
+#
+# Blob path: scr-runs/job_<scr_job_id>/logs/<scr_job_id>_detail.log
+# (job-scoped — shared across all runs of the same job)
+
+
+- name:                                 "SCR Log Function [log_detail] - Ensure log directory exists"
+  ansible.builtin.file:
+    path:                               "{{ scr_log_function_local_log_dir }}"
+    state:                              directory
+    mode:                               "0755"
+  delegate_to:                          localhost
+
+# -- message mode (default) ---------------------------------------------------
+- name:                                 "SCR Log Function [log_detail] - Append message to detail log"
+  ansible.builtin.lineinfile:
+    path:                               "{{ scr_log_function_local_log_dir }}/{{ scr_job_id | default('0000') }}_detail.log"
+    line:                               "[{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}] {{ item }}"
+    insertafter:                        EOF
+    create:                             true
+    mode:                               "0644"
+  loop:                                 "{{ [payload] | flatten }}"
+  delegate_to:                          localhost
+  when:                                 (payload_type | default('message')) == 'message'
+
+# -- file_content mode --------------------------------------------------------
+- name:                                 "SCR Log Function [log_detail] - Append file content to detail log"
+  ansible.builtin.blockinfile:
+    path:                               "{{ scr_log_function_local_log_dir }}/{{ scr_job_id | default('0000') }}_detail.log"
+    marker:                             "# {mark} {{ item | basename }}"
+    block:                              "{{ lookup('file', item) }}"
+    create:                             true
+    mode:                               "0644"
+  loop:                                 "{{ [payload] | flatten }}"
+  delegate_to:                          localhost
+  when:                                 (payload_type | default('message')) == 'file_content'
+
+# -- upload -------------------------------------------------------------------
+- name:                                 "SCR Log Function [log_detail] - Upload detail log to Azure"
+  ansible.builtin.command: >-
+    az storage blob upload
+    --account-name  {{ scr_azure_storage_account }}
+    --container-name {{ scr_azure_container }}
+    --name          {{ scr_log_function_remote_log_dir }}/{{ scr_job_id | default('0000') }}_detail.log
+    --file          {{ scr_log_function_local_log_dir }}/{{ scr_job_id | default('0000') }}_detail.log
+    --overwrite
+    --auth-mode     login
+  delegate_to:                          localhost
+  changed_when:                         true

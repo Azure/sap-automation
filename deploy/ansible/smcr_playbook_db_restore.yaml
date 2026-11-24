@@ -1,0 +1,34 @@
+---
+- hosts:                                "{{ scr_dest_sid | upper }}_DB"
+  name:                                 "SCR HANA DB Restore File Placement"
+  gather_facts:                         false
+  any_errors_fatal:                     true
+  strategy:                             linear
+
+  vars_files:
+    - x_scr_parameters.yaml
+    - roles-scr/scr_common/defaults/main.yaml
+
+  pre_tasks:
+    - name:                             "SCR DB Restore - Load destination SSH credentials"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        function:                       dest
+        granularity:                    workload
+        kv_name:                        "{{ scr_dest_kv_name }}"
+        prefix:                         "{{ scr_dest_prefix }}"
+
+  tasks:
+    - name:                             "SCR DB Restore - Retrieve and verify backup files"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_db_restore
+
+  post_tasks:
+    - name:                             "SCR DB Restore - Remove temporary SSH credentials"
+      ansible.builtin.include_role:
+        name:                           roles-scr/scr_keys
+      vars:
+        function:                       cleanup
+        target:                         all
+      tags:                             [always]

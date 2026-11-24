@@ -204,7 +204,7 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
-  disable_password_authentication      = !local.enable_auth_password
+  disable_password_authentication      = true
   tags                                 = merge(var.tags, local.tags, var.database.scale_out ?  { "SITE" = count.index %2 == 0 ? "SITE1" : "SITE2" } : null)
 
   patch_mode                                             = var.infrastructure.patch_mode
@@ -315,11 +315,13 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
 
 
   dynamic "identity" {
-                       for_each = range((var.use_msi_for_clusters && var.database.high_availability) || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       for_each = range(local.use_system_assigned_identity || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
                        content {
-                         type         = var.use_msi_for_clusters && length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : var.use_msi_for_clusters ? "SystemAssigned" : "UserAssigned"
-                         identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
-                       }
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                          }
                      }
   lifecycle {
     ignore_changes = [
@@ -594,4 +596,17 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
                                               "reportSuccessOnUnsupportedDistro"  = true,
                                             }
                                           )
+}
+
+
+resource "azurerm_virtual_machine_extension" "aad_login_db_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login ? (
+                                           var.database_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.vm_dbnode[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
 }

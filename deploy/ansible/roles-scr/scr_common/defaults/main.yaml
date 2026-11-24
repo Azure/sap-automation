@@ -1,0 +1,66 @@
+---
+# /*---------------------------------------------------------------------------8
+# |  scr_common/defaults/main.yaml                                             |
+# |                                                                            |
+# |  Central configuration for all SCR roles and playbooks.                    |
+# |  Loaded via vars_files in playbook_scr_initialize.yaml.                    |
+# |                                                                            |
+# |  Override any value via --extra-vars on the command line or via            |
+# |  inventory group/host vars.                                                |
+# +------------------------------------4--------------------------------------*/
+
+# ── Controller paths ────────────────────────────────────────────────────────
+scr_basedir:                            "{{ lookup('env', 'HOME') }}/.scr_tmp"  # base directory for all SCR-related files on controller
+scr_log_dir:                            "{{ scr_basedir }}/logs"
+scr_datastore_root:                     "{{ scr_basedir }}/datastore"
+
+# ── Run identity ────────────────────────────────────────────────────────────
+# scr_job_id and scr_run_id are set dynamically at the start of each play by
+# the scr_log_function index/register action. They are zero-padded sequential
+# numbers (e.g. 0001) stored in the global run index blob and also written to
+# a dedicated current-run blob so playbooks can read them from Azure Storage.
+# Do NOT define static defaults here.
+
+# Fixed blob written by index/register so any play can discover the active run
+# without relying on Ansible variable scoping.
+scr_current_run_blob:                   "scr-runs/scr_current_run.json"
+
+# ── Azure Blob Storage ───────────────────────────────────────────────────────
+# scr_azure_subscription_id: set in inventory (host var subscription_id) or --extra-vars
+# scr_azure_resource_group:  set in inventory all: vars — it is environment-specific
+# scr_azure_storage_account: discovered dynamically by scr_log_function from the resource
+#                             group (looks for a storage account whose name contains
+#                             'tfstate', matching the SDAF naming convention).
+#                             Override via --extra-vars if you need a specific account.
+scr_azure_container:                    "tfstate"                               # existing container; SCR blobs land under scr-runs/ prefix
+
+# ── Authentication — MSI (managed identity) ──────────────────────────────────
+# The deployer VM's managed identity must have Storage Blob Data Contributor
+# on the storage account. No client secrets needed.
+scr_azure_use_managed_identity:         true
+scr_auth_mode:                          "msi"
+
+# ── Source / Destination system ──────────────────────────────────────────────
+# These must NOT be defined here. scr_source_sid / scr_dest_sid are required
+# via --extra-vars (needed before vars_files loads to resolve the hosts: pattern).
+# scr_source_prefix, scr_source_kv_name, scr_dest_prefix, scr_dest_kv_name must
+# come from inventory host/group vars or --extra-vars so they are never silently
+# overridden by this file (vars_files has higher precedence than inventory vars).
+
+# ── SCR workflow parameters ──────────────────────────────────────────────────
+scr_db_type:                            "hana"                                  # oracle | hana | ase
+scr_refresh_protocol:                   "service"                               # service | local | snapshot | export_import
+scr_retained_tables:                                                            # tables preserved during DB refresh
+                                        - { name: "USR02", key: "MANDT" }
+scr_parity:                                                                     # parity checks to perform before copy
+  os:                                   true
+  sap_kernel:                           true
+  db_kernel:                            true
+
+# ── Legacy / unused defaults kept for backwards compatibility ────────────────
+scr_datastore_prefix:                   "scr"
+scr_state_blob_name:                    "scr_state.txt"
+scr_logs_folder_name:                   "logs"
+scr_exports_folder_name:                "exports"
+scr_blob_content_type:                  "text/plain"
+...

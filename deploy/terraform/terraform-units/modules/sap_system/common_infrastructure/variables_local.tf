@@ -68,6 +68,9 @@ locals {
                                               }
                                             )
 
+  enable_auth_password                 = local.db_auth.type == "password" || var.options.use_entra_login
+  enable_auth_key                      = local.db_auth.type == "key"
+
 
   enable_hdb_deployment                = var.database.platform == "HANA"
   enable_xdb_deployment                = contains(["ORACLE", "ORACLE-ASM", "DB2", "SQLSERVER", "SYBASE"], upper(var.database.platform))

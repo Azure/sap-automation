@@ -245,14 +245,16 @@ resource "azurerm_linux_virtual_machine" "app" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
-
+  
   dynamic "identity"   {
-                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
-                         content {
-                                   type         = "UserAssigned"
-                                   identity_ids = [var.application_tier.user_assigned_identity_id]
-                                 }
-                       }
+                       for_each = range((length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login) ? 1 : 0)
+                       content {
+                             type = var.options.use_entra_login ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
+                     }
   lifecycle {
     ignore_changes = [
       source_image_id,
@@ -388,11 +390,13 @@ resource "azurerm_windows_virtual_machine" "app" {
                       storage_account_uri = var.storage_bootdiag_endpoint
                     }
   dynamic "identity"   {
-                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
-                         content {
-                                   type         = "UserAssigned"
-                                   identity_ids = [var.application_tier.user_assigned_identity_id]
-                                 }
+                       for_each = range((length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login) ? 1 : 0)
+                       content {
+                             type = var.options.use_entra_login ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
                        }
   lifecycle {
     ignore_changes = [
@@ -555,3 +559,28 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_app_win" {
                                             }
                                           )
 }
+
+resource "azurerm_virtual_machine_extension" "aad_login_app_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
+                                           var.application_tier.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.app[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_app_win" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
+                                           var.application_tier.application_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.app[count.index].id
+  name                                 = "AADLoginForWindows"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADLoginForWindows"
+  type_handler_version                 = "2.2"
+}
+

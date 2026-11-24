@@ -1,0 +1,87 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+# /*---------------------------------------------------------------------------8
+# Inputs:
+#   - function:     "source" or "dest" - indicates whether we are retrieving keys for source or target system
+#   - granularity:  Level keys are managed:
+#                   - "workload"  - one key for all VM's in the Workload Zone;
+#                                   Key Vault secret name format: <prefix>-sid-sshkey,
+#                                                                 <prefix>-sid-username
+#                   - "sid"       - one key for all VM's that are part of the SID
+#                                   Key Vault secret name format: <prefix>-sid-sshkey-<SID>,
+#                                                                 <prefix>-sid-username-<SID>
+#                   - "host"      - keys are managed individually for each VM
+#                                   Key Vault secret name format: <prefix>-sid-sshkey-<inventory_hostname>,
+#                                                                 <prefix>-sid-username-<inventory_hostname>
+#   - prefix:       Prefix for the secret names in the Key Vault; Default format is <ENVIRONMENT>-<REGION>-<WORKLOAD_ZONE>
+#   - kv_name:      Name of the Key Vault from which to retrieve secrets
+#
+# Outputs:
+#   Results in the following variables being set:
+#     - ansible_ssh_private_key_file: Path to the SSH private key file retrieved from Key Vault
+#     - ansible_user:                 SSH username retrieved from Key Vault
+#   These variables will be set within the context of each host in the inventory, allowing subsequent tasks to use them for
+#     SSH connections to the SAP systems.
+#     Example: hostvars[inventory_hostname]['ansible_ssh_private_key_file']
+#
+# Description:
+#   This role retrieves SSH credentials (username and private key) from Azure Key Vault for SAP source and/or target systems.
+#     Secrets are resolved based on a configurable granularity level (workload, SID, or host), which determines the naming
+#     convention used in Key Vault.
+#   The role uses the `azure.azcollection.azure_rm_keyvaultsecret_info` module with `auth_source: msi` to securely fetch
+#     the required secrets from the controller (delegate_to: localhost) and exposes them as per-host Ansible facts
+#     (`ansible_user`, `ansible_ssh_private_key_file`) for use in subsequent SSH-based tasks. Retries (5x, 1s delay)
+#     provide resilience against transient Key Vault throttling.
+#   To support complex scenarios, the role can manage credentials from up to two separate Key Vaults (source and target)
+#     within a single execution. This is achieved by dynamically constructing variable names based on the provided `function`
+#     parameter (e.g. `scr_source_sid` vs. `scr_dest_sid`).
+#   An optional cleanup step (invoked by re-including the role with `cleanup: true`) removes the temporary SSH key files
+#     that were created on the controller so that sensitive data is not persisted on the system.
+#   The role is designed to be flexible and reusable across environments by supplying the appropriate variables
+#     (`function`, `granularity`, `prefix`, `kv_name`).
+#
+# Notes:
+#   Variables expected to be present outside the role:
+#     scr_source_sid
+#     scr_dest_sid
+#   Variables of note:
+#     ansible_ssh_common_args: This variable is used to specify common SSH arguments for all SSH connections. If the retrieved
+#                              SSH key requires specific SSH options (e.g., disabling strict host key checking), this variable
+#                              can be set accordingly in the playbook or inventory to ensure that all SSH connections use the
+#                              necessary options.
+#                              This variable is not set within the role itself, but it is important to consider its use when
+#                              working with SSH keys retrieved by this role.
+#
+# +------------------------------------4--------------------------------------*/
+
+# /*---------------------------------------------------------------------------8
+# Informational:
+#   Dynamic Variable Keys
+#     scr_{{ function }}_sid: becomes scr_source_sid or scr_dest_sid based on the value of 'function'
+#                             variable passed to the role
+#
+#     In Conditional statements (i.e. when:), Jinja2 can not directly evaluate a variable name that is
+#       constructed dynamically, so we use vars[] to achieve this. vars['scr_' + function + '_sid'] will
+#       evaluate to the actual variable name (e.g., scr_source_sid or scr_dest_sid).
+#
+#     The double brace {{ }} syntax is used for variable interpolation in Ansible cannot be nested directly
+#       within another variable definition without using the lookup function. This is because Ansible processes
+#       variable definitions in a way that does not allow for direct nesting of Jinja2 expressions.
+#       By using lookup('vars', 'variable_name'), we can retrieve the value of a variable whose name is constructed
+#       dynamically, allowing us to achieve the desired result.
+# +------------------------------------4--------------------------------------*/
+---
+- name:                                   "SCR Keys - Retrieve SSH credentials from Key Vault"
+  ansible.builtin.include_tasks:
+    file:                                 roles-scr/scr_keys/tasks/get_secrets.yaml
+  when:                                   not (cleanup | default(false) | bool)
+
+- name:                                   "SCR Keys - Remove temporary SSH key files"
+  ansible.builtin.include_tasks:
+    file:                                 roles-scr/scr_keys/tasks/cleanup.yaml
+  when:                                   cleanup | default(false) | bool
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...

@@ -1,0 +1,160 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# scr_db_backup/tasks/upload_one_backup_file.yaml
+#
+# Atomic per-file upload step, included once per HANA backup file by
+# backup_database.yaml. Mirrors the SAP kernel pattern
+# (roles-scr/scr_kernel/tasks/archive-sap.yaml) where a file is
+# produced on a remote host, then handed to scr_log_function for
+# transfer to FILE_STORE. The difference here is that HANA data
+# backups can be tens to hundreds of GB and scr_log_function's
+# remote->controller hop currently uses ansible.builtin.fetch, which
+# base64-encodes the entire file into memory and OOMs the controller.
+# We therefore stage the file ourselves with rsync (streaming, no
+# base64) and hand the role the controller-local path, which makes it
+# take its `copy`-from-localhost branch and skip fetch entirely.
+#
+# Expects these loop / parent-task facts:
+#   _bk                       one entry from _backup_files.files (has .path, .size)
+#   _stage_dir                controller-side staging dir (per host, per run)
+#   _staged_basename          collision-safe basename to use on the
+#                             controller and as the blob name
+#                             (set by the parent task using
+#                             "<inventory_hostname>__<original basename>")
+#   _db_folder                HANA backup folder, such as DB_SYSTEMDB
+#   _database_name            SYSTEMDB or the tenant database name
+#   _database_type            SYSTEMDB or TENANT
+#
+# Disk footprint on the controller while this runs:
+#   ~1 x size(_bk)   (single copy: we stage rsync directly into
+#                     scr_log_function_local_filestore_dir, which is
+#                     also where the role would otherwise place its
+#                     own working copy. ansible.builtin.copy with
+#                     src == dest computes matching checksums and
+#                     skips the write, so no duplicate is created.)
+# The role deletes _local_file_path as the last step of its
+# file/store action (file_store_update_item.yaml), which also
+# removes our staged file - we do NOT delete it ourselves here.
+# Net controller disk at rest after each iteration: 0 bytes from
+# this file's contribution.
+
+
+# /*---------------------------------------------------------------------------8
+# | Progress visibility                                                        |
+# +------------------------------------4--------------------------------------*/
+# rsync and az storage blob upload both buffer their output until exit, so
+# we cannot show true byte-level progress mid-transfer from inside Ansible.
+# We can however show clear per-file banners with size + cumulative bytes
+# before and after each iteration, which gives enough signal to estimate
+# ETA from observed wall-clock rate (e.g. "8.2 GiB done in 4 min => ~2 GiB
+# /min, 47 GiB total => ~24 min remaining").
+
+- name:                                 "scr_db_backup: [{{ (_bk_idx | int) + 1 }}/{{ _bk_total_count }}] START  {{ _bk.path | basename }}  ({{ ((_bk.size | int) / 1024 / 1024) | round(1) }} MiB)"
+  ansible.builtin.debug:
+    msg:
+      - "File #:           {{ (_bk_idx | int) + 1 }} of {{ _bk_total_count }}"
+      - "Path on DB host:  {{ _bk.path }}"
+      - "Size:             {{ ((_bk.size | int) / 1024 / 1024) | round(1) }} MiB  ({{ _bk.size }} bytes)"
+      - "Cumulative:       {{ ((_backup_files.files[:(_bk_idx | int)] | map(attribute='size') | sum) / 1024 / 1024 / 1024) | round(2) }} GiB of {{ ((_bk_total_bytes | int) / 1024 / 1024 / 1024) | round(2) }} GiB done before this file"
+      - "Started:          {{ '%Y-%m-%d %H:%M:%S UTC' | strftime }}"
+
+
+- name:                                 "scr_db_backup: [{{ (_bk_idx | int) + 1 }}/{{ _bk_total_count }}] Record start epoch (for elapsed-time reporting)"
+  ansible.builtin.set_fact:
+    _bk_file_start_epoch:               "{{ '%s' | strftime }}"
+
+
+- name:                                 "scr_db_backup: Stream backup file from {{ inventory_hostname }} to controller staging"
+  become:                               true
+  ansible.posix.synchronize:
+    src:                                "{{ _bk.path }}"
+    dest:                               "{{ _stage_dir }}/{{ _staged_basename }}"
+    mode:                               pull
+    use_ssh_args:                       true
+                                        # With `become: true` set above, ansible.posix.synchronize
+                                        # automatically injects `--rsync-path='sudo -u root rsync'`
+                                        # on the remote side, which is exactly what we need to
+                                        # read /hana/backup/... files owned by <sid>adm (root can
+                                        # read anything under standard Unix perms). Do NOT also
+                                        # pass `rsync_opts: --rsync-path=...` here - rsync 3.2+
+                                        # refuses duplicate --rsync-path flags and errors with
+                                        # "Unexpected remote arg". SDAF already requires NOPASSWD
+                                        # sudo for ansible_user (every `become: true` in the
+                                        # codebase depends on it), so the auto-injected sudo runs
+                                        # without prompting.
+
+
+- name:                                 "scr_db_backup: [{{ (_bk_idx | int) + 1 }}/{{ _bk_total_count }}] rsync to controller done, handing off to scr_log_function for upload"
+  ansible.builtin.debug:
+    msg:                                "rsync staged {{ _bk.path | basename }} in {{ (('%s' | strftime | int) - (_bk_file_start_epoch | int)) }}s  (elapsed since file start)"
+
+
+- name:                                 "scr_db_backup: Hand staged file to scr_log_function for upload to FILE_STORE"
+  ansible.builtin.include_role:
+    name:                               roles-scr/scr_log_function
+  vars:
+    activity:                           file
+    action:                             store
+                                        # ", localhost" tells scr_log_function the source is
+                                        # already on the controller, so file_store_update_item.yaml
+                                        # takes the copy-from-localhost branch and never invokes
+                                        # ansible.builtin.fetch (which would base64 the whole file
+                                        # into memory and OOM the controller for HANA-sized data).
+                                        #
+                                        # Trade-off (file_host metadata): file_store records
+                                        # file_host=localhost for these entries rather than the
+                                        # originating DB host. The real origin host is preserved
+                                        # via the `subdir` below (which puts the blob under
+                                        # FILE_STORE/<host>/<DB_folder>/<basename>) and in the
+                                        # per-host "BACKUP COMPLETE" summary log line emitted
+                                        # earlier in backup_database.yaml.
+    payload:                            "{{ _stage_dir }}/{{ _staged_basename }}, localhost"
+                                        # subdir = "<host>/<DB_folder>" gives real virtual folders
+                                        # in Azure Blob Storage and keeps file_store keys unique
+                                        # across hosts and tenants (the role uses subdir+basename
+                                        # as the dict key when subdir is non-empty).
+    subdir:                             "{{ _blob_subdir }}"
+    file_metadata:
+      artifact_type:                    hana_backup_part
+      db_sid:                           "{{ db_sid | upper }}"
+      database_name:                    "{{ _database_name }}"
+      database_type:                    "{{ _database_type }}"
+      database_folder:                  "{{ _db_folder }}"
+      source_host:                      "{{ inventory_hostname }}"
+
+
+- name:                                 "scr_db_backup: Record uploaded part in restore manifest"
+  ansible.builtin.set_fact:
+    _backup_uploaded_files: >-
+      {{ _backup_uploaded_files + [{
+        'source_path': _bk.path,
+        'relative_restore_path': (_bk.path | regex_replace('^' + (_backup_dir | regex_escape) + '/?', '')),
+        'blob_name': (scr_log_function_remote_filestore_dir + '/' + _blob_subdir + '/' + _staged_basename),
+        'db_sid': (db_sid | upper),
+        'database_name': _database_name,
+        'database_type': _database_type,
+        'database_folder': _db_folder,
+        'size': _bk.size,
+        'checksum_algorithm': 'sha1',
+        'checksum': _store_source_stat.stat.checksum
+      }] }}
+
+
+# scr_log_function's per-iteration cleanup (the "Cleanup local
+# temporary file" task in file_store_update_item.yaml) deletes
+# _local_file_path, which is the same path we staged into. No
+# explicit delete task is needed here - doing one would just be a
+# no-op and confuse future readers.
+
+
+- name:                                 "scr_db_backup: [{{ (_bk_idx | int) + 1 }}/{{ _bk_total_count }}] DONE   {{ _bk.path | basename }}  ({{ (('%s' | strftime | int) - (_bk_file_start_epoch | int)) }}s)"
+  ansible.builtin.debug:
+    msg:
+      - "File #:           {{ (_bk_idx | int) + 1 }} of {{ _bk_total_count }}  COMPLETE"
+      - "Basename:         {{ _bk.path | basename }}"
+      - "Bytes:            {{ _bk.size }}  ({{ ((_bk.size | int) / 1024 / 1024) | round(1) }} MiB)"
+      - "File time:        {{ (('%s' | strftime | int) - (_bk_file_start_epoch | int)) }}s"
+      - "Cumulative:       {{ ((_backup_files.files[:((_bk_idx | int) + 1)] | map(attribute='size') | sum) / 1024 / 1024 / 1024) | round(2) }} GiB of {{ ((_bk_total_bytes | int) / 1024 / 1024 / 1024) | round(2) }} GiB done"
+      - "Remaining files:  {{ (_bk_total_count | int) - ((_bk_idx | int) + 1) }}"

@@ -1,0 +1,5 @@
+---
+_timeout:                               300                                     # Maximum time to wait for the system to stop before timing out (in seconds)
+_delay:                                 5                                       # Time interval between checks for whether the system has stopped (in seconds)
+
+...

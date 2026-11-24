@@ -49,7 +49,7 @@ locals {
 
   enable_deployment                    = var.application_tier.enable_deployment
 
-  enable_auth_password                 = local.enable_deployment && local.sid_auth_type == "password"
+  enable_auth_password                 = local.enable_deployment && (local.sid_auth_type == "password")
   enable_auth_key                      = local.enable_deployment && local.sid_auth_type == "key"
 
   authentication                       = {
@@ -581,5 +581,6 @@ locals {
 
   deploy_monitoring_extension          = local.enable_deployment && var.infrastructure.deploy_monitoring_extension && length(var.application_tier.user_assigned_identity_id) > 0
 
-
+  
+use_system_assigned_identity         = var.options.use_entra_login || (var.use_msi_for_clusters && var.application_tier.scs_high_availability)
 }

@@ -77,6 +77,7 @@ locals {
                                            use_spn                = var.use_spn
                                            assign_permissions     = var.assign_permissions
                                            spn_id                 = coalesce(data.azurerm_client_config.current.object_id, var.spn_id)
+                                           use_entra_login        = var.use_entra_login
                                          }
   key_vault_temp =                       {
                                            exists                 = length(var.user_keyvault_id) > 0

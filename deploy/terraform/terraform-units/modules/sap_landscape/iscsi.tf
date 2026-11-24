@@ -239,9 +239,9 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
                      )
                    }
   dynamic "identity"   {
-                         for_each = range(length(var.infrastructure.iscsi.user_assigned_identity_id) > 0 ? 1 : 0)
+                         for_each = range(length(var.infrastructure.iscsi.user_assigned_identity_id) > 0  || var.options.use_entra_login ? 1 : 0)
                          content {
-                                   type         = "UserAssigned"
+                                   type         = var.options.use_entra_login ? "SystemAssigned, UserAssigned" : "UserAssigned"
                                    identity_ids = [var.infrastructure.iscsi.user_assigned_identity_id]
                                  }
                        }
@@ -488,3 +488,21 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_iscsi_lnx" {
                                           }
                                         )
 }
+
+
+
+resource "azurerm_virtual_machine_extension" "aad_login_iscsi_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login ? (
+                                           local.iscsi_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.iscsi[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+
+
+

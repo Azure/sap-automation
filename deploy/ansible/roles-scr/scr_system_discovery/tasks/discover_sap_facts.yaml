@@ -1,0 +1,96 @@
+---
+# Discover comprehensive SAP system facts
+
+- name: Check if SAP system is running
+  ansible.builtin.shell: |
+    ps aux | grep -E "(sapstart|sap[A-Z0-9]{3}|[Dd]w)" | grep -v grep | head -20
+  register: sap_processes
+  ignore_errors: true
+
+- name: Discover SAP SID from processes
+  ansible.builtin.shell: |
+    # Look for SAP processes to determine SID
+    ps aux | grep -E "sap[A-Z0-9]{3}" | grep -v grep | head -1 | sed -n 's/.*sap\([A-Z0-9]\{3\}\).*/\1/p'
+  register: discovered_sid
+  ignore_errors: true
+
+- name: Set SAP SID for discovery
+  ansible.builtin.set_fact:
+    working_sid: "{{ scr_discovery_sid if scr_discovery_sid != '' else discovered_sid.stdout | default('') }}"
+
+- name: Get SAP kernel information
+  ansible.builtin.shell: |
+    if [ -d "/usr/sap/{{ working_sid }}/SYS/exe/uc/linuxx86_64" ]; then
+      /usr/sap/{{ working_sid }}/SYS/exe/uc/linuxx86_64/disp+work -v 2>/dev/null | head -5
+    elif [ -d "/usr/sap/{{ working_sid }}/SYS/exe/run" ]; then
+      /usr/sap/{{ working_sid }}/SYS/exe/run/disp+work -v 2>/dev/null | head -5
+    else
+      echo "SAP kernel not found"
+    fi
+  register: sap_kernel_info
+  ignore_errors: true
+  when: working_sid | length > 0
+
+- name: Get SAP profile information
+  ansible.builtin.shell: |
+    if [ -f "/usr/sap/{{ working_sid }}/SYS/profile/DEFAULT.PFL" ]; then
+      echo "=== DEFAULT PROFILE ==="
+      head -20 "/usr/sap/{{ working_sid }}/SYS/profile/DEFAULT.PFL"
+    fi
+    echo "=== INSTANCE PROFILES ==="
+    ls -la /usr/sap/{{ working_sid }}/SYS/profile/*.PFL 2>/dev/null | head -10
+  register: sap_profiles
+  ignore_errors: true
+  when: working_sid | length > 0
+
+- name: Check SAP services status  # noqa: command-instead-of-module
+  ansible.builtin.shell: |
+    systemctl list-units --state=running | grep -i sap | head -20
+  register: sap_services
+  ignore_errors: true
+
+- name: Get SAP instance information
+  ansible.builtin.shell: |
+    if [ -f "/usr/sap/sapservices" ]; then
+      echo "=== SAP SERVICES ==="
+      cat /usr/sap/sapservices
+    fi
+    echo "=== SAP DIRECTORIES ==="
+    ls -la /usr/sap/ 2>/dev/null | head -20
+  register: sap_instances
+  ignore_errors: true
+
+- name: Get SAPOSCOL information (if available)
+  ansible.builtin.shell: |
+    if command -v /usr/sap/hostctrl/exe/saposcol >/dev/null 2>&1; then
+      /usr/sap/hostctrl/exe/saposcol -v 2>/dev/null || echo "SAPOSCOL not responding"
+    else
+      echo "SAPOSCOL not found"
+    fi
+  register: saposcol_info
+  ignore_errors: true
+
+- name: Extract SAP kernel version
+  ansible.builtin.set_fact:
+    sap_kernel_version: >-
+      {%- set kernel_match = sap_kernel_info.stdout | default('') | regex_search('kernel release\\s+([0-9.]+)', '\\1') -%}
+      {{ kernel_match | first if kernel_match else 'Unknown' }}
+  when: sap_kernel_info.stdout is defined
+
+- name: Set consolidated SAP facts
+  ansible.builtin.set_fact:
+    discovered_sap_facts:
+      sid: "{{ working_sid | default('Unknown') }}"
+      kernel: "{{ sap_kernel_version | default('Unknown') }}"
+      processes_running: "{{ (sap_processes.stdout_lines | length) > 0 }}"
+      services: "{{ sap_services.stdout_lines | default([]) }}"
+      profiles_found: "{{ '/usr/sap/' + working_sid + '/SYS/profile/DEFAULT.PFL' if working_sid | length > 0 else 'None' }}"
+      instance_count: "{{ sap_instances.stdout_lines | select('match', '.*[A-Z0-9]{2}$') | list | length | default(0) }}"
+      saposcol_version: >-
+        {%- set version_match = saposcol_info.stdout | default('') | regex_search('version\\s+([0-9.]+)', '\\1') -%}
+        {{ version_match | first if version_match else 'Not available' }}
+
+- name: Debug SAP discovery results
+  ansible.builtin.debug:
+    var: discovered_sap_facts
+  when: ansible_verbosity >= 1

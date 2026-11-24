@@ -136,6 +136,17 @@ resource "azurerm_linux_virtual_machine" "observer" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
 
+  dynamic "identity" {
+                       for_each = range(local.use_system_assigned_identity || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       content {
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                          }
+                     }
+
+
 }
 
 # Create the Windows Application VM(s)
@@ -203,6 +214,17 @@ resource "azurerm_windows_virtual_machine" "observer" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+
+  dynamic "identity" {
+                       for_each = range(local.use_system_assigned_identity || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       content {
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                          }
+                     }
+
   lifecycle {
     ignore_changes = [
       source_image_id

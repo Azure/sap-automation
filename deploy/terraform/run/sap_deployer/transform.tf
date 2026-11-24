@@ -190,6 +190,7 @@ locals {
                                             assign_resource_permissions     = var.deployer_assign_resource_permissions
                                             assign_subscription_permissions = var.deployer_assign_subscription_permissions
                                             network_security_perimeter      = local.network_security_perimeter
+                                            use_entra_login                 = var.use_entra_login
                                          }
 
   firewall                             = {

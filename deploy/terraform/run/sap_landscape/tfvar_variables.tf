@@ -680,6 +680,10 @@ variable "deploy_defender_extension"            {
                                                   default     = false
                                                 }
 
+variable "use_entra_login"                      {
+                                                  description = "Boolean indicating whether to use Entra login for authentication"
+                                                  default     = false
+}
 
 #########################################################################################
 #                                                                                       #

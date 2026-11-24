@@ -1,0 +1,124 @@
+---
+- name:                                 "scr_db_restore: Set paths for part {{ (_restore_file_index | int) + 1 }}"
+  ansible.builtin.set_fact:
+    _restore_local_file:                "{{ db_restore_controller_stage }}/{{ _restore_file.blob_name | basename }}"
+    _restore_target_file:               "{{ db_restore_root }}/{{ _restore_file.relative_restore_path }}"
+
+
+- name:                                 "scr_db_restore: Restore part {{ (_restore_file_index | int) + 1 }} of {{ _restore_manifest.files | length }}"
+  block:
+    - name:                             "scr_db_restore: Download backup part to controller"
+      ansible.builtin.command:
+        argv:
+          - az
+          - storage
+          - blob
+          - download
+          - --account-name
+          - "{{ scr_azure_storage_account }}"
+          - --container-name
+          - "{{ scr_azure_container }}"
+          - --name
+          - "{{ _restore_file.blob_name }}"
+          - --file
+          - "{{ _restore_local_file }}"
+          - --overwrite
+          - --auth-mode
+          - login
+          - --only-show-errors
+      delegate_to:                      localhost
+      changed_when:                     true
+
+
+    - name:                             "scr_db_restore: Verify controller copy"
+      ansible.builtin.stat:
+        path:                           "{{ _restore_local_file }}"
+        checksum_algorithm:             sha1
+      delegate_to:                      localhost
+      register:                         _restore_local_stat
+
+
+    - name:                             "scr_db_restore: Assert controller checksum and size"
+      ansible.builtin.assert:
+        that:
+          - _restore_local_stat.stat.size | int == _restore_file.size | int
+          - _restore_local_stat.stat.checksum == _restore_file.checksum
+        fail_msg:                       "Controller verification failed for {{ _restore_file.blob_name }}"
+      delegate_to:                      localhost
+
+
+    - name:                             "scr_db_restore: Ensure destination directory exists"
+      become:                           true
+      ansible.builtin.file:
+        path:                           "{{ _restore_target_file | dirname }}"
+        state:                          directory
+        owner:                          "{{ db_sid | lower }}adm"
+        group:                          sapsys
+        mode:                           "0750"
+
+
+    - name:                             "scr_db_restore: Inspect existing destination file"
+      become:                           true
+      ansible.builtin.stat:
+        path:                           "{{ _restore_target_file }}"
+        checksum_algorithm:             sha1
+      register:                         _restore_existing_stat
+
+
+    - name:                             "scr_db_restore: Refuse to overwrite a different file"
+      ansible.builtin.assert:
+        that:
+          - >-
+            not (_restore_existing_stat.stat.exists | default(false))
+            or _restore_existing_stat.stat.checksum == _restore_file.checksum
+            or db_restore_overwrite | bool
+        fail_msg: >-
+          {{ _restore_target_file }} already exists with a different checksum.
+          Remove it or explicitly set db_restore_overwrite=true.
+
+
+    - name:                             "scr_db_restore: Stream backup part from controller to DB node"
+      become:                           true
+      ansible.posix.synchronize:
+        src:                            "{{ _restore_local_file }}"
+        dest:                           "{{ _restore_target_file }}"
+        mode:                           push
+        use_ssh_args:                   true
+        rsync_opts:
+          - --checksum
+      when: >-
+        not (_restore_existing_stat.stat.exists | default(false))
+        or _restore_existing_stat.stat.checksum != _restore_file.checksum
+
+
+    - name:                             "scr_db_restore: Set destination ownership and mode"
+      become:                           true
+      ansible.builtin.file:
+        path:                           "{{ _restore_target_file }}"
+        owner:                          "{{ db_sid | lower }}adm"
+        group:                          sapsys
+        mode:                           "0600"
+
+
+    - name:                             "scr_db_restore: Verify DB-node copy"
+      become:                           true
+      ansible.builtin.stat:
+        path:                           "{{ _restore_target_file }}"
+        checksum_algorithm:             sha1
+      register:                         _restore_target_stat
+
+
+    - name:                             "scr_db_restore: Assert DB-node checksum and size"
+      ansible.builtin.assert:
+        that:
+          - _restore_target_stat.stat.size | int == _restore_file.size | int
+          - _restore_target_stat.stat.checksum == _restore_file.checksum
+        fail_msg:                       "DB-node verification failed for {{ _restore_target_file }}"
+
+  always:
+    - name:                             "scr_db_restore: Remove staged part from controller"
+      ansible.builtin.file:
+        path:                           "{{ _restore_local_file }}"
+        state:                          absent
+      delegate_to:                      localhost
+      when:                             db_restore_cleanup_controller | bool

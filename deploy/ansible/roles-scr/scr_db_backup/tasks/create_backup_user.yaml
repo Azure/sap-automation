@@ -1,0 +1,237 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# scr_db_backup/tasks/create_backup_user.yaml
+#
+# Provision a dedicated HANA SYSTEMDB user used to drive backups, and
+# verify it by logging in as that user.
+#
+# What this does, only when the user does not already exist:
+#   CREATE USER <user> PASSWORD <pw> NO FORCE_FIRST_PASSWORD_CHANGE
+#   GRANT BACKUP ADMIN, CATALOG READ TO <user>
+#   ALTER USER <user> DISABLE PASSWORD LIFETIME
+#
+# Then, regardless of whether it was just created or already existed,
+# it opens a fresh hdbsql session authenticated as that user and runs
+# `SELECT CURRENT_USER FROM DUMMY` to confirm the login works.
+#
+# Required facts from the caller (set earlier in main.yaml):
+#   _db_pwd_result    HANA SYSTEM password (KV lookup result; secret
+#                     value is at _db_pwd_result.secrets[0].secret).
+#   db_sid            HANA DB SID (used as <sid>adm OS user).
+#   db_instance_number  HANA instance number (e.g. "00").
+#
+# Optional extra-vars (with defaults):
+#   db_backup_user        Default 'backup_operator'.
+#   db_backup_password    Default 'Testing123'  <-- override in real envs,
+#                                                   ideally from Key Vault.
+
+
+- name:                                 "scr_db_backup: Resolve backup_operator credentials"
+  ansible.builtin.set_fact:
+    _backup_user:                       "{{ db_backup_user     | default('backup_operator') }}"
+    _backup_pwd:                        "{{ db_backup_password | default('Testing123') }}"
+  no_log:                               true
+
+
+# Check whether the backup user already exists by querying SYS.USERS
+# for just that one name. Quoting the literal with single quotes lets
+# the value pass through both YAML and the shell unchanged.
+- name:                                 "scr_db_backup: Look up backup_operator in SYS.USERS"
+  become:                               true
+  become_user:                          "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" -A \
+                                          "SELECT USER_NAME FROM SYS.USERS WHERE USER_NAME = '{{ _backup_user | upper }}'"
+  args:
+    executable:                         /bin/bash
+    stdin:                              "{{ _db_pwd_result.secrets[0].secret }}"
+  register:                             _backup_user_lookup
+  changed_when:                         false
+  failed_when:                          false
+  no_log:                               true
+
+
+- name:                                 "scr_db_backup: Fail if backup_operator existence check did not succeed"
+  ansible.builtin.fail:
+    msg: |-
+      hdbsql existence check for {{ _backup_user }} failed on {{ inventory_hostname }}
+      (db_sid={{ db_sid }}, instance={{ db_instance_number }}, db=SYSTEMDB, user=SYSTEM).
+      rc     = {{ _backup_user_lookup.rc     | default('?') }}
+      stderr = {{ _backup_user_lookup.stderr | default('') }}
+  when:                                 (_backup_user_lookup.rc | default(1)) != 0
+
+
+- name:                                 "scr_db_backup: Decide whether backup_operator already exists"
+  ansible.builtin.set_fact:
+    _backup_user_exists:                "{{ (_backup_user | upper) in (_backup_user_lookup.stdout | default('') | upper) }}"
+
+
+- name:                                 "scr_db_backup: Announce backup_operator action (skip vs create)"
+  ansible.builtin.debug:
+    msg: >-
+      {% if _backup_user_exists %}
+      User '{{ _backup_user }}' already exists on {{ inventory_hostname }} (SID {{ db_sid }}) - skipping CREATE; grants/ALTER will still be re-applied (idempotent).
+      {% else %}
+      User '{{ _backup_user }}' not found on {{ inventory_hostname }} (SID {{ db_sid }}) - creating now, then granting privileges.
+      {% endif %}
+
+
+# Step 3a - CREATE only if the user doesn't already exist. HANA's
+# CREATE USER is not idempotent (it errors if the user already
+# exists), so this is the one statement we have to gate.
+- name:                                 "scr_db_backup: Create backup_operator (when not already present)"
+  become:                               true
+  become_user:                          "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" -A \
+                                          "CREATE USER {{ _backup_user }} PASSWORD \"{{ _backup_pwd }}\" NO FORCE_FIRST_PASSWORD_CHANGE"
+  args:
+    executable:                         /bin/bash
+    stdin:                              "{{ _db_pwd_result.secrets[0].secret }}"
+  register:                             _backup_user_create
+  when:                                 not _backup_user_exists
+  failed_when:                          false
+  no_log:                               true
+
+
+- name:                                 "scr_db_backup: Fail if CREATE USER returned non-zero"
+  ansible.builtin.fail:
+    msg: |-
+      CREATE USER {{ _backup_user }} failed on {{ inventory_hostname }}.
+      rc     = {{ _backup_user_create.rc     | default('?') }}
+      stderr = {{ _backup_user_create.stderr | default('') }}
+      stdout = {{ _backup_user_create.stdout | default('') }}
+  when:
+    - not _backup_user_exists
+    - (_backup_user_create.rc | default(0)) != 0
+
+
+# Step 3b - GRANT and ALTER ALWAYS run. Both are idempotent in HANA
+# (re-granting an already-granted privilege is a no-op; ALTER USER
+# DISABLE PASSWORD LIFETIME on an already-disabled user is also a
+# no-op). Running these unconditionally means we can extend the
+# privilege set later (as we are doing now by adding DATABASE ADMIN,
+# which is required for BACKUP DATA FOR FULL SYSTEM to fan-out to
+# tenant databases) and the next play picks it up without having to
+# drop and recreate the user.
+- name:                                 "scr_db_backup: Grant privileges + disable password lifetime (idempotent, always run)"
+  become:                               true
+  become_user:                          "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" -A \
+                                          "GRANT BACKUP ADMIN, CATALOG READ, DATABASE ADMIN TO {{ _backup_user }}"
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM -p "$P" -A \
+                                          "ALTER USER {{ _backup_user }} DISABLE PASSWORD LIFETIME"
+  args:
+    executable:                         /bin/bash
+    stdin:                              "{{ _db_pwd_result.secrets[0].secret }}"
+  register:                             _backup_user_grant
+  failed_when:                          false
+  changed_when:                         false
+  no_log:                               true
+
+
+- name:                                 "scr_db_backup: Fail clearly if HANA is in license-lock mode"
+  ansible.builtin.fail:
+    msg: |-
+      HANA SYSTEMDB on {{ inventory_hostname }} is running in license-lock mode.
+      HANA error 437 allows only license-management commands, so user grants,
+      configuration changes, and backups cannot run.
+
+      Install a valid HANA license in SYSTEMDB, then rerun this playbook.
+      As {{ db_sid | lower }}adm, license installation uses a valid SAP HANA
+      license file and the SYSTEM credentials, for example:
+        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u SYSTEM \
+          "SET SYSTEM LICENSE '<license-file-content>'"
+
+      Do not place the license text or SYSTEM password in this playbook or its
+      logs. SAP HANA Cockpit or SAP HANA Studio can also install the license.
+
+      Original stderr:
+      {{ _backup_user_grant.stderr | default('') | indent(2) }}
+  when:
+    - (_backup_user_grant.rc | default(1)) != 0
+    - "'only commands for license handling are allowed' in (_backup_user_grant.stderr | default('') | lower)"
+
+
+- name:                                 "scr_db_backup: Fail if GRANT/ALTER returned non-zero"
+  ansible.builtin.fail:
+    msg: |-
+      GRANT/ALTER for {{ _backup_user }} failed on {{ inventory_hostname }}.
+      rc     = {{ _backup_user_grant.rc     | default('?') }}
+      stderr = {{ _backup_user_grant.stderr | default('') }}
+      stdout = {{ _backup_user_grant.stdout | default('') }}
+  when:
+    - (_backup_user_grant.rc | default(1)) != 0
+    - "'only commands for license handling are allowed' not in (_backup_user_grant.stderr | default('') | lower)"
+
+
+- name:                                 "scr_db_backup: Report backup_operator provisioning result"
+  ansible.builtin.debug:
+    msg:
+      - "Host:        {{ inventory_hostname }}"
+      - "DB SID:      {{ db_sid }}"
+      - "User:        {{ _backup_user }}"
+      - "Pre-existed: {{ _backup_user_exists }}"
+      - "CREATE rc:   {{ _backup_user_create.rc | default('skipped') }}"
+      - "GRANT  rc:   {{ _backup_user_grant.rc  | default('?') }}"
+
+
+# -------------------------------------------------------------------
+# "Switch" to backup_operator: open a fresh hdbsql session
+# authenticated as backup_operator (NOT SYSTEM) and run a trivial
+# query to confirm the user works. We still become <sid>adm at the OS
+# level (that's required to run hdbsql), but inside hdbsql we connect
+# with -u {{ _backup_user }}, so every SQL statement from here on is
+# executed under that user's privileges.
+# -------------------------------------------------------------------
+
+- name:                                 "scr_db_backup: Connect as backup_operator and verify identity (SELECT CURRENT_USER FROM DUMMY)"
+  become:                               true
+  become_user:                          "{{ db_sid | lower }}adm"
+  ansible.builtin.shell: |
+                                        set -o pipefail
+                                        . "$HOME/.sapenv.sh"
+                                        read -r P
+                                        hdbsql -n {{ db_sql_host }}:{{ db_sql_port }} -d SYSTEMDB -u {{ _backup_user }} -p "$P" \
+                                          -A "SELECT CURRENT_USER FROM DUMMY"
+  args:
+    executable:                         /bin/bash
+    stdin:                              "{{ _backup_pwd }}"
+  register:                             _backup_user_check
+  changed_when:                         false
+  failed_when:                          false
+  no_log:                               true
+
+
+- name:                                 "scr_db_backup: Print backup_operator connectivity check"
+  ansible.builtin.debug:
+    msg:
+      - "Host:    {{ inventory_hostname }}"
+      - "DB SID:  {{ db_sid }}"
+      - "Logged in as: {{ _backup_user }}"
+      - "rc:      {{ _backup_user_check.rc     | default('?') }}"
+      - "stderr:  {{ _backup_user_check.stderr | default('') }}"
+      - "stdout:"
+      - "{{ (_backup_user_check.stdout | default('')).split('\n') }}"
+
+
+- name:                                 "scr_db_backup: Fail if backup_operator could not connect"
+  ansible.builtin.fail:
+    msg: |-
+      backup_operator login check failed on {{ inventory_hostname }}.
+      rc     = {{ _backup_user_check.rc     | default('?') }}
+      stderr = {{ _backup_user_check.stderr | default('') }}
+      stdout = {{ _backup_user_check.stdout | default('') }}
+  when:                                 (_backup_user_check.rc | default(1)) != 0

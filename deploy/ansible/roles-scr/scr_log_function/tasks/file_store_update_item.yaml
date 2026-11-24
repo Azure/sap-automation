@@ -1,0 +1,195 @@
+---
+# scr_log_function/tasks/file_store_update_item.yaml
+#
+# Atomic unit for one file store/update iteration.
+# Expects:
+#   _file_entry - string in the format "file_path, host_name" (host_name is optional, defaults to inventory_hostname)
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Initialize                                                                 |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+# NOTE: Split into TWO set_fact tasks (was previously one). Ansible 2.18's
+#       new templating engine exposes set_fact target keys to each other
+#       during argument finalization but resolves them to None until their
+#       own values are computed. The previous single-task form had
+#       _local_file_path reference _file_name while both were targets of
+#       the same set_fact, so _file_name templated to None and
+#       "{{ _file_name | basename }}" failed with
+#       "expected str, bytes or os.PathLike object, not NoneType".
+#       A `vars:` block defining _file_name no longer rescues this on 2.18+
+#       because the target-key shadow wins over the vars-block value. Doing
+#       the parse in a separate, earlier task removes the self-reference
+#       and works on every Ansible version. Behavior is otherwise unchanged.
+- name:                                 "SCR Log Function [file/{{ action }}] - Parse _file_entry into name + host"
+  ansible.builtin.set_fact:
+    _file_name:                         "{{ (_file_entry.split(','))[0] | trim }}"
+    _file_host:                         "{{ inventory_hostname
+                                            if   ((_file_entry.split(','))[1] | default('') | trim | lower) != 'localhost'
+                                            else 'localhost' }}"
+
+
+- name:                                 "SCR Log Function [file/{{ action }}] - Compute controller-local staging path"
+  ansible.builtin.set_fact:
+    _local_file_path:                   "{{ scr_log_function_local_filestore_dir }}/{{ _file_name | basename }}"
+    # _blob_subpath is the part AFTER scr_log_function_remote_filestore_dir
+    # in the final blob name. When the optional `subdir` var (passed by
+    # the caller via include_role vars) is empty, this collapses to just
+    # the file's basename, preserving the original flat layout exactly.
+    # When `subdir` is non-empty (e.g. "myhost/DB_HDB"), the blob lands
+    # under that virtual folder in Azure Blob Storage. The same value is
+    # used as the file_store dict key so per-blob metadata entries stay
+    # unique even when basenames collide across different subdirs.
+    _blob_subpath:                      "{{ ((subdir | default('') | trim) ~ '/' if (subdir | default('') | trim) else '') ~ (_file_name | basename) }}"
+# endregion
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Duplicate file to localhost, temporary storage                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+# Get source file checksum
+- name:                                 "SCR Log Function [file/{{ action }}] - Get source file checksum"
+  become:                               true
+  ansible.builtin.stat:
+    path:                               "{{ _file_name }}"
+    get_attributes:                     false
+    get_checksum:                       true
+  delegate_to:                          "{{ _file_host }}"
+  register:                             _store_source_stat
+  tags:
+    - silent_v1
+
+# Assert source file exists
+- name:                                 "SCR Log Function [file/{{ action }}] - Assert source file exists"
+  ansible.builtin.assert:
+    that:
+                                        - _store_source_stat.stat.exists | default(false)
+    fail_msg:                           "Source file not found: {{ _file_name }} on host {{ _file_host }}"
+  delegate_to:                          localhost
+
+
+# Get  Remote File to Local Temporary Storage
+- name:                                 "SCR Log Function [file/{{ action }}] - Fetch source file to localhost"
+  ansible.builtin.fetch:
+    src:                                "{{ _file_name }}"
+    dest:                               "{{ _local_file_path }}"
+    flat:                               true
+  delegate_to:                          "{{ _file_host }}"
+  when:                                 _file_host != 'localhost'
+
+
+# Copy Local  File to Local Temporary Storage
+- name:                                 "SCR Log Function [file/{{ action }}] - Copy file to log directory if host is localhost"
+  ansible.builtin.copy:
+    src:                                "{{ _file_name }}"
+    dest:                               "{{ _local_file_path }}"
+    mode:                               preserve
+  delegate_to:                          localhost
+  when:                                 _file_host == 'localhost'
+
+
+# Get checksum of temporary local file
+- name:                                 "SCR Log Function [file/{{ action }}] - Stat fetched local file"
+  ansible.builtin.stat:
+    path:                               "{{ _local_file_path }}"
+    get_attributes:                     false
+    get_checksum:                       true
+  delegate_to:                          localhost
+  register:                             _store_local_stat
+  tags:
+    - silent_v1
+
+
+# Assert verification of duplicated file checksum
+- name:                                 "SCR Log Function [file/{{ action }}] - Verify fetched file checksum"
+  ansible.builtin.assert:
+    that:
+      - _store_local_stat.stat.checksum | default('') == _store_source_stat.stat.checksum | default('')
+    fail_msg:                           "Checksum mismatch after fetch for {{ _file_name }}"
+  delegate_to:                          localhost
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Upload file to Azure filestore                                             |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Upload file to Azure filestore"
+  ansible.builtin.command: >-
+                                        az storage blob upload
+                                          --account-name   {{ scr_azure_storage_account }}
+                                          --container-name {{ scr_azure_container }}
+                                          --name           {{ scr_log_function_remote_filestore_dir }}/{{ _blob_subpath }}
+                                          --file           {{ _local_file_path }}
+                                          --overwrite
+                                          --auth-mode      login
+  delegate_to:                          localhost
+  changed_when:                         true
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Log Metadata in OBJECT_STORE                                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Retrieve file_store from OBJECT_STORE"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/object.yaml
+  vars:
+    activity:                           object                                  # Only neccessary when including the Role, not neccessary when including the task directly. Included here for clarity and consistency in how we pass parameters in the Role
+    action:                             retrieve
+    payload:                            file_store
+
+
+- name:                                 "SCR Log Function [file/{{ action }}] - Update file_store"
+  ansible.builtin.set_fact:
+    file_store:                         "{{ (file_store | default({})) | combine({
+                                            _blob_subpath: ({
+                                              'file_host': _file_host,
+                                              'blob_name': (scr_log_function_remote_filestore_dir ~ '/' ~ _blob_subpath),
+                                              'checksum': (_store_source_stat.stat.checksum | default('')),
+                                              'size': (_store_source_stat.stat.size | default(0))
+                                              } | combine(file_metadata | default({})))
+                                            },
+                                            recursive=true)
+                                        }}"
+
+
+- name:                                 "SCR Log Function [file/{{ action }}] - Save updated file_store into OBJECT_STORE"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_log_function/tasks/object.yaml
+  vars:
+    activity:                           object                                  # Only neccessary when including the Role, not neccessary when including the task directly. Included here for clarity and consistency in how we pass parameters in the Role
+    action:                             update
+    payload:                            file_store
+# endregion
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# | Cleanup Local Temporary File                                               |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+# region:
+- name:                                 "SCR Log Function [file/{{ action }}] - Cleanup local temporary file"
+  ansible.builtin.file:
+    path:                               "{{ _local_file_path }}"
+    state:                              absent
+  delegate_to:                          localhost
+
+- name:                                 "SCR Log Function [file/cleanup] - Set facts to null"
+  ansible.builtin.set_fact:
+    "{{ item }}":                       null
+  loop:
+                                        - file_store
+  delegate_to:                          localhost
+# endregion

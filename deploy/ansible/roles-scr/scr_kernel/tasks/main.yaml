@@ -1,0 +1,95 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+---
+# -------------------------------------+---------------------------------------8
+# inventory
+#   kernel = SAP or DB (HANA, Oracle, etc.)
+#   sapsid = SID
+# compare
+#   kernel = SAP or DB (HANA, Oracle, etc.)
+# archive and store
+#   kernel = SAP or DB (HANA, Oracle, etc.)
+#   sapsid = SID
+# retrieve and synchronize
+#   kernel = SAP or DB (HANA, Oracle, etc.)
+#   sapsid = SID (Target)
+# extract and process deltas (remove from target)
+# cleanup
+
+# -------------------------------------+
+# Inventory
+# -------------------------------------+
+- name:                                 "SCR Kernel: ({{ function | upper }}) Inventory SAP Kernel for SID"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_kernel/tasks/inventory-sap.yaml
+  when:
+        - function  is defined
+        - kernel    is defined
+        - function  == "inventory"
+        - kernel    == "sap"
+        - (sapsid | upper + '_PAS') in vars['group_names']                                          # Run on SAP Application server
+
+
+- name:                                 "SCR Kernel: ({{ function | upper }}) Inventory DB Kernel for SID"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_kernel/tasks/inventory-db.yaml
+  when:
+        - function  is defined
+        - kernel    is defined
+        - function  == "inventory"
+        - kernel    == "db"
+        - (sapsid | upper + '_DB') in vars['group_names']                                           # Run on Database server
+
+
+# -------------------------------------+
+# Compare
+# -------------------------------------+
+- name:                                 "SCR Kernel: ({{ function | upper }}) Compare SAP Kernel for SID"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_kernel/tasks/compare-sap.yaml
+  when:
+        - function  is defined
+        - kernel    is defined
+        - function  == "compare"
+        - kernel    == "sap"
+
+# TODO: DB
+
+
+# -------------------------------------+
+# Archive
+# -------------------------------------+
+- name:                                 "SCR Kernel: ({{ function | upper }}) Archive SAP Kernel for SID"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_kernel/tasks/archive-sap.yaml
+  when:
+        - function  is defined
+        - kernel    is defined
+        - function  == "archive"
+        - kernel    == "sap"
+        - (sapsid | upper + '_PAS') in vars['group_names']                                          # Run on SAP Application server
+
+# TODO: DB
+
+
+# -------------------------------------+
+# Synchronize
+# -------------------------------------+
+- name:                                 "SCR Kernel: ({{ function | upper }}) Synchronize SAP Kernel for SID"
+  ansible.builtin.include_tasks:
+    file:                               roles-scr/scr_kernel/tasks/sync-sap.yaml
+  when:
+        - function  is defined
+        - kernel    is defined
+        - function  == "sync"
+        - kernel    == "sap"
+        - (sapsid | upper + '_PAS') in vars['group_names']                                          # Run on SAP Application server
+
+# TODO: DB
+
+
+# /*---------------------------------------------------------------------------8
+# |                                   END                                      |
+# +------------------------------------4--------------------------------------*/
+...
