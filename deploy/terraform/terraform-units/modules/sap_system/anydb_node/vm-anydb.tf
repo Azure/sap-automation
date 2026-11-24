@@ -804,9 +804,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_win" {
 
 resource "azurerm_virtual_machine_extension" "aad_login_db_lnx" {
   provider                             = azurerm.main
-  count                                = var.options.use_entra_login  && upper(var.database.os.os_type) == "LINUX" ? (
-                                           var.database_server_count) : (
-                                           0                                           )
+  count                                = var.options.use_entra_login ? length(azurerm_linux_virtual_machine.dbserver) : 0
   virtual_machine_id                   = azurerm_linux_virtual_machine.dbserver[count.index].id
   name                                 = "AADSSHLoginForLinux "
   publisher                            = "Microsoft.Azure.ActiveDirectory"
@@ -816,9 +814,7 @@ resource "azurerm_virtual_machine_extension" "aad_login_db_lnx" {
 
 resource "azurerm_virtual_machine_extension" "aad_login_db_win" {
   provider                             = azurerm.main
-  count                                = var.options.use_entra_login  && upper(var.database.os.os_type) == "WINDOWS" ? (
-                                           var.database_server_count) : (
-                                           0                                           )
+  count                                = var.options.use_entra_login ? length(azurerm_windows_virtual_machine.dbserver) : 0
   virtual_machine_id                   = azurerm_windows_virtual_machine.dbserver[count.index].id
   name                                 = "AADLoginForWindows"
   publisher                            = "Microsoft.Azure.ActiveDirectory"

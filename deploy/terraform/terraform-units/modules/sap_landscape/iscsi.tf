@@ -241,8 +241,10 @@ resource "azurerm_linux_virtual_machine" "iscsi" {
   dynamic "identity"   {
                          for_each = range(length(var.infrastructure.iscsi.user_assigned_identity_id) > 0  || var.options.use_entra_login ? 1 : 0)
                          content {
-                                   type         = var.options.use_entra_login ? "SystemAssigned, UserAssigned" : "UserAssigned"
-                                   identity_ids = [var.infrastructure.iscsi.user_assigned_identity_id]
+                                   type         = var.options.use_entra_login ? (
+                                                    length(var.infrastructure.iscsi.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                                  ) : "UserAssigned"
+                                   identity_ids = length(var.infrastructure.iscsi.user_assigned_identity_id) > 0 ? [var.infrastructure.iscsi.user_assigned_identity_id] : null
                                  }
                        }
 

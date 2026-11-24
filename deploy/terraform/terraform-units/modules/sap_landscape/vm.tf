@@ -103,8 +103,8 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
   dynamic "identity"     {
                            for_each = range(length(var.infrastructure.user_assigned_identity_id) > 0 || var.options.use_entra_login ? 1 : 0)
                            content {
-                                   type         = var.options.use_entra_login ? "SystemAssigned, UserAssigned" : "UserAssigned"
-                                   identity_ids = [var.infrastructure.user_assigned_identity_id]
+                                   type         = var.options.use_entra_login ? (length(var.infrastructure.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned") : "UserAssigned"
+                                   identity_ids = length(var.infrastructure.user_assigned_identity_id) > 0 ? [var.infrastructure.user_assigned_identity_id] : null
                                  }
                           }
 
