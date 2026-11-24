@@ -5,7 +5,6 @@ using SDAFWebApp.Models;
 using SDAFWebApp.Controllers;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -55,7 +54,7 @@ namespace SDAFWebApp.Services
         /// <summary>
         /// Deserializes TFVARS content to entity object (for ADO/GitHub).
         /// </summary>
-        protected abstract T DeserializeTfvars(string content, string partitionKey = null, string filePath = null);
+        protected abstract T DeserializeTfvars(string content, string partitionKey = null);
 
         /// <summary>
         /// Serializes entity object to TFVARS format (for ADO/GitHub).
@@ -130,34 +129,21 @@ namespace SDAFWebApp.Services
                 throw;
             }
 
+            string expectedPath = $"{GetPartitionPath(partitionKey)}/{partitionKey}.tfvars";
             foreach (var item in listResponse.Items)
             {
-                if (!item.IsDirectory && IsEntityTfvarsFile(item.Path, partitionKey))
+                if (!item.IsDirectory && string.Equals(
+                    item.Path?.Replace('\\', '/').Trim('/'),
+                    expectedPath.Replace('\\', '/').Trim('/'),
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     var fileResponse = await _dataAccessProvider.GetFileAsync(item.Path);
-                    var entity = DeserializeTfvars(fileResponse.Content, partitionKey, item.Path);
+                    var entity = DeserializeTfvars(fileResponse.Content, partitionKey);
                     result.Add(entity);
                 }
             }
 
             return result;
-        }
-
-        private static bool IsEntityTfvarsFile(string path, string partitionKey)
-        {
-            if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(partitionKey))
-            {
-                return false;
-            }
-
-            string normalizedPath = path.Replace('\\', '/');
-            int fileNameStart = normalizedPath.LastIndexOf('/') + 1;
-            string fileName = normalizedPath[fileNameStart..];
-
-            return string.Equals(
-                fileName,
-                $"{partitionKey}.tfvars",
-                StringComparison.OrdinalIgnoreCase);
         }
 
         public virtual async Task<T> GetByIdAsync(string rowKey, string partitionKey)
@@ -305,15 +291,12 @@ namespace SDAFWebApp.Services
             });
         }
 
-        protected override LandscapeEntity DeserializeTfvars(string content, string partitionKey = null, string filePath = null)
+        protected override LandscapeEntity DeserializeTfvars(string content, string partitionKey = null)
         {
-            string fileName = string.IsNullOrWhiteSpace(filePath)
-                ? $"{partitionKey}.tfvars"
-                : Path.GetFileName(filePath);
             if (string.IsNullOrEmpty(content))
             {
                 throw new RepositoryOperationException(
-                    $"The workload-zone TFVars file '{fileName}' is empty.",
+                    "The workload-zone TFVars file is empty.",
                     RepositoryErrorCategory.ValidationError);
             }
 
@@ -342,7 +325,7 @@ namespace SDAFWebApp.Services
             catch (Exception ex)
             {
                 throw new RepositoryOperationException(
-                    $"The workload-zone TFVars file '{fileName}' could not be parsed.",
+                    "The workload-zone TFVars file could not be parsed.",
                     RepositoryErrorCategory.ValidationError,
                     innerException: ex);
             }
@@ -383,7 +366,7 @@ namespace SDAFWebApp.Services
             try
             {
                 var fileResponse = await _dataAccessProvider.GetFileAsync(tfvarsPath);
-                return DeserializeTfvars(fileResponse.Content, partitionKey, tfvarsPath);
+                return DeserializeTfvars(fileResponse.Content, partitionKey);
             }
             catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {
@@ -459,15 +442,12 @@ namespace SDAFWebApp.Services
             });
         }
 
-        protected override SystemEntity DeserializeTfvars(string content, string partitionKey = null, string filePath = null)
+        protected override SystemEntity DeserializeTfvars(string content, string partitionKey = null)
         {
-            string fileName = string.IsNullOrWhiteSpace(filePath)
-                ? $"{partitionKey}.tfvars"
-                : Path.GetFileName(filePath);
             if (string.IsNullOrEmpty(content))
             {
                 throw new RepositoryOperationException(
-                    $"The system TFVars file '{fileName}' is empty.",
+                    "The system TFVars file is empty.",
                     RepositoryErrorCategory.ValidationError);
             }
 
@@ -496,7 +476,7 @@ namespace SDAFWebApp.Services
             catch (Exception ex)
             {
                 throw new RepositoryOperationException(
-                    $"The system TFVars file '{fileName}' could not be parsed.",
+                    "The system TFVars file could not be parsed.",
                     RepositoryErrorCategory.ValidationError,
                     innerException: ex);
             }
@@ -537,7 +517,7 @@ namespace SDAFWebApp.Services
             try
             {
                 var fileResponse = await _dataAccessProvider.GetFileAsync(tfvarsPath);
-                return DeserializeTfvars(fileResponse.Content, partitionKey, tfvarsPath);
+                return DeserializeTfvars(fileResponse.Content, partitionKey);
             }
             catch (RepositoryOperationException ex) when (ex.ErrorCategory == RepositoryErrorCategory.NotFound)
             {

@@ -432,7 +432,11 @@ namespace SDAFWebApp.Controllers
                 string currLine = stringReader.ReadLine()?.Trim();
                 if (currLine == null)
                 {
-                    RemoveTrailingComma(jsonString);
+                    while (jsonString.Length > 0 && (jsonString[^1] == ',' || jsonString[^1] == '\n' || jsonString[^1] == '\r' || char.IsWhiteSpace(jsonString[^1])))
+                    {
+                        jsonString.Length--;
+                    }
+
                     jsonString.Append('}');
                     jsonFormattedOutput = jsonString.ToString();
                     break;
@@ -443,7 +447,7 @@ namespace SDAFWebApp.Controllers
                 }
                 else if (currLine.StartsWith('}'))
                 {
-                    RemoveTrailingComma(jsonString);
+                    jsonString.Remove(jsonString.Length - 3, 1);
                     jsonString.AppendLine("},");
                 }
                 else
@@ -479,15 +483,25 @@ namespace SDAFWebApp.Controllers
                         {
                             value = ReadKeyValueBlock(stringReader, currLine[(equalIndex + 1)..].Trim(), key) + ",";
                         }
+                        else if (key.EndsWith("_zones\"", StringComparison.Ordinal))
+                        {
+                            value = currLine[(equalIndex + 1)..].Trim().TrimEnd(',');
+                            if (value.StartsWith('['))
+                            {
+                                JsonElement[] zones = JsonSerializer.Deserialize<JsonElement[]>(value);
+                                value = JsonSerializer.Serialize(zones.Select(zone => zone.ValueKind switch
+                                {
+                                    JsonValueKind.String => zone.GetString(),
+                                    JsonValueKind.Number when zone.TryGetInt32(out _) => zone.GetRawText(),
+                                    JsonValueKind.Null => null,
+                                    _ => throw new FormatException($"Expected string or integer availability zones in {key}.")
+                                }));
+                            }
+                            value += ",";
+                        }
                         else
                         {
                             value = currLine[(equalIndex + 1)..].Trim();
-                            string arrayValue = value.TrimEnd(',');
-                            if (arrayValue.StartsWith('[') && arrayValue.EndsWith(']'))
-                            {
-                                value = NormalizeStringArray(arrayValue);
-                            }
-
                             if (!value.EndsWith(',') && !value.EndsWith('{'))
                             {
                                 value += ",";
@@ -542,6 +556,14 @@ namespace SDAFWebApp.Controllers
                 }
 
                 string entryValue = line[(equalIndex + 1)..].Trim().TrimEnd(',');
+                JsonElement parsedValue = JsonSerializer.Deserialize<JsonElement>(entryValue);
+                entryValue = JsonSerializer.Serialize(parsedValue.ValueKind switch
+                {
+                    JsonValueKind.String => parsedValue.GetString(),
+                    JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False => parsedValue.GetRawText(),
+                    JsonValueKind.Null => null,
+                    _ => throw new FormatException($"Expected a scalar value for {entryKey} in {key}.")
+                });
                 values.Append("{\"Key\":").Append(entryKey)
                     .Append(",\"Value\":").Append(entryValue).Append("},");
             }
