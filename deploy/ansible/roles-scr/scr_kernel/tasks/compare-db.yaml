@@ -32,7 +32,7 @@
                                         {%- set has_systemctl   = (sapservices_lines
                                                                   | select('search', '(^|\\s)systemctl(\\s|$)')
                                                                   | list | length) > 0                               -%}
-                                        {%- set has_sapstartsrv = (sapservices_lines 
+                                        {%- set has_sapstartsrv = (sapservices_lines
                                                                   | select('search', '(^|\\s)sapstartsrv(\\s|$)')
                                                                   | list | length) > 0                               -%}
                                         {%- if has_systemctl         -%}

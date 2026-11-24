@@ -471,6 +471,7 @@
     # device" mid-rsync failure that wastes minutes of transfer time.
     - name:                             "scr_db_backup: Pre-flight - stat free space on controller staging filesystem"
       ansible.builtin.shell: |
+                                        set -o pipefail
                                         set -u
                                         df -P -B1 "{{ _backup_stage_dir }}" | awk 'NR==2 {print $4}'
       args:

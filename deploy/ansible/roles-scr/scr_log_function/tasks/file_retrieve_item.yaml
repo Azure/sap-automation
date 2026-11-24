@@ -1,10 +1,10 @@
 # Flow:
 #   1. get file_store metadata for file
-#   2. Download each file to default location 
+#   2. Download each file to default location
 #   3. Verify checksum
 #   4. Move file to target location on target host (if applicable)
 #   5. Verify checksum after move (if applicable)
-# 
+#
 
 # file retrieve payload format: file_to_retrieve, [localhost]
 #
@@ -106,7 +106,7 @@
 # region:
 - name:
   block:
-    # Ensure target directory exists 
+    # Ensure target directory exists
     - name:                                 "SCR Log Function [file/{{ action }}] - Ensure directory exists"
       ansible.builtin.file:
         path:                               "{{ _target_location }}"

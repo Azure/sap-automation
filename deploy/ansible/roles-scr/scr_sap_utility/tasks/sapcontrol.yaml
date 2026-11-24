@@ -223,7 +223,7 @@
 # |                                                                                                          |
 # +------------------------------------4---------------------------------------8-----------------------------0
 
-# sapcontrol -nr 00 -function StopSystem [ALL|SCS|DIALOG|ABAP|J2EE|TREX|ENQREP|HDB|ALLNOHDB|LEVEL <level> [<waittimeout sec> [<softtimeout sec>]]]                             
+# sapcontrol -nr 00 -function StopSystem [ALL|SCS|DIALOG|ABAP|J2EE|TREX|ENQREP|HDB|ALLNOHDB|LEVEL <level> [<waittimeout sec> [<softtimeout sec>]]]
 # sapcontrol -nr 00 -function StartSystem
 
 # delay = how often sapcontrol should check if the system has stopped (e.g. 5 seconds)
@@ -234,8 +234,8 @@
 # StopWait  ABAP            Stops  Dialogue; Returns immediatly
 # GetSystemInstanceList     returns list of instances and their status (e.g. running, stopped, stopping, starting)
 
-# Bootstrap triggers sapcpe kernel replication, shared memory cleanup and sapstartsrv restart 
-#   without actually starting the instance. If host and nr are not specified, the actual sapstartsrv triggers a bootstrap 
+# Bootstrap triggers sapcpe kernel replication, shared memory cleanup and sapstartsrv restart
+#   without actually starting the instance. If host and nr are not specified, the actual sapstartsrv triggers a bootstrap
 #   for its own instance.
 
 

@@ -10,7 +10,7 @@
     function:                       "inventory"                                                 #
     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     sapsid:                         "{{ scr_source_sid }}"                                      # SID
-  when:                             
+  when:
     - (sapsid | upper + '_PAS') in vars['group_names'] or
       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -22,7 +22,7 @@
     function:                       "inventory"                                                 #
     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-  when:                             
+  when:
     - (sapsid | upper + '_PAS') in vars['group_names'] or
       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -75,6 +75,7 @@
     function:                       "archive"                                                   #
     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     sapsid:                         "{{ scr_source_sid }}"                                      # SID
-  when:                             
+  when:
     - (sapsid | upper + '_PAS') in vars['group_names'] or
       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+

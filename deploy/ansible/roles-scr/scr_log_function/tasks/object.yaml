@@ -75,8 +75,8 @@
 #       not exist (e.g. first time store operation), we handle the error and continue with an empty
 #       object store.
 #
-# Note: The 'az' commands are only available on the localhost where the SCR Log Function role is executed, 
-#       which is why we delegate this task to localhost. The remote hosts may not have the Azure CLI 
+# Note: The 'az' commands are only available on the localhost where the SCR Log Function role is executed,
+#       which is why we delegate this task to localhost. The remote hosts may not have the Azure CLI
 #       installed,and even if they do, it is more efficient to perform the download once on the localhost
 #       and then distribute the data as needed, rather than having each remote host attempt to download the
 #       same blob from Azure Storage.
@@ -92,7 +92,7 @@
       delegate_to:                          localhost
       changed_when:                         false
       register:                             blob_download
-      failed_when:                      
+      failed_when:
                                             - blob_download is false
                                             - "'BlobNotFound' not in (blob_download.stderr | default(''))"
 
@@ -105,7 +105,7 @@
         _object_store:                      "{{ lookup('file',
                                                         scr_log_function_local_objectstore,
                                                         errors='ignore')
-                                                | default('{}', true) 
+                                                | default('{}', true)
                                                 | from_json }}"
       delegate_to:                          localhost
 
@@ -299,7 +299,7 @@
                                         - _payload_updates
                                         - _object_store
       loop_control:
-        loop_var:                       _obj_loop_item  
+        loop_var:                       _obj_loop_item
       delegate_to:                      localhost
       changed_when:                     true
 

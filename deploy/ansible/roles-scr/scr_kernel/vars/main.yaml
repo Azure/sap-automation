@@ -22,7 +22,7 @@ sap_instance_name:                      ""
 # Normalize paths + build checksum maps
 # Key = relative path, Value = checksum
 # Omits non‑regular files (e.g. directories, symlinks, etc.) since they don't have checksums
-#   and aren't relevant for content synchronization  
+#   and aren't relevant for content synchronization
 _source_map: >-
                                         {{
                                           dict(

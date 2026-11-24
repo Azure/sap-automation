@@ -15,7 +15,7 @@
 #   - step:     string
 #     status:   not started | in progress | completed
 #     details:  string (optional, for logging or debugging purposes)
-# 
+#
 # Example:
 #   progress:
 #     - step:     "inventory"
@@ -50,7 +50,7 @@
 #                   scr_missing should contain the list of files that are present in the source but missing in the target, which is what we want to archive and transfer to the target system for remediation.
 #                   scr_changed could also be included if we want to transfer files that are present in both systems but have different checksums (indicating they have changed and may need to be updated on the target system).
 
-# Ensure target directory exists 
+# Ensure target directory exists
     - name:                             "SCR KERNEL [file/{{ action }}] - Ensure directory exists"
       ansible.builtin.file:
         path:                           "/tmp/.scr"
@@ -60,7 +60,7 @@
     - name:                             "SCR KERNEL: [{{ function | upper }}] Create Archive SAP Kernel for SID {{ sapsid }}"
       become:                           true                                                        # root permissions may be required to access certain files and directories
       become_user:                      root                                                        # Run the archive task as root (or the user specified in ansible_user) to ensure we have the necessary permissions to access all files and directories in the SAP kernel directory structure
-      ansible.builtin.archive:
+      community.general.archive:
         path:                           "{{ archive_files }}"
         dest:                           "/tmp/.scr/{{ scr_source_sid }}_SAP_kernel_files.tar.gz"
         format:                         gz

@@ -31,7 +31,7 @@
 - name:
   ansible.builtin.set_fact:
     _results:                           null
-    _filter_service_keys: 
+    _filter_service_keys:
                                         - AccessSELinuxContext
                                         - Control.*
                                         - CoredumpFilter
@@ -78,7 +78,7 @@
 - name:   Register SAP sapadm user information in sap_env variable
   ansible.builtin.set_fact:
     sap_env: >-
-                                        {{ sap_env 
+                                        {{ sap_env
                                             | combine({
                                                 'application': {
                                                   'app': {
@@ -107,7 +107,7 @@
 - name:   Register SAP sidadm user information in sap_env variable
   ansible.builtin.set_fact:
     sap_env: >-
-                                        {{ sap_env 
+                                        {{ sap_env
                                             | combine({'sap_sid': sapsid}, recursive=True)
                                             | combine({
                                                 'application': {
@@ -132,7 +132,7 @@
 - name:
   ansible.builtin.set_fact:
     sap_env: >-
-                                        {{ sap_env 
+                                        {{ sap_env
                                             | combine({
                                                 'application': {
                                                   'app': {
@@ -141,8 +141,8 @@
                                                         'system_init':     ansible_facts.service_mgr,
                                                       } } } } }, recursive=True)
                                         }}
-  when: 
-                                        - ansible_facts.service_mgr is defined 
+  when:
+                                        - ansible_facts.service_mgr is defined
 # endregion
 
 
@@ -174,7 +174,7 @@
                                                                .get('servers', {})
                                                                .get(inventory_hostname, {})
                                                                .get('systemd_services', {}) | default({})
-                                                            ) 
+                                                            )
                                                             | combine({
                                                                 _results.name: _results.status | default({})
                                                                 | dict2items
@@ -209,7 +209,7 @@
                                                                .get('servers', {})
                                                                .get(inventory_hostname, {})
                                                                .get('systemd_services', {}) | default({})
-                                                            ) 
+                                                            )
                                                             | combine({
                                                                 _results.name: _results.status | default({})
                                                                 | dict2items

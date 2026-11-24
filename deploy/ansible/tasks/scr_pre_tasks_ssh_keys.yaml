@@ -13,7 +13,7 @@
     granularity:                    "workload"                                                  # workload | sid | host
     kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
     prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
-  when:                             
+  when:
     - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
       (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
   tags:                             [secrets]
@@ -29,7 +29,7 @@
     granularity:                    "workload"                                                  # workload | sid | host
     kv_name:                        "{{ lookup('vars', 'scr_' + function + '_kv_name') }}"      # scr_source_kv_name
     prefix:                         "{{ lookup('vars', 'scr_' + function + '_prefix' ) }}"      # scr_source_prefix
-  when:                             
+  when:
     - (vars['scr_' + function + '_sid'] | upper) + '_PAS' in vars['group_names'] or
       (vars['scr_' + function + '_sid'] | upper) + '_DB'  in vars['group_names']                # source or destination groups
   tags:                             [secrets]
