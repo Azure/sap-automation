@@ -220,12 +220,6 @@ resource "azurerm_windows_virtual_machine" "anchor" {
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 
-  dynamic "identity" {
-    for_each = range(var.options.use_entra_login ? 1 : 0)
-    content {
-      type                             = "SystemAssigned"
-    }
-  }
 }
 
 
