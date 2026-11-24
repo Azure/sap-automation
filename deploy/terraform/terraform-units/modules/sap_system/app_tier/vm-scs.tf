@@ -774,7 +774,7 @@ resource "azurerm_virtual_machine_extension" "aad_login_scs_lnx" {
 resource "azurerm_virtual_machine_extension" "aad_login_scs_win" {
   provider                             = azurerm.main
   count                                = var.options.use_entra_login  && upper(var.application_tier.scs_os.os_type) == "WINDOWS" ? (
-                                           var.application_tier.scs_server_count) : (
+                                           local.scs_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_windows_virtual_machine.scs[count.index].id
   name                                 = "AADLoginForWindows"

@@ -447,7 +447,14 @@ namespace SDAFWebApp.Controllers
                 }
                 else if (currLine.StartsWith('}'))
                 {
-                    jsonString.Remove(jsonString.Length - 3, 1);
+                    while (jsonString.Length > 0 && char.IsWhiteSpace(jsonString[^1]))
+                    {
+                        jsonString.Length--;
+                    }
+                    if (jsonString.Length > 0 && jsonString[^1] == ',')
+                    {
+                        jsonString.Length--;
+                    }
                     jsonString.AppendLine("},");
                 }
                 else
@@ -483,7 +490,7 @@ namespace SDAFWebApp.Controllers
                         {
                             value = ReadKeyValueBlock(stringReader, currLine[(equalIndex + 1)..].Trim(), key) + ",";
                         }
-                        else if (key.EndsWith("_zones\"", StringComparison.Ordinal))
+                        else if (key.EndsWith("_zones\"", StringComparison.Ordinal) || key.EndsWith("_zone\"", StringComparison.Ordinal))
                         {
                             value = currLine[(equalIndex + 1)..].Trim().TrimEnd(',');
                             if (value.StartsWith('['))
