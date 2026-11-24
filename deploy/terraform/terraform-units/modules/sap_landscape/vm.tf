@@ -101,9 +101,9 @@ resource "azurerm_windows_virtual_machine" "utility_vm" {
                            version    = var.vm_settings.image.version
                          }
   dynamic "identity"     {
-                           for_each = range(length(var.infrastructure.user_assigned_identity_id) > 0 ? 1 : 0)
+                           for_each = range(length(var.infrastructure.user_assigned_identity_id) > 0 || var.options.use_entra_login ? 1 : 0)
                            content {
-                                   type         = "UserAssigned"
+                                   type         = var.options.use_entra_login ? "SystemAssigned, UserAssigned" : "UserAssigned"
                                    identity_ids = [var.infrastructure.user_assigned_identity_id]
                                  }
                           }
