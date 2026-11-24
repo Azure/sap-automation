@@ -1,5 +1,5 @@
 ---
-- hosts:                                "{{ scr_dest_sid | upper }}_DB"
+- hosts:                                "{{ scr_dest_sid | default('X01') | upper }}_DB"
   name:                                 "SCR HANA DB Restore File Placement"
   gather_facts:                         false
   any_errors_fatal:                     true

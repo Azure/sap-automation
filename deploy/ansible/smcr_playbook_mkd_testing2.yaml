@@ -11,18 +11,14 @@
 # |           Play for performing SAP System Copy tasks on Source              |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
-- hosts:                                "{{ scr_source_sid | upper }}_PAS :
-                                         {{ scr_source_sid | upper }}_DB  :
-                                         {{ scr_dest_sid   | upper }}_PAS :
-                                         {{ scr_dest_sid   | upper }}_DB"
+- hosts:                                "{{ scr_source_sid | default('X00') | upper }}_PAS :
+                                         {{ scr_source_sid | default('X00') | upper }}_DB  :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_PAS :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_DB"
 
   name:                                 "SCR Source"
   gather_facts:                         false                                    # Important to collect hostvars information
   any_errors_fatal:                     true
-
-  vars:
-    # If you're using a user-assigned managed identity, set this:
-    # msi_client_id:                      "<user-assigned-mi-client-id>"          # optional
 
   vars_files:
     - roles-scr/scr_common/defaults/main.yaml                                   # loads scr_log_dir, scr_azure_*, etc.
@@ -307,7 +303,8 @@
       when:
         - (sapsid | upper + '_PAS') in vars['group_names']
 
-    - meta:         end_play
+    - name:                             "SCR - End play"
+      ansible.builtin.meta:             end_play
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

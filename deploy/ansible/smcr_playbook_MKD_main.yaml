@@ -12,17 +12,13 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                 "SCR: Main Playbook for MKD Testing - Source System Tasks"
-  hosts:                                "{{ scr_source_sid | upper }}_PAS :
-                                         {{ scr_source_sid | upper }}_DB  :
-                                         {{ scr_dest_sid   | upper }}_PAS :
-                                         {{ scr_dest_sid   | upper }}_DB"
+  hosts:                                "{{ scr_source_sid | default('X00') | upper }}_PAS :
+                                         {{ scr_source_sid | default('X00') | upper }}_DB  :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_PAS :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_DB"
 
   gather_facts:                         false                                    # Important to collect hostvars information
   any_errors_fatal:                     true
-
-  vars:
-    # If you're using a user-assigned managed identity, set this:
-    # msi_client_id:                      "<user-assigned-mi-client-id>"          # optional
 
   vars_files:
     - roles-scr/scr_common/defaults/main.yaml                                   # loads scr_log_dir, scr_azure_*, etc.
@@ -37,11 +33,11 @@
 # Added ansible-galaxy collection install of azure.azcollection to configure_deployer.sh.tmpl
 
   pre_tasks:
-    - name:
-      import_tasks:                     tasks/scr_pre_tasks.yaml
+    - name:                             "SCR - Load pre tasks"
+      ansible.builtin.import_tasks:     tasks/scr_pre_tasks.yaml
 
-    - name:
-      import_tasks:                     tasks/scr_pre_tasks_ssh_keys.yaml
+    - name:                             "SCR - Retrieve SSH key secrets"
+      ansible.builtin.import_tasks:     tasks/scr_pre_tasks_ssh_keys.yaml
 
 # -------------------------------------+---------------------------------------8
 #
@@ -79,7 +75,8 @@
         - (sapsid | upper + '_PAS') in vars['group_names']
 
 
-    - ansible.builtin.set_fact:
+    - name:                             "SCR - Set run ID"
+      ansible.builtin.set_fact:
         scr_run_id:                     0058
 
 
@@ -101,7 +98,7 @@
 
 
     - name:                             "Dest - Stop SAP Application for SID"
-      include_role:
+      ansible.builtin.include_role:
         name:                           roles-scr/scr_sap_utility
       vars:
         function:                       "stopsap"                                                      #
@@ -131,7 +128,8 @@
 
 
 
-    - meta:         end_play
+    - name:                             "SCR - End play"
+      ansible.builtin.meta:             end_play
 
 
 

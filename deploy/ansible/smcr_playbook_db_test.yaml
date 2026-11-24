@@ -43,7 +43,7 @@
 # Protect both sides before a refresh. The source backup is used to refresh the
 # destination; the destination backup is the rollback point used to return the
 # destination to its original state after validation.
-- hosts:                                "{{ scr_source_sid | upper }}_DB : {{ scr_dest_sid | upper }}_DB"
+- hosts:                                "{{ scr_source_sid | default('X00') | upper }}_DB : {{ scr_dest_sid | default('X01') | upper }}_DB"
 
   name:                                 "SCR DB Source and Target Protection Backup"
   gather_facts:                         false

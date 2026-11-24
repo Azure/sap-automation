@@ -12,10 +12,10 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 - name:                                 "SCR: Main Playbook for MKD Testing - Source System Tasks"
-  hosts:                                "{{ scr_source_sid | upper }}_PAS :
-                                         {{ scr_source_sid | upper }}_DB  :
-                                         {{ scr_dest_sid   | upper }}_PAS :
-                                         {{ scr_dest_sid   | upper }}_DB"
+  hosts:                                "{{ scr_source_sid | default('X00') | upper }}_PAS :
+                                         {{ scr_source_sid | default('X00') | upper }}_DB  :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_PAS :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_DB"
 
   gather_facts:                         false                                    # Important to collect hostvars information
   any_errors_fatal:                     true
@@ -23,8 +23,8 @@
   vars:
     # If you're using a user-assigned managed identity, set this:
     # msi_client_id:                      "<user-assigned-mi-client-id>"          # optional
-    scr_source_sid:                     "{{ scr_source_sid | default 'X00' }}"
-    scr_dest_sid:                       "{{ scr_dest_sid | default 'X01' }}"
+    scr_source_sid:                     "X00"
+    scr_dest_sid:                       "X01"
 
   vars_files:
     - roles-scr/scr_common/defaults/main.yaml                                   # loads scr_log_dir, scr_azure_*, etc.
@@ -142,8 +142,8 @@
     # +------------------------------------4--------------------------------------*/
     # Added ansible-galaxy collection install of azure.azcollection to configure_deployer.sh
     # Added ansible-galaxy collection install of azure.azcollection to configure_deployer.sh.tmpl
-    - name:
-      import_tasks:                     tasks/scr_pre_tasks_ssh_keys.yaml
+    - name:                             "SCR - Retrieve SSH key secrets"
+      ansible.builtin.import_tasks:     tasks/scr_pre_tasks_ssh_keys.yaml
 
 
 
@@ -166,7 +166,7 @@
 # SAP KERNEL
 #
 # -------------------------------------+---------------------------------------8
-    - name:
+    - name:                             "SCR - Load SAP kernel synchronization tasks"
       ansible.builtin.include_tasks:                    tasks/scr_sap_kernel.yaml
 
     - name:                             "LOG - STEP [KERNEL-SAP-SYNC]: SAP kernel synchronization completed"  # noqa: run-once[task]

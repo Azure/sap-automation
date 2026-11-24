@@ -36,10 +36,10 @@
 # |   12. Clean up temp SSH key files                       [tag: cleanup]     |
 # |                                                                            |
 # +---------------------------------------------------------------------------*/
-- hosts:                                "{{ scr_source_sid | upper }}_PAS :
-                                         {{ scr_source_sid | upper }}_DB  :
-                                         {{ scr_dest_sid   | upper }}_PAS :
-                                         {{ scr_dest_sid   | upper }}_DB"
+- hosts:                                "{{ scr_source_sid | default('X00') | upper }}_PAS :
+                                         {{ scr_source_sid | default('X00') | upper }}_DB  :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_PAS :
+                                         {{ scr_dest_sid   | default('X01') | upper }}_DB"
 
   name:                                 "SCR Initialize"
   gather_facts:                         false
@@ -353,7 +353,7 @@
       tags:                             [kernel]
       block:
 
-        - name:                         "Compare - SAP Kernel Files"
+        - name:                         "Compare - SAP Kernel Files"  # noqa: run-once[task]
           ansible.builtin.include_role:
             name:                       roles-scr/scr_kernel
           vars:
