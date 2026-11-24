@@ -180,7 +180,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                           }
 
   identity                                {
-                                            type         = var.deployer.add_system_assigned_identity ? "SystemAssigned, UserAssigned" : "UserAssigned"
+                                            type         = var.deployer.add_system_assigned_identity || var.options.use_entra_login ? "SystemAssigned, UserAssigned" : "UserAssigned"
                                             identity_ids = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
                                           }
 
