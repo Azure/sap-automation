@@ -73,11 +73,11 @@ locals {
                                            path_to_private_key = var.automation_path_to_private_key
                                          }
   options                              = {
-                                           enable_secure_transfer = true
-                                           use_spn                = var.use_spn
                                            assign_permissions     = var.assign_permissions
+                                           enable_secure_transfer = true
                                            spn_id                 = coalesce(data.azurerm_client_config.current.object_id, var.spn_id)
                                            use_entra_login        = var.use_entra_login
+                                           use_spn                = var.use_spn
                                          }
   key_vault_temp =                       {
                                            exists                 = length(var.user_keyvault_id) > 0
