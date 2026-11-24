@@ -762,7 +762,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_scs_win" {
 resource "azurerm_virtual_machine_extension" "aad_login_scs_lnx" {
   provider                             = azurerm.main
   count                                = var.options.use_entra_login  && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
-                                           var.application_tier.scs_server_count) : (
+                                           local.scs_server_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.scs[count.index].id
   name                                 = "AADSSHLoginForLinux"

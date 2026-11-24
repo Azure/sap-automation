@@ -122,7 +122,15 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   additional_capabilities {
     ultra_ssd_enabled = local.enable_anchor_ultra[count.index]
   }
-
+  dynamic "identity"   {
+                       for_each = range((length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login) ? 1 : 0)
+                       content {
+                             type = var.options.use_entra_login ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
+                     }
   lifecycle {
     ignore_changes = [
       source_image_id
@@ -195,7 +203,15 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   additional_capabilities {
     ultra_ssd_enabled = local.enable_anchor_ultra[count.index]
   }
-
+  dynamic "identity"   {
+                       for_each = range((length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login) ? 1 : 0)
+                       content {
+                             type = var.options.use_entra_login ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
+                     }
   lifecycle {
     ignore_changes = [
       source_image_id
