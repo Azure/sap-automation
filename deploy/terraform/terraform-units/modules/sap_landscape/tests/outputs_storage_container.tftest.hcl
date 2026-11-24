@@ -204,6 +204,7 @@ variables {
     assign_permissions        = false
     use_spn                   = false
     spn_id                    = ""
+    use_entra_login           = false
   }
   additional_users_to_add_to_keyvault_policies = []
   keyvault_private_endpoint_id                 = ""
