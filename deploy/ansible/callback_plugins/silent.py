@@ -56,13 +56,10 @@ DOCUMENTATION = DEFAULT_DOCUMENTATION
 #
 
 
-
-
 class CallbackModule(DefaultCallback):
     CALLBACK_VERSION = 2.0
-    CALLBACK_TYPE = 'stdout'
-    CALLBACK_NAME = 'silent'
-
+    CALLBACK_TYPE = "stdout"
+    CALLBACK_NAME = "silent"
 
     # ----------------------------------+---------------------------------------
     def __init__(self):
@@ -70,13 +67,11 @@ class CallbackModule(DefaultCallback):
         self._loop_summary = {}
         self._silent_task_prefix = "silent_v"
 
-
     # ----------------------------------+---------------------------------------
     @staticmethod
     def _verbosity_hint(level):
         """Return a -v string for the given verbosity level (e.g. 2 -> '-vv')."""
-        return '-' + 'v' * level if level > 0 else '(default)'
-
+        return "-" + "v" * level if level > 0 else "(default)"
 
     # ----------------------------------+---------------------------------------
     def _display_ok_header_only(self, result, changed: bool = False, required_verbosity: int = 1):
@@ -85,14 +80,18 @@ class CallbackModule(DefaultCallback):
 
         hint = self._verbosity_hint(required_verbosity)
         suppressed = f"Output suppressed by silent tag, use {hint} to see details"
-        msg = ("changed: [%s] => [%s]" if changed else "ok: [%s] => [%s]") % (host_label, suppressed)
+        msg = ("changed: [%s] => [%s]" if changed else "ok: [%s] => [%s]") % (
+            host_label,
+            suppressed,
+        )
         color = C.COLOR_CHANGED if changed else C.COLOR_OK
 
         self._display.display(msg, color=color)
 
-
     # ----------------------------------+---------------------------------------
-    def _display_item_ok_header_only(self, result, changed: bool = False, required_verbosity: int = 1):
+    def _display_item_ok_header_only(
+        self, result, changed: bool = False, required_verbosity: int = 1
+    ):
         host_label = self.host_label(result)
         status = "changed" if changed else "ok"
         color = C.COLOR_CHANGED if changed else C.COLOR_OK
@@ -106,10 +105,14 @@ class CallbackModule(DefaultCallback):
             item_label = result._result.get("item", None)
 
         if item_label is None:
-            self._display.display(f"{status}: [{host_label}] => use {hint} to see details", color=color)
+            self._display.display(
+                f"{status}: [{host_label}] => use {hint} to see details", color=color
+            )
         else:
-            self._display.display(f"{status}: [{host_label}] => (item={item_label}) => use {hint} to see details", color=color)
-
+            self._display.display(
+                f"{status}: [{host_label}] => (item={item_label}) => use {hint} to see details",
+                color=color,
+            )
 
     # ----------------------------------+---------------------------------------
     def _silent_level(self, tags):
@@ -118,11 +121,10 @@ class CallbackModule(DefaultCallback):
         for tag in tags:
             if tag.startswith(self._silent_task_prefix):
                 try:
-                    levels.append(int(tag[len(self._silent_task_prefix):]))
+                    levels.append(int(tag[len(self._silent_task_prefix) :]))
                 except ValueError:
                     pass
         return min(levels) if levels else -1
-
 
     # ----------------------------------+---------------------------------------
     def v2_playbook_on_task_start(self, task, is_conditional):
@@ -133,7 +135,6 @@ class CallbackModule(DefaultCallback):
         # Avoid duplicate banners
         if self._last_task_banner != task._uuid:
             self._print_task_banner(task)
-
 
     # ----------------------------------+---------------------------------------
     def v2_runner_on_ok(self, result, **kwargs):
@@ -147,8 +148,14 @@ class CallbackModule(DefaultCallback):
         task_id = result._task._uuid
         host_name = result._host.get_name()
         summary_key = (task_id, host_name)
-        if required_task_level >= 0 and getattr(result._task, "loop", None) and summary_key in self._loop_summary:
-            summary = self._loop_summary.pop(summary_key)                       # remove so it doesn't leak into future tasks
+        if (
+            required_task_level >= 0
+            and getattr(result._task, "loop", None)
+            and summary_key in self._loop_summary
+        ):
+            summary = self._loop_summary.pop(
+                summary_key
+            )  # remove so it doesn't leak into future tasks
             host_label = self.host_label(result)
 
             # choose color: changed wins
@@ -170,11 +177,12 @@ class CallbackModule(DefaultCallback):
 
         # Otherwise: print ONLY the header line
         changed = bool(result._result.get("changed", False))
-        self._display_ok_header_only(result, changed=changed, required_verbosity=required_task_level + 1)
+        self._display_ok_header_only(
+            result, changed=changed, required_verbosity=required_task_level + 1
+        )
 
         # else: suppress output by doing nothing
         return None
-
 
     # ----------------------------------+---------------------------------------
     def v2_runner_item_on_ok(self, result, **kwargs):
@@ -194,7 +202,9 @@ class CallbackModule(DefaultCallback):
         # Silent at this verbosity => header-only per loop item
         if verbosity > required_task_level and verbosity <= required_loop_level:
             changed = bool(result._result.get("changed", False))
-            self._display_item_ok_header_only(result, changed=changed, required_verbosity=required_loop_level + 1)
+            self._display_item_ok_header_only(
+                result, changed=changed, required_verbosity=required_loop_level + 1
+            )
             return None
 
         # Task Summary
@@ -208,13 +218,15 @@ class CallbackModule(DefaultCallback):
                 "changed": 0,
                 "skipped": 0,
             }
-        if r.get("skipped", False):   self._loop_summary[summary_key]["skipped"] += 1
-        elif r.get("changed", False): self._loop_summary[summary_key]["changed"] += 1
-        else:                         self._loop_summary[summary_key]["ok"]      += 1
+        if r.get("skipped", False):
+            self._loop_summary[summary_key]["skipped"] += 1
+        elif r.get("changed", False):
+            self._loop_summary[summary_key]["changed"] += 1
+        else:
+            self._loop_summary[summary_key]["ok"] += 1
 
         # suppress per‑item output entirely
         return None
-
 
     # ----------------------------------+---------------------------------------
     def v2_runner_item_on_skipped(self, result, **kwargs):
@@ -244,13 +256,15 @@ class CallbackModule(DefaultCallback):
                 "changed": 0,
                 "skipped": 0,
             }
-        if r.get("skipped", False):   self._loop_summary[summary_key]["skipped"] += 1
-        elif r.get("changed", False): self._loop_summary[summary_key]["changed"] += 1
-        else:                         self._loop_summary[summary_key]["ok"]      += 1
+        if r.get("skipped", False):
+            self._loop_summary[summary_key]["skipped"] += 1
+        elif r.get("changed", False):
+            self._loop_summary[summary_key]["changed"] += 1
+        else:
+            self._loop_summary[summary_key]["ok"] += 1
 
         # Silent => suppress item-skipped output
         return None
-
 
     # ----------------------------------+---------------------------------------
     def v2_runner_on_failed(self, result, ignore_errors=False, **kwargs):
@@ -260,7 +274,6 @@ class CallbackModule(DefaultCallback):
         self._loop_summary.pop((task_id, host_name), None)
         return super().v2_runner_on_failed(result, ignore_errors=ignore_errors, **kwargs)
 
-
     # ----------------------------------+---------------------------------------
     def v2_runner_on_unreachable(self, result, **kwargs):
         """Clean up any accumulated loop summary before delegating to default."""
@@ -268,4 +281,3 @@ class CallbackModule(DefaultCallback):
         host_name = result._host.get_name()
         self._loop_summary.pop((task_id, host_name), None)
         return super().v2_runner_on_unreachable(result, **kwargs)
-
