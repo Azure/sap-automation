@@ -149,6 +149,26 @@ resource "azurerm_linux_virtual_machine" "observer" {
 
 }
 
+resource "azurerm_virtual_machine_extension" "aad_login_observer_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login ? length(azurerm_linux_virtual_machine.observer) : 0
+  virtual_machine_id                   = azurerm_linux_virtual_machine.observer[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_observer_win" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login ? length(azurerm_windows_virtual_machine.observer) : 0
+  virtual_machine_id                   = azurerm_windows_virtual_machine.observer[count.index].id
+  name                                 = "AADLoginForWindows"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADLoginForWindows"
+  type_handler_version                 = "2.2"
+}
+
 # Create the Windows Application VM(s)
 resource "azurerm_windows_virtual_machine" "observer" {
   provider                             = azurerm.main
