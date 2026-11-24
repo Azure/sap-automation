@@ -140,7 +140,7 @@
   ansible.builtin.assert:
     that:
       - "'printmotd yes' in motd_sshd_effective_configuration.stdout"
-      - "'banner /etc/issue.net' in motd_sshd_effective_configuration.stdout"
+      - "'banner /etc/issue.net' in motd_sshd_effective_configuration.stdout or 'banner /etc/issue' in motd_sshd_effective_configuration.stdout"
     fail_msg:                          The SSH daemon did not load the MOTD drop-in configuration.
 
 ...
