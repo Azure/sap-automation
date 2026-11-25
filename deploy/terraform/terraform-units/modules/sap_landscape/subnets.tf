@@ -11,6 +11,7 @@ resource "azurerm_subnet" "admin" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_admin.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   service_endpoints                    = var.use_service_endpoint ? (
                                           ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -38,6 +39,8 @@ resource "azurerm_subnet" "db" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_db.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
+
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            ) : (
@@ -63,6 +66,7 @@ resource "azurerm_subnet" "app" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_app.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -89,6 +93,7 @@ resource "azurerm_subnet" "endpoint" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_endpoint.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -116,6 +121,7 @@ resource "azurerm_subnet" "web" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_web.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -144,6 +150,7 @@ resource "azurerm_subnet" "storage" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_storage.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
@@ -170,6 +177,10 @@ resource "azurerm_subnet" "anf" {
   resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_anf.prefix]
+
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
+
 
   delegation {
                name = "delegation"
@@ -200,6 +211,9 @@ resource "azurerm_subnet" "ams" {
   resource_group_name                  = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name                 = var.infrastructure.virtual_networks.sap.exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_ams.prefix]
+
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   delegation {
                name = "delegation"

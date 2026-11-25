@@ -283,6 +283,8 @@ namespace SDAFWebApp.Models
 
         public bool? peer_with_control_plane_vnet { get; set; } = true;
 
+        public bool? default_outbound_access_enabled { get; set; } = true;
+
         /*---------------------------------------------------------------------------8
         |                                                                            |
         |                       Admin subnet information                             |

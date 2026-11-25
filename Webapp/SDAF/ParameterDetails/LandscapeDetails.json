@@ -354,6 +354,15 @@
         "Display": 2
       },
       {
+        "Name": "default_outbound_access_enabled",
+        "Required": false,
+        "Description": "Boolean value indicating if default outbound access should be enabled for the deployment. When false, private subnets block outbound access to the internet",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "enable_firewall_for_keyvaults_and_storage",
         "Required": false,
         "Description": "Defines if access to the key vaults and storage accounts is restricted to the SAP and deployer VNets",
