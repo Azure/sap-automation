@@ -227,7 +227,7 @@ resource "azurerm_virtual_machine_extension" "aad_login_anchor_lnx" {
   provider                             = azurerm.main
   count                                = var.options.use_entra_login && local.deploy_anchor && (local.anchor_ostype == "LINUX") ? length(local.zones) : 0
   virtual_machine_id                   = azurerm_linux_virtual_machine.anchor[count.index].id
-  name                                 = "AADSSHLoginForLinux "
+  name                                 = "AADSSHLoginForLinux"
   publisher                            = "Microsoft.Azure.ActiveDirectory"
   type                                 = "AADSSHLoginForLinux"
   type_handler_version                 = "1.0"

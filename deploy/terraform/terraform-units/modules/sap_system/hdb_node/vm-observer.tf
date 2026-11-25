@@ -177,7 +177,7 @@ resource "azurerm_virtual_machine_extension" "aad_login_observer_lnx" {
                                            1) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.observer[count.index].id
-  name                                 = "AADSSHLoginForLinux "
+  name                                 = "AADSSHLoginForLinux"
   publisher                            = "Microsoft.Azure.ActiveDirectory"
   type                                 = "AADSSHLoginForLinux"
   type_handler_version                 = "1.0"

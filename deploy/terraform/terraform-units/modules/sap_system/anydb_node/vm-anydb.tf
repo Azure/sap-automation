@@ -806,7 +806,7 @@ resource "azurerm_virtual_machine_extension" "aad_login_db_lnx" {
   provider                             = azurerm.main
   count                                = var.options.use_entra_login ? length(azurerm_linux_virtual_machine.dbserver) : 0
   virtual_machine_id                   = azurerm_linux_virtual_machine.dbserver[count.index].id
-  name                                 = "AADSSHLoginForLinux "
+  name                                 = "AADSSHLoginForLinux"
   publisher                            = "Microsoft.Azure.ActiveDirectory"
   type                                 = "AADSSHLoginForLinux"
   type_handler_version                 = "1.0"
