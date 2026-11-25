@@ -756,6 +756,9 @@ $$use_loadbalancers_for_standalone_deployments$$
 $$use_private_endpoint$$
 
 
+# Boolean value indicating if default outbound access should be enabled for the deployment. When false, private subnets block outbound access to the internet"
+$$default_outbound_access_enabled$$
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #

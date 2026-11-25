@@ -353,6 +353,15 @@
         "Display": 2
       },
       {
+        "Name": "default_outbound_access_enabled",
+        "Required": false,
+        "Description": "Boolean value indicating if default outbound access should be enabled for the deployment. When false, private subnets block outbound access to the internet",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "shared_access_key_enabled",
         "Required": false,
         "Description": "Storage account authorization using Shared Access Key.",
