@@ -4,7 +4,6 @@
 using SDAFWebApp.Models;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,10 +32,10 @@ namespace SDAFWebApp.Services
             }
 
             List<AppFile> files = [];
-            BlobContainerClient containerClient = await blobContainerClient.Value;
-            await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
+            TableClient tableClient = await client.Value;
+            await foreach (AppFileEntity fileEntity in tableClient.QueryAsync<AppFileEntity>(maxPerPage: n))
             {
-                files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
+                files.Add(new AppFile() { Id = fileEntity.RowKey });
                 if (files.Count == n)
                 {
                     break;
@@ -48,10 +47,10 @@ namespace SDAFWebApp.Services
         public async Task<List<AppFile>> GetAllAsync()
         {
             List<AppFile> files = [];
-            BlobContainerClient containerClient = await blobContainerClient.Value;
-            await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
+            TableClient tableClient = await client.Value;
+            await foreach (AppFileEntity fileEntity in tableClient.QueryAsync<AppFileEntity>())
             {
-                files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
+                files.Add(new AppFile() { Id = fileEntity.RowKey });
             }
             return files;
         }
@@ -59,10 +58,10 @@ namespace SDAFWebApp.Services
         public async Task<List<AppFile>> GetAllAsync(string partitionKey)
         {
             List<AppFile> files = [];
-            BlobContainerClient containerClient = await blobContainerClient.Value;
-            await foreach (BlobItem blobItem in containerClient.GetBlobsAsync())
+            TableClient tableClient = await client.Value;
+            await foreach (AppFileEntity fileEntity in tableClient.QueryAsync<AppFileEntity>(entity => entity.PartitionKey == partitionKey))
             {
-                files.Add(new AppFile() { Id = blobItem.Name, Content = blobItem.Properties.ContentHash });
+                files.Add(new AppFile() { Id = fileEntity.RowKey });
             }
             return files;
         }

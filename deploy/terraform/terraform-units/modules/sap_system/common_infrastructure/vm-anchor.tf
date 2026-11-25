@@ -122,7 +122,15 @@ resource "azurerm_linux_virtual_machine" "anchor" {
   additional_capabilities {
     ultra_ssd_enabled = local.enable_anchor_ultra[count.index]
   }
-
+  dynamic "identity"   {
+                       for_each = range((length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login) ? 1 : 0)
+                       content {
+                             type = var.options.use_entra_login ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
+                     }
   lifecycle {
     ignore_changes = [
       source_image_id
@@ -195,7 +203,15 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   additional_capabilities {
     ultra_ssd_enabled = local.enable_anchor_ultra[count.index]
   }
-
+  dynamic "identity"   {
+                       for_each = range((length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login) ? 1 : 0)
+                       content {
+                             type = var.options.use_entra_login ? (
+                                      length(var.application_tier.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.application_tier.user_assigned_identity_id) > 0 ? [var.application_tier.user_assigned_identity_id] : null
+                          }
+                     }
   lifecycle {
     ignore_changes = [
       source_image_id
@@ -203,4 +219,27 @@ resource "azurerm_windows_virtual_machine" "anchor" {
   }
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+
 }
+
+
+resource "azurerm_virtual_machine_extension" "aad_login_anchor_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login && local.deploy_anchor && (local.anchor_ostype == "LINUX") ? length(local.zones) : 0
+  virtual_machine_id                   = azurerm_linux_virtual_machine.anchor[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_anchor_win" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login && local.deploy_anchor && (local.anchor_ostype == "WINDOWS") ? length(local.zones) : 0
+  virtual_machine_id                   = azurerm_windows_virtual_machine.anchor[count.index].id
+  name                                 = "AADLoginForWindows"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADLoginForWindows"
+  type_handler_version                 = "2.2"
+}
+

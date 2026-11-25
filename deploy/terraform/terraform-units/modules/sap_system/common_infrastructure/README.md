@@ -63,6 +63,8 @@ No modules.
 | [azurerm_subnet_route_table_association.admin](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.db](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_virtual_machine_extension.aad_login_anchor_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_anchor_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_windows_virtual_machine.anchor](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/windows_virtual_machine) | resource |
 | [random_id.random_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_id.sapsystem](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |

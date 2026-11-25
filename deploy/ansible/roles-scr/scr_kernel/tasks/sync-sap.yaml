@@ -13,7 +13,8 @@
 ---
 # -------------------------------------+---------------------------------------8
 
-- debug:
+- name: "SCR Kernel Sync: Start SAP kernel synchronization"
+  ansible.builtin.debug:
     msg: >
       "SCR Kernel Sync: Starting synchronization of SAP Kernel files for SID {{ scr_dest_sid }}.
       This will compare the kernel files between the source and destination systems, identify

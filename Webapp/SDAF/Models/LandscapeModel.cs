@@ -250,6 +250,8 @@ namespace SDAFWebApp.Models
 
         public bool? deploy_defender_extension { get; set; } = false;
 
+        public bool? use_entra_login { get; set; } = false;
+
         /*---------------------------------------------------------------------------8
         |                                                                            |
         |                       Networking information                               |

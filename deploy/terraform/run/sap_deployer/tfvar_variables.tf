@@ -895,12 +895,21 @@ variable "use_spn"                                   {
 variable "deploy_monitoring_extension"          {
                                                   description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
                                                   default     = false
+                                                  type        = bool
                                                 }
 
 variable "deploy_defender_extension"            {
                                                   description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
                                                   default     = false
+                                                  type        = bool
                                                 }
+
+variable "use_entra_login"                      {
+                                                  description = "Boolean indicating whether to use Entra login for authentication"
+                                                  default     = false
+                                                  type        = bool
+}
+
 
 #########################################################################################
 #                                                                                       #

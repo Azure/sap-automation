@@ -549,4 +549,6 @@ locals {
                                            0
                                          )
 
+  use_system_assigned_identity         = var.options.use_entra_login || (var.use_msi_for_clusters && var.database.high_availability)
+
 }

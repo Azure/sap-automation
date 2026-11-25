@@ -367,7 +367,7 @@ export TF_DATA_DIR="${directory}"
 
 if [ "${operation}" == "break_lease" ]; then
 
-	az storage blob lease break --account-name "${storage_account_name}" --container-name tfstate --name "${key}" --subscription "${subscription_id}"
+	az storage blob lease break --account-name "${storage_account_name}" --container-name tfstate --blob-name "${key}" --subscription "${subscription_id}"
 	return_value=$?
 	if [ 0 != $return_value ]; then
 		echo "Failed to break lease on blob: ${key}"
@@ -406,6 +406,9 @@ if [ 0 != $return_value ]; then
 	exit $return_value
 fi
 
+if [ -n "${control_plane_name}" ]; then
+	export TF_VAR_deployer_tfstate_key="${control_plane_name}-INFRASTRUCTURE.terraform.tfstate"
+fi
 
 if [ "${type}" == sap_system ] && [ "${operation}" == "import" ]; then
 	if [ -n "${workload_zone_name}" ]; then
@@ -446,8 +449,8 @@ fi
 
 shorter_name=$(echo "${moduleID}" | cut -d[ -f1)
 tf_resource=$(grep "${shorter_name}" resources.lst || true)
-echo "Result after grep: " "${tf_resource}"
 if [ "${operation}" == "import" ] || [ "${operation}" == "remove" ]; then
+	echo "Result after grep: " "${tf_resource}"
 	if [ -n "${tf_resource}" ]; then
 
 		echo "#########################################################################################"
@@ -472,8 +475,6 @@ if [ "${operation}" == "import" ] || [ "${operation}" == "remove" ]; then
 	fi
 fi
 
-rm resources.lst
-
 if [ "${operation}" == "import" ]; then
 
 	terraform -chdir="${module_dir}" import -var-file "${parameter_file}" "${moduleID}" "${resourceID}"
@@ -491,5 +492,8 @@ if [ "${operation}" == "import" ]; then
 		exit $return_value
 	fi
 fi
+
+rm resources.lst
+
 
 unset TF_DATA_DIR

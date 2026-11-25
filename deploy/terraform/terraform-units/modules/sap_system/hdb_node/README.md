@@ -61,6 +61,8 @@ No modules.
 | [azurerm_virtual_machine_data_disk_attachment.cluster_observer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.vm_dbnode_data_disk](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_extension.aad_login_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_observer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_extension_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [time_sleep.wait_for_private_endpoints](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |

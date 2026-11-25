@@ -136,6 +136,37 @@ resource "azurerm_linux_virtual_machine" "observer" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
 
+  dynamic "identity" {
+                       for_each = range(local.use_system_assigned_identity || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       content {
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                          }
+                     }
+
+
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_observer_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login ? length(azurerm_linux_virtual_machine.observer) : 0
+  virtual_machine_id                   = azurerm_linux_virtual_machine.observer[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_observer_win" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login ? length(azurerm_windows_virtual_machine.observer) : 0
+  virtual_machine_id                   = azurerm_windows_virtual_machine.observer[count.index].id
+  name                                 = "AADLoginForWindows"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADLoginForWindows"
+  type_handler_version                 = "2.2"
 }
 
 # Create the Windows Application VM(s)
@@ -203,6 +234,17 @@ resource "azurerm_windows_virtual_machine" "observer" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
+
+  dynamic "identity" {
+                       for_each = range(local.use_system_assigned_identity || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       content {
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                          }
+                     }
+
   lifecycle {
     ignore_changes = [
       source_image_id

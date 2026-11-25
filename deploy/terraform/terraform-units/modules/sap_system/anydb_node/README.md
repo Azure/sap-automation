@@ -44,6 +44,10 @@ No modules.
 | [azurerm_virtual_machine_data_disk_attachment.cluster](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.vm_disks](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_extension.aad_login_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_db_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_observer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_observer_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.configure_ansible](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_db_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_db_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |

@@ -79,6 +79,12 @@ No modules.
 | [azurerm_virtual_machine_data_disk_attachment.kdump](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
 | [azurerm_virtual_machine_data_disk_attachment.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_data_disk_attachment) | resource |
+| [azurerm_virtual_machine_extension.aad_login_app_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_app_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_scs_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_scs_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_web_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_web_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.configure_ansible_app](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.configure_ansible_scs](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.configure_ansible_web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |

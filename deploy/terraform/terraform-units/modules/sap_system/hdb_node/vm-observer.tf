@@ -134,11 +134,13 @@ resource "azurerm_linux_virtual_machine" "observer" {
                    }
 
   dynamic "identity" {
-                       for_each = range((var.use_msi_for_clusters && var.database.high_availability) || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       for_each = range(local.use_system_assigned_identity || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
                        content {
-                         type         = var.use_msi_for_clusters && length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : var.use_msi_for_clusters ? "SystemAssigned" : "UserAssigned"
-                         identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
-                       }
+                             type = local.use_system_assigned_identity ? (
+                                      length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+                                  ) : "UserAssigned"
+                             identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
+                          }
                      }
 
 }
@@ -167,4 +169,16 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster_observer" {
   lifecycle {
     create_before_destroy = false
   }
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_observer_lnx" {
+  provider                             = azurerm.main
+  count                                = var.use_observer && var.options.use_entra_login ? (
+                                           1) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.observer[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
 }

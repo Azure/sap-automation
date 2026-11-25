@@ -39,8 +39,13 @@
 # Index blob path: scr-runs/scr_global_index.json
 # Per-job blob:    scr-runs/job_<scr_job_id>/
 
-- ansible.builtin.import_tasks:         initialize_load.yaml
-- ansible.builtin.import_tasks:         initialize_abort_stale.yaml
-- ansible.builtin.import_tasks:         initialize_register.yaml
-- ansible.builtin.import_tasks:         initialize_update.yaml
-- ansible.builtin.import_tasks:         initialize_write.yaml
+- name:                                 "SCR Log Function - Load initialization state"
+  ansible.builtin.import_tasks:         initialize_load.yaml
+- name:                                 "SCR Log Function - Abort stale initialization"
+  ansible.builtin.import_tasks:         initialize_abort_stale.yaml
+- name:                                 "SCR Log Function - Register initialization"
+  ansible.builtin.import_tasks:         initialize_register.yaml
+- name:                                 "SCR Log Function - Update initialization state"
+  ansible.builtin.import_tasks:         initialize_update.yaml
+- name:                                 "SCR Log Function - Write initialization state"
+  ansible.builtin.import_tasks:         initialize_write.yaml

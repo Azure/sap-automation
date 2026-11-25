@@ -116,6 +116,7 @@ No modules.
 | [azurerm_subnet_network_security_group_association.associate_nsg_mgmt](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_subnet_network_security_group_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_network_security_group_association) | resource |
 | [azurerm_user_assigned_identity.deployer](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/user_assigned_identity) | resource |
+| [azurerm_virtual_machine_extension.aad_login_web_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.configure](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_deployer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_extension_deployer_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |

@@ -166,6 +166,9 @@ No modules.
 | [azurerm_subnet_route_table_association.endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.iscsi](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
 | [azurerm_subnet_route_table_association.web](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/subnet_route_table_association) | resource |
+| [azurerm_virtual_machine_extension.aad_login_iscsi_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_utility_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
+| [azurerm_virtual_machine_extension.aad_login_utility_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_iscsi_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_utility_lnx](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |
 | [azurerm_virtual_machine_extension.monitoring_defender_utility_win](https://registry.terraform.io/providers/hashicorp/azurerm/4.81.0/docs/resources/virtual_machine_extension) | resource |

@@ -248,9 +248,9 @@ resource "azurerm_linux_virtual_machine" "web" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
   dynamic "identity"   {
-                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login ? 1 : 0)
                          content {
-                                   type         = "UserAssigned"
+                                   type         = var.options.use_entra_login ? "UserAssigned,SystemAssigned" : "UserAssigned"
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
@@ -392,9 +392,9 @@ resource "azurerm_windows_virtual_machine" "web" {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
   dynamic "identity"   {
-                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 ? 1 : 0)
+                         for_each = range(length(var.application_tier.user_assigned_identity_id) > 0 || var.options.use_entra_login ? 1 : 0)
                          content {
-                                   type         = "UserAssigned"
+                                   type         = var.options.use_entra_login ? "UserAssigned,SystemAssigned" : "UserAssigned"
                                    identity_ids = [var.application_tier.user_assigned_identity_id]
                                  }
                        }
@@ -644,7 +644,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_web_win" {
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_web_lnx" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.scs_os.os_type) == "LINUX" ? (
+  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
                                            local.webdispatcher_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_linux_virtual_machine.web[count.index].id
@@ -666,7 +666,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_web_lnx" {
 
 resource "azurerm_virtual_machine_extension" "monitoring_defender_web_win" {
   provider                             = azurerm.main
-  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
+  count                                = var.infrastructure.deploy_defender_extension  && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
                                            local.webdispatcher_count) : (
                                            0                                           )
   virtual_machine_id                   = azurerm_windows_virtual_machine.web[count.index].id
@@ -685,3 +685,28 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_web_win" {
                                             }
                                           )
 }
+
+resource "azurerm_virtual_machine_extension" "aad_login_web_lnx" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
+                                           local.webdispatcher_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.web[count.index].id
+  name                                 = "AADSSHLoginForLinux"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADSSHLoginForLinux"
+  type_handler_version                 = "1.0"
+}
+
+resource "azurerm_virtual_machine_extension" "aad_login_web_win" {
+  provider                             = azurerm.main
+  count                                = var.options.use_entra_login  && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
+                                           local.webdispatcher_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.web[count.index].id
+  name                                 = "AADLoginForWindows"
+  publisher                            = "Microsoft.Azure.ActiveDirectory"
+  type                                 = "AADLoginForWindows"
+  type_handler_version                 = "2.2"
+}
+

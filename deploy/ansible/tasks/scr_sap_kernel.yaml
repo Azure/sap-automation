@@ -4,25 +4,25 @@
 #
 # -------------------------------------+---------------------------------------8
 - name:                             "Source - Inventory SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "inventory"                                                 #
     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     sapsid:                         "{{ scr_source_sid }}"                                      # SID
-  when:                             
+  when:
     - (sapsid | upper + '_PAS') in vars['group_names'] or
       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
 
 - name:                             "Destination - Inventory SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "inventory"                                                 #
     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     sapsid:                         "{{ scr_dest_sid }}"                                        # SID
-  when:                             
+  when:
     - (sapsid | upper + '_PAS') in vars['group_names'] or
       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
 
@@ -44,7 +44,7 @@
 #
 # -------------------------------------+---------------------------------------8
 - name:                             "Compare SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "compare"                                                   #
@@ -69,12 +69,13 @@
 #
 # -------------------------------------+---------------------------------------8
 - name:                             "Source - Archive SAP Kernel Files for SID"
-  include_role:
+  ansible.builtin.include_role:
     name:                           roles-scr/scr_kernel
   vars:
     function:                       "archive"                                                   #
     kernel:                         "sap"                                                       # sap or db (hana, oracle, etc.)
     sapsid:                         "{{ scr_source_sid }}"                                      # SID
-  when:                             
+  when:
     - (sapsid | upper + '_PAS') in vars['group_names'] or
       (sapsid | upper + '_DB')  in vars['group_names']                                          # source or destination groups
+
