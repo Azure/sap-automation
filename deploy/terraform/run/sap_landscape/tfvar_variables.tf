@@ -212,6 +212,13 @@ variable "peer_with_control_plane_vnet"         {
                                                   default     = true
                                                 }
 
+variable "default_outbound_access_enabled"      {
+                                                  description = "Boolean value indicating if default outbound access should be enabled for the deployment. When false, private subnets block outbound access to the internet"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
+
 
 #######################################4#######################################8
 #                                                                              #

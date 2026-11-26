@@ -21,6 +21,11 @@ resource "azurerm_subnet" "subnet_sap_app" {
   resource_group_name                  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name                 = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_app.prefix]
+
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
+
+  service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
+
 }
 
 data "azurerm_subnet" "subnet_sap_app" {
@@ -61,6 +66,7 @@ resource "azurerm_subnet" "subnet_sap_web" {
   resource_group_name                  = split("/", var.landscape_tfstate.vnet_sap_arm_id)[4]
   virtual_network_name                 = split("/", var.landscape_tfstate.vnet_sap_arm_id)[8]
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_web.prefix]
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 }
 
 # Imports data of existing SAP web dispatcher subnet

@@ -27,6 +27,9 @@ resource "azurerm_subnet" "iscsi" {
                                          )
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_iscsi.prefix]
 
+  private_endpoint_network_policies    = var.private_endpoint_network_policies
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
+  
   service_endpoints                    = var.use_service_endpoint ? (
                                            ["Microsoft.Storage", "Microsoft.KeyVault"]
                                            ) : (

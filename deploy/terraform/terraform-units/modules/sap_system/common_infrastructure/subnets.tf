@@ -14,6 +14,7 @@ resource "azurerm_subnet" "admin" {
   resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_admin.prefix]
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
 }
 
@@ -48,6 +49,10 @@ resource "azurerm_subnet" "db" {
   resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_db.prefix]
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
+
+  service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
+
 }
 
 // Imports data of existing db subnet
@@ -85,6 +90,10 @@ resource "azurerm_subnet" "storage" {
   resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_storage.prefix]
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
+
+  service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
+
 }
 
 // Imports data of existing db subnet
@@ -105,6 +114,7 @@ resource "azurerm_subnet" "endpoint" {
   resource_group_name                  = data.azurerm_virtual_network.vnet_sap.resource_group_name
   virtual_network_name                 = data.azurerm_virtual_network.vnet_sap.name
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_endpoint.prefix]
+  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   service_endpoints                    = ["Microsoft.Storage", "Microsoft.KeyVault"]
 }

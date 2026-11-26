@@ -503,6 +503,8 @@ namespace SDAFWebApp.Models
 
         public bool? use_service_endpoint { get; set; }
 
+        public bool? default_outbound_access_enabled { get; set; } = true;
+
         public bool? register_endpoints_with_dns { get; set; } = true;
 
         public bool? shared_access_key_enabled { get; set; } = false;

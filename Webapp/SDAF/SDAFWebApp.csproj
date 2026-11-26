@@ -21,19 +21,19 @@
     <PackageReference Include="Azure.ResourceManager" Version="1.14.0" />
     <PackageReference Include="Azure.ResourceManager.Compute" Version="1.19.0" />
     <PackageReference Include="Azure.ResourceManager.KeyVault" Version="1.5.0" />
-    <PackageReference Include="Azure.ResourceManager.Network" Version="1.17.0" />
+    <PackageReference Include="Azure.ResourceManager.Network" Version="1.18.0-beta.3" />
     <PackageReference Include="Azure.ResourceManager.Resources" Version="1.12.0" />
     <PackageReference Include="Azure.ResourceManager.Storage" Version="1.9.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.30.2" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.31.0-beta.1" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.1" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="4.16.1" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.16.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.18.0" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.18.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="14.0.1-beta2" />
     <PackageReference Include="NuGet.Packaging" Version="8.0.0" />
     <PackageReference Include="Octokit" Version="14.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.1" />
     <PackageReference Include="System.Linq.Async" Version="7.0.1" />
-    <PackageReference Include="System.Runtime.Caching" Version="10.0.14" />
+    <PackageReference Include="System.Runtime.Caching" Version="11.0.0" />
   </ItemGroup>
 
 </Project>
