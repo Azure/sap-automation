@@ -199,12 +199,13 @@ variables {
   use_deployer     = false
 
   options                                      = {
-    zones                     = []
-    user_assigned_identity_id = ""
-    assign_permissions        = false
-    use_spn                   = false
-    spn_id                    = ""
-    use_entra_login           = false
+    zones                           = []
+    user_assigned_identity_id       = ""
+    assign_permissions              = false
+    use_spn                         = false
+    spn_id                          = ""
+    use_entra_login                 = false
+    default_outbound_access_enabled = false
   }
   additional_users_to_add_to_keyvault_policies = []
   keyvault_private_endpoint_id                 = ""

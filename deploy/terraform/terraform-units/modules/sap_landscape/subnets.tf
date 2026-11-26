@@ -179,8 +179,6 @@ resource "azurerm_subnet" "anf" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_anf.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
-  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
-
 
   delegation {
                name = "delegation"
@@ -213,7 +211,6 @@ resource "azurerm_subnet" "ams" {
   address_prefixes                     = [var.infrastructure.virtual_networks.sap.subnet_ams.prefix]
 
   private_endpoint_network_policies    = var.private_endpoint_network_policies
-  default_outbound_access_enabled      = var.options.default_outbound_access_enabled
 
   delegation {
                name = "delegation"
