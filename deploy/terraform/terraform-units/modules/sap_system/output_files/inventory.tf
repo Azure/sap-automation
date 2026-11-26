@@ -188,7 +188,7 @@ data "azurerm_storage_container" "tfvars" {
 resource "azurerm_storage_blob" "ansible_inventory_yaml" {
   provider               = azurerm.deployer
   depends_on             = [local_file.ansible_inventory_new_yml, data.azurerm_storage_container.tfvars]
-  name                   = format("SYSTEM/%s/%s_hosts.yaml", trimspace(var.naming.prefix.SDU), trimspace(var.sap_sid))
+  name                   = format("SYSTEM/%s-%s/%s_hosts.yaml", trimspace(var.inventory.workload_zone_name), trimspace(var.sap_sid), trimspace(var.sap_sid))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = local_file.ansible_inventory_new_yml.filename
@@ -197,17 +197,17 @@ resource "azurerm_storage_blob" "ansible_inventory_yaml" {
 resource "azurerm_storage_blob" "tfvarsfile" {
   provider               = azurerm.deployer
   depends_on             = [local_file.ansible_inventory_new_yml,data.azurerm_storage_container.tfvars]
-  name                   = format("SYSTEM/%s/%s.tfvars", trimspace(var.naming.prefix.SDU), trimspace(var.naming.prefix.SDU))
+  name                   = format("SYSTEM/%s-%s/%s-%s.tfvars", trimspace(var.inventory.workload_zone_name), trimspace(var.sap_sid), trimspace(var.inventory.workload_zone_name), trimspace(var.sap_sid))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
-  source                 = format("%s/%s.tfvars", path.cwd, trimspace(var.naming.prefix.SDU))
+  source                 = format("%s/%s-%s.tfvars", path.cwd, trimspace(var.inventory.workload_zone_name), trimspace(var.sap_sid))
 }
 
 resource "azurerm_storage_blob" "tfvars_state" {
   provider               = azurerm.deployer
   count                  = fileexists(format("%s/.terraform/terraform.tfstate", path.cwd)) ? 1 : 0
   depends_on             = [local_file.ansible_inventory_new_yml, data.azurerm_storage_container.tfvars]
-  name                   = format("SYSTEM/%s/.terraform/terraform.tfstate", trimspace(var.naming.prefix.SDU))
+  name                   = format("SYSTEM/%s-%s/.terraform/terraform.tfstate", trimspace(var.inventory.workload_zone_name), trimspace(var.sap_sid))
   storage_container_id   = data.azurerm_storage_container.tfvars.id
   type                   = "Block"
   source                 = format("%s/.terraform/terraform.tfstate", path.cwd)
